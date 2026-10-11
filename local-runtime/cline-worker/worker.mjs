@@ -121,8 +121,11 @@ function runCline(message, proxyPort, who) {
     const args = [`${message.trim().slice(0, 2000)} `, "--json", "--auto-approve", "true",
       "-t", String(CLINE_TIMEOUT_SECONDS), "-s", systemPrompt(proxyPort, who)];
     let out = "";
-    const child = spawn(CLINE_BIN, args, { stdio: ["ignore", "pipe", "pipe"], env: { ...process.env } });
-    const killer = setTimeout(() => child.kill("SIGKILL"), (CLINE_TIMEOUT_SECONDS + 20) * 1000);
+    // detached = own process group → timeout ฆ่าทั้งกลุ่ม (ลูกๆ ของ cline ด้วย)
+    const child = spawn(CLINE_BIN, args, { stdio: ["ignore", "pipe", "pipe"], env: { ...process.env }, detached: true });
+    const killer = setTimeout(() => {
+      try { process.kill(-child.pid, "SIGKILL"); } catch { try { child.kill("SIGKILL"); } catch { /* gone */ } }
+    }, (CLINE_TIMEOUT_SECONDS + 20) * 1000);
     child.stdout.on("data", (d) => { out += d.toString(); });
     child.on("error", (e) => { clearTimeout(killer); resolve({ error: `spawn: ${e.message}` }); });
     child.on("close", () => {
@@ -132,7 +135,7 @@ function runCline(message, proxyPort, who) {
         if (!line.trim().startsWith("{")) continue;
         try { const m = JSON.parse(line); if (m.type === "run_result" && typeof m.text === "string") text = m.text; } catch { /* partial */ }
       }
-      if (!text) return resolve({ error: "no run_result" });
+      if (!text) return resolve({ error: "no run_result (timeout or crash)" });
       const cleaned = text.replace(/```(?:json)?\s*/gi, "").trim();
       const start = cleaned.indexOf("{"), end = cleaned.lastIndexOf("}");
       try { resolve(JSON.parse(cleaned.slice(start, end + 1))); }
@@ -142,12 +145,23 @@ function runCline(message, proxyPort, who) {
 }
 
 async function postCallback(taskId, payload) {
-  const res = await fetch(CALLBACK_URL, {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-callback-secret": CALLBACK_SECRET },
-    body: JSON.stringify({ taskId, kind: CLAIM_WHERE, ...payload }),
-  });
-  return res.ok;
+  // DNA-000220: callback ต้อง retry และ failure ต้องชัดเจน — เดิม log "done"
+  // ทั้งที่ callback 401 → task ค้าง processing → cleanup มา fail ทีหลัง
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(CALLBACK_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-callback-secret": CALLBACK_SECRET },
+        body: JSON.stringify({ taskId, kind: CLAIM_WHERE, ...payload }),
+      });
+      if (res.ok) return true;
+      console.error(`[cline-worker] callback attempt ${attempt} -> HTTP ${res.status}`);
+    } catch (e) {
+      console.error(`[cline-worker] callback attempt ${attempt} error: ${e.message}`);
+    }
+    await new Promise((r) => setTimeout(r, 1500 * attempt));
+  }
+  return false;
 }
 
 async function executeTask(task) {
@@ -159,8 +173,12 @@ async function executeTask(task) {
   try {
     const prox = await startTaskProxy(task.session_cookie);
     if (!prox) throw new Error("proxy start failed");
-    const out = await runCline(task.input_text || "", prox.port, task?.trace?.context?.who || null);
-    prox.proxy.close();
+    let out;
+    try {
+      out = await runCline(task.input_text || "", prox.port, task?.trace?.context?.who || null);
+    } finally {
+      try { prox.proxy.close(); } catch { /* already closed */ }
+    }
     // clear the session cookie BEFORE callback (secret minimisation)
     await db.from("ai_tasks").update({ session_cookie: null }).eq("id", task.id);
     if (out.error) {
@@ -168,7 +186,12 @@ async function executeTask(task) {
       console.log(`[cline-worker] task ${task.id} failed: ${out.error} (${Date.now() - t0}ms)`);
       return;
     }
-    await postCallback(task.id, { result: { answer: out.answer ?? "", result: out.result ?? null, ask: out.ask ?? null, worker: WORKER_ID, durationMs: Date.now() - t0 } });
+    const delivered = await postCallback(task.id, { result: { answer: out.answer ?? "", result: out.result ?? null, ask: out.ask ?? null, worker: WORKER_ID, durationMs: Date.now() - t0 } });
+    if (!delivered) {
+      await db.from("ai_tasks").update({ status: "failed", error: "callback delivery failed after 3 attempts", processed_at: new Date().toISOString() }).eq("id", task.id);
+      console.error(`[cline-worker] task ${task.id} callback failed after retries (${Date.now() - t0}ms)`);
+      return;
+    }
     console.log(`[cline-worker] task ${task.id} done (${Date.now() - t0}ms, result=${out.result?.type ?? "text"})`);
   } catch (e) {
     await db.from("ai_tasks").update({ session_cookie: null, status: "failed", error: String(e.message).slice(0, 500), processed_at: new Date().toISOString() }).eq("id", task.id);
@@ -176,7 +199,20 @@ async function executeTask(task) {
   }
 }
 
+// DNA-000220: กัน tick ซ้อน (setInterval ทุก 8s ระหว่าง executeTask ยังวิ่ง =
+// เดิม claim หลายงานพร้อมกันได้) — หนึ่งงานต่อหนึ่งเวลาเท่านั้น
+let busy = false;
 async function main() {
+  if (busy) return;
+  busy = true;
+  try {
+    await mainInner();
+  } finally {
+    busy = false;
+  }
+}
+
+async function mainInner() {
   // stale processing cleanup (DNA-000219): container restart ระหว่าง cline ทำ
   // งานจะทิ้ง task ค้างสถานะ processing ตลอดกาล — fail ที่เกิน 8 นาทีเพื่อให้
   // ระบบเห็น error จริง (duplicate ยังถูกกันด้วย atomic claim เดิม)
