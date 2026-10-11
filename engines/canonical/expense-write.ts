@@ -27,6 +27,9 @@ import { recordCanonicalAudit } from "@/engines/canonical/audit";
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
+/** ช่องทางต้นทางของแถวค่าใช้จ่าย — vocabulary ปิด (writer-owned) · admin_manual = หน้าจอ Admin */
+const EXPENSE_SOURCES = new Set(["line_chat", "subscription_email_sync", "admin_manual"]);
+
 function requireAmount(amount: number): number {
   const a = Number(amount);
   if (!Number.isFinite(a) || a <= 0) {
@@ -53,6 +56,14 @@ export interface RecordCompanyExpenseInput {
   submitted_by_line_user_id?: string | null;
   submitted_by_name?: string | null;
   submitted_by_role?: string | null;
+  /** channel provenance — writer-owned allow-list (DB default 'line_chat' เมื่อไม่ส่ง):
+   * admin_manual = หน้าจอ Admin กรอกเอง · line_chat = ทีมส่งในแชต · subscription_email_sync = ระบบตรวจเมล */
+  source?: string | null;
+  /** evidence breakdown (มี column จริงตั้งแต่ 2026-07-31) — เก็บ as-is ไม่คำนวณเอง ไม่บวกเพิ่ม */
+  amount_pre_vat?: number | null;
+  vat_amount?: number | null;
+  tax_invoice_no?: string | null;
+  notes?: string | null;
   actor: string;
   provenance?: Record<string, unknown> | null;
 }
@@ -66,6 +77,10 @@ export async function recordCompanyExpense(input: RecordCompanyExpenseInput): Pr
   const amount = requireAmount(input.amount);
   const documentType = input.document_type?.trim();
   if (!documentType) throw new Error("EXPENSE_DOCUMENT_TYPE_REQUIRED: ต้องมีชนิดเอกสารค่าใช้จ่าย");
+  const source = input.source?.trim() || null;
+  if (source && !EXPENSE_SOURCES.has(source)) {
+    throw new Error(`EXPENSE_SOURCE_INVALID: source ต้องเป็นหนึ่งใน ${[...EXPENSE_SOURCES].join("/")} (ได้ ${source})`);
+  }
 
   const db = supabaseAdmin();
   const { data, error } = await db
@@ -79,6 +94,11 @@ export async function recordCompanyExpense(input: RecordCompanyExpenseInput): Pr
       submitted_by_line_user_id: input.submitted_by_line_user_id ?? null,
       submitted_by_name: input.submitted_by_name ?? null,
       submitted_by_role: input.submitted_by_role ?? null,
+      ...(source ? { source } : {}),
+      amount_pre_vat: input.amount_pre_vat ?? null,
+      vat_amount: input.vat_amount ?? null,
+      tax_invoice_no: input.tax_invoice_no ?? null,
+      notes: input.notes ?? null,
     })
     .select("id")
     .single();
@@ -94,6 +114,7 @@ export async function recordCompanyExpense(input: RecordCompanyExpenseInput): Pr
       vendor_name: input.vendor_name ?? null,
       receipt_document_id: input.receipt_document_id ?? null,
       submitted_by_role: input.submitted_by_role ?? null,
+      source: source ?? "line_chat",
       provenance: input.provenance ?? null,
     },
   });

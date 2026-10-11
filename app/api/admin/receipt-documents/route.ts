@@ -28,6 +28,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "ต้องระบุ document_type", code: "INBOUND_TYPE_REQUIRED" }, { status: 400 })
   }
 
+  // UNIFIED FINANCE ADMIN hardening (2026-10-11): ระบุคู่ค้าต้องเป็นบริษัท/บุคคล
+  // ที่มีอยู่จริง — กัน id ปลอมหลุดเข้าแถวหลักฐานแล้วไป fail ลึกกว่าเดิมตอนยืนยัน
+  const companyId =
+    typeof body.customer_company_id === "string" && body.customer_company_id.trim()
+      ? body.customer_company_id.trim()
+      : null
+  if (companyId) {
+    const { data: company } = await supabase().from("companies").select("id").eq("id", companyId).maybeSingle()
+    if (!company) {
+      return NextResponse.json(
+        { error: "ไม่พบบริษัท/บุคคลนี้ในระบบ — เลือกรายการที่มีอยู่เท่านั้น", code: "INBOUND_COMPANY_NOT_FOUND" },
+        { status: 400 },
+      )
+    }
+  }
+
   try {
     const created = await recordInboundSource({
       channel,
@@ -44,8 +60,15 @@ export async function POST(req: Request) {
       sender_account_number: body.sender_account_number ?? null,
       transaction_datetime: body.transaction_datetime ?? null,
       confidence: typeof body.confidence === "number" ? body.confidence : null,
-      customer_company_id: body.customer_company_id ?? null,
+      customer_company_id: companyId,
       provider_message_id: body.provider_message_id ?? null,
+      // UNIFIED FINANCE ADMIN (2026-10-11) — fields ที่ inbound writer
+      // รองรับอยู่แล้วแต่ route เคยไม่ส่งต่อ (หลักฐานบนเอกสารจริง:
+      // วันที่บนเอกสาร · เลขอ้างอิง · รายละเอียด · ชื่อผู้ขาย)
+      document_date: typeof body.document_date === "string" && body.document_date.trim() ? body.document_date.trim() : null,
+      reference_number: typeof body.reference_number === "string" && body.reference_number.trim() ? body.reference_number.trim() : null,
+      description: typeof body.description === "string" && body.description.trim() ? body.description.trim() : null,
+      vendor_name: typeof body.vendor_name === "string" && body.vendor_name.trim() ? body.vendor_name.trim() : null,
       actor: auth.email,
       provenance: { channel, received_via: "app:receipt-documents" },
     })
