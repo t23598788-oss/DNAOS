@@ -20,6 +20,7 @@ import { reflect, type ExecutionResult } from "@/cognitive/reflection";
 import { buildSituation } from "@/cognitive/situation";
 import { answerDocumentQuestion } from "@/engines/documents/qa";
 import { runOwnerRequestViaCline, type ClineWorkerTransport } from "@/app/api/chat/_lib/clineWorker";
+import { runOwnerRequestViaRailwayTaskQueue } from "@/app/api/chat/_lib/clineTaskQueue";
 import type { SituationInput } from "@/cognitive/state";
 
 const INTENT_CATALOG: Record<string, string[]> = {
@@ -637,6 +638,16 @@ type PipelineResult = BoardResponse | ({ sender: "ai"; type: "command" | "text";
 // เรียกก่อน classifyIntentViaAi/answerWithAi จุดเดียวกับที่ answerDocumentQuestion วางไว้
 // (owner mission 2026-10-10 deterministic document Q&A ก่อน AI — pattern เดิมเป๊ะ)
 // deps.dispatch = test seam (fixture) — ค่าเริ่มต้นคือ dispatcher ตัวจริงตัวเดิม
+// Cline with failover (DNA-000218): local binary ก่อน (Mac host) — ไม่มี
+// (Railway Business Core) → task queue ไป Railway cline-worker (ai_tasks เดิม)
+async function runOwnerClineWithFallback(
+  message: string,
+  opts: { sessionKey?: string | null; transport: ClineWorkerTransport; who?: string | null; whoId?: string | null },
+) {
+  const local = await runOwnerRequestViaCline(message, opts);
+  if (local) return local;
+  return await runOwnerRequestViaRailwayTaskQueue(message, opts).catch(() => null);
+}
 export async function answerCompanyInfoQuestion(
   message: string,
   deps: { dispatch?: typeof dispatchCommand; sessionKey?: string | null } = {},
@@ -847,7 +858,7 @@ async function runCognitiveCore(
     // fail-closed: Cline ไม่ตอบ → คำถามเดิมถูกส่งกลับเหมือนทุกพฤติกรรมก่อนหน้า
     if (workerTransport) {
       const clineMemory = getMemory(sessionKey);
-      const clineReply = await runOwnerRequestViaCline(message, {
+      const clineReply = await runOwnerClineWithFallback(message, {
         sessionKey,
         transport: workerTransport,
         who: clineMemory.who,
@@ -889,7 +900,7 @@ async function runCognitiveCore(
     // → เส้นทางเดิม (classifyIntentViaAi/answerWithAi/bridge/owner-runtime) ต่อตามเดิม
     if (workerTransport) {
       const clineMemory = getMemory(sessionKey);
-      const clineReply = await runOwnerRequestViaCline(message, {
+      const clineReply = await runOwnerClineWithFallback(message, {
         sessionKey,
         transport: workerTransport,
         who: clineMemory.who,
@@ -943,7 +954,7 @@ async function runCognitiveCore(
   // ตรง ๆ  board คือคำตอบที่ถูกต้องอยู่แล้ว ไม่ต้องส่งให้ Cline
   if (workerTransport && objective.type !== "workspace") {
     const clineMemory = getMemory(sessionKey);
-    const clineReply = await runOwnerRequestViaCline(message, {
+    const clineReply = await runOwnerClineWithFallback(message, {
       sessionKey,
       transport: workerTransport,
       who: clineMemory.who,

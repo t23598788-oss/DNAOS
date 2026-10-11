@@ -503,7 +503,11 @@ async function main() {
   await backfillMissingDocuments();
 
   const { data: tasks, error } = await db
-    .from("ai_tasks").select("*").eq("status", "pending").order("created_at", { ascending: true });
+    .from("ai_tasks").select("*").eq("status", "pending")
+    // RAILWAY NATIVE CLINE RUNTIME (DNA-000218): owner workspace tasks belong
+    // to the Railway cline-worker — this Mac watcher must never claim them
+    .neq("kind", "owner_cline_command")
+    .order("created_at", { ascending: true });
   if (error) {
     console.error(`[ai-task-watcher] ${new Date().toISOString()} query error: ${error.message}`);
     return;

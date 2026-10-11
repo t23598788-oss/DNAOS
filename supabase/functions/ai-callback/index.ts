@@ -59,6 +59,27 @@ Deno.serve(async (req: Request) => {
   const { taskId } = body
   const { data: task } = await supabase.from("ai_tasks").select("*").eq("id", taskId).maybeSingle()
   if (!task) return new Response("Task not found", { status: 404, headers: CORS })
+
+  // Railway-native Cline worker results (DNA-000218): owner workspace tasks are
+  // executed by the dna-os-cline-worker service and land here through the SAME
+  // shared-secret callback the Mac watcher uses — write result/status ONLY,
+  // never a LINE push (the requester is the Owner's Workspace, not a customer).
+  if (task.kind === "owner_cline_command") {
+    if (task.status !== "pending" && task.status !== "processing") {
+      return new Response(JSON.stringify({ ok: true, note: "already processed" }), { status: 200, headers: CORS })
+    }
+    const result = body.result ?? null
+    const failed = body.error ?? null
+    await supabase.from("ai_tasks").update({
+      status: failed ? "failed" : "done",
+      result: failed ? null : result,
+      error: failed ? String(failed).slice(0, 500) : null,
+      processed_at: new Date().toISOString(),
+      session_cookie: null,
+    }).eq("id", taskId)
+    return new Response(JSON.stringify({ ok: true, note: failed ? "failed" : "done" }), { status: 200, headers: CORS })
+  }
+
   if (task.status !== "pending") {
     return new Response(JSON.stringify({ ok: true, note: "already processed" }), { status: 200, headers: CORS })
   }

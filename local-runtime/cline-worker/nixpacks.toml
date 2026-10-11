@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["nodejs_22"]
+
+[phases.install]
+cmds = ["npm install", "npm install -g cline@3.0.62"]
+
+[start]
+cmd = "node worker.mjs"

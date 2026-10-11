@@ -32,6 +32,9 @@ export interface ClineWorkerTransport {
   /** port ของ local auth proxy (127.0.0.1) ที่ worker เปิดให้ Cline เรียกแทน —
    * cookie ไม่เคยออกจาก worker process */
   proxyPort?: number
+  /** owner auth user id — ใช้ผูก task ownership เมื่อส่งต่อให้ Railway
+   * cline-worker (DNA-000218) */
+  userId?: string | null
 }
 
 export interface ClineWorkerReply {

@@ -94,8 +94,9 @@ export async function POST(request: Request) {
       gatewayContext,
       // OWNER WORKSPACE AI TOOL INTEGRATION (2026-10-11): transport ให้ Cline
       // (ทำงานบนเครื่องที่มี cline binary — Mac เจ้าของ · ไม่มี binary อย่าง
-      // Railway → clineWorker fail-closed null ในไม่กี่ ms พฤติกรรมเดิมเหมือนเดิม)
-      { origin: new URL(request.url).origin, cookie: request.headers.get("cookie") },
+      // Railway → clineWorker fail-closed null ในไม่กี่ ms พฤติกรรมเดิมเหมือนเดิม
+      // DNA-000218: ไม่มี local binary → task queue ไป Railway cline-worker (ai_tasks)
+      { origin: new URL(request.url).origin, cookie: request.headers.get("cookie"), userId: auth.id },
     );
     // RESPONSE CONTRACT (owner 2026-09-25): แนบ result ทุกครั้ง — structured
     // (finance/document/timeline/table) มาจาก canonical reader จึง "แทนที่"
