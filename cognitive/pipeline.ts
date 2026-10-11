@@ -645,8 +645,15 @@ async function runOwnerClineWithFallback(
   opts: { sessionKey?: string | null; transport: ClineWorkerTransport; who?: string | null; whoId?: string | null },
 ) {
   const local = await runOwnerRequestViaCline(message, opts);
-  if (local) return local;
-  return await runOwnerRequestViaRailwayTaskQueue(message, opts).catch(() => null);
+  const reply = local ?? (await runOwnerRequestViaRailwayTaskQueue(message, opts).catch(() => null));
+  // DNA-000221: ตารางเอกสารจาก cline ใช้ title เทมเพลต "เอกสารล่าสุดของ <ชื่อ>" —
+  // เก็บ identity ลง memory (สัญญาเดิม newSession) เพื่อให้คำสั่งต่อเนื่อง
+  // ("แสดงเอกสารต้นฉบับของบริษัทนี้") มีบริบท ไม่ต้องถามซ้ำ
+  if (reply?.result?.type === "table" && !opts.who && opts.sessionKey) {
+    const m = /^(?:เอกสารล่าสุดของ|เอกสารของ)\s*(.+)$/.exec(reply.result.title ?? "");
+    if (m && m[1].trim().length > 1) newSession(m[1].trim(), opts.sessionKey, null);
+  }
+  return reply;
 }
 export async function answerCompanyInfoQuestion(
   message: string,
