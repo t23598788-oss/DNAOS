@@ -114,7 +114,11 @@ export async function POST(request: Request) {
         pipelineResponse.window_action ||
         pipelineResponse.screen_vision ||
         pipelineResponse.line_copilot ||
-        pipelineResponse.command,
+        pipelineResponse.command ||
+        // OWNER BUSINESS ROUTING FIX (2026-10-11): deterministic business Q&A
+        // (เช่น answerCompanyInfoQuestion) แนบ pulse_node มาด้วย — ชั้นนี้ตอบ
+        // แล้วจริง ห้ามส่งต่อให้ local AI bridge / owner-runtime เรียก AI อีกชั้น
+        pipelineResponse.pulse_node,
     );
     const capabilityAnswered = result.type !== "text" && result.type !== "error";
     // LOCAL AI intent bridge (LOCAL AI RUNTIME mission, 2026-10-11): เมื่อ

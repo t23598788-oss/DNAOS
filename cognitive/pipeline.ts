@@ -618,6 +618,93 @@ function classifyClientCommand(text: string): ClientDirective {
 
 type PipelineResult = BoardResponse | ({ sender: "ai"; type: "command" | "text"; text?: string; command?: string; navigate_url?: string } & ClientDirective);
 
+// ── Deterministic company-info routing (owner business routing fix, 2026-10-11) ──
+// คำสั่งอย่าง "เปิดข้อมูลบริษัท ช.ธวัชชัยการช่าง" / "ดูบริษัท X" / "แสดงข้อมูลบริษัท X"
+// เคยไม่มี matcher ตัวไหนใน INTENT_CATALOG/NAV_KEYWORDS จึงตกหลุม AI conversation
+// fallback (answerWithAi → resolver เลือก openai ที่มี key ค้าง → AI_GATEWAY_OPENAI_HTTP_429
+// บน production) — ทั้งที่ข้อมูลจริงอยู่ใน business readers เดิมครบแล้ว
+// (partner.find / partner.profile / partner.timeline ผ่าน canonical dispatcher)
+// ฟังก์ชันนี้: deterministic · READ-ONLY · ไม่เรียก AI Gateway ใด ๆ · ไม่ invent ข้อมูล —
+// เรียกก่อน classifyIntentViaAi/answerWithAi จุดเดียวกับที่ answerDocumentQuestion วางไว้
+// (owner mission 2026-10-10 deterministic document Q&A ก่อน AI — pattern เดิมเป๊ะ)
+// deps.dispatch = test seam (fixture) — ค่าเริ่มต้นคือ dispatcher ตัวจริงตัวเดิม
+export async function answerCompanyInfoQuestion(
+  message: string,
+  deps: { dispatch?: typeof dispatchCommand } = {},
+): Promise<{ sender: "ai"; type: "text"; text: string; pulse_node: string } | null> {
+  const dispatch = deps.dispatch ?? dispatchCommand;
+  // จับรูปแบบภาษาไทยของเจ้าของ: (verb ได้)? (ข้อมูล|โปรไฟล์)? (บริษัท|คู่ค้า|พาร์ทเนอร์) <ชื่อ>
+  const match = message
+    .trim()
+    .match(/^(?:(?:เปิด|ดู|ขอดู|แสดง|ขอ|ค้นหา|หา)\s*)?(?:(?:ข้อมูล|โปรไฟล์)\s*)?(?:บริษัท|คู่ค้า|พาร์ทเนอร์)\s*(?:ชื่อ)?[:：]?\s*(.+)$/);
+  if (!match) return null;
+  const name = match[1].replace(/\s*(?:หน่อย|ด้วย|นะ|ครับ|ค่ะ|คะ|ให้หน่อย|ด้วยครับ|ด้วยค่ะ)\s*$/g, "").trim();
+  // คำกลาง ๆ ที่ไม่ใช่ชื่อบริษัท → ไม่รับ (ปล่อยให้ path อื่นจัดการตามเดิม)
+  if (!name || /^(?:ทั้งหมด|ทุกราย|ทุกบริษัท|ทั้งหลาย)$/i.test(name)) return null;
+
+  const findResult = await dispatch("partner.find", { keyword: name }).catch(() => null);
+  const rows =
+    findResult?.ok && Array.isArray(findResult.data)
+      ? (findResult.data as { id?: string; name?: string }[])
+      : [];
+
+  if (rows.length === 0) {
+    // ไม่พบ = ตอบตรง ๆ ห้ามเดา ห้ามปล่อยไป AI (mission: explicit not-found)
+    return {
+      sender: "ai",
+      type: "text",
+      pulse_node: "module:cognitive/pipeline.answerCompanyInfoQuestion",
+      text: `ไม่พบบริษัท/คู่ค้าชื่อ "${name}" ในระบบครับ — ลองพิมพ์ชื่อให้ตรงกับที่บันทึกไว้ หรือดูรายการทั้งหมดที่หน้าคู่ค้า (/admin/partners) ครับ`,
+    };
+  }
+
+  const norm = (s: string) => s.trim().toLowerCase().replace(/\s+/g, " ");
+  const exact = rows.filter((r) => norm(String(r.name ?? "")) === norm(name));
+  const chosen = exact.length === 1 ? exact[0] : rows.length === 1 ? rows[0] : null;
+  if (!chosen?.id) {
+    // หลายราย = รายชื่อให้เลือก ห้ามเดารายแรก (owner rule: NEVER auto-pick)
+    const names = rows.slice(0, 10).map((r) => `• ${r.name ?? "-"}`).join("\n");
+    return {
+      sender: "ai",
+      type: "text",
+      pulse_node: "module:cognitive/pipeline.answerCompanyInfoQuestion",
+      text: `พบ ${rows.length} รายที่ตรงกับ "${name}" ครับ — ระบุชื่อเต็มเพื่อดูข้อมูล:\n${names}`,
+    };
+  }
+
+  const [profileResult, timelineDispatch] = await Promise.all([
+    dispatch("partner.profile", { partner_id: String(chosen.id) }).catch(() => null),
+    dispatch("partner.timeline", { partner_id: String(chosen.id) }).catch(() => null),
+  ]);
+  const profile =
+    profileResult?.ok && profileResult.data && typeof profileResult.data === "object"
+      ? (profileResult.data as Record<string, unknown>)
+      : {};
+  const timelineItems =
+    timelineDispatch?.ok && timelineDispatch.data && typeof timelineDispatch.data === "object"
+      ? ((timelineDispatch.data as { timeline?: { date?: string; title?: string; amount?: number | null }[] }).timeline ?? [])
+      : [];
+
+  const label = String(profile.name ?? chosen.name);
+  const lines: string[] = [`🏢 ${label}`];
+  const phone = String(profile.phone ?? "").trim();
+  const address = String(profile.address ?? "").trim();
+  const taxId = String(profile.tax_id ?? "").trim();
+  const typeLabel = String(profile.partner_type_label ?? "").trim();
+  if (typeLabel) lines.push(`ประเภท: ${typeLabel}`);
+  if (phone) lines.push(`📞 ${phone}`);
+  if (address) lines.push(`📍 ${address}`);
+  if (taxId) lines.push(`เลขประจำตัวผู้เสียภาษี: ${taxId}`);
+  lines.push(`กิจกรรม/เอกสารในระบบ: ${timelineItems.length} รายการ`);
+  for (const item of timelineItems.slice(0, 3)) {
+    const amount = typeof item.amount === "number" ? ` ${item.amount.toLocaleString("th-TH")} บาท` : "";
+    lines.push(`• ${item.date ?? "-"} — ${item.title ?? "-"}${amount}`);
+  }
+  lines.push("(อ่านจาก business readers เดิม: partner.find → partner.profile → partner.timeline — ไม่ผ่าน AI)");
+  return { sender: "ai", type: "text", pulse_node: "module:cognitive/pipeline.answerCompanyInfoQuestion", text: lines.join("\n") };
+}
+
+
 export async function runCognitivePipeline(
   message: string,
   contactContext?: string | null,
@@ -749,6 +836,13 @@ async function runCognitiveCore(
     // record อย่างเดียว และ null ทันทีถ้าไม่ใช่คำถามแนวนี้)
     const docAnswer = await answerDocumentQuestion(message);
     if (docAnswer) return { sender: "ai" as const, type: "text" as const, text: docAnswer };
+
+    // OWNER BUSINESS ROUTING FIX (2026-10-11): คำสั่งดูข้อมูลบริษัท/คู่ค้าแบบ
+    // ภาษาคน ("เปิดข้อมูลบริษัท ช.ธวัชชัยการช่าง") → business readers เดิม
+    // (partner.find/profile/timeline ผ่าน dispatcher) — deterministic, READ-ONLY,
+    // ไม่ผ่าน AI Gateway: เคยตกหลุม answerWithAi → openai 429 บน production
+    const companyAnswer = await answerCompanyInfoQuestion(message);
+    if (companyAnswer) return companyAnswer;
 
     // Real gap, owner-reported 2026-07-30 — see classifyIntentViaAi()'s own
     // comment: before just talking about the message, check whether it

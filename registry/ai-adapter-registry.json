@@ -241,7 +241,7 @@
         "intent.classify",
         "text.entity_extract"
       ],
-      "enabled": true,
+      "enabled": false,
       "priority": 30,
       "authorization": {
         "requirement": "credential",
@@ -259,7 +259,8 @@
       "execution": {
         "status": "gateway-adapter",
         "note": "fetch-based chat/completions adapter in services/ai/adapters.ts (owner mission 2026-10-10 LINE BUSINESS AI)"
-      }
+      },
+      "disabled_reason": "Owner order 2026-07-25 (เอา ChatGPT ออกจากระบบให้ถาวร) + live incident 2026-10-11: key ค้างอยู่บน Railway ทำให้ resolver เลือก openai เป็น adapter ตัวสุดท้ายของ conversation.answer/intent.classify → AI_GATEWAY_OPENAI_HTTP_429 บน owner command — consumer audit: LINE entity_extract ยังมี gemini (priority เท่า id น้อยกว่า), IDE workers ใช้ local ollama adapter, owner chat fail-closed ไป deterministic paths ตามเดิม"
     }
   ]
 }
