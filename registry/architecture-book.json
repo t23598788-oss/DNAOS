@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-11T04:20:23.591Z",
+  "generated_at": "2026-10-11T05:37:27.595Z",
   "version": 1,
   "nodes": [
     {
@@ -13248,6 +13248,7 @@
       "dependents": [
         "module:app/admin/partners/page.tsx",
         "module:app/api/admin/backup/route.ts",
+        "module:app/api/admin/company-expenses/route.ts",
         "module:app/api/admin/connectors/[id]/route.ts",
         "module:app/api/admin/connectors/_lib/connectRuntime.ts",
         "module:app/api/admin/connectors/discover/[slug]/route.ts",
@@ -13281,6 +13282,8 @@
         "module:app/api/admin/event-inbox/route.ts",
         "module:app/api/admin/finance-alerts/route.ts",
         "module:app/api/admin/finance-summary/route.ts",
+        "module:app/api/admin/finance/audit/route.ts",
+        "module:app/api/admin/finance/transactions/route.ts",
         "module:app/api/admin/ide/_lib/businessAcceptanceRuntime.ts",
         "module:app/api/admin/ide/_lib/canonicalJobTransportRuntime.ts",
         "module:app/api/admin/ide/_lib/jobRecoveryRuntime.ts",
@@ -13307,6 +13310,7 @@
         "module:app/api/admin/partners/[id]/line-messages/route.ts",
         "module:app/api/admin/partners/[id]/timeline/route.ts",
         "module:app/api/admin/partners/route.ts",
+        "module:app/api/admin/payables/route.ts",
         "module:app/api/admin/pits/[pitId]/materials/route.ts",
         "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
         "module:app/api/admin/pits/[pitId]/route.ts",
@@ -17910,6 +17914,7 @@
         "module:app/api/admin/backup/route.ts",
         "module:app/api/admin/capability-boxes/route.ts",
         "module:app/api/admin/capability-boxes/run/route.ts",
+        "module:app/api/admin/company-expenses/route.ts",
         "module:app/api/admin/connectors/[id]/enable/route.ts",
         "module:app/api/admin/connectors/[id]/route.ts",
         "module:app/api/admin/connectors/[id]/test/route.ts",
@@ -17948,6 +17953,8 @@
         "module:app/api/admin/event-inbox/route.ts",
         "module:app/api/admin/finance-alerts/route.ts",
         "module:app/api/admin/finance-summary/route.ts",
+        "module:app/api/admin/finance/audit/route.ts",
+        "module:app/api/admin/finance/transactions/route.ts",
         "module:app/api/admin/ide/artifact/[artifactId]/children/route.ts",
         "module:app/api/admin/ide/artifact/[artifactId]/evidence/route.ts",
         "module:app/api/admin/ide/artifact/[artifactId]/lineage/route.ts",
@@ -18135,6 +18142,7 @@
         "module:app/api/admin/partners/[id]/line-messages/route.ts",
         "module:app/api/admin/partners/[id]/timeline/route.ts",
         "module:app/api/admin/partners/route.ts",
+        "module:app/api/admin/payables/route.ts",
         "module:app/api/admin/pits/[pitId]/materials/route.ts",
         "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
         "module:app/api/admin/pits/[pitId]/route.ts",
@@ -18317,6 +18325,7 @@
         "module:app/api/admin/backup/route.ts",
         "module:app/api/admin/capability-boxes/route.ts",
         "module:app/api/admin/capability-boxes/run/route.ts",
+        "module:app/api/admin/company-expenses/route.ts",
         "module:app/api/admin/connectors/[id]/enable/route.ts",
         "module:app/api/admin/connectors/[id]/route.ts",
         "module:app/api/admin/connectors/[id]/test/route.ts",
@@ -18355,6 +18364,8 @@
         "module:app/api/admin/event-inbox/route.ts",
         "module:app/api/admin/finance-alerts/route.ts",
         "module:app/api/admin/finance-summary/route.ts",
+        "module:app/api/admin/finance/audit/route.ts",
+        "module:app/api/admin/finance/transactions/route.ts",
         "module:app/api/admin/ide/artifact/[artifactId]/children/route.ts",
         "module:app/api/admin/ide/artifact/[artifactId]/evidence/route.ts",
         "module:app/api/admin/ide/artifact/[artifactId]/lineage/route.ts",
@@ -18542,6 +18553,7 @@
         "module:app/api/admin/partners/[id]/line-messages/route.ts",
         "module:app/api/admin/partners/[id]/timeline/route.ts",
         "module:app/api/admin/partners/route.ts",
+        "module:app/api/admin/payables/route.ts",
         "module:app/api/admin/pits/[pitId]/materials/route.ts",
         "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
         "module:app/api/admin/pits/[pitId]/route.ts",
@@ -33860,13 +33872,13 @@
           "name": "POST",
           "kind": "function",
           "line_start": 15,
-          "line_end": 69
+          "line_end": 92
         },
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 80,
-          "line_end": 157
+          "line_start": 103,
+          "line_end": 180
         }
       ],
       "import_sites": [
@@ -34981,7 +34993,9 @@
       ],
       "status": "OK",
       "runtime_entry_point": true,
-      "internal_dependencies": [],
+      "internal_dependencies": [
+        "module:components/finance/FinanceWorkspace.tsx"
+      ],
       "dependents": [],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -34999,8 +35013,15 @@
         {
           "name": "FinancePage",
           "kind": "function",
-          "line_start": 98,
-          "line_end": 252
+          "line_start": 9,
+          "line_end": 11
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/components/finance/FinanceWorkspace",
+          "line": 3,
+          "resolved_target": "components/finance/FinanceWorkspace.tsx"
         }
       ]
     },
@@ -87358,6 +87379,8 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
+        "module:app/api/admin/company-expenses/route.ts",
+        "module:app/api/admin/payables/route.ts",
         "module:app/api/internal/connect/expense/route.ts"
       ],
       "data_tables": [
@@ -87379,56 +87402,56 @@
         {
           "name": "RecordCompanyExpenseInput",
           "kind": "interface",
-          "line_start": 44,
-          "line_end": 58
+          "line_start": 47,
+          "line_end": 69
         },
         {
           "name": "CompanyExpenseResult",
           "kind": "interface",
-          "line_start": 60,
-          "line_end": 62
+          "line_start": 71,
+          "line_end": 73
         },
         {
           "name": "recordCompanyExpense",
           "kind": "function",
-          "line_start": 64,
-          "line_end": 101
+          "line_start": 75,
+          "line_end": 122
         },
         {
           "name": "RequestPartnerPayableInput",
           "kind": "interface",
-          "line_start": 105,
-          "line_end": 115
+          "line_start": 126,
+          "line_end": 136
         },
         {
           "name": "PartnerPayableResult",
           "kind": "interface",
-          "line_start": 117,
-          "line_end": 119
+          "line_start": 138,
+          "line_end": 140
         },
         {
           "name": "requestPartnerPayable",
           "kind": "function",
-          "line_start": 121,
-          "line_end": 158
+          "line_start": 142,
+          "line_end": 179
         },
         {
           "name": "PayableTransitionTarget",
           "kind": "type",
-          "line_start": 160,
-          "line_end": 160
+          "line_start": 181,
+          "line_end": 181
         },
         {
           "name": "TransitionPartnerPayableInput",
           "kind": "interface",
-          "line_start": 169,
-          "line_end": 178
+          "line_start": 190,
+          "line_end": 199
         },
         {
           "name": "transitionPartnerPayable",
           "kind": "function",
-          "line_start": 180,
-          "line_end": 228
+          "line_start": 201,
+          "line_end": 249
         }
       ],
       "import_sites": [
@@ -92491,6 +92514,769 @@
           "line_end": 170
         }
       ]
+    },
+    {
+      "id": "module:scripts/finance-admin-ui-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/finance-admin-ui-test.ts",
+      "purpose_th": "Finance Admin UI contract test (UNIFIED FINANCE ADMIN mission, 2026-10-11)",
+      "exports": [
+        "FinancePage"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:services/finance/unified-list.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../services/finance/unified-list",
+          "line": 10,
+          "resolved_target": "services/finance/unified-list.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:components/finance/UnifiedListTab.tsx",
+      "type": "Module",
+      "layer": "components",
+      "name_en": "components/finance/UnifiedListTab.tsx",
+      "purpose_th": "UnifiedListTab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — รายการการเงิน",
+      "exports": [
+        "UnifiedListTab"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:components/finance/FinanceWorkspace.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "components",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "UnifiedListTab",
+          "kind": "function",
+          "line_start": 64,
+          "line_end": 144
+        }
+      ]
+    },
+    {
+      "id": "module:components/finance/SummaryTab.tsx",
+      "type": "Module",
+      "layer": "components",
+      "name_en": "components/finance/SummaryTab.tsx",
+      "purpose_th": "Finance Summary tab (เดิมคือหน้า /admin/finance ทั้งหน้า — owner request",
+      "exports": [
+        "SummaryTab"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:components/finance/FinanceWorkspace.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "components",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "SummaryTab",
+          "kind": "function",
+          "line_start": 96,
+          "line_end": 200
+        }
+      ]
+    },
+    {
+      "id": "module:components/finance/PayablesPanel.tsx",
+      "type": "Module",
+      "layer": "components",
+      "name_en": "components/finance/PayablesPanel.tsx",
+      "purpose_th": "PayablesPanel (UNIFIED FINANCE ADMIN mission, 2026-10-11) — คำขอจ่ายเงิน",
+      "exports": [
+        "PayablesPanel"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:components/finance/ExpenseEntryTab.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "components",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "PayablesPanel",
+          "kind": "function",
+          "line_start": 37,
+          "line_end": 172
+        }
+      ]
+    },
+    {
+      "id": "module:components/finance/IncomeEntryTab.tsx",
+      "type": "Module",
+      "layer": "components",
+      "name_en": "components/finance/IncomeEntryTab.tsx",
+      "purpose_th": "Income entry tab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — ฟอร์มกรอกเงิน",
+      "exports": [
+        "IncomeEntryTab"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:components/finance/FinanceWorkspace.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "components",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "IncomeEntryTab",
+          "kind": "function",
+          "line_start": 23,
+          "line_end": 193
+        }
+      ]
+    },
+    {
+      "id": "module:components/finance/FinanceWorkspace.tsx",
+      "type": "Module",
+      "layer": "components",
+      "name_en": "components/finance/FinanceWorkspace.tsx",
+      "purpose_th": "FinanceWorkspace (UNIFIED FINANCE ADMIN mission, 2026-10-11) — หน้าจอการเงิน",
+      "exports": [
+        "FinanceWorkspace"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:components/finance/AuditTab.tsx",
+        "module:components/finance/DocumentsTab.tsx",
+        "module:components/finance/ExpenseEntryTab.tsx",
+        "module:components/finance/IncomeEntryTab.tsx",
+        "module:components/finance/SummaryTab.tsx",
+        "module:components/finance/UnifiedListTab.tsx"
+      ],
+      "dependents": [
+        "module:app/admin/finance/page.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "components",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "FinanceWorkspace",
+          "kind": "function",
+          "line_start": 33,
+          "line_end": 67
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./SummaryTab",
+          "line": 4,
+          "resolved_target": "components/finance/SummaryTab.tsx"
+        },
+        {
+          "specifier": "./IncomeEntryTab",
+          "line": 5,
+          "resolved_target": "components/finance/IncomeEntryTab.tsx"
+        },
+        {
+          "specifier": "./ExpenseEntryTab",
+          "line": 6,
+          "resolved_target": "components/finance/ExpenseEntryTab.tsx"
+        },
+        {
+          "specifier": "./UnifiedListTab",
+          "line": 7,
+          "resolved_target": "components/finance/UnifiedListTab.tsx"
+        },
+        {
+          "specifier": "./DocumentsTab",
+          "line": 8,
+          "resolved_target": "components/finance/DocumentsTab.tsx"
+        },
+        {
+          "specifier": "./AuditTab",
+          "line": 9,
+          "resolved_target": "components/finance/AuditTab.tsx"
+        }
+      ]
+    },
+    {
+      "id": "module:components/finance/ExpenseEntryTab.tsx",
+      "type": "Module",
+      "layer": "components",
+      "name_en": "components/finance/ExpenseEntryTab.tsx",
+      "purpose_th": "Expense entry tab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — ฟอร์มกรอก",
+      "exports": [
+        "ExpenseEntryTab"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:components/finance/PayablesPanel.tsx"
+      ],
+      "dependents": [
+        "module:components/finance/FinanceWorkspace.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "components",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ExpenseEntryTab",
+          "kind": "function",
+          "line_start": 32,
+          "line_end": 203
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./PayablesPanel",
+          "line": 4,
+          "resolved_target": "components/finance/PayablesPanel.tsx"
+        }
+      ]
+    },
+    {
+      "id": "module:components/finance/DocumentsTab.tsx",
+      "type": "Module",
+      "layer": "components",
+      "name_en": "components/finance/DocumentsTab.tsx",
+      "purpose_th": "DocumentsTab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — เอกสารการเงิน",
+      "exports": [
+        "DocumentsTab"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:components/finance/FinanceWorkspace.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "components",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "DocumentsTab",
+          "kind": "function",
+          "line_start": 47,
+          "line_end": 92
+        }
+      ]
+    },
+    {
+      "id": "module:components/finance/AuditTab.tsx",
+      "type": "Module",
+      "layer": "components",
+      "name_en": "components/finance/AuditTab.tsx",
+      "purpose_th": "AuditTab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — ประวัติการดำเนินงาน",
+      "exports": [
+        "AuditTab"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:components/finance/FinanceWorkspace.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "components",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "AuditTab",
+          "kind": "function",
+          "line_start": 19,
+          "line_end": 48
+        }
+      ]
+    },
+    {
+      "id": "module:services/finance/unified-list.ts",
+      "type": "Module",
+      "layer": "services",
+      "name_en": "services/finance/unified-list.ts",
+      "purpose_th": "Unified financial list model (UNIFIED FINANCE ADMIN mission, 2026-10-11).",
+      "exports": [
+        "AllocationInput",
+        "ExpenseInput",
+        "IncomeEvidenceInput",
+        "PayableInput",
+        "UnifiedDirection",
+        "UnifiedFilters",
+        "UnifiedKind",
+        "UnifiedRow",
+        "applyUnifiedFilters",
+        "normalizeAllocation",
+        "normalizeExpense",
+        "normalizeIncomeEvidence",
+        "normalizePayable"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/api/admin/finance/transactions/route.ts",
+        "module:scripts/finance-admin-ui-test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "services",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "UnifiedDirection",
+          "kind": "type",
+          "line_start": 11,
+          "line_end": 11
+        },
+        {
+          "name": "UnifiedKind",
+          "kind": "type",
+          "line_start": 12,
+          "line_end": 12
+        },
+        {
+          "name": "UnifiedRow",
+          "kind": "interface",
+          "line_start": 14,
+          "line_end": 32
+        },
+        {
+          "name": "IncomeEvidenceInput",
+          "kind": "interface",
+          "line_start": 34,
+          "line_end": 47
+        },
+        {
+          "name": "normalizeIncomeEvidence",
+          "kind": "function",
+          "line_start": 49,
+          "line_end": 64
+        },
+        {
+          "name": "AllocationInput",
+          "kind": "interface",
+          "line_start": 66,
+          "line_end": 74
+        },
+        {
+          "name": "normalizeAllocation",
+          "kind": "function",
+          "line_start": 76,
+          "line_end": 91
+        },
+        {
+          "name": "ExpenseInput",
+          "kind": "interface",
+          "line_start": 93,
+          "line_end": 104
+        },
+        {
+          "name": "normalizeExpense",
+          "kind": "function",
+          "line_start": 106,
+          "line_end": 121
+        },
+        {
+          "name": "PayableInput",
+          "kind": "interface",
+          "line_start": 123,
+          "line_end": 131
+        },
+        {
+          "name": "normalizePayable",
+          "kind": "function",
+          "line_start": 133,
+          "line_end": 148
+        },
+        {
+          "name": "UnifiedFilters",
+          "kind": "interface",
+          "line_start": 150,
+          "line_end": 159
+        },
+        {
+          "name": "applyUnifiedFilters",
+          "kind": "function",
+          "line_start": 161,
+          "line_end": 178
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/payables/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/payables/route.ts",
+      "purpose_th": "Admin payable workflow (UNIFIED FINANCE ADMIN mission, 2026-10-11) — คำขอจ่าย",
+      "exports": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:engines/canonical/expense-write.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "companies",
+        "partner_payable_requests"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "GET",
+          "kind": "function",
+          "line_start": 25,
+          "line_end": 45
+        },
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 47,
+          "line_end": 82
+        },
+        {
+          "name": "PATCH",
+          "kind": "function",
+          "line_start": 84,
+          "line_end": 126
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/auth/requireAuth",
+          "line": 2,
+          "resolved_target": "core/auth/requireAuth.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 3,
+          "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 4,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/expense-write",
+          "line": 5,
+          "resolved_target": "engines/canonical/expense-write.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/company-expenses/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/company-expenses/route.ts",
+      "purpose_th": "ชนิดเอกสารค่าใช้จ่ายที่ระบบมีจริงใน production (ค่าจาก company_expenses เดิม)",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:engines/canonical/expense-write.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "company_expenses"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "GET",
+          "kind": "function",
+          "line_start": 31,
+          "line_end": 59
+        },
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 61,
+          "line_end": 106
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/auth/requireAuth",
+          "line": 2,
+          "resolved_target": "core/auth/requireAuth.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 3,
+          "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 4,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/expense-write",
+          "line": 5,
+          "resolved_target": "engines/canonical/expense-write.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/finance/transactions/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/finance/transactions/route.ts",
+      "purpose_th": "Unified financial transaction list (UNIFIED FINANCE ADMIN mission, 2026-10-11):",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:services/finance/unified-list.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "company_expenses",
+        "partner_payable_requests",
+        "payment_allocations",
+        "receipt_documents"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "GET",
+          "kind": "function",
+          "line_start": 19,
+          "line_end": 139
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/auth/requireAuth",
+          "line": 2,
+          "resolved_target": "core/auth/requireAuth.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 3,
+          "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 4,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/services/finance/unified-list",
+          "line": 5,
+          "resolved_target": "services/finance/unified-list.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/finance/audit/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/finance/audit/route.ts",
+      "purpose_th": "Financial audit trail (UNIFIED FINANCE ADMIN mission, 2026-10-11) — อ่าน",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "audit_logs"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "GET",
+          "kind": "function",
+          "line_start": 25,
+          "line_end": 46
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/auth/requireAuth",
+          "line": 2,
+          "resolved_target": "core/auth/requireAuth.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 3,
+          "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 4,
+          "resolved_target": "services/supabase/queries.ts"
+        }
+      ]
     }
   ],
   "edges": [
@@ -93121,6 +93907,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/admin/company-expenses/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/admin/connectors/[id]/enable/route.ts",
       "label": "contains"
     },
@@ -93317,6 +94108,16 @@
     {
       "source": "layer:app",
       "target": "module:app/api/admin/finance-summary/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/finance/audit/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/finance/transactions/route.ts",
       "label": "contains"
     },
     {
@@ -94776,6 +95577,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/admin/payables/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
       "label": "contains"
     },
@@ -95777,6 +96583,46 @@
     {
       "source": "layer:components",
       "target": "module:components/documents/DocumentPreview.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:components",
+      "target": "module:components/finance/AuditTab.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:components",
+      "target": "module:components/finance/DocumentsTab.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:components",
+      "target": "module:components/finance/ExpenseEntryTab.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:components",
+      "target": "module:components/finance/FinanceWorkspace.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:components",
+      "target": "module:components/finance/IncomeEntryTab.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:components",
+      "target": "module:components/finance/PayablesPanel.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:components",
+      "target": "module:components/finance/SummaryTab.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:components",
+      "target": "module:components/finance/UnifiedListTab.tsx",
       "label": "contains"
     },
     {
@@ -98226,6 +99072,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/finance-admin-ui-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/finance-doc-intelligence-test.ts",
       "label": "contains"
     },
@@ -98812,6 +99663,11 @@
     {
       "source": "layer:services",
       "target": "module:services/data-boundary/dataBoundaryRuntime.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:services",
+      "target": "module:services/finance/unified-list.ts",
       "label": "contains"
     },
     {
@@ -99472,6 +100328,11 @@
     {
       "source": "module:app/admin/engine-explorer/page.tsx",
       "target": "module:registry/module-registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/admin/finance/page.tsx",
+      "target": "module:components/finance/FinanceWorkspace.tsx",
       "label": "imports"
     },
     {
@@ -100457,6 +101318,26 @@
     {
       "source": "module:app/api/admin/capability-boxes/run/route.ts",
       "target": "module:engines/validation/dispatcher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/company-expenses/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/company-expenses/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/company-expenses/route.ts",
+      "target": "module:engines/canonical/expense-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/company-expenses/route.ts",
+      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
@@ -101461,6 +102342,41 @@
     },
     {
       "source": "module:app/api/admin/finance-summary/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/finance/audit/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/finance/audit/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/finance/audit/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/finance/transactions/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/finance/transactions/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/finance/transactions/route.ts",
+      "target": "module:services/finance/unified-list.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/finance/transactions/route.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
@@ -106520,6 +107436,26 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/payables/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/payables/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/payables/route.ts",
+      "target": "module:engines/canonical/expense-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/payables/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/pits/[pitId]/materials/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -109797,6 +110733,41 @@
     {
       "source": "module:components/documents/DocumentPreview.tsx",
       "target": "module:engines/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/finance/ExpenseEntryTab.tsx",
+      "target": "module:components/finance/PayablesPanel.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/finance/FinanceWorkspace.tsx",
+      "target": "module:components/finance/AuditTab.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/finance/FinanceWorkspace.tsx",
+      "target": "module:components/finance/DocumentsTab.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/finance/FinanceWorkspace.tsx",
+      "target": "module:components/finance/ExpenseEntryTab.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/finance/FinanceWorkspace.tsx",
+      "target": "module:components/finance/IncomeEntryTab.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/finance/FinanceWorkspace.tsx",
+      "target": "module:components/finance/SummaryTab.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/finance/FinanceWorkspace.tsx",
+      "target": "module:components/finance/UnifiedListTab.tsx",
       "label": "imports"
     },
     {
@@ -114985,6 +115956,11 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/finance-admin-ui-test.ts",
+      "target": "module:services/finance/unified-list.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/finance-doc-intelligence-test.ts",
       "target": "module:engines/documents/qa.ts",
       "label": "imports"
@@ -117166,8 +118142,8 @@
     }
   ],
   "summary": {
-    "total": 1363,
-    "ok": 1363,
+    "total": 1377,
+    "ok": 1377,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

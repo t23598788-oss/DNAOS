@@ -16484,6 +16484,161 @@
         "releaseStatementClaim"
       ],
       "status": "active"
+    },
+    "scripts/finance-admin-ui-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Finance Admin UI contract test (UNIFIED FINANCE ADMIN mission, 2026-10-11)",
+      "purpose_th": "Finance Admin UI contract test (UNIFIED FINANCE ADMIN mission, 2026-10-11)",
+      "exports": [
+        "FinancePage"
+      ],
+      "status": "active"
+    },
+    "components/finance/UnifiedListTab.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "UnifiedListTab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — รายการการเงิน",
+      "purpose_th": "UnifiedListTab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — รายการการเงิน",
+      "exports": [
+        "UnifiedListTab"
+      ],
+      "status": "active"
+    },
+    "components/finance/SummaryTab.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Finance Summary tab (เดิมคือหน้า /admin/finance ทั้งหน้า — owner request",
+      "purpose_th": "Finance Summary tab (เดิมคือหน้า /admin/finance ทั้งหน้า — owner request",
+      "exports": [
+        "SummaryTab"
+      ],
+      "status": "active"
+    },
+    "components/finance/PayablesPanel.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "PayablesPanel (UNIFIED FINANCE ADMIN mission, 2026-10-11) — คำขอจ่ายเงิน",
+      "purpose_th": "PayablesPanel (UNIFIED FINANCE ADMIN mission, 2026-10-11) — คำขอจ่ายเงิน",
+      "exports": [
+        "PayablesPanel"
+      ],
+      "status": "active"
+    },
+    "components/finance/IncomeEntryTab.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Income entry tab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — ฟอร์มกรอกเงิน",
+      "purpose_th": "Income entry tab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — ฟอร์มกรอกเงิน",
+      "exports": [
+        "IncomeEntryTab"
+      ],
+      "status": "active"
+    },
+    "components/finance/FinanceWorkspace.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "FinanceWorkspace (UNIFIED FINANCE ADMIN mission, 2026-10-11) — หน้าจอการเงิน",
+      "purpose_th": "FinanceWorkspace (UNIFIED FINANCE ADMIN mission, 2026-10-11) — หน้าจอการเงิน",
+      "exports": [
+        "FinanceWorkspace"
+      ],
+      "status": "active"
+    },
+    "components/finance/ExpenseEntryTab.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Expense entry tab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — ฟอร์มกรอก",
+      "purpose_th": "Expense entry tab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — ฟอร์มกรอก",
+      "exports": [
+        "ExpenseEntryTab"
+      ],
+      "status": "active"
+    },
+    "components/finance/DocumentsTab.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "DocumentsTab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — เอกสารการเงิน",
+      "purpose_th": "DocumentsTab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — เอกสารการเงิน",
+      "exports": [
+        "DocumentsTab"
+      ],
+      "status": "active"
+    },
+    "components/finance/AuditTab.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "AuditTab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — ประวัติการดำเนินงาน",
+      "purpose_th": "AuditTab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — ประวัติการดำเนินงาน",
+      "exports": [
+        "AuditTab"
+      ],
+      "status": "active"
+    },
+    "services/finance/unified-list.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Unified financial list model (UNIFIED FINANCE ADMIN mission, 2026-10-11).",
+      "purpose_th": "Unified financial list model (UNIFIED FINANCE ADMIN mission, 2026-10-11).",
+      "exports": [
+        "AllocationInput",
+        "ExpenseInput",
+        "IncomeEvidenceInput",
+        "PayableInput",
+        "UnifiedDirection",
+        "UnifiedFilters",
+        "UnifiedKind",
+        "UnifiedRow",
+        "applyUnifiedFilters",
+        "normalizeAllocation",
+        "normalizeExpense",
+        "normalizeIncomeEvidence",
+        "normalizePayable"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/payables/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin payable workflow (UNIFIED FINANCE ADMIN mission, 2026-10-11) — คำขอจ่าย",
+      "purpose_th": "Admin payable workflow (UNIFIED FINANCE ADMIN mission, 2026-10-11) — คำขอจ่าย",
+      "exports": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/company-expenses/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "ชนิดเอกสารค่าใช้จ่ายที่ระบบมีจริงใน production (ค่าจาก company_expenses เดิม)",
+      "purpose_th": "ชนิดเอกสารค่าใช้จ่ายที่ระบบมีจริงใน production (ค่าจาก company_expenses เดิม)",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/finance/transactions/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Unified financial transaction list (UNIFIED FINANCE ADMIN mission, 2026-10-11):",
+      "purpose_th": "Unified financial transaction list (UNIFIED FINANCE ADMIN mission, 2026-10-11):",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/finance/audit/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Financial audit trail (UNIFIED FINANCE ADMIN mission, 2026-10-11) — อ่าน",
+      "purpose_th": "Financial audit trail (UNIFIED FINANCE ADMIN mission, 2026-10-11) — อ่าน",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
