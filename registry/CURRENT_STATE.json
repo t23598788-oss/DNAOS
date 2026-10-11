@@ -1,6 +1,6 @@
 {
   "protocol": "DNA OS Unified AI Runtime v1",
-  "change_id": "DNA-000217",
+  "change_id": "DNA-000218",
   "status": "READY",
   "current_task": "OWNER BUSINESS ROUTING FIX COMPLETE (2026-10-11): 'เปิดข้อมูลบริษัท ช.ธวัชชัยการช่าง' → deterministic answerCompanyInfoQuestion → partner.find/profile/timeline (37 real activities) — zero AI gateway calls, openai adapter disabled (owner 2026-07-25 order), regression 15/15, local+production E2E 3/3, deploy ae485b6c.",
   "current_file": "N/A — no file mid-edit by MANAGER-07 directly; TASK-051 (FCR-012 fix) dispatched to CODE_WORKER, in progress",

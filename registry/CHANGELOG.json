@@ -3524,5 +3524,24 @@
       "local-runtime/cline-workspace-ui-smoke.mjs (workspace UI inline render proof, screenshot local-runtime/qa-cline-ui/workspace-cline-result.png)"
     ],
     "summary": "RESTORE OWNER WORKSPACE AI TOOL INTEGRATION. INSPECT found the missing connection: AI workers could discover registry facts via /api/v1/mcp/* but had no authorized path to the canonical business dispatcher, and the installed cline CLI was SIGKILLed (broken linker signature, repaired via codesign ad-hoc). REPAIR: business.dispatch bridge + clineWorker with per-request local auth proxy (cookie never leaves worker process; cline sandbox strips env vars and prompt-based delivery would leak into cline logs — both tested and rejected). TEST (real authenticated sessions): local E2E 15/15 — manifest active, partner.find real row (1191a3c2 ช.ธวัชชัยการช่าง), invoice.create/partner.delete 403 fail-closed, unauth 401, document.list REC-20260503-323, document.preview mode=file with storage_path, deterministic company answer unchanged, docs-of-THIS-company TABLE with REAL document numbers via Cline (context reuse proven), history TIMELINE 15.4s, preview DOCUMENT 16.1s, no-OpenAI verification; workspace UI inline render smoke with screenshot. Gates: tsc, next build, census deno62/business24/monetary2 unchanged (financial writers untouched), finance-admin 56/56, payment-integrity 51/51, owner-routing 15/15. Constraints held: no new AI runtime/adapter/reader/writer, no admin page/UI changes, no phrase-by-phrase routing (one grammar-level nav guard), no direct OpenAI from Owner Workspace. Production (Railway) has no cline binary -> fail-closed null in ms, existing behavior intact."
+  },
+  {
+    "agent": "Cline",
+    "agent_id": "cline",
+    "change_id": "DNA-000218",
+    "date": "2026-10-11",
+    "session_id": "cline-dna218-railway-native-cline",
+    "files": [
+      "local-runtime/cline-worker/* (NEW Railway Linux worker: polls ai_tasks owner_cline_command, atomic pending->processing claim, cline headless + 127.0.0.1 cookie proxy, posts ai-callback)",
+      "app/api/chat/_lib/clineTaskQueue.ts (NEW enqueue+poll client; duplicate guard; cookie cleared after done)",
+      "cognitive/pipeline.ts (runOwnerClineWithFallback: local binary first -> task queue)",
+      "supabase/functions/ai-callback/index.ts (owner_cline_command branch: write result/status only, no LINE push)",
+      "supabase/migrations/20261011000001_ai_tasks_owner_cline.sql (kind/status check extension + owner/session/claim/expires columns)",
+      "local-runtime/ai-task-watcher.mjs (Mac watcher skips owner_cline_command)",
+      "app/api/chat/route.ts (+userId on transport)",
+      "registry/mcp-planned-manifest.json (v2)"
+    ],
+    "summary": "RAILWAY NATIVE CLINE RUNTIME. Linux cline 3.0.62 proven on Railway sandbox (completed, deepseek via cline account, $0.00018, 1.3s). Separate Railway service dna-os-cline-worker (project 1af5cafa, env 8/8 incl CLINE_SEED_PROVIDERS_JSON) reusing ai_tasks+ai-callback contracts; deadboard enqueues when local binary missing (userId-bound, duplicate guard) and polls synchronously; Mac watcher skips owner tasks; secrets never in prompts/logs (cookie injected server-side). Deploy-path FIX: production = INFRA project service dna-os-deadboard (c08254e4); earlier railway ups targeted duplicate project d1271290 auto-created by an old up — relinked; deployed DNA-000217 (2d5f14d0) + DNA-000218 (f6df7a97) with registry_version=2 canary proof; ai-callback edge deployed. BLOCKER at report: supabase db push hung before applying 20261011000001 (ai_tasks new columns absent) -> task-queue path fail-closed (insert error -> null -> existing behavior). Owner applies migration via SQL editor or completing push, then flow goes live with zero code change. Gates: tsc, build, census business24/monetary2 unchanged, owner-routing 15/15.",
+    "contract_changed": true
   }
 ]
