@@ -104,27 +104,33 @@ function startTaskProxy(cookie) {
 }
 
 // ── Cline execution (same documented CLI quirks as the Mac worker) ─────────
-function systemPrompt(proxyPort, who) {
-  return `คุณคือผู้ช่วย AI ของ DNA OS — เรียกข้อมูลจากระบบแล้วเรียบเรียงผลให้เจ้าของ${who ? ` (คู่ค้าที่กำลังคุยอยู่: ${who})` : ""}
-กติกาเหล็ก:
-1. เครื่องมือเดียว: POST http://127.0.0.1:${proxyPort}/api/v1/mcp/business/dispatch
-   body: {"command":"<read command>","payload":{...}} — ไม่ต้อง fetch manifest (รู้คำสั่งอยู่แล้ว)
-   คำสั่งอ่าน: partner.find, partner.list, partner.profile, partner.timeline, document.list, invoice.list, invoice.latest, invoice.find, debt.list, debt.all, draft.list, job.list, job.active, invoice.payments, expense.list, bank.statement, document.preview ({document_id, document_kind})
-2. ใช้ไม่เกิน 3 ครั้ง · ห้ามเดาข้อมูลใด ๆ ที่ไม่ได้มาจากผล dispatch · สถานะเอกสารแสดงตามจริง (void/ยกเลิก ห้ามปิดบัง)
-3. คำตอบสุดท้าย JSON เท่านั้น รูปทรง ChatResult ตรงเป๊ะ (รูปทรงเพี้ยน = ระบบจะทิ้ง result):
-   - รายการเอกสาร/ใบแจ้งหนี้ → TABLE: {"answer":"สรุปสั้น 1-2 ประโยค","result":{"type":"table","title":"เอกสารล่าสุดของ <ชื่อบริษัท>","table":{"columns":[{"key":"c1","label":"เลขที่เอกสาร"},{"key":"c2","label":"ประเภท"},{"key":"c3","label":"วันที่"},{"key":"c4","label":"ยอดรวม"},{"key":"c5","label":"สถานะ"},{"key":"c6","label":"อ้างอิง"}],"rows":[["INV-...","ใบแจ้งหนี้","2026-09-22","3,371.04","void","-"]]}},"ask":null}
-   - ข้อมูลบริษัท → SECTIONS: {"answer":"...","result":{"type":"sections","blocks":[{"kind":"fields","id":"company","title":"<ชื่อบริษัท>","fields":[{"kind":"field","id":"f1","label":"โทรศัพท์","value":"..."}]}]}}
-   - เปิดเอกสารต้นฉบับ: เรียก document.preview ก่อน — ถ้าคืน mode=file → {"type":"file","name":"<เลขที่เอกสาร>","path":"<storage_path>","mime":"<mime>","size":<size>} · ถ้า mode=summary → {"type":"document","title":"ตัวอย่างเอกสาร <เลขที่> (canonical preview ไม่ใช่ไฟล์ต้นฉบับ)","html":"<summary_html>"}
-   - ถามกำกวม → {"answer":"...","result":null,"ask":"คำถาม"}`;
+// ── DNA-000223 MINIMAL AI COMMAND INTERPRETATION ─────────────────────────────
+// บทของ AI (Cline/deepseek เดิม ไม่มี runtime ใหม่): แปลภาษาคนเป็น
+// {command, payload} เท่านั้น — ข้อมูลธุรกิจจริง/คำนวณ/จัดรูปผล ทั้งหมดอยู่
+// ฝั่ง DNA OS — canonical data ไม่เข้า prompt โมเดล (มีแค่ข้อความ+ชื่อคู่ค้า)
+const ALLOWED_COMMANDS = new Set([
+  "partner.find", "partner.list", "partner.profile", "partner.timeline",
+  "document.list", "document.boq", "document.po", "document.do", "document.receipt",
+  "invoice.list", "invoice.latest", "invoice.find", "invoice.items",
+  "debt.list", "debt.all", "debt.current", "debt.trackings",
+  "draft.list", "job.list", "job.active", "document.preview",
+  "invoice.payments", "expense.list", "bank.statement",
+]);
+
+function interpreterPrompt(who) {
+  return `คุณคือตัวแปลคำสั่งของ DNA OS — แปลคำสั่งภาษาคนเป็น JSON เท่านั้น ห้ามแต่งข้อมูลธุรกิจใด ๆ (คุณไม่มีข้อมูลและห้ามเดา)
+${who ? `บริบท: กำลังคุยกับคู่ค้า "${who}" — ถ้าคำสั่งบอกว่า "ของบริษัทนี้/ของคู่ค้านี้" ให้ใช้คู่ค้าชื่อนี้` : ""}
+คำสั่งที่แปลได้ (ใช้ชื่อนี้เป๊ะ): ${[...ALLOWED_COMMANDS].join(", ")}
+รูปผล: {"command":"<ชื่อคำสั่ง>","payload":{...},"ask":null} — payload ที่ใช้บ่อย: partner_id, keyword, document_id, document_kind ("invoice"|"standalone_document")
+กติกา: ถ้าข้อมูลไม่พอระบุคู่ค้า/เอกสาร (และบริบทก็ไม่มี) → {"command":null,"payload":null,"ask":"คำถามสั้น ๆ"} · ตอบ JSON เท่านั้น`;
 }
 
-function runCline(message, proxyPort, who) {
+// spawn เดิมทุกอย่าง (quirks: prompt แรก+trailing space, detached process group kill)
+function runCline(message, who) {
   return new Promise((resolve) => {
-    // quirk: Thai/single-token prompt must be FIRST arg + trailing space
     const args = [`${message.trim().slice(0, 2000)} `, "--json", "--auto-approve", "true",
-      "-t", String(CLINE_TIMEOUT_SECONDS), "-s", systemPrompt(proxyPort, who)];
+      "-t", String(CLINE_TIMEOUT_SECONDS), "-s", interpreterPrompt(who)];
     let out = "";
-    // detached = own process group → timeout ฆ่าทั้งกลุ่ม (ลูกๆ ของ cline ด้วย)
     const child = spawn(CLINE_BIN, args, { stdio: ["ignore", "pipe", "pipe"], env: { ...process.env }, detached: true });
     const killer = setTimeout(() => {
       try { process.kill(-child.pid, "SIGKILL"); } catch { try { child.kill("SIGKILL"); } catch { /* gone */ } }
@@ -133,38 +139,86 @@ function runCline(message, proxyPort, who) {
     child.on("error", (e) => { clearTimeout(killer); resolve({ error: `spawn: ${e.message}` }); });
     child.on("close", () => {
       clearTimeout(killer);
-      let text = null;
+      let text = null, usage = null, durationMs = 0, iterations = null;
       for (const line of out.split("\n")) {
         if (!line.trim().startsWith("{")) continue;
-        try { const m = JSON.parse(line); if (m.type === "run_result" && typeof m.text === "string") text = m.text; } catch { /* partial */ }
+        try {
+          const m = JSON.parse(line);
+          if (m.type === "run_result") {
+            if (typeof m.text === "string") text = m.text;
+            usage = m.usage ?? usage; durationMs = m.durationMs ?? durationMs; iterations = m.iterations ?? iterations;
+          }
+        } catch { /* partial */ }
       }
       if (!text) return resolve({ error: "no run_result (timeout or crash)" });
       const cleaned = text.replace(/```(?:json)?\s*/gi, "").trim();
-      const start = cleaned.indexOf("{"), end = cleaned.lastIndexOf("}");
-      try { resolve(JSON.parse(cleaned.slice(start, end + 1))); }
-      catch { resolve({ answer: text.slice(0, 2000), result: null }); }
+      const st = cleaned.indexOf("{"), en = cleaned.lastIndexOf("}");
+      let parsed = null;
+      try { parsed = JSON.parse(cleaned.slice(st, en + 1)); } catch { parsed = null; }
+      resolve({ parsed, usage, durationMs, iterations });
     });
   });
 }
 
-async function postCallback(taskId, payload) {
-  // DNA-000220: callback ต้อง retry และ failure ต้องชัดเจน — เดิม log "done"
-  // ทั้งที่ callback 401 → task ค้าง processing → cleanup มา fail ทีหลัง
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      const res = await fetch(CALLBACK_URL, {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-callback-secret": CALLBACK_SECRET },
-        body: JSON.stringify({ taskId, kind: CLAIM_WHERE, ...payload }),
-      });
-      if (res.ok) return true;
-      console.error(`[cline-worker] callback attempt ${attempt} -> HTTP ${res.status}`);
-    } catch (e) {
-      console.error(`[cline-worker] callback attempt ${attempt} error: ${e.message}`);
-    }
-    await new Promise((r) => setTimeout(r, 1500 * attempt));
+// DNA OS เรียกข้อมูลเอง — ผ่าน proxy allow-list เดิม (cookie ไม่แตะ prompt)
+async function dispatchVia(cookie, command, payload) {
+  const prox = await startTaskProxy(cookie);
+  if (!prox) throw new Error("proxy start failed");
+  try {
+    const res = await fetch(`http://127.0.0.1:${prox.port}/api/v1/mcp/business/dispatch`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ command, payload }),
+    });
+    return await res.json();
+  } finally {
+    try { prox.proxy.close(); } catch { /* closed */ }
   }
-  return false;
+}
+
+// จัดรูปผลฝั่ง DNA OS ด้วย ChatResult contract เดิมของ Workspace (ไม่ใช่งาน AI)
+function tableOf(title, columns, rows) {
+  return { type: "table", title, table: { columns: columns.map((c, i) => ({ key: "c" + i, label: c })), rows } };
+}
+function formatResult(command, data) {
+  if (!data || typeof data !== "object") return null;
+  if (command === "document.preview") {
+    if (data.mode === "file") return { type: "file", name: String(data.document_number ?? "ไฟล์"), path: String(data.storage_path), mime: String(data.mime_type ?? "application/octet-stream"), size: Number(data.size_bytes ?? 0) };
+    if (data.mode === "summary") return { type: "document", title: `ตัวอย่างเอกสาร ${data.document_number ?? ""} (canonical preview ไม่ใช่ไฟล์ต้นฉบับ)`, html: String(data.summary_html ?? "") };
+    return null;
+  }
+  if (command === "partner.timeline" && Array.isArray(data.timeline)) {
+    return { type: "timeline", title: "ประวัติการค้าขาย", summary: null, items: data.timeline.slice(0, 50).map((t) => ({ date: String(t.date ?? "-"), kind: "document", template_id: "generic", template_key: "generic", event_type: String(t.event_type ?? "info"), title: String(t.title ?? "-"), subtitle: null, amount: typeof t.amount === "number" ? t.amount : null, status: t.status ? String(t.status) : null })) };
+  }
+  if (command === "partner.profile") {
+    const fields = [];
+    const pairs = [["ประเภท", data.partner_type_label], ["โทรศัพท์", data.phone], ["ที่อยู่", data.address], ["ผู้ติดต่อ", data.contact_name]];
+    for (let i = 0; i < pairs.length; i++) {
+      if (pairs[i][1]) fields.push({ kind: "field", id: "f" + i, label: pairs[i][0], value: String(pairs[i][1]) });
+    }
+    const block = { kind: "fields", id: "company", title: String(data.name || "ข้อมูลคู่ค้า"), fields: fields };
+    return { type: "sections", blocks: [block] };
+  }
+  const arr = Object.values(data).find((v) => Array.isArray(v));
+  if (!Array.isArray(arr)) {
+    const fields = [];
+    const entries = Object.entries(data).filter(([, v]) => v === null || typeof v !== "object").slice(0, 12);
+    for (let i = 0; i < entries.length; i++) {
+      fields.push({ kind: "field", id: "f" + i, label: String(entries[i][0]), value: String(entries[i][1]) });
+    }
+    if (fields.length) {
+      const block = { kind: "fields", id: "summary", title: "สรุปข้อมูล", fields: fields };
+      return { type: "sections", blocks: [block] };
+    }
+    return null;
+  }
+  if (["invoice.payments", "expense.list", "bank.statement"].includes(command)) {
+    const cols = Object.keys(arr[0] ?? {}).filter((k) => typeof arr[0]?.[k] !== "object").slice(0, 8);
+    return tableOf(`${command} (${arr.length})`, cols.map((c) => c.replace(/_/g, " ")), arr.slice(0, 50).map((r) => cols.map((c) => (r[c] === null || r[c] === undefined ? "-" : String(r[c]).slice(0, 60)))));
+  }
+  return tableOf(`${command} (${arr.length} รายการ)`,
+    ["เลขที่เอกสาร/รหัส", "ประเภท", "วันที่", "ยอด", "สถานะ", "ชื่อ"],
+    arr.slice(0, 50).map((r) => [r.document_number ?? r.invoice_no ?? r.id, r.document_type ?? r.type, r.document_date ?? r.created_at, r.net_amount ?? r.total_amount ?? r.amount, r.status ?? "-", r.party_name ?? r.name ?? "-"].map((x) => (x === null || x === undefined ? "-" : String(x).slice(0, 60)))));
 }
 
 async function executeTask(task) {
@@ -172,30 +226,33 @@ async function executeTask(task) {
   const started = await db.from("ai_tasks")
     .update({ status: "processing", claimed_by: WORKER_ID, claimed_at: new Date().toISOString() })
     .eq("id", task.id).eq("status", "pending").select("id");
-  if (!started.data?.length) return; // someone else claimed — duplicate protection
+  if (!started.data?.length) return; // atomic claim = duplicate protection
+  const who = task?.trace?.context?.who || null;
   try {
-    const prox = await startTaskProxy(task.session_cookie);
-    if (!prox) throw new Error("proxy start failed");
-    let out;
-    try {
-      out = await runCline(task.input_text || "", prox.port, task?.trace?.context?.who || null);
-    } finally {
-      try { prox.proxy.close(); } catch { /* already closed */ }
+    const interp = await runCline(task.input_text || "", who);
+    if (interp.error) throw new Error(interp.error);
+    const parsed = interp.parsed ?? {};
+    const aiMs = Date.now() - t0;
+    console.log(`[cline-worker] task ${task.id} interpreted (${aiMs}ms, tokens=${interp.usage?.totalOutputTokens ?? "?"}, cmd=${parsed.command ?? "ask"})`);
+    const ask = typeof parsed.ask === "string" && parsed.ask ? parsed.ask : null;
+    const command = typeof parsed.command === "string" ? parsed.command : null;
+    if (ask || !command) {
+      await db.from("ai_tasks").update({ session_cookie: null }).eq("id", task.id);
+      const delivered = await postCallback(task.id, { result: { answer: "ขอรายละเอียดเพิ่มเติมครับ", result: null, ask, worker: WORKER_ID, durationMs: Date.now() - t0, ai_tokens: interp.usage?.totalOutputTokens ?? null } });
+      if (!delivered) throw new Error("callback delivery failed after 3 attempts");
+      console.log(`[cline-worker] task ${task.id} done-ask (${Date.now() - t0}ms)`);
+      return;
     }
-    // clear the session cookie BEFORE callback (secret minimisation)
+    if (!ALLOWED_COMMANDS.has(command)) throw new Error(`COMMAND_NOT_PERMITTED: ${command}`);
+    const dispatch = await dispatchVia(task.session_cookie, command, parsed.payload && typeof parsed.payload === "object" ? parsed.payload : {});
+    if (!dispatch.ok) throw new Error(`dispatch failed: ${String(dispatch.violations?.[0] ?? "unknown").slice(0, 200)}`);
+    const result = formatResult(command, dispatch.data);
+    const arrCount = result?.type === "table" ? result.table.rows.length : null;
+    const answer = arrCount !== null ? `พบ ${arrCount} รายการครับ` : "ดำเนินการเรียบร้อยครับ";
     await db.from("ai_tasks").update({ session_cookie: null }).eq("id", task.id);
-    if (out.error) {
-      await db.from("ai_tasks").update({ status: "failed", error: String(out.error).slice(0, 500), processed_at: new Date().toISOString() }).eq("id", task.id);
-      console.log(`[cline-worker] task ${task.id} failed: ${out.error} (${Date.now() - t0}ms)`);
-      return;
-    }
-    const delivered = await postCallback(task.id, { result: { answer: out.answer ?? "", result: out.result ?? null, ask: out.ask ?? null, worker: WORKER_ID, durationMs: Date.now() - t0 } });
-    if (!delivered) {
-      await db.from("ai_tasks").update({ status: "failed", error: "callback delivery failed after 3 attempts", processed_at: new Date().toISOString() }).eq("id", task.id);
-      console.error(`[cline-worker] task ${task.id} callback failed after retries (${Date.now() - t0}ms)`);
-      return;
-    }
-    console.log(`[cline-worker] task ${task.id} done (${Date.now() - t0}ms, result=${out.result?.type ?? "text"})`);
+    const delivered = await postCallback(task.id, { result: { answer, result, ask: null, worker: WORKER_ID, durationMs: Date.now() - t0, ai_ms: aiMs, ai_tokens: interp.usage?.totalOutputTokens ?? null, command } });
+    if (!delivered) throw new Error("callback delivery failed after 3 attempts");
+    console.log(`[cline-worker] task ${task.id} done (${Date.now() - t0}ms, ai=${aiMs}ms, cmd=${command}, result=${result?.type ?? "text"})`);
   } catch (e) {
     await db.from("ai_tasks").update({ session_cookie: null, status: "failed", error: String(e.message).slice(0, 500), processed_at: new Date().toISOString() }).eq("id", task.id);
     console.error(`[cline-worker] task ${task.id} error: ${e.message}`);
