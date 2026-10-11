@@ -5,4 +5,6 @@ nixPkgs = ["nodejs_22"]
 cmds = ["npm install", "npm install -g cline@3.0.62"]
 
 [start]
-cmd = "node worker.mjs"
+# runtime PATH ไม่รวม npm global bin ของ mise/nodejs_22 — เพิ่มก่อนเริ่ม
+# (verified defect จาก E2E production จริง task 181afc26: spawn cline ENOENT)
+cmd = "sh -c 'export PATH=\"$(npm prefix -g)/bin:$PATH\" && node worker.mjs'"
