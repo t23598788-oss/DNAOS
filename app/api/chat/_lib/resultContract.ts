@@ -372,6 +372,73 @@ async function timelineResult(_req: Request, name: string): Promise<Extract<Chat
   return { type: "timeline", title: `ประวัติ ${partner.name ?? name}`, summary: data.summary ?? null, items: data.timeline ?? [] };
 }
 
+// ── local AI command → canonical render paths เดิม ──────────────────────────
+// (LOCAL AI RUNTIME mission, 2026-10-11) — ไม่มี renderer/data path ใหม่:
+// finance/timeline/document ใช้ function เดิมของไฟล์นี้ · ที่เหลือวิ่งผ่าน
+// engines/validation/dispatcher (registry-gated read command) แล้วแสดงตาราง
+
+async function dispatcherTableResult(
+  command: string,
+  payload: Record<string, unknown>,
+): Promise<ChatResult | null> {
+  const r = await dispatch(command, payload);
+  if (!r.ok || !Array.isArray(r.data)) return null;
+  // ผลอ่านสำเร็จแต่ไม่มีรายการ → แสดงตารางว่างตรง ๆ (ซื่อสัตย์ว่าอ่านแล้วจริง)
+  // ไม่ใช่ null (กัน fallback ไปแปลงเป็นคำตอบอย่างอื่น)
+  if (r.data.length === 0) {
+    return {
+      type: "table",
+      title: `${command} — อ่านจาก canonical dispatcher (ไม่มีรายการ)`,
+      table: { columns: [{ key: "status", label: "สถานะ" }], rows: [["ไม่มีรายการ"]] },
+    };
+  }
+  const rows = (r.data as Record<string, unknown>[]).slice(0, 20);
+  const keys = Object.keys(rows[0])
+    .filter((k) => rows[0][k] === null || typeof rows[0][k] !== "object")
+    .slice(0, 6);
+  if (keys.length === 0) return null;
+  return {
+    type: "table",
+    title: `${command} — อ่านจาก canonical dispatcher (${r.data.length} รายการ)`,
+    table: {
+      columns: keys.map((k) => ({ key: k, label: k })),
+      rows: rows.map((row) => keys.map((k) => (row[k] === null || row[k] === undefined ? "—" : String(row[k])))),
+    },
+  };
+}
+
+async function localAiCommandResult(
+  req: Request,
+  message: string,
+  cmd: import("./localAiBridge").LocalAiCommand,
+): Promise<ChatResult | null> {
+  switch (cmd.action) {
+    case "finance.summary":
+      return financeResult(req);
+    case "partner.timeline": {
+      const name = String(cmd.payload.name ?? "").trim();
+      return name ? timelineResult(req, name) : null;
+    }
+    case "document.list": {
+      const valid: DocumentType[] = ["invoice", "receipt", "quotation", "purchase_order", "delivery_order", "payment_voucher", "debt_notice"];
+      const type = valid.find((v) => v === String(cmd.payload.type ?? "")) ?? null;
+      return type ? documentResult(req, type, message) : null;
+    }
+    case "job.active":
+      return dispatcherTableResult("job.active", {});
+    case "job.list":
+      return dispatcherTableResult("job.list", {});
+    case "draft.list":
+      return dispatcherTableResult("draft.list", {});
+    case "debt.list":
+      return dispatcherTableResult("debt.list", {});
+    case "invoice.latest":
+      return dispatcherTableResult("invoice.latest", {});
+    default:
+      return null;
+  }
+}
+
 // ── entry ───────────────────────────────────────────────────────────────────
 
 type PipelineLike = {
@@ -387,6 +454,7 @@ export async function buildChatResult(
   req: Request,
   message: string,
   pipeline: PipelineLike,
+  localCommand?: import("./localAiBridge").LocalAiCommand | null,
 ): Promise<ChatResult | null> {
   // Rule 72 preview — confirmation (html/flex = preview ตัวจริงจาก board เดิม)
   if (pipeline.confirm_token) {
@@ -406,6 +474,14 @@ export async function buildChatResult(
     ? sectionsToBlocks(pipeline.workspace.sections)
     : [];
   try {
+    // LOCAL AI intent bridge (LOCAL AI RUNTIME mission, 2026-10-11): command
+    // ที่ Local AI แปลได้มาก่อนหน้า เข้าสู่ path canonical เดิมตัวนี้โดยตรง
+    // (finance_result / timeline_result / document_result / dispatcher) —
+    // ไม่มี renderer ใหม่ ไม่มี data path ใหม่
+    if (localCommand) {
+      const r = await localAiCommandResult(req, message, localCommand);
+      if (r) return r;
+    }
     if (isFinanceIntent(message)) {
       const r = await financeResult(req);
       if (r) return r;

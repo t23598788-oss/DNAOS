@@ -10,6 +10,7 @@ import {
   resolveOwnerRuntimeInstruction,
   type OwnerRuntimeAnswer,
 } from "@/core/owner-runtime/client";
+import { translateLocalAiCommand } from "./_lib/localAiBridge";
 
 // ── owner runtime read path (BATCH 12, owner spec) ─────────────────────────
 // After the deterministic command/intent layers and the canonical capability
@@ -116,7 +117,32 @@ export async function POST(request: Request) {
         pipelineResponse.command,
     );
     const capabilityAnswered = result.type !== "text" && result.type !== "error";
-    if (!deterministicCue && !capabilityAnswered) {
+    // LOCAL AI intent bridge (LOCAL AI RUNTIME mission, 2026-10-11): เมื่อ
+    // deterministic layers + canonical capability ยังไม่ตอบ — Local AI (Ollama
+    // adapter ของ AI Gateway เดิม, capability intent.classify) แปลภาษาคนเป็น
+    // READ command จากรายการคำสั่งเดิม แล้วส่งกลับเข้า buildChatResult path
+    // canonical เดิม — AI ไม่เขียน DB ไม่ execute อะไรทั้งสิ้น · fail-closed:
+    // แปลไม่ได้/ไม่ configured = null → เดินต่อ owner-runtime เหมือนเดิมทุกประการ
+    let localAiCommandUsed: string | null = null;
+    // sections = board fallback (ข้อมูล workspace เดิม) ไม่ใช่คำตอบจริงของคำถาม
+    // — ปล่อยให้ Local AI แปลและแทนที่ได้ แต่ถ้า AI แปลไม่ได้ sections เดิมคงอยู่
+    const bridgeEligible =
+      !deterministicCue &&
+      (result.type === "text" || result.type === "error" || result.type === "sections");
+    if (bridgeEligible) {
+      const localCommand = await translateLocalAiCommand(rawMessage, {
+        ownerId: auth.id,
+        sessionId: memorySessionKey,
+      });
+      if (localCommand) {
+        const aiResult = await buildChatResult(request, rawMessage, response, localCommand);
+        if (aiResult && aiResult.type !== "text" && aiResult.type !== "error") {
+          result = aiResult;
+          localAiCommandUsed = localCommand.action;
+        }
+      }
+    }
+    if (!deterministicCue && !(result.type !== "text" && result.type !== "error")) {
       // identity_id comes ONLY from the authenticated session mapping —
       // never hardcoded, never the customer/relationship id (relationshipId
       // travels as its own context param), never a default. No mapping = no
@@ -148,6 +174,8 @@ export async function POST(request: Request) {
       ...(structured ? {} : navigateUrl ? { navigate_url: navigateUrl } : {}),
       text: structured ? "" : ownerTextOverride ?? response.text,
       result,
+      // LOCAL AI RUNTIME evidence: action ที่ Local AI แปลได้ (null = ไม่ผ่าน bridge)
+      ...(localAiCommandUsed ? { local_ai_command: localAiCommandUsed } : {}),
     });
   } catch (error) {
     return NextResponse.json({

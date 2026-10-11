@@ -58,6 +58,8 @@ export const ollamaAdapter: AiAdapter = {
         prompt: request.prompt,
         images: request.image ? [request.image.base64] : undefined,
         stream: false,
+        // Deterministic outputs (intent.classify / OCR / structured) — temp 0
+        options: { temperature: 0 },
       }),
       signal: AbortSignal.timeout(OLLAMA_TIMEOUT_MS),
     });
