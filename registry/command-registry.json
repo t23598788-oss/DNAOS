@@ -1083,9 +1083,7 @@
     "invoice.payments": {
       "owner": "engines/validation/dispatcher.ts",
       "layer": "engines",
-      "input": {
-        "document_id": "string?"
-      },
+      "input": {},
       "output": "{allocations}",
       "description": "PaymentAllocations — read-only การจัดสรรชำระเงินต่อใบแจ้งหนี้ (payment_allocations join invoices/companies) — DNA-000222 coverage",
       "requires_confirmation": false

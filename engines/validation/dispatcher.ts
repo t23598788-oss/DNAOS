@@ -182,7 +182,7 @@ const QUERY_MAP: Record<string, QueryFn> = {
   "expense.list":     async () => {
     const { data, error } = await supabaseAdmin()
       .from("company_expenses")
-      .select("id, expense_date, category, description, amount, created_at")
+      .select("id, expense_date, document_type, vendor_name, tax_invoice_no, amount, quantity, submitted_by_name, created_at")
       .order("expense_date", { ascending: false })
       .limit(200);
     if (error) throw new Error(error.message);
