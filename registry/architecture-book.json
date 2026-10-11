@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-11T05:37:27.595Z",
+  "generated_at": "2026-10-11T09:28:57.998Z",
   "version": 1,
   "nodes": [
     {
@@ -321,6 +321,7 @@
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:app/api/chat/_lib/chatResultTypes.ts",
+        "module:app/api/chat/_lib/localAiBridge.ts",
         "module:app/api/chat/_lib/resultContract.ts",
         "module:cognitive/pipeline.ts",
         "module:core/auth/requireAuth.ts",
@@ -344,8 +345,8 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 60,
-          "line_end": 159
+          "line_start": 61,
+          "line_end": 187
         }
       ],
       "import_sites": [
@@ -378,6 +379,11 @@
           "specifier": "@/core/owner-runtime/client",
           "line": 7,
           "resolved_target": "core/owner-runtime/client.ts"
+        },
+        {
+          "specifier": "./_lib/localAiBridge",
+          "line": 13,
+          "resolved_target": "app/api/chat/_lib/localAiBridge.ts"
         }
       ]
     },
@@ -44001,6 +44007,7 @@
         "module:app/api/admin/ide/_lib/workerAdapters/apiWorkerAdapter.ts",
         "module:app/api/admin/ide/_lib/workerAdapters/localModelWorkerAdapter.ts",
         "module:app/api/admin/screen-vision/route.ts",
+        "module:app/api/chat/_lib/localAiBridge.ts",
         "module:app/api/internal/ai/gateway/route.ts",
         "module:cognitive/pipeline.ts",
         "module:engines/events/event-builder.ts",
@@ -86607,37 +86614,37 @@
           "name": "ollamaAdapter",
           "kind": "const",
           "line_start": 31,
-          "line_end": 69
+          "line_end": 71
         },
         {
           "name": "anthropicAdapter",
           "kind": "const",
-          "line_start": 72,
-          "line_end": 109
+          "line_start": 74,
+          "line_end": 111
         },
         {
           "name": "OPENAI_DEFAULT_MODEL",
           "kind": "const",
-          "line_start": 112,
-          "line_end": 112
+          "line_start": 114,
+          "line_end": 114
         },
         {
           "name": "geminiAdapter",
           "kind": "const",
-          "line_start": 114,
-          "line_end": 150
+          "line_start": 116,
+          "line_end": 152
         },
         {
           "name": "openaiAdapter",
           "kind": "const",
-          "line_start": 159,
-          "line_end": 197
+          "line_start": 161,
+          "line_end": 199
         },
         {
           "name": "AI_ADAPTER_IMPLEMENTATIONS",
           "kind": "const",
-          "line_start": 206,
-          "line_end": 211
+          "line_start": 208,
+          "line_end": 213
         }
       ],
       "import_sites": [
@@ -89969,8 +89976,8 @@
         {
           "name": "buildChatResult",
           "kind": "function",
-          "line_start": 386,
-          "line_end": 428
+          "line_start": 453,
+          "line_end": 504
         }
       ],
       "import_sites": [
@@ -93277,6 +93284,65 @@
           "resolved_target": "services/supabase/queries.ts"
         }
       ]
+    },
+    {
+      "id": "module:app/api/chat/_lib/localAiBridge.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/chat/_lib/localAiBridge.ts",
+      "purpose_th": "Local AI intent bridge (LOCAL AI RUNTIME mission, 2026-10-11).",
+      "exports": [
+        "LOCAL_AI_COMMAND_VOCABULARY",
+        "LocalAiCommand",
+        "translateLocalAiCommand"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:services/ai/gateway.ts"
+      ],
+      "dependents": [
+        "module:app/api/chat/route.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "LocalAiCommand",
+          "kind": "interface",
+          "line_start": 18,
+          "line_end": 21
+        },
+        {
+          "name": "LOCAL_AI_COMMAND_VOCABULARY",
+          "kind": "const",
+          "line_start": 24,
+          "line_end": 33
+        },
+        {
+          "name": "translateLocalAiCommand",
+          "kind": "function",
+          "line_start": 76,
+          "line_end": 101
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/ai/gateway",
+          "line": 16,
+          "resolved_target": "services/ai/gateway.ts"
+        }
+      ]
     }
   ],
   "edges": [
@@ -95773,6 +95839,11 @@
     {
       "source": "layer:app",
       "target": "module:app/api/chat/_lib/chatResultTypes.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/chat/_lib/localAiBridge.ts",
       "label": "contains"
     },
     {
@@ -108311,6 +108382,11 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/chat/_lib/localAiBridge.ts",
+      "target": "module:services/ai/gateway.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/chat/_lib/resultContract.ts",
       "target": "module:app/api/chat/_lib/chatResultTypes.ts",
       "label": "imports"
@@ -108393,6 +108469,11 @@
     {
       "source": "module:app/api/chat/route.ts",
       "target": "module:app/api/chat/_lib/chatResultTypes.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/chat/route.ts",
+      "target": "module:app/api/chat/_lib/localAiBridge.ts",
       "label": "imports"
     },
     {
@@ -118142,8 +118223,8 @@
     }
   ],
   "summary": {
-    "total": 1377,
-    "ok": 1377,
+    "total": 1378,
+    "ok": 1378,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

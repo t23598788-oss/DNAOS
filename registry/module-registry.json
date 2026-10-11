@@ -16639,6 +16639,18 @@
         "GET"
       ],
       "status": "active"
+    },
+    "app/api/chat/_lib/localAiBridge.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Local AI intent bridge (LOCAL AI RUNTIME mission, 2026-10-11).",
+      "purpose_th": "Local AI intent bridge (LOCAL AI RUNTIME mission, 2026-10-11).",
+      "exports": [
+        "LOCAL_AI_COMMAND_VOCABULARY",
+        "LocalAiCommand",
+        "translateLocalAiCommand"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
