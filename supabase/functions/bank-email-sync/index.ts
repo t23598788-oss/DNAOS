@@ -95,26 +95,12 @@ async function matchPendingOnNewEmail(supabase: any, referenceNumber: string, em
 
     // Half A: cash/company invoice flow (same bar as process-classified-image.ts —
     // full OCR evidence + a real company link), now with real bank confirmation too.
-    if (
+    // B1: only a real outcome may be reported; C1: one email evidence drives AT
+    // MOST ONE flow — if the order flow below also qualifies, the evidence is
+    // ambiguous → nobody auto-confirms (pending_review).
+    const halfAEligible =
       (doc.document_type === "transfer_slip" || doc.document_type === "payment_advice") &&
-      doc.amount && doc.sender_name && doc.transaction_datetime && doc.customer_company_id
-    ) {
-      const { data: company } = await supabase
-        .from("companies").select("name").eq("id", doc.customer_company_id).maybeSingle()
-      await tryAutoConfirmPayment(supabase, {
-        receiptDocumentId: doc.id,
-        customerCompanyId: doc.customer_company_id,
-        companyName: company?.name ?? "-",
-        amount: Number(doc.amount),
-        occurredAt: (doc.transaction_datetime ?? new Date().toISOString()).slice(0, 10),
-        referenceNumber,
-        lineUserId: userId,
-      })
-    }
-
-    // Half B: order/quote dispatch flow — the oldest real order this same
-    // customer already confirmed (awaiting_payment) whose quoted_amount now
-    // matches the real bank-confirmed amount.
+      Boolean(doc.amount && doc.sender_name && doc.transaction_datetime && doc.customer_company_id)
     const { data: pendingOrder } = await supabase
       .from("business_events")
       .select("id, event_code, quoted_amount")
@@ -123,17 +109,55 @@ async function matchPendingOnNewEmail(supabase: any, referenceNumber: string, em
       .not("quoted_amount", "is", null)
       .order("created_at", { ascending: true })
       .limit(1).maybeSingle()
-    if (pendingOrder && Math.abs(Number(pendingOrder.quoted_amount) - emailAmount) <= 5) {
+    const halfBEligible = Boolean(pendingOrder && Math.abs(Number(pendingOrder.quoted_amount) - emailAmount) <= 5)
+
+    if (halfAEligible && halfBEligible) {
+      // C1: same bank email can't honestly pay a receipt AND confirm an order —
+      // which claim it pays is a human decision.
+      console.log(`[bank-email-sync] pending_review: email ref ${referenceNumber} matches BOTH receipt ${doc.id} and order ${pendingOrder!.event_code} — left for human`)
+      continue
+    }
+
+    if (halfAEligible) {
+      const { data: company } = await supabase
+        .from("companies").select("name").eq("id", doc.customer_company_id).maybeSingle()
+      const auto = await tryAutoConfirmPayment(supabase, {
+        receiptDocumentId: doc.id,
+        customerCompanyId: doc.customer_company_id,
+        companyName: company?.name ?? "-",
+        amount: Number(doc.amount),
+        occurredAt: (doc.transaction_datetime ?? new Date().toISOString()).slice(0, 10),
+        referenceNumber,
+        lineUserId: userId,
+      })
+      if (auto.status !== "confirmed" && auto.status !== "already") {
+        // B1: the writer refused (or transport failed) — the order flow below
+        // must NOT run either: this email evidence proved nothing for this doc.
+        console.log(`[bank-email-sync] pending_review: receipt ${doc.id} not confirmed (${auto.status === "rejected" ? auto.error : auto.reason})`)
+        continue
+      }
+    }
+
+    // Half B: order/quote dispatch flow — the oldest real order this same
+    // customer already confirmed (awaiting_payment) whose quoted_amount now
+    // matches the real bank-confirmed amount.
+    if (halfBEligible) {
       // Capability D: proven transition awaiting_payment → payment_confirmed
-      await sendConnectEventCommand("business_event.transition", {
-        event_id: pendingOrder.id,
+      const transition = await sendConnectEventCommand("business_event.transition", {
+        event_id: pendingOrder!.id,
         from_status: "awaiting_payment",
         status: "payment_confirmed",
       }, `system:${CONNECT_PROVIDER}:bank-confirm`)
-      await ResponseGateway.pushMessage(
-        userId,
-        `✅ ตรวจสอบกับธนาคารแล้ว ยอด ${emailAmount.toLocaleString()} บาท ตรงกับใบเสนอราคา ${pendingOrder.event_code} ครับ เดี๋ยวจัดรถให้เลยนะครับ`,
-      )
+      if (transition.ok) {
+        // B2: customer hears "✅ จัดรถให้เลย" ONLY when the canonical
+        // transition really succeeded — never on a transport/writer failure.
+        await ResponseGateway.pushMessage(
+          userId,
+          `✅ ตรวจสอบกับธนาคารแล้ว ยอด ${emailAmount.toLocaleString()} บาท ตรงกับใบเสนอราคา ${pendingOrder!.event_code} ครับ เดี๋ยวจัดรถให้เลยนะครับ`,
+        )
+      } else {
+        console.log(`[bank-email-sync] pending_review: order ${pendingOrder!.event_code} transition failed (${transition.error ?? "unknown"}) — no customer message sent`)
+      }
     }
   }
 

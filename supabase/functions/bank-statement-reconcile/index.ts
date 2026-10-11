@@ -26,6 +26,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
 import { tryAutoConfirmPayment } from "../line-webhook-v2/engines/auto-confirm-payment.ts"
 import { ResponseGateway } from "../line-webhook-v2/engines/response.ts"
 import { sendConnectEventCommand, CONNECT_PROVIDER } from "../_shared/connect-event.ts"
+import {
+  evaluateStatementEvidence,
+  claimStatementRow,
+  releaseStatementClaim,
+} from "../_shared/bank-evidence.ts"
 
 Deno.serve(async (req) => {
   const expected = Deno.env.get("BANK_STATEMENT_RECONCILE_SECRET")
@@ -61,40 +66,37 @@ Deno.serve(async (req) => {
 
     const { data: statementMatches } = await supabase
       .from("bank_statement_transactions")
-      .select("id, amount, transaction_date, description")
+      .select("id, amount, transaction_date, description, account_number, matched_receipt_document_id")
       .eq("transaction_date", statementDate)
       .in("kind", ["รับโอนเงิน", "ฝากเงินสด"])
       .gte("amount", Number(doc.amount) - 5)
       .lte("amount", Number(doc.amount) + 5)
 
-    if (!statementMatches?.length) { results.push({ receiptDocumentId: doc.id, outcome: "no matching statement row yet" }); continue }
-    if (statementMatches.length > 1) { results.push({ receiptDocumentId: doc.id, outcome: `ambiguous: ${statementMatches.length} statement rows match same day+amount — left for human` }); continue }
+    // A1 (mission): date + amount alone is NOT enough. The shared evaluator
+    // additionally demands the receiver account, exactly one candidate row, a
+    // bank description that names the slip's sender, and a row not already
+    // claimed by another receipt. Anything ≠ matched → PENDING_REVIEW.
+    const evidence = evaluateStatementEvidence({
+      candidates: statementMatches ?? [],
+      senderName: doc.sender_name,
+      receiptDocumentId: doc.id,
+    })
+    if (evidence.kind === "no_match") { results.push({ receiptDocumentId: doc.id, outcome: "no matching statement row yet" }); continue }
+    if (evidence.kind === "ambiguous") { results.push({ receiptDocumentId: doc.id, outcome: `ambiguous: ${evidence.matches} statement rows match same day+amount — left for human` }); continue }
+    if (evidence.kind === "insufficient") { results.push({ receiptDocumentId: doc.id, outcome: `pending_review: ${evidence.reason}` }); continue }
+    const statementRowId = evidence.rowId
 
     const { data: lineEvent } = await supabase
       .from("line_events").select("line_user_id").eq("id", doc.line_event_id).maybeSingle()
     const userId = lineEvent?.line_user_id
     if (!userId) { results.push({ receiptDocumentId: doc.id, outcome: "skip: no line_user_id on the source event" }); continue }
 
-    let acted = false
-
-    // Half A: cash/company invoice flow — full evidence + real company link,
-    // now confirmed against the real bank statement instead of email.
-    if (doc.amount && doc.sender_name && doc.customer_company_id) {
-      const { data: company } = await supabase
-        .from("companies").select("name").eq("id", doc.customer_company_id).maybeSingle()
-      await tryAutoConfirmPayment(supabase, {
-        receiptDocumentId: doc.id,
-        customerCompanyId: doc.customer_company_id,
-        companyName: company?.name ?? "-",
-        amount: Number(doc.amount),
-        occurredAt: docDate.toISOString().slice(0, 10),
-        referenceNumber: null,
-        lineUserId: userId,
-      })
-      acted = true
-    }
-
-    // Half B: order/quote dispatch flow.
+    // C1 (mission): one piece of bank evidence may drive AT MOST ONE downstream
+    // state change. Decide which flow — if BOTH the receipt flow and the order
+    // flow qualify for this same row, the evidence cannot say which claim the
+    // money pays → PENDING_REVIEW, nobody auto-confirms (no double use, no
+    // business-state change beyond what the evidence proves).
+    const halfAEligible = Boolean(doc.amount && doc.sender_name && doc.customer_company_id)
     const { data: pendingOrder } = await supabase
       .from("business_events")
       .select("id, event_code, quoted_amount")
@@ -103,21 +105,76 @@ Deno.serve(async (req) => {
       .not("quoted_amount", "is", null)
       .order("created_at", { ascending: true })
       .limit(1).maybeSingle()
-    if (pendingOrder && Math.abs(Number(pendingOrder.quoted_amount) - Number(doc.amount)) <= 5) {
-      // Capability D: proven transition awaiting_payment → payment_confirmed
-      await sendConnectEventCommand("business_event.transition", {
-        event_id: pendingOrder.id,
+    const halfBEligible = Boolean(pendingOrder && Math.abs(Number(pendingOrder.quoted_amount) - Number(doc.amount)) <= 5)
+
+    if (halfAEligible && halfBEligible) {
+      results.push({
+        receiptDocumentId: doc.id,
+        outcome: "pending_review: same bank evidence matches BOTH an open receipt claim and a pending order — which claim it pays is ambiguous, left for human",
+      })
+      continue
+    }
+
+    // C2: claim the statement row BEFORE confirming so no other pending receipt
+    // can use the same bank transaction while this attempt runs.
+    const claimed = await claimStatementRow(supabase, statementRowId, doc.id)
+    if (!claimed) {
+      results.push({ receiptDocumentId: doc.id, outcome: "pending_review: statement row was claimed by another receipt between match and confirm — left for human" })
+      continue
+    }
+
+    let outcomeText: string
+
+    if (halfAEligible) {
+      // Half A: cash/company invoice flow — full evidence + real company link,
+      // confirmed against the real bank statement through the canonical chain.
+      const { data: company } = await supabase
+        .from("companies").select("name").eq("id", doc.customer_company_id).maybeSingle()
+      const auto = await tryAutoConfirmPayment(supabase, {
+        receiptDocumentId: doc.id,
+        customerCompanyId: doc.customer_company_id,
+        companyName: company?.name ?? "-",
+        amount: Number(doc.amount),
+        occurredAt: docDate.toISOString().slice(0, 10),
+        referenceNumber: null,
+        lineUserId: userId,
+      })
+      if (auto.status === "confirmed" || auto.status === "already") {
+        // claim stays — this receipt now owns that statement row
+        outcomeText = auto.status === "confirmed"
+          ? "confirmed against real bank statement"
+          : "already confirmed earlier (idempotent) — statement row linked"
+      } else {
+        await releaseStatementClaim(supabase, statementRowId, doc.id)
+        outcomeText = auto.status === "rejected"
+          ? `pending_review: canonical writer rejected (${auto.error})`
+          : `pending_review: ${auto.reason}`
+      }
+    } else if (halfBEligible) {
+      // Half B: order/quote dispatch flow — the SAME claim/release discipline.
+      const transition = await sendConnectEventCommand("business_event.transition", {
+        event_id: pendingOrder!.id,
         from_status: "awaiting_payment",
         status: "payment_confirmed",
       }, `system:${CONNECT_PROVIDER}:bank-confirm`)
-      await ResponseGateway.pushMessage(
-        userId,
-        `✅ ตรวจสอบกับใบแจ้งยอดธนาคารแล้ว ยอด ${Number(doc.amount).toLocaleString()} บาท ตรงกับใบเสนอราคา ${pendingOrder.event_code} ครับ เดี๋ยวจัดรถให้เลยนะครับ`,
-      )
-      acted = true
+      if (transition.ok) {
+        // B2: only tell the customer the dispatch is confirmed when the
+        // canonical transition actually succeeded.
+        await ResponseGateway.pushMessage(
+          userId,
+          `✅ ตรวจสอบกับใบแจ้งยอดธนาคารแล้ว ยอด ${Number(doc.amount).toLocaleString()} บาท ตรงกับใบเสนอราคา ${pendingOrder!.event_code} ครับ เดี๋ยวจัดรถให้เลยนะครับ`,
+        )
+        outcomeText = "order transitioned to payment_confirmed against real bank statement"
+      } else {
+        await releaseStatementClaim(supabase, statementRowId, doc.id)
+        outcomeText = `pending_review: order transition failed (${transition.error ?? "unknown"}) — no customer message sent`
+      }
+    } else {
+      await releaseStatementClaim(supabase, statementRowId, doc.id)
+      outcomeText = "matched statement row but no downstream flow applied (missing evidence fields)"
     }
 
-    results.push({ receiptDocumentId: doc.id, outcome: acted ? "confirmed against real bank statement" : "matched statement row but no downstream flow applied (missing evidence fields)" })
+    results.push({ receiptDocumentId: doc.id, outcome: outcomeText })
   }
 
   return Response.json({ ok: true, checked: pendingDocs?.length ?? 0, results })

@@ -41,24 +41,82 @@ export interface ActionResponse {
 }
 
 // ---- PREVIEW TOKEN GUARD ----
+//
+// D-defect repair (CANONICAL PAYMENT INTEGRITY mission, 2026-10-11): this
+// store USED to be an in-process `Map`, so every Railway restart — or a
+// preview on instance A followed by an execute on instance B — silently lost
+// the token and the execute failed with "preview_token ไม่ถูกต้อง". The
+// preview→token→execute handshake itself is unchanged (Rule 72: same shape,
+// same 5-minute TTL, same single-use semantics, payload still never carries an
+// actor); only its storage moved to the EXISTING kv_cache runtime-state table
+// (the same canonical store display_state/session context already use) so the
+// token is durable and visible to every instance. This is the same token
+// mechanism made durable — not a second authorization system.
+const TOKEN_KEY_PREFIX = "preview_token:";
+const TOKEN_TTL_MS = 5 * 60 * 1000;
 
-const _tokenStore = new Map<string, { action: string; payload: Record<string, unknown>; expires: number }>();
+interface PreviewTokenEntry {
+  action: string;
+  payload: Record<string, unknown>;
+  expires: number;
+}
 
-function issueToken(action: string, payload: Record<string, unknown>): string {
+/** Injectable for tests (token behavior must be provable without a live DB). */
+let _tokenDb: { from: (t: string) => any } | null = null;
+export function __setTokenDbForTest(db: { from: (t: string) => any } | null): void {
+  _tokenDb = db;
+}
+function tokenDb(): { from: (t: string) => any } {
+  return _tokenDb ?? (supabase() as unknown as { from: (t: string) => any });
+}
+
+export async function issueToken(action: string, payload: Record<string, unknown>): Promise<string> {
   const token = randomUUID();
-  _tokenStore.set(token, { action, payload, expires: Date.now() + 5 * 60 * 1000 });
+  const entry: PreviewTokenEntry = { action, payload, expires: Date.now() + TOKEN_TTL_MS };
+  const { error } = await tokenDb()
+    .from("kv_cache")
+    .upsert({ key: TOKEN_KEY_PREFIX + token, value: entry, updated_at: new Date().toISOString() });
+  // fail closed: a token that cannot be persisted must never look issuable
+  if (error) throw new Error(`PREVIEW_TOKEN_STORE_FAILED: ${error.message}`);
+  // opportunistic cleanup of long-expired tokens (keep the table tiny)
+  await tokenDb()
+    .from("kv_cache")
+    .delete()
+    .like("key", `${TOKEN_KEY_PREFIX}*`)
+    .lt("updated_at", new Date(Date.now() - 2 * TOKEN_TTL_MS).toISOString());
   return token;
 }
 
-function consumeToken(token: string, action: string): { valid: boolean; error?: string; payload?: Record<string, unknown> } {
-  const entry = _tokenStore.get(token);
+export async function consumeToken(
+  token: string,
+  action: string,
+): Promise<{ valid: boolean; error?: string; payload?: Record<string, unknown> }> {
+  const key = TOKEN_KEY_PREFIX + token;
+  let entry: PreviewTokenEntry | undefined;
+  try {
+    const { data, error } = await tokenDb().from("kv_cache").select("value").eq("key", key).maybeSingle();
+    if (error) return { valid: false, error: `อ่าน preview_token ไม่ได้ (fail closed): ${error.message}` };
+    entry = (data?.value ?? undefined) as PreviewTokenEntry | undefined;
+  } catch (e) {
+    return { valid: false, error: `อ่าน preview_token ไม่ได้ (fail closed): ${e instanceof Error ? e.message : String(e)}` };
+  }
   if (!entry) return { valid: false, error: "preview_token ไม่ถูกต้องหรือหมดอายุ — ต้อง preview ก่อน" };
   if (entry.action !== action) return { valid: false, error: `token ออกให้ action "${entry.action}" ไม่ใช่ "${action}"` };
-  if (Date.now() > entry.expires) {
-    _tokenStore.delete(token);
+  if (Date.now() > (entry.expires ?? 0)) {
+    await tokenDb().from("kv_cache").delete().eq("key", key);
     return { valid: false, error: "preview_token หมดอายุ (5 นาที) — preview ใหม่" };
   }
-  _tokenStore.delete(token);
+  try {
+    // atomic single-use claim: DELETE ... RETURNING — exactly one concurrent
+    // consumer across ANY instance receives the row, everyone else gets [].
+    const { data: claimed, error } = await tokenDb().from("kv_cache").delete().eq("key", key).select("value");
+    if (error) return { valid: false, error: `ยืนยัน preview_token ไม่ได้ (fail closed): ${error.message}` };
+    if (!claimed || claimed.length === 0) {
+      return { valid: false, error: "preview_token ถูกใช้ไปแล้ว (อีก instance ใช้ก่อน) — ต้อง preview ใหม่" };
+    }
+  } catch (e) {
+    return { valid: false, error: `ยืนยัน preview_token ไม่ได้ (fail closed): ${e instanceof Error ? e.message : String(e)}` };
+  }
   return { valid: true, payload: entry.payload };
 }
 
@@ -186,7 +244,7 @@ export async function previewPayment(input: PaymentInput): Promise<ActionRespons
   const f = resolved.facts;
   // The token is a snapshot of the operation to confirm — never a financial authority
   // and never a carrier of identity: { receipt_document_id, invoice_id, amount }.
-  const token = issueToken("payment", {
+  const token = await issueToken("payment", {
     receipt_document_id: f.receipt_document_id,
     invoice_id: f.invoice_id,
     amount: f.amount,
@@ -318,7 +376,7 @@ export async function previewDocumentCreate(payload: Record<string, unknown>): P
     return { ok: false, mode: "preview", action: "document.create", error: `ยังไม่รองรับเอกสารประเภทนี้: ${documentType}` };
   }
 
-  const token = issueToken("document.create", payload);
+  const token = await issueToken("document.create", payload);
 
   // GenerateInvoicePreview (owner, 2026-07-17, Architecture Correction): the
   // full rendered card (items/totals/html/Flex) is built here, inside DNA
@@ -717,7 +775,7 @@ export async function previewDebtCreate(payload: Record<string, unknown>): Promi
     return { ok: false, mode: "preview", action: "debt.create", error: "ต้องระบุ customer_name และ principal_amount" };
   }
 
-  const token = issueToken("debt.create", payload);
+  const token = await issueToken("debt.create", payload);
 
   return {
     ok: true,
@@ -783,7 +841,7 @@ export async function dispatchAction(req: ActionRequest): Promise<ActionResponse
     if (!req.preview_token) {
       return { ok: false, mode, action, error: "ต้อง preview ก่อน — ไม่มี preview_token" };
     }
-    const guard = consumeToken(req.preview_token, action);
+    const guard = await consumeToken(req.preview_token, action);
     if (!guard.valid) {
       return { ok: false, mode, action, error: guard.error! };
     }

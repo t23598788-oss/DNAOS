@@ -104,11 +104,31 @@ export interface AutoConfirmInput {
   lineUserId: string
 }
 
-export async function tryAutoConfirmPayment(supabase: any, input: AutoConfirmInput): Promise<void> {
+/**
+ * Outcome contract (CANONICAL PAYMENT INTEGRITY mission, 2026-10-11 — B1
+ * false-success repair). This function USED to return void, so every caller
+ * mechanically reported "confirmed"/acted=true even when the canonical writer
+ * rejected the attempt or the bridge was not configured (proven live:
+ * payment-confirm 503 "not configured"). A caller may now only claim success
+ * on { status: "confirmed" }. "already" = idempotent success (confirmed
+ * earlier — no NEW money moved). Anything else maps to PENDING_REVIEW.
+ */
+export type AutoConfirmOutcome =
+  | { status: "confirmed"; new_outstanding: number; receiptMessageSent: boolean }
+  | { status: "already" }
+  | { status: "rejected"; error: string }
+  | { status: "skipped"; reason: string }
+
+export async function tryAutoConfirmPayment(
+  supabase: any,
+  input: AutoConfirmInput,
+): Promise<AutoConfirmOutcome> {
   // Canonical credential path (LINE cutover): bridge → Run gate — fail-closed
   // (no token → leave as Pending Review for a human, exactly as before).
   const lineToken = await getLineChannelAccessToken()
-  if (!lineToken) return // can't message the customer without it — leave as Pending Review for a human
+  if (!lineToken) {
+    return { status: "skipped", reason: "LINE channel token unavailable — customer cannot be notified, left Pending Review" }
+  }
 
   // LINE financial-edge removal P4 (owner decision D2 = ก, 2026-09-24): the
   // money mutation no longer runs in this provider tier. It goes through the
@@ -125,9 +145,15 @@ export async function tryAutoConfirmPayment(supabase: any, input: AutoConfirmInp
   //   own double-send guard, 2026-07-24 — now the flow's confirmed/matched/
   //   allocations pre-check + confirm_payment_allocation's row lock).
   const confirmed = await sendConnectPaymentConfirm(input.receiptDocumentId, "system:auto-ocr")
-  if (!confirmed.ok) return
-  if (!confirmed.data) return
-  if (confirmed.data.already_reconciled) return
+  if (!confirmed.ok) {
+    return { status: "rejected", error: confirmed.error ?? "PAYMENT_CONFIRM_TRANSPORT_FAILED" }
+  }
+  if (!confirmed.data) {
+    return { status: "rejected", error: "PAYMENT_CONFIRM_EMPTY_RESPONSE" }
+  }
+  if (confirmed.data.already_reconciled) {
+    return { status: "already" }
+  }
 
   const outstandingAfter = Number(confirmed.data.new_outstanding ?? 0)
   const flex = paymentConfirmedFlex({ companyName: input.companyName, amountPaid: input.amount, outstandingAfter })
@@ -180,6 +206,10 @@ export async function tryAutoConfirmPayment(supabase: any, input: AutoConfirmInp
   }
 
   await tryPushReceiptDocument(input, outstandingAfter)
+
+  // B1: the ONLY success the caller may report — the canonical writer already
+  // committed (confirmed.data came back from the real payment-confirm route).
+  return { status: "confirmed", new_outstanding: outstandingAfter, receiptMessageSent: sent }
 }
 
 // Generates and pushes the real ใบเสร็จรับเงิน (receipt) via the existing

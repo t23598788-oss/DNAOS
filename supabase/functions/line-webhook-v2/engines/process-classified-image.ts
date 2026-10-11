@@ -287,6 +287,11 @@ export async function processClassifiedImage(
       documentType: classified.document_type,
     })
   }
+  // C1 (mission): one piece of payment evidence may drive AT MOST ONE business
+  // flow. Declared here (function scope) because the order-dispatch block below
+  // and the receipt auto-confirmation block further down must not BOTH run for
+  // the same slip.
+  let doubleFlowAmbiguous = false
   if (
     (classified?.document_type === "transfer_slip" || classified?.document_type === "payment_advice") &&
     userId && classified?.amount
@@ -336,17 +341,40 @@ export async function processClassifiedImage(
       // no longer sufficient on its own — same principle just applied to
       // receipt-issuance above, extended here at the owner's explicit
       // confirmation since dispatching a real truck carries the same risk.
-      // Capability D: proven transition awaiting_payment → payment_confirmed
-      await sendConnectEventCommand("business_event.transition", {
-        event_id: pendingOrder.id,
-        from_status: "awaiting_payment",
-        status: "payment_confirmed",
-      }, `system:${CONNECT_PROVIDER}:bank-confirm`)
-      const { ResponseGateway } = await import("./response.ts")
-      await ResponseGateway.pushMessage(
-        userId,
-        `✅ ตรวจสอบสลิปแล้ว ยอด ${amount.toLocaleString()} บาท ตรงกับใบเสนอราคา ${pendingOrder.event_code} ครับ เดี๋ยวจัดรถให้เลยนะครับ`,
+      //
+      // C1 (mission): if this SAME slip would also qualify for the receipt
+      // auto-confirmation below (complete OCR evidence + a real company link),
+      // one transfer can't honestly both pay off a debt AND confirm an order —
+      // ambiguous → neither flow runs, human decides which claim it pays.
+      const receiptFlowWouldAlsoRun = Boolean(
+        classified.sender_name && classified.transaction_datetime && customerCompanyId && insertedDoc,
       )
+      if (receiptFlowWouldAlsoRun) {
+        doubleFlowAmbiguous = true
+        const { ResponseGateway } = await import("./response.ts")
+        await ResponseGateway.pushMessage(
+          userId,
+          `รับสลิปแล้วครับ รบกวนรอเจ้าหน้าที่ตรวจสอบก่อนดำเนินการต่อนะครับ`,
+        )
+      } else {
+        // Capability D: proven transition awaiting_payment → payment_confirmed
+        const transition = await sendConnectEventCommand("business_event.transition", {
+          event_id: pendingOrder.id,
+          from_status: "awaiting_payment",
+          status: "payment_confirmed",
+        }, `system:${CONNECT_PROVIDER}:bank-confirm`)
+        if (transition.ok) {
+          // B2: the customer hears "✅ จัดรถให้เลย" ONLY when the canonical
+          // transition actually succeeded — never after a failed transport.
+          const { ResponseGateway } = await import("./response.ts")
+          await ResponseGateway.pushMessage(
+            userId,
+            `✅ ตรวจสอบสลิปแล้ว ยอด ${amount.toLocaleString()} บาท ตรงกับใบเสนอราคา ${pendingOrder.event_code} ครับ เดี๋ยวจัดรถให้เลยนะครับ`,
+          )
+        } else {
+          console.log(`[process-classified-image] pending_review: order ${pendingOrder.event_code} transition failed (${transition.error ?? "unknown"}) — no customer message sent`)
+        }
+      }
     } else if (pendingOrder && Math.abs(Number(pendingOrder.quoted_amount) - amount) <= 5 && !bankEmailVerified) {
       // Owner correction (2026-07-27): "ไม่ต้องบอกให้เค้ารอ...ระบบรับข้อมูล
       // เข้ามาก่อน ประมวลผลเสร็จสรรพในคลังหลังบ้านก่อน แล้วค่อยออกไปเลย" —
@@ -395,10 +423,14 @@ export async function processClassifiedImage(
   const hasCompleteEvidence = Boolean(
     classified?.amount && classified?.sender_name && classified?.transaction_datetime && customerCompanyId,
   )
-  if (isPaymentDoc && hasCompleteEvidence && bankEmailVerified && !reusedSlipWarning && !staleSlipWarning && insertedDoc && userId) {
+  // C1: when the order flow already claimed this evidence (or the ambiguity
+  // guard fired), the receipt flow must NOT also run for the same slip.
+  if (doubleFlowAmbiguous) {
+    console.log(`[process-classified-image] pending_review: slip ${insertedDoc?.id ?? lineEventId} qualifies for BOTH receipt confirm and order dispatch — neither ran, left for human`)
+  } else if (isPaymentDoc && hasCompleteEvidence && bankEmailVerified && !reusedSlipWarning && !staleSlipWarning && insertedDoc && userId) {
     const { data: company } = await supabase
       .from("companies").select("name").eq("id", customerCompanyId).maybeSingle()
-    await tryAutoConfirmPayment(supabase, {
+    const auto = await tryAutoConfirmPayment(supabase, {
       receiptDocumentId: insertedDoc.id,
       customerCompanyId: customerCompanyId!,
       companyName: company?.name ?? "-",
@@ -407,5 +439,9 @@ export async function processClassifiedImage(
       referenceNumber: classified!.reference_number ?? null,
       lineUserId: userId,
     })
+    // B1: record the REAL outcome — no silent void, no assumed success.
+    if (auto.status !== "confirmed" && auto.status !== "already") {
+      console.log(`[process-classified-image] pending_review: receipt ${insertedDoc.id} not confirmed (${auto.status === "rejected" ? auto.error : auto.reason})`)
+    }
   }
 }
