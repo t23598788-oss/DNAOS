@@ -14,6 +14,18 @@
       "description_th": "สร้างรายการสินค้า/บริการของใบแจ้งหนี้จากผลลัพธ์ GetCurrentDebt ที่ดึงมาแล้ว",
       "requires_confirmation": false
     },
+    "partner.timeline": {
+      "owner": "engines/partner/timeline",
+      "layer": "engines",
+      "input": {
+        "partner_id": "string"
+      },
+      "output": "PartnerTimeline",
+      "description": "แสดง timeline เหตุการณ์ทั้งหมดของคู่ค้าคนนั้นตั้งแต่ครั้งแรก",
+      "description_th": "ประวัติเหตุการณ์และเอกสารทั้งหมดของคู่ค้า เรียงตามวันที่ (handler จริงอยู่ที่ engines/validation/dispatcher.ts + engines/partner/timeline.ts — declaration นี้ถูกเพิ่ม 2026-10-11 เพื่อปิด Shadow-Command gap ที่ทำให้คำสั่งนี้ถูกปฏิเสธทั้งที่ handler พร้อม)",
+      "requires_confirmation": false,
+      "status": "active"
+    },
     "partner.profile": {
       "owner": "services/supabase/queries.ts",
       "layer": "services",
