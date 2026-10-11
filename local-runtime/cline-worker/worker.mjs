@@ -160,6 +160,24 @@ function runCline(message, who) {
   });
 }
 
+async function postCallback(taskId, payload) {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(CALLBACK_URL, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-callback-secret": CALLBACK_SECRET },
+        body: JSON.stringify({ taskId, kind: CLAIM_WHERE, ...payload }),
+      });
+      if (res.ok) return true;
+      console.error(`[cline-worker] callback attempt ${attempt} -> HTTP ${res.status}`);
+    } catch (e) {
+      console.error(`[cline-worker] callback attempt ${attempt} error: ${e.message}`);
+    }
+    await new Promise((r) => setTimeout(r, 1500 * attempt));
+  }
+  return false;
+}
+
 // DNA OS เรียกข้อมูลเอง — ผ่าน proxy allow-list เดิม (cookie ไม่แตะ prompt)
 async function dispatchVia(cookie, command, payload) {
   const prox = await startTaskProxy(cookie);
@@ -244,7 +262,33 @@ async function executeTask(task) {
       return;
     }
     if (!ALLOWED_COMMANDS.has(command)) throw new Error(`COMMAND_NOT_PERMITTED: ${command}`);
-    const dispatch = await dispatchVia(task.session_cookie, command, parsed.payload && typeof parsed.payload === "object" ? parsed.payload : {});
+    const payload = parsed.payload && typeof parsed.payload === "object" ? { ...parsed.payload } : {};
+    // DNA OS identity resolution (req: AI ห้ามแตะข้อมูล) — keyword จากภาษาคน
+    // ถูกแปลงเป็น partner_id จริงโดย dispatcher เอง
+    let resolvedName = null;
+    if (payload.keyword && !payload.partner_id) {
+      const pf = await dispatchVia(task.session_cookie, "partner.find", { keyword: String(payload.keyword) });
+      if (pf.ok && Array.isArray(pf.data) && pf.data.length === 1) {
+        payload.partner_id = String(pf.data[0].id);
+        resolvedName = String(pf.data[0].name ?? payload.keyword);
+        delete payload.keyword;
+      }
+    }
+    if (!payload.partner_id && who && task?.trace?.context?.who_id) payload.partner_id = String(task.trace.context.who_id);
+    // preview: ไม่มี document_id → DNA OS หาใบล่าสุดของคู่ค้าเอง
+    if (command === "document.preview" && !payload.document_id && payload.partner_id) {
+      const latest = await dispatchVia(task.session_cookie, "invoice.latest", {});
+      if (latest.ok && latest.data && latest.data.id) {
+        payload.document_id = String(latest.data.id);
+        payload.document_kind = "invoice";
+      }
+    }
+    let dispatch = await dispatchVia(task.session_cookie, command, payload);
+    // กรองเอกสารตามคู่ค้าที่ resolve ได้ (งาน DNA OS ไม่ใช่งาน AI)
+    if (command === "document.list" && dispatch.ok && dispatch.data && resolvedName) {
+      const key = Object.keys(dispatch.data).find((k) => Array.isArray(dispatch.data[k]));
+      if (key) dispatch.data[key] = dispatch.data[key].filter((r) => String(r.party_name ?? r.name ?? "").includes(resolvedName));
+    }
     if (!dispatch.ok) throw new Error(`dispatch failed: ${String(dispatch.violations?.[0] ?? "unknown").slice(0, 200)}`);
     const result = formatResult(command, dispatch.data);
     const arrCount = result?.type === "table" ? result.table.rows.length : null;

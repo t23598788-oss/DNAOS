@@ -20,6 +20,7 @@ export async function runOwnerRequestViaRailwayTaskQueue(
     sessionKey?: string | null
     transport: ClineWorkerTransport & { userId?: string | null }
     who?: string | null
+    whoId?: string | null
   },
 ): Promise<ClineWorkerReply | null> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -52,7 +53,7 @@ export async function runOwnerRequestViaRailwayTaskQueue(
         // company context propagation (DNA-000219): ใช้คอลัมน์ trace jsonb ที่มี
         // อยู่แล้ว (migration 20260804000003) เก็บบริบทคู่ค้าให้ worker เอามาใส่
         // prompt — ไม่สร้างคอลัมน์/คอลัมน์ claim_who ใหม่ (ไม่จำเป็นจริง)
-        trace: { context: { who: opts.who ?? null } },
+        trace: { context: { who: opts.who ?? null, who_id: opts.whoId ?? null } },
         status: "pending",
         expires_at: new Date(Date.now() + MAX_WAIT_MS + 60_000).toISOString(),
       })
