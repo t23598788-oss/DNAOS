@@ -14,7 +14,19 @@
 //   - clears session_cookie from the task row right after callback
 // Timeouts: task expires_at guard + hard CLINE_TIMEOUT_SECONDS+20s kill.
 import { createClient } from "@supabase/supabase-js";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
+
+// boot self-bootstrap (DNA-000219 verified defect: prod tasks 181afc26/04840bf5
+// failed with spawn cline ENOENT — Railway build ไม่รัน nixpacks install phase)
+// → ติดตั้ง cline CLI ตอนเริ่ม daemon (ครั้งเดียวต่อ container life)
+function ensureClineCli() {
+  const probe = spawnSync("cline", ["--version"], { stdio: "ignore" });
+  if (probe.status === 0) return;
+  console.log("[cline-worker] cline CLI missing at boot — installing...");
+  const r = spawnSync("npm", ["install", "-g", "cline@3.0.62"], { stdio: "inherit" });
+  if (r.status !== 0) console.error("[cline-worker] cline install failed — tasks will fail until resolved");
+}
+ensureClineCli();
 import { createServer as createProxyServer, request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
 import { existsSync, mkdirSync, writeFileSync, chmodSync } from "node:fs";
