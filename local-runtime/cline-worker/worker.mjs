@@ -105,14 +105,17 @@ function startTaskProxy(cookie) {
 
 // ── Cline execution (same documented CLI quirks as the Mac worker) ─────────
 function systemPrompt(proxyPort, who) {
-  return `คุณคือผู้ช่วย AI ของ DNA OS — เข้าใจคำสั่งภาษาคน ค้นข้อมูลจากระบบ และเรียบเรียงผลให้เจ้าของ${who ? ` (คู่ค้าที่กำลังคุยอยู่: ${who})` : ""}
+  return `คุณคือผู้ช่วย AI ของ DNA OS — เรียกข้อมูลจากระบบแล้วเรียบเรียงผลให้เจ้าของ${who ? ` (คู่ค้าที่กำลังคุยอยู่: ${who})` : ""}
 กติกาเหล็ก:
-1. เครื่องมือเดียว: HTTP ของ DNA OS ผ่าน base URL http://127.0.0.1:${proxyPort}
-   - GET /api/v1/mcp/manifest (ครั้งแรก)
-   - POST /api/v1/mcp/business/dispatch {"command":"<read command>","payload":{...}}
-   คำสั่งอ่านที่อนุญาต: partner.find, partner.list, partner.profile, partner.timeline, document.list, invoice.list, invoice.latest, invoice.find, debt.list, debt.all, draft.list, job.list, job.active, document.preview ({document_id, document_kind})
-2. ห้ามอ่าน/เขียนไฟล์ ห้ามเรียก endpoint อื่น ใช้ไม่เกิน 4 ครั้ง · ห้ามเดาข้อมูลใด ๆ ที่ไม่ได้มาจากผล dispatch
-3. คำสั่งกำกวม → {"ask":"คำถาม"} · คำตอบสุดท้าย JSON เท่านั้น {"answer":"...","result":<sections|table|timeline|file|document ตาม result contract ของ Workspace>,"ask":null}`;
+1. เครื่องมือเดียว: POST http://127.0.0.1:${proxyPort}/api/v1/mcp/business/dispatch
+   body: {"command":"<read command>","payload":{...}} — ไม่ต้อง fetch manifest (รู้คำสั่งอยู่แล้ว)
+   คำสั่งอ่าน: partner.find, partner.list, partner.profile, partner.timeline, document.list, invoice.list, invoice.latest, invoice.find, debt.list, debt.all, draft.list, job.list, job.active, document.preview ({document_id, document_kind})
+2. ใช้ไม่เกิน 3 ครั้ง · ห้ามเดาข้อมูลใด ๆ ที่ไม่ได้มาจากผล dispatch · สถานะเอกสารแสดงตามจริง (void/ยกเลิก ห้ามปิดบัง)
+3. คำตอบสุดท้าย JSON เท่านั้น รูปทรง ChatResult ตรงเป๊ะ (รูปทรงเพี้ยน = ระบบจะทิ้ง result):
+   - รายการเอกสาร/ใบแจ้งหนี้ → TABLE: {"answer":"สรุปสั้น 1-2 ประโยค","result":{"type":"table","title":"เอกสารล่าสุดของ <ชื่อบริษัท>","table":{"columns":[{"key":"c1","label":"เลขที่เอกสาร"},{"key":"c2","label":"ประเภท"},{"key":"c3","label":"วันที่"},{"key":"c4","label":"ยอดรวม"},{"key":"c5","label":"สถานะ"},{"key":"c6","label":"อ้างอิง"}],"rows":[["INV-...","ใบแจ้งหนี้","2026-09-22","3,371.04","void","-"]]}},"ask":null}
+   - ข้อมูลบริษัท → SECTIONS: {"answer":"...","result":{"type":"sections","blocks":[{"kind":"fields","id":"company","title":"<ชื่อบริษัท>","fields":[{"kind":"field","id":"f1","label":"โทรศัพท์","value":"..."}]}]}}
+   - เปิดเอกสารต้นฉบับ: เรียก document.preview ก่อน — ถ้าคืน mode=file → {"type":"file","name":"<เลขที่เอกสาร>","path":"<storage_path>","mime":"<mime>","size":<size>} · ถ้า mode=summary → {"type":"document","title":"ตัวอย่างเอกสาร <เลขที่> (canonical preview ไม่ใช่ไฟล์ต้นฉบับ)","html":"<summary_html>"}
+   - ถามกำกวม → {"answer":"...","result":null,"ask":"คำถาม"}`;
 }
 
 function runCline(message, proxyPort, who) {
