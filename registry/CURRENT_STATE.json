@@ -185,5 +185,12 @@
     "resume_condition": "DNA OS Owner Settings / Credential Authorization surface available",
     "forbidden": "alternate token/credential path, temporary UI, ad-hoc token creation",
     "note": "Runtime activation intentionally deferred until DNA OS Owner Settings / Credential Authorization surface is available. Do not create alternate token/credential path."
-  }
+  },
+  "state_id": "DNA-000217",
+  "what_actually_works": "Owner Workspace AI tool integration RESTORED: real Workspace-to-Cline round trip proven — owner message (authenticated /api/chat) -> Cline CLI (provider=cline account, deepseek, NOT OpenAI) discovers DNA OS MCP manifest, executes WHITELISTED READ commands through POST /api/v1/mcp/business/dispatch (requireAuth + READ whitelist + existing dispatcher + existing business readers; document.preview reuses getDocumentDetail), returns structured results SANITIZED into existing ChatResult contracts (table/timeline/document/sections/file) rendered inline by the unchanged WorkspaceFrame; conversation context = DNA OS memory (who/who_id via existing newSession) + DNA OS-hosted rolling history (cline resume broken in 3.0.62); every deterministic path still answers FIRST, cline only fills ask_user + board-fallback gaps; fail-closed everywhere: no cline binary (Railway) = ms-level null, write commands 403, unauth 401, proxy path allow-list, cookie never leaves the worker process",
+  "known_working_endpoints": [
+    "POST /api/chat (session cookie) — deterministic first, clineWorker fallback (Mac host only, fail-closed elsewhere)",
+    "POST /api/v1/mcp/business/dispatch — authorized AI-worker->dispatcher bridge: READ whitelist only + document.preview",
+    "GET /api/v1/mcp/manifest — tool discovery incl. active business.dispatch"
+  ]
 }
