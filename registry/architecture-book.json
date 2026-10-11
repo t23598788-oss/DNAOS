@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-10T14:07:59.241Z",
+  "generated_at": "2026-10-11T04:20:23.591Z",
   "version": 1,
   "nodes": [
     {
@@ -10258,10 +10258,13 @@
         "ActionRequest",
         "ActionResponse",
         "PaymentInput",
+        "__setTokenDbForTest",
+        "consumeToken",
         "dispatchAction",
         "executeDebtCreate",
         "executeDocumentCreate",
         "executePayment",
+        "issueToken",
         "previewDebtCreate",
         "previewDocumentCreate",
         "previewPayment",
@@ -10283,7 +10286,8 @@
         "module:app/api/chat/confirm/route.ts",
         "module:cognitive/executor/index.ts",
         "module:gateway/index.ts",
-        "module:scripts/document-authority-census.test.ts"
+        "module:scripts/document-authority-census.test.ts",
+        "module:scripts/payment-integrity-recovery-test.ts"
       ],
       "data_tables": [
         "companies",
@@ -10293,6 +10297,7 @@
         "invoice_items",
         "invoice_payment_summary",
         "invoices",
+        "kv_cache",
         "line_events",
         "payment_allocations",
         "receipt_documents",
@@ -10331,58 +10336,76 @@
           "line_end": 41
         },
         {
+          "name": "__setTokenDbForTest",
+          "kind": "function",
+          "line_start": 66,
+          "line_end": 68
+        },
+        {
+          "name": "issueToken",
+          "kind": "function",
+          "line_start": 73,
+          "line_end": 88
+        },
+        {
+          "name": "consumeToken",
+          "kind": "function",
+          "line_start": 90,
+          "line_end": 121
+        },
+        {
           "name": "PaymentInput",
           "kind": "interface",
-          "line_start": 84,
-          "line_end": 89
+          "line_start": 142,
+          "line_end": 147
         },
         {
           "name": "previewPayment",
           "kind": "function",
-          "line_start": 181,
-          "line_end": 215
+          "line_start": 239,
+          "line_end": 273
         },
         {
           "name": "executePayment",
           "kind": "function",
-          "line_start": 221,
-          "line_end": 265
+          "line_start": 279,
+          "line_end": 323
         },
         {
           "name": "previewDocumentCreate",
           "kind": "function",
-          "line_start": 290,
-          "line_end": 395
+          "line_start": 348,
+          "line_end": 453
         },
         {
           "name": "executeDocumentCreate",
           "kind": "function",
-          "line_start": 397,
-          "line_end": 560
+          "line_start": 455,
+          "line_end": 618
         },
         {
           "name": "sendInvoiceToLine",
           "kind": "function",
-          "line_start": 574,
-          "line_end": 695
+          "line_start": 632,
+          "line_end": 753
         },
         {
           "name": "previewDebtCreate",
           "kind": "function",
-          "line_start": 715,
-          "line_end": 741
+          "line_start": 773,
+          "line_end": 799
         },
         {
           "name": "executeDebtCreate",
           "kind": "function",
-          "line_start": 743,
-          "line_end": 774
+          "line_start": 801,
+          "line_end": 832
         },
         {
           "name": "dispatchAction",
           "kind": "function",
-          "line_start": 778,
-          "line_end": 816
+          "line_start": 836,
+          "line_end": 874
         }
       ],
       "import_sites": [
@@ -23749,11 +23772,14 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:supabase/functions/_shared/bank-evidence.ts",
         "module:supabase/functions/_shared/connect-identity.ts",
         "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts"
       ],
       "dependents": [],
       "data_tables": [
+        "bank_notifications",
+        "bank_statement_transactions",
         "companies",
         "line_events",
         "receipt_documents"
@@ -23779,6 +23805,11 @@
           "specifier": "../_shared/connect-identity.ts",
           "line": 22,
           "resolved_target": "supabase/functions/_shared/connect-identity.ts"
+        },
+        {
+          "specifier": "../_shared/bank-evidence.ts",
+          "line": 23,
+          "resolved_target": "supabase/functions/_shared/bank-evidence.ts"
         }
       ]
     },
@@ -34030,6 +34061,7 @@
       "purpose_th": "ยืนยันรับเงินอัตโนมัติ (owner ตัดสินใจ 2026-07-24) — ทำ mutation เดียวกับ confirm route แบบ manual (debt_events + debt_snapshots.total_outstanding + receipt_documents) แต่เฉพาะเมื่อหลักฐาน OCR ครบถ้วนชัดเจน (ยอด+ชื่อผู้โอน+เวลา+จับคู่บริษัทแล้ว) พร้อมแจ้งยอดคงเหลือกลับลูกค้าและส่งใบเสร็จจริงผ่าน internal bridge เป็นการลดขอบเขต Rule 115 ที่ owner อนุมัติเอง ไม่ใช่การข้ามกฎทั่วไป",
       "exports": [
         "AutoConfirmInput",
+        "AutoConfirmOutcome",
         "tryAutoConfirmPayment"
       ],
       "status": "OK",
@@ -34068,10 +34100,16 @@
           "line_end": 105
         },
         {
+          "name": "AutoConfirmOutcome",
+          "kind": "type",
+          "line_start": 116,
+          "line_end": 120
+        },
+        {
           "name": "tryAutoConfirmPayment",
           "kind": "function",
-          "line_start": 107,
-          "line_end": 183
+          "line_start": 122,
+          "line_end": 213
         }
       ],
       "import_sites": [
@@ -35344,7 +35382,7 @@
           "name": "processClassifiedImage",
           "kind": "function",
           "line_start": 20,
-          "line_end": 411
+          "line_end": 447
         }
       ],
       "import_sites": [
@@ -58386,6 +58424,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:supabase/functions/_shared/bank-evidence.ts",
         "module:supabase/functions/_shared/connect-event.ts",
         "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
         "module:supabase/functions/line-webhook-v2/engines/response.ts"
@@ -58424,6 +58463,11 @@
           "specifier": "../_shared/connect-event.ts",
           "line": 28,
           "resolved_target": "supabase/functions/_shared/connect-event.ts"
+        },
+        {
+          "specifier": "../_shared/bank-evidence.ts",
+          "line": 29,
+          "resolved_target": "supabase/functions/_shared/bank-evidence.ts"
         }
       ]
     },
@@ -92326,6 +92370,127 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/payment-integrity-recovery-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/payment-integrity-recovery-test.ts",
+      "purpose_th": "CANONICAL PAYMENT INTEGRITY & RECOVERY — T01–T20 regression suite.",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:gateway/actions.ts",
+        "module:supabase/functions/_shared/bank-evidence.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../supabase/functions/_shared/bank-evidence",
+          "line": 16,
+          "resolved_target": "supabase/functions/_shared/bank-evidence.ts"
+        },
+        {
+          "specifier": "../gateway/actions",
+          "line": 24,
+          "resolved_target": "gateway/actions.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:supabase/functions/_shared/bank-evidence.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "supabase/functions/_shared/bank-evidence.ts",
+      "purpose_th": "Shared bank-evidence helpers for incoming-payment verification",
+      "exports": [
+        "StatementCandidateRow",
+        "StatementEvidenceOutcome",
+        "claimStatementRow",
+        "descriptionMatchesSender",
+        "evaluateStatementEvidence",
+        "normalizeBankName",
+        "releaseStatementClaim"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:scripts/payment-integrity-recovery-test.ts",
+        "module:supabase/functions/bank-statement-reconcile/index.ts",
+        "module:supabase/functions/receipt-reconcile-sweep/index.ts"
+      ],
+      "data_tables": [
+        "bank_statement_transactions"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "supabase",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "normalizeBankName",
+          "kind": "function",
+          "line_start": 26,
+          "line_end": 28
+        },
+        {
+          "name": "descriptionMatchesSender",
+          "kind": "function",
+          "line_start": 43,
+          "line_end": 59
+        },
+        {
+          "name": "StatementEvidenceOutcome",
+          "kind": "type",
+          "line_start": 63,
+          "line_end": 67
+        },
+        {
+          "name": "StatementCandidateRow",
+          "kind": "interface",
+          "line_start": 69,
+          "line_end": 74
+        },
+        {
+          "name": "evaluateStatementEvidence",
+          "kind": "function",
+          "line_start": 86,
+          "line_end": 112
+        },
+        {
+          "name": "claimStatementRow",
+          "kind": "function",
+          "line_start": 155,
+          "line_end": 161
+        },
+        {
+          "name": "releaseStatementClaim",
+          "kind": "function",
+          "line_start": 164,
+          "line_end": 170
+        }
+      ]
     }
   ],
   "edges": [
@@ -98276,6 +98441,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/payment-integrity-recovery-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/payment-legacy-rewire-test.ts",
       "label": "contains"
     },
@@ -98717,6 +98887,11 @@
     {
       "source": "layer:supabase",
       "target": "module:supabase/functions/_shared/ai/runtime.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/_shared/bank-evidence.ts",
       "label": "contains"
     },
     {
@@ -115380,6 +115555,16 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/payment-integrity-recovery-test.ts",
+      "target": "module:gateway/actions.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/payment-integrity-recovery-test.ts",
+      "target": "module:supabase/functions/_shared/bank-evidence.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/payment-rpc-adapter-test.ts",
       "target": "module:engines/canonical/payment-write.ts",
       "label": "imports"
@@ -116331,6 +116516,11 @@
     },
     {
       "source": "module:supabase/functions/bank-statement-reconcile/index.ts",
+      "target": "module:supabase/functions/_shared/bank-evidence.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/bank-statement-reconcile/index.ts",
       "target": "module:supabase/functions/_shared/connect-event.ts",
       "label": "imports"
     },
@@ -116911,6 +117101,11 @@
     },
     {
       "source": "module:supabase/functions/receipt-reconcile-sweep/index.ts",
+      "target": "module:supabase/functions/_shared/bank-evidence.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/receipt-reconcile-sweep/index.ts",
       "target": "module:supabase/functions/_shared/connect-identity.ts",
       "label": "imports"
     },
@@ -116971,8 +117166,8 @@
     }
   ],
   "summary": {
-    "total": 1361,
-    "ok": 1361,
+    "total": 1363,
+    "ok": 1363,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

@@ -1884,10 +1884,13 @@
         "ActionRequest",
         "ActionResponse",
         "PaymentInput",
+        "__setTokenDbForTest",
+        "consumeToken",
         "dispatchAction",
         "executeDebtCreate",
         "executeDocumentCreate",
         "executePayment",
+        "issueToken",
         "previewDebtCreate",
         "previewDocumentCreate",
         "previewPayment",
@@ -6110,6 +6113,7 @@
       "purpose_th": "ยืนยันรับเงินอัตโนมัติ (owner ตัดสินใจ 2026-07-24) — ทำ mutation เดียวกับ confirm route แบบ manual (debt_events + debt_snapshots.total_outstanding + receipt_documents) แต่เฉพาะเมื่อหลักฐาน OCR ครบถ้วนชัดเจน (ยอด+ชื่อผู้โอน+เวลา+จับคู่บริษัทแล้ว) พร้อมแจ้งยอดคงเหลือกลับลูกค้าและส่งใบเสร็จจริงผ่าน internal bridge เป็นการลดขอบเขต Rule 115 ที่ owner อนุมัติเอง ไม่ใช่การข้ามกฎทั่วไป",
       "exports": [
         "AutoConfirmInput",
+        "AutoConfirmOutcome",
         "tryAutoConfirmPayment"
       ],
       "status": "active"
@@ -16454,6 +16458,30 @@
         "answerDocumentQuestion",
         "findStoredFiles",
         "openaiAdapter"
+      ],
+      "status": "active"
+    },
+    "scripts/payment-integrity-recovery-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "CANONICAL PAYMENT INTEGRITY & RECOVERY — T01–T20 regression suite.",
+      "purpose_th": "CANONICAL PAYMENT INTEGRITY & RECOVERY — T01–T20 regression suite.",
+      "exports": [],
+      "status": "active"
+    },
+    "supabase/functions/_shared/bank-evidence.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Shared bank-evidence helpers for incoming-payment verification",
+      "purpose_th": "Shared bank-evidence helpers for incoming-payment verification",
+      "exports": [
+        "StatementCandidateRow",
+        "StatementEvidenceOutcome",
+        "claimStatementRow",
+        "descriptionMatchesSender",
+        "evaluateStatementEvidence",
+        "normalizeBankName",
+        "releaseStatementClaim"
       ],
       "status": "active"
     }
