@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "loaded_by_runtime": false,
   "policy": "This file is NOT read by app/api/v1/spec, engines/validation/dispatcher.ts, or any runtime path. It exists solely to pin down the HTTP contract for planned MCP tools/resources before they are promoted into registry/command-registry.json or registry/mcp-resource-registry.json with status:active. No entry here is callable by any client.",
   "tools": {
