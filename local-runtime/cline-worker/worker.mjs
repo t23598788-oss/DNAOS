@@ -179,6 +179,22 @@ async function main() {
 }
 
 console.log(`[cline-worker] boot id=${WORKER_ID} bin=${CLINE_BIN} deadboard=${DEADBOARD_URL} poll=${POLL_MS}ms`);
+
+// Railway health endpoint — the platform restarts instances with no listener
+// on $PORT; this tiny server also exposes worker health for ops.
+import("node:http").then(({ createServer }) => {
+  const port = Number(process.env.PORT ?? 8080);
+  createServer(async (req, res) => {
+    if (req.url === "/health") {
+      const { count, error } = await db.from("ai_tasks").select("id", { count: "exact", head: true }).eq("kind", CLAIM_WHERE);
+      res.writeHead(200, { "content-type": "application/json" });
+      res.end(JSON.stringify({ ok: true, worker: WORKER_ID, owner_cline_tasks: count ?? 0, query_error: error?.message ?? null }));
+      return;
+    }
+    res.writeHead(404).end();
+  }).listen(port, () => console.log(`[cline-worker] health on :${port}`));
+});
+
 setInterval(() => main().catch((e) => console.error("[cline-worker] loop error:", e.message)), POLL_MS);
 main().catch((e) => console.error("[cline-worker] boot error:", e.message));
 
