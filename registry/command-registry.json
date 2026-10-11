@@ -1079,6 +1079,32 @@
       "description": "Declared, not implemented this pass — session-ownership-at-creation-time attribution needs real session-transcript search, only prototyped manually (see the page 2.tsx recovery investigation), not automated.",
       "description_th": "ยังไม่ implement",
       "requires_confirmation": false
+    },
+    "invoice.payments": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {
+        "document_id": "string?"
+      },
+      "output": "{allocations}",
+      "description": "PaymentAllocations — read-only การจัดสรรชำระเงินต่อใบแจ้งหนี้ (payment_allocations join invoices/companies) — DNA-000222 coverage",
+      "requires_confirmation": false
+    },
+    "expense.list": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{expenses}",
+      "description": "CompanyExpenses — read-only รายจ่ายบริษัท (company_expenses) — DNA-000222 coverage",
+      "requires_confirmation": false
+    },
+    "bank.statement": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{transactions}",
+      "description": "BankStatement — read-only รายการ statement (bank_statement_transactions) — DNA-000222 coverage",
+      "requires_confirmation": false
     }
   },
   "query_constraints": {

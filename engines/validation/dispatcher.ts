@@ -18,6 +18,7 @@ import { buildPartnerTimeline, buildPartnerSummary } from "@/engines/partner/tim
 import { getCurrentDebt, type CurrentDebt } from "@/engines/debt/tracking";
 import { resolveMaterial } from "@/engines/material-resolver";
 import { tryQuoteMaterialPrice } from "@/engines/quote-price";
+import { supabaseAdmin } from "@/services/supabase/queries";
 import { calcCapacity } from "@/engines/capacity";
 import { calcCost } from "@/engines/cost";
 import { loadCompanySettings } from "@/core/config/company-settings";
@@ -161,6 +162,41 @@ const QUERY_MAP: Record<string, QueryFn> = {
     return { summary, timeline };
   },
   "material.list":    async () => getMaterialTypes(),
+  // ── DNA-000222 BUSINESS DATA SOURCE COVERAGE ─────────────────────────────
+  // เติมคำสั่งอ่านที่ "ตารางมีจริงใน production แต่ยังไม่มีบน dispatcher" —
+  // ใช้ select เดียวกับที่ admin routes อ่านอยู่แล้ว (payment_allocations join
+  //  invoices/companies แบบ app/api/admin/finance/transactions, company_expenses
+  //  แบบ app/api/admin/company-expenses, bank_statement_transactions แบบที่
+  //  pipeline bank ใช้) — read-only ล้วน ไม่มีการคำนวณเงินใหม่
+  "invoice.payments": async (p) => {
+    const documentId = String(p.document_id ?? "");
+    let q = supabaseAdmin()
+      .from("payment_allocations")
+      .select("id, amount, allocated_at, receipt_document_id, invoices:invoice_id(invoice_no, customer_company_id, companies:customer_company_id(name))")
+      .order("allocated_at", { ascending: false });
+    if (documentId) q = q.eq("invoice_id", documentId);
+    const { data, error } = await q.limit(100);
+    if (error) throw new Error(error.message);
+    return { allocations: data ?? [] };
+  },
+  "expense.list":     async () => {
+    const { data, error } = await supabaseAdmin()
+      .from("company_expenses")
+      .select("id, expense_date, category, description, amount, created_at")
+      .order("expense_date", { ascending: false })
+      .limit(200);
+    if (error) throw new Error(error.message);
+    return { expenses: data ?? [] };
+  },
+  "bank.statement":   async () => {
+    const { data, error } = await supabaseAdmin()
+      .from("bank_statement_transactions")
+      .select("*")
+      .order("transaction_date", { ascending: false })
+      .limit(100);
+    if (error) throw new Error(error.message);
+    return { transactions: data ?? [] };
+  },
   // PartnerProfile(partnerId) — owner, 2026-07-17, Invoice Preview
   // Redesign. Wraps the existing getPartnerById() (services/supabase/
   // queries.ts:564), which had zero AI-facing callers before this.

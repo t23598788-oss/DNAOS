@@ -31,7 +31,7 @@ const READ_COMMANDS = new Set([
   "invoice.list", "invoice.latest", "invoice.find", "invoice.items",
   "debt.list", "debt.all", "debt.current", "debt.trackings",
   "draft.list", "job.list", "job.active", "job.track",
-  "material.list",
+  "material.list", "invoice.payments", "expense.list", "bank.statement",
 ])
 
 export async function POST(req: Request) {
