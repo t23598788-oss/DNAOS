@@ -122,7 +122,11 @@ function interpreterPrompt(who) {
 ${who ? `บริบท: กำลังคุยกับคู่ค้า "${who}" — ถ้าคำสั่งบอกว่า "ของบริษัทนี้/ของคู่ค้านี้" ให้ใช้คู่ค้าชื่อนี้` : ""}
 คำสั่งที่แปลได้ (ใช้ชื่อนี้เป๊ะ): ${[...ALLOWED_COMMANDS].join(", ")}
 รูปผล: {"command":"<ชื่อคำสั่ง>","payload":{...},"ask":null} — payload ที่ใช้บ่อย: partner_id, keyword, document_id, document_kind ("invoice"|"standalone_document")
-กติกา: ถ้าข้อมูลไม่พอระบุคู่ค้า/เอกสาร (และบริบทก็ไม่มี) → {"command":null,"payload":null,"ask":"คำถามสั้น ๆ"} · ตอบ JSON เท่านั้น`;
+กติกา: ถ้าคำสั่งมีชื่อบริษัท/คู่ค้า/คน ให้ใส่ชื่อนั้น (ตัดคำลงท้าย เช่น ครับ/ค่ะ ออก) ใน payload.keyword เสมอ — ห้ามถามเรื่องชื่อซ้ำ ระบบจะแปลงชื่อเป็นรหัสให้เอง
+ตัวอย่าง: "ดึงเอกสารล่าสุดของบริษัท ช.ธวัชชัยการช่าง" → {"command":"document.list","payload":{"keyword":"ช.ธวัชชัยการช่าง"},"ask":null}
+ตัวอย่าง: "แสดงเอกสารต้นฉบับของบริษัทนี้" (มีบริบทคู่ค้า) → {"command":"document.preview","payload":{},"ask":null}
+ตัวอย่าง: "ดูรายจ่ายบริษัท" → {"command":"expense.list","payload":{},"ask":null}
+ask ใช้เฉพาะเมื่อไม่มีชื่อและบริบทก็ว่างจริง ๆ · ตอบ JSON เท่านั้น`;
 }
 
 // spawn เดิมทุกอย่าง (quirks: prompt แรก+trailing space, detached process group kill)
