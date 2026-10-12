@@ -74,7 +74,7 @@ export const ollamaAdapter: AiAdapter = {
 export const anthropicAdapter: AiAdapter = {
   id: "anthropic",
   kind: "ai",
-  capabilities: ["document.ocr", "document.event_extract", "code.generate"],
+  capabilities: ["document.ocr", "document.event_extract", "code.generate", "intent.classify", "conversation.answer"],
   runtimes: ["next"],
   status(context): AiAdapterStatus {
     const configured = Boolean(envOf(context)("ANTHROPIC_API_KEY"));

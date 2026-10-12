@@ -133,7 +133,9 @@
           "document.ocr",
           "document.event_extract",
           "code.generate",
-          "text.entity_extract"
+          "text.entity_extract",
+          "intent.classify",
+          "conversation.answer"
         ],
         "deno": [
           "document.ocr",
@@ -143,7 +145,8 @@
           "text.entity_extract"
         ]
       },
-      "display_name": "Claude (Anthropic)"
+      "display_name": "Claude (Anthropic)",
+      "failover_note": "DNA-000224: next-runtime failover for intent.classify/conversation.answer when ollama URL absent or cline credits exhausted (A7 proven: deno engines already serve these with Anthropic in production)"
     },
     {
       "id": "gemini",

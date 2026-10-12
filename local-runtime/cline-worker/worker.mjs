@@ -154,12 +154,12 @@ function runCline(message, who) {
           }
         } catch { /* partial */ }
       }
-      if (!text) return resolve({ error: "no run_result (timeout or crash)" });
+      if (!text) return resolve({ error: "no run_result (timeout or crash)", raw: text || "" });
       const cleaned = text.replace(/```(?:json)?\s*/gi, "").trim();
       const st = cleaned.indexOf("{"), en = cleaned.lastIndexOf("}");
       let parsed = null;
       try { parsed = JSON.parse(cleaned.slice(st, en + 1)); } catch { parsed = null; }
-      resolve({ parsed, usage, durationMs, iterations });
+      resolve({ parsed, usage, durationMs, iterations, raw: text });
     });
   });
 }
@@ -256,10 +256,15 @@ async function executeTask(task) {
     // DNA-000223B: แยก "คำตอบไม่ใช่ JSON" (เช่น โมเดล/เครดิตมีปัญหา) ออกจาก
     // "ถามจริง" — เดิม parse-fail ถูกปลอมเป็น ask → retry 1 ครั้ง แล้ว fail ชัดเจน
     if (!interp.parsed) {
+      const rawHead = String(interp.raw ?? "");
+      if (/insufficient balance|credit/i.test(rawHead)) throw new Error("INSUFFICIENT_CREDITS: cline provider credits exhausted");
       console.error(`[cline-worker] task ${task.id} interpreter non-JSON — retrying once`);
       interp = await runCline(`${task.input_text} (ตอบด้วย JSON เท่านั้น ห้ามมีข้อความอื่น)`, who);
       if (interp.error) throw new Error(interp.error);
-      if (!interp.parsed) throw new Error(`INTERPRETER_OUTPUT_INVALID: non-JSON interpreter response`);
+      if (!interp.parsed) {
+        if (/insufficient balance|credit/i.test(String(interp.raw ?? ""))) throw new Error("INSUFFICIENT_CREDITS: cline provider credits exhausted");
+        throw new Error(`INTERPRETER_OUTPUT_INVALID: non-JSON interpreter response`);
+      }
     }
     const parsed = interp.parsed ?? {};
     const aiMs = Date.now() - t0;
