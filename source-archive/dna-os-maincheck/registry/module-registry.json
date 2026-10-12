@@ -2,6 +2,14 @@
   "version": 1,
   "policy": "ทุกไฟล์ต้องอยู่ใน registry — ไม่มี Shadow System",
   "modules": {
+    "app/api/admin/ide/_lib/workerAdapterRegistry.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Single existing Worker Adapter Registry shared by provider catalog, execution-context health snapshots and Developer Worker Selector; contains the same adapter objects and order, without selection logic or a new runtime.",
+      "purpose_th": "ทะเบียน Worker Adapter เดิมจุดเดียว สำหรับ catalog และ checkpoint ที่ Business ใช้ร่วมกับ Worker Selector โดยคง adapter และลำดับเดิม ไม่เพิ่ม Runtime หรือ Gateway",
+      "exports": ["WORKER_ADAPTER_REGISTRY"],
+      "status": "active"
+    },
     "observatory/index.html": {
       "owner": "browser",
       "layer": "browser",
