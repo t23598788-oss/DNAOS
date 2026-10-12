@@ -188,6 +188,44 @@ const QUERY_MAP: Record<string, QueryFn> = {
     if (error) throw new Error(error.message);
     return { expenses: data ?? [] };
   },
+  // ── DNA-000226 RECEIPT EVIDENCE READ PATH ──────────────────────────────────
+  // อ่าน receipt_documents (495 แถวรอบ production) ผ่าน dispatcher — รูป query
+  // ชุดเดียวกับ GET app/api/admin/receipt-documents (reader เดิม) แต่เปิด
+  // ทุกสถานะ + กรองตาม verification + pagination/total ชัดเจน · document.receipt
+  // (invoices PAID) ไม่ถูกแตะ — แยกคนละ source ตามเดิม
+  "receipt.list":     async (p) => {
+    const limit = Math.min(Number(p.limit ?? 50), 100);
+    const offset = Math.max(Number(p.offset ?? 0), 0);
+    const verification = String(p.verification ?? "all");
+    let q = supabaseAdmin()
+      .from("receipt_documents")
+      .select("id, document_type, vendor_name, sender_name, amount, document_date, transaction_datetime, status, payment_verified, verification_level, source_channel, reference_number, customer_company_id, companies:customer_company_id(name)", { count: "exact" });
+    if (verification === "verified") q = q.eq("payment_verified", true);
+    if (verification === "unverified") q = q.eq("payment_verified", false);
+    const { data, error, count } = await q.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
+    if (error) throw new Error(error.message);
+    return { receipts: (data ?? []).map((r) => ({ ...r, partner_name: r.companies?.[0]?.name ?? null, companies: undefined })), total: count ?? (data ?? []).length, limit, offset };
+  },
+  "receipt.latest":    async (p) => {
+    const { data, error } = await supabaseAdmin()
+      .from("receipt_documents")
+      .select("id, document_type, vendor_name, sender_name, amount, document_date, transaction_datetime, status, payment_verified, verification_level, source_channel, reference_number, customer_company_id, companies:customer_company_id(name)")
+      .order("created_at", { ascending: false }).limit(1);
+    if (error) throw new Error(error.message);
+    const r = (data ?? [])[0] ?? null;
+    return { receipt: r ? { ...r, partner_name: r.companies?.[0]?.name ?? null, companies: undefined } : null };
+  },
+  "receipt.get":       async (p) => {
+    const id = String(p.receipt_id ?? "");
+    if (!id) throw new Error("ต้องระบุ receipt_id");
+    const { data, error } = await supabaseAdmin()
+      .from("receipt_documents")
+      .select("id, document_type, vendor_name, sender_name, amount, document_date, transaction_datetime, status, payment_verified, verification_level, source_channel, reference_number, customer_company_id, media_mime_type, media_size_bytes, companies:customer_company_id(name)")
+      .eq("id", id).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error("ไม่พบรหัสหลักฐานนี้");
+    return { receipt: { ...data, partner_name: data.companies?.[0]?.name ?? null, companies: undefined } };
+  },
   "bank.statement":   async () => {
     const { data, error } = await supabaseAdmin()
       .from("bank_statement_transactions")

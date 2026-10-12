@@ -1103,6 +1103,32 @@
       "output": "{transactions}",
       "description": "BankStatement — read-only รายการ statement (bank_statement_transactions) — DNA-000222 coverage",
       "requires_confirmation": false
+    },
+    "receipt.list": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{receipts,total,limit,offset}",
+      "description": "ReceiptEvidenceList — read-only หลักฐานรับเงิน receipt_documents (ทุกสถานะ+กรอง verified+pagination+total) — DNA-000226 (limit/offset/verification อ่านจาก payload ทาง handler — optional)",
+      "requires_confirmation": false
+    },
+    "receipt.latest": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{receipt}",
+      "description": "ReceiptEvidenceLatest — read-only หลักฐานล่าสุดจาก receipt_documents — DNA-000226",
+      "requires_confirmation": false
+    },
+    "receipt.get": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {
+        "receipt_id": "string"
+      },
+      "output": "{receipt}",
+      "description": "ReceiptEvidenceGet — read-only รายละเอียดหลักฐานรับเงิน1 รายการ — DNA-000226",
+      "requires_confirmation": false
     }
   },
   "query_constraints": {

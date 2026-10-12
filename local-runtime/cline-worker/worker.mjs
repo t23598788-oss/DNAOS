@@ -114,7 +114,7 @@ const ALLOWED_COMMANDS = new Set([
   "invoice.list", "invoice.latest", "invoice.find", "invoice.items",
   "debt.list", "debt.all", "debt.current", "debt.trackings",
   "draft.list", "job.list", "job.active", "document.preview",
-  "invoice.payments", "expense.list", "bank.statement",
+  "invoice.payments", "expense.list", "bank.statement", "receipt.list", "receipt.latest", "receipt.get",
 ]);
 
 function interpreterPrompt(who) {
@@ -223,7 +223,36 @@ function formatResult(command, data) {
     const block = { kind: "fields", id: "company", title: String(data.name || "ข้อมูลคู่ค้า"), fields: fields };
     return { type: "sections", blocks: [block] };
   }
-  const arr = Object.values(data).find((v) => Array.isArray(v));
+  // DNA-000226: หลักฐานรับเงิน — ทุกสถานะพร้อมธง verification
+  function receiptSections(r, titlePrefix) {
+    const fields = [];
+    const pairs = [
+      ["วันที่", r.transaction_datetime ?? r.document_date],
+      ["ผู้ส่ง/ผู้ขาย", r.sender_name ?? r.vendor_name],
+      ["ยอด", r.amount],
+      ["ประเภทเอกสาร", r.document_type],
+      ["สถานะ", r.status],
+      ["ระดับตรวจสอบ", r.verification_level],
+      ["ยืนยันการชำระ", r.payment_verified ? "ยืนยันแล้ว" : "ยังไม่ยืนยัน"],
+      ["เลขอ้างอิง", r.reference_number],
+      ["บริษัท", r.partner_name],
+      ["ไฟล์ต้นฉบับ", r.media_mime_type],
+    ];
+    for (let i = 0; i < pairs.length; i++) {
+      if (pairs[i][1]) fields.push({ kind: "field", id: "f" + i, label: pairs[i][0], value: String(pairs[i][1]) });
+    }
+    const block = { kind: "fields", id: "receipt", title: titlePrefix + (r.payment_verified ? " (ยืนยันแล้ว)" : " (ยังไม่ยืนยัน)"), fields: fields };
+    return { type: "sections", blocks: [block] };
+  }
+  if (command === "receipt.latest" && data.receipt) return receiptSections(data.receipt, "หลักฐานรับเงินล่าสุด");
+  if (command === "receipt.get" && data.receipt) return receiptSections(data.receipt, "รายละเอียดหลักฐาน");
+  if (command === "receipt.list" && Array.isArray(data.receipts)) {
+    const total = Number(data.total ?? data.receipts.length);
+    const rows = data.receipts.slice(0, 50).map((r) => [r.transaction_datetime ?? r.document_date, r.sender_name ?? r.vendor_name, r.amount, r.payment_verified ? "ยืนยันแล้ว" : "ยังไม่ยืนยัน", r.status, r.document_type, r.partner_name ?? "-", r.reference_number ?? "-"].map((x) => (x === null || x === undefined ? "-" : String(x).slice(0, 50))));
+    const pageNote = total > data.receipts.length ? `หน้าแรก ${data.receipts.length} จาก ${total} ฉบับทั้งหมด` : `${total} ฉบับทั้งหมด`;
+    return tableOf(`หลักฐานรับเงิน — ${pageNote}`, ["วันที่", "ผู้ส่ง/ผู้ขาย", "ยอด", "ยืนยัน", "สถานะ", "ประเภท", "บริษัท", "เลขอ้างอิง"], rows);
+  }
+    let arr = Array.isArray(data) ? data : Object.values(data).find((v) => Array.isArray(v));
   if (!Array.isArray(arr)) {
     const fields = [];
     const entries = Object.entries(data).filter(([, v]) => v === null || typeof v !== "object").slice(0, 12);
