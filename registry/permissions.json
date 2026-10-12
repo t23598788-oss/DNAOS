@@ -87,6 +87,15 @@
         "admin",
         "customer"
       ]
+    },
+    {
+      "prefix": "/developer",
+      "roles": [
+        "super_admin",
+        "admin",
+        "employee"
+      ],
+      "note": "DEVELOPER WORKSPACE (owner directive 2026-10-12 — แยก URL/Navigation จาก Business). หน้าเข้าระบบพัฒนา (IDE/Dev Loop/Deploy/UI Gallery) ใช้ role tier เดียวกับ /admin ไม่มีการเพิ่มสิทธิ์ใหม่ — ที่แยกคือ surface เดิม ไม่ใช่ role ใหม่"
     }
   ],
   "api_access": [
@@ -237,6 +246,79 @@
     ]
   },
   "capability_access_note": "Authority for each BUSINESS TOOL in the Application Workspace (/workspace). Read only by core/navigation/resolveCapabilityAccess.ts — no component may hardcode a role list (same rule as route_access/api_access above). DEFAULT IS DENY: a tool key that is not listed here is not shown. Every role set below mirrors the authority of the existing plane the tool's data/actions already come from, verified from source, not invented: /api/admin/* + /api/document + /api/chat all call requireAuth(ADMIN_TIER) and registry route_access '/admin' is the same three roles — so all 14 declared tools are admin-tier today. When a tool genuinely gains a wider plane (e.g. a partner-visible screen), update THIS registry, never the component. Roles here are a filter on presentation only; the server routes keep their own requireAuth() check — this registry never replaces an API guard.",
+  "capability_actions": {
+    "note": "CAPABILITY/ACTION AUTHORITY ของ control-surface สองใบ (owner directive 2026-10-12: ยุติแผนแยก Source Code แบบตัดความสัมพันธ์ทั้งหมด — คง shared capability ไว้ครบ แล้วแยกเฉพาะ CONTROL SURFACE). อ่านที่เดียวโดย core/auth/surfacePolicy.ts และบังคับที่ middleware.ts (API + Runtime จริง ไม่ใช่แค่ซ่อนปุ่ม). แยกสิทธิ์ตาม capability + action ไม่แยกตามชื่อ AI provider — ไม่มี role/สิทธิ์ใหม่ถูกสร้างขึ้น",
+    "authority": "Identity/Authority กลางเดิม = core/auth/session.ts (Supabase session) + requireAuth/requireAuthPage + route_access/api_access/capability_access ของไฟล์นี้ · อำนาจแก้ source ยังเป็น chain เดิม: requireAuth(ADMIN_TIER) → app/api/admin/ide/_lib/fsSecurity.ts → change-set/review → build → scripts/deploy-gate.ts · โมเดล surface อ้าง control/owner-surface-separation (STRICT_OPERATIONAL_DEVELOPMENT_SURFACE_SEPARATION_V1) ใน dna-os-step2",
+    "enforcement": "core/auth/surfacePolicy.ts#decideSurfaceAction (ตัวตัดสินใจ อ่านไฟล์นี้ไฟล์เดียว) + middleware.ts (เรียกทุกคำขอ /api/admin/* ก่อนถึง route) · ตรวจด้วย scripts/surface-policy-test.ts",
+    "default_surface": "operational",
+    "fail_closed": "ไม่มี cookie / ค่าผิด / อ่านไม่ได้ = operational (Business) = DENY ทุก developer-plane write",
+    "write_methods": ["POST", "PUT", "PATCH", "DELETE"],
+    "surfaces": {
+      "operational": {
+        "th": "Business Workspace — ใช้ระบบธุรกิจ, เรียก Shared Capabilities, จัดการข้อมูล Supabase, การเงิน/เอกสาร, LINE และ Connect",
+        "cookie_value": "operational",
+        "entry_urls": ["/workspace"],
+        "allows": ["business.read", "business.write", "document.generate", "connector.execute"]
+      },
+      "development": {
+        "th": "Developer Workspace — แก้ไขไฟล์/Source, Worker Selector, Code Generation, GitHub และ Development Workflow",
+        "cookie_value": "development",
+        "entry_urls": ["/developer", "/admin/ide", "/admin/dev-loop", "/admin/deploy", "/admin/ui-gallery"],
+        "allows": ["source.modify", "git.push", "deployment.execute", "developer.worker.execute", "developer.workflow.execute"]
+      }
+    },
+    "allow": {
+      "business.read": {
+        "th": "อ่านข้อมูล/ระบบได้ทั้งสอง surface — source READ ไม่ใช่ source WRITE (sourceReadIsNotWrite ของ authority เดิม)",
+        "prefixes": ["/api/admin", "/api/document", "/api/action", "/api/explain", "/api/chat", "/api/v1/query"],
+        "authority": "requireAuth(ADMIN_TIER) / X-DNA-Token scope เดิม ไม่เปลี่ยน"
+      },
+      "business.write": {
+        "th": "เขียนข้อมูลธุรกิจตามสิทธิ์เดิม (role เดิม ไม่มีสิทธิ์ใหม่)",
+        "prefixes": ["/api/admin/partners", "/api/admin/jobs", "/api/admin/transactions", "/api/admin/receipt-documents", "/api/admin/invoices", "/api/admin/debt-trackings", "/api/admin/materials", "/api/admin/pits", "/api/admin/equipment", "/api/admin/line-customers", "/api/admin/upload"],
+        "authority": "requireAuth(ADMIN_TIER) + route_access/api_access เดิม"
+      },
+      "document.generate": {
+        "th": "สร้าง/ส่งเอกสารกลางตามเดิม — ห้ามแตะ canonical finance/document writer",
+        "prefixes": ["/api/document", "/api/admin/documents"],
+        "authority": "Canonical Job Contract + document authority เดิม"
+      },
+      "connector.execute": {
+        "th": "รัน connector/LINE/business dispatch ตามสิทธิ์เดิม",
+        "prefixes": ["/api/admin/connectors", "/api/admin/line-customers", "/api/admin/line-profiles", "/api/v1/mcp/business"],
+        "authority": "Connector Lifecycle + business dispatch เดิม"
+      }
+    },
+    "deny": {
+      "git.push": {
+        "th": "DENY git.push กับ Business surface",
+        "prefixes": ["/api/admin/ide/git"],
+        "note": "ปัจจุบันไม่มี git write route (ทุก /api/admin/ide/git/* เป็น GET read) — ประกาศไว้เพื่อกัน route เขียน git ใหม่โดยอัตโนมัติที่ middleware",
+        "authority": "GitHub ยังเป็น source repository หลัก — ไม่มีการสร้าง repository ใหม่หรือย้าย authority"
+      },
+      "deployment.execute": {
+        "th": "DENY deployment.execute กับ Business surface",
+        "prefixes": ["/api/admin/ide/deployment", "/api/admin/ide/release", "/api/admin/ide/build"],
+        "authority": "scripts/deploy-gate.ts + release gate เดิม (ไม่ deploy production เมื่อ gate ไม่ผ่าน)"
+      },
+      "developer.worker.execute": {
+        "th": "DENY developer.worker.execute กับ Business surface",
+        "prefixes": ["/api/admin/ide/workers", "/api/admin/ide/execution", "/api/admin/ide/queue"],
+        "authority": "Worker Selector / code worker runtime เดิม — เรียกจาก Developer surface เท่านั้น"
+      },
+      "source.modify": {
+        "th": "DENY source.modify กับ Business surface (file write, fs create/rename/move/trash, command surface, factory proposal/execute)",
+        "prefixes": ["/api/admin/ide"],
+        "authority": "requireAuth(ADMIN_TIER) → fsSecurity.ts → change-set/review → build gate → scripts/deploy-gate.ts (chain เดิม ไม่ถูกแทนที่)"
+      },
+      "developer.workflow.execute": {
+        "th": "DENY development workflow (Dev Loop approve/run) กับ Business surface",
+        "prefixes": ["/api/admin/dev-loop"],
+        "authority": "Dev Loop evidence เดิม — เปลี่ยนได้จาก Developer Workspace เท่านั้น"
+      }
+    },
+    "shared_capabilities_unchanged": "CLI/File reader · File conversion · Document scanner · Deterministic processing · AI Gateway · Browser automation · Computer use · Failure bridge · Checkpoint/Evidence · Connector lifecycle · Desktop/Tauri — ยังเรียกจาก Business ได้ตามเดิม เพราะนโยบายนี้ปิดเฉพาะ developer-plane WRITE (GET/HEAD ไม่ถูกแตะ) และไม่มีไฟล์ capability เหล่านี้ถูกย้าย/ลบ/สร้างใหม่"
+  },
   "public_routes": [
     "/",
     "/login",
@@ -263,6 +345,7 @@
   "history": {
     "2026-07-08": "Created for TASK-001 (Plan Lock 1/3). Replaces the old admin_session presence-only cookie check with real Supabase Auth + role checks, and formalizes the Role/Permission Registry required by TASK-001's Definition of Done.",
     "2026-07-14": "Added workspace_landing (Enterprise Workspace Architecture, Phase 1) — role-to-destination is now data here, not code in app/login/page.tsx's old ROLE_HOME. /business intentionally has no entry: no role lands there today (see the Phase-1 architecture proposal's orphaned-workspace finding) and this phase does not invent one.",
-    "2026-09-23": "Added capability_access + capability_access_note (SLICE-1 of the locked Full System Upgrade Line, owner decision D1=A): the NEW Business Workspace (/workspace) now derives which business tools a role may see from this registry through core/navigation/resolveCapabilityAccess.ts instead of showing every tool to every authenticated user. Presentation filter only — no role moved, no route_access/api_access entry changed, and every server route keeps its own requireAuth() guard."
+    "2026-09-23": "Added capability_access + capability_access_note (SLICE-1 of the locked Full System Upgrade Line, owner decision D1=A): the NEW Business Workspace (/workspace) now derives which business tools a role may see from this registry through core/navigation/resolveCapabilityAccess.ts instead of showing every tool to every authenticated user. Presentation filter only — no role moved, no route_access/api_access entry changed, and every server route keeps its own requireAuth() guard.",
+    "2026-10-12": "Added route_access /developer + capability_actions (FINAL ARCHITECTURE ALIGNMENT — preserve shared capabilities, separate control surfaces). ไม่มี role ใหม่ ไม่มีสิทธิ์ใหม่: /developer ใช้ admin_tier ชุดเดียวกับ /admin, business.write/connector.execute/document.generate ยังเป็นสิทธิ์เดิมทุกบรรทัด สิ่งที่เพิ่มคือ (ก) ประกาศ DENY ของ developer-plane actions (source.modify / git.push / deployment.execute / developer.worker.execute / developer.workflow.execute) สำหรับ Business surface และ (ข) บังคับที่ middleware.ts บนทุกคำขอ API จริง อ่านผ่าน core/auth/surfacePolicy.ts ไฟล์เดียว fail-closed"
   }
 }

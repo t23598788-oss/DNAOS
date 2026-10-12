@@ -88,6 +88,42 @@ async function main() {
     }
   });
 
+  // ── CONTROL SURFACE SEPARATION (owner directive 2026-10-12) — authority กลาง
+  //    เดิมไฟล์เดียวกัน + บังคับที่ runtime จริง (ไม่ใช่แค่ซ่อนปุ่ม)
+  await test("capability_actions lives in the SAME registry (ไม่มี permission ไฟล์ที่สอง)", () => {
+    const ca = (permissions as unknown as {
+      capability_actions?: { deny?: Record<string, unknown>; allow?: Record<string, unknown> };
+    }).capability_actions;
+    assert(!!ca && typeof ca === "object", "capability_actions หายจาก registry/permissions.json");
+    const deny = ca?.deny ?? {};
+    const allow = ca?.allow ?? {};
+    for (const action of ["source.modify", "git.push", "deployment.execute", "developer.worker.execute"]) {
+      assert(action in deny, `DENY ${action} ไม่ถูกประกาศ`);
+    }
+    for (const action of ["business.read", "business.write", "document.generate", "connector.execute"]) {
+      assert(action in allow, `ALLOW ${action} ไม่ถูกประกาศ`);
+    }
+  });
+
+  await test("API runtime enforces capability_actions (middleware เรียก policy จริง)", () => {
+    const middleware = source("middleware.ts");
+    assert(middleware.includes("decideSurfaceAction"), "middleware ไม่ได้เรียก policy");
+    assert(middleware.includes("SURFACE_ACTION_DENIED"), "middleware ไม่มีการปฏิเสธ (403)");
+    assert(
+      source("core/auth/surfacePolicy.ts").includes('from "@/registry/permissions.json"'),
+      "policy ไม่ได้อ่าน registry กลาง",
+    );
+  });
+
+  await test("Developer Workspace (/developer) ใช้ admin_tier ชุดเดียวกับ /admin — ไม่มีสิทธิ์ใหม่", () => {
+    const dev = permissions.route_access.find((r) => r.prefix === "/developer");
+    assert(!!dev, "/developer ไม่ได้ลงทะเบียนใน route_access");
+    assert(
+      !!dev && JSON.stringify([...dev.roles].sort()) === JSON.stringify([...permissions.role_tiers.admin_tier].sort()),
+      "/developer roles ไม่ตรง admin_tier",
+    );
+  });
+
   console.log("\n=== CORE.PERMISSION_POLICY contract ===");
   for (const r of results) console.log(`${r.pass ? "PASS" : "FAIL"}  ${r.name}${r.pass ? "" : ` — ${r.detail}`}`);
   const passed = results.filter((r) => r.pass).length;

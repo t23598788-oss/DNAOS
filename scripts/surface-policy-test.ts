@@ -1,0 +1,275 @@
+/**
+ * surface-policy-test.ts — CONTROL SURFACE SEPARATION contract test
+ * (owner directive 2026-10-12: ยุติแผนแยก Source Code แบบตัดความสัมพันธ์ —
+ * คง Shared Capability ครบ แล้วแยกเฉพาะ Business/Developer CONTROL SURFACE).
+ *
+ * พิสูจน์กับไฟล์จริง + ฟังก์ชันจริง (ไม่ mock, ไม่ network):
+ *   1. Business surface ถูก DENY developer-plane actions ทั้ง 4 ที่ API
+ *      (source.modify · git.push · deployment.execute · developer.worker.execute)
+ *      + development workflow ที่ /api/admin/dev-loop
+ *   2. Developer surface ยังเดินเข้า Authority เดิมได้ (ไม่มี gate ใหม่)
+ *   3. Business/LINE/Document/Finance/Connect API ไม่ถูกแตะ — พฤติกรรมเดิม
+ *   4. อ่าน (GET/HEAD) คงเดิมทั้งสอง surface — Shared Capabilities ใช้ได้ตามเคย
+ *   5. Navigation ของ Business ไม่มีทางเปิด Developer Tools
+ *   6. middleware.ts บังคับจริงที่ runtime (ไม่ใช่แค่ซ่อนปุ่ม)
+ *
+ * Run: npx tsx scripts/surface-policy-test.ts
+ */
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { execSync } from "node:child_process";
+import {
+  SURFACE_COOKIE,
+  decideSurfaceAction,
+  resolveSurface,
+  surfaceForPagePath,
+} from "../core/auth/surfacePolicy";
+import permissions from "../registry/permissions.json";
+
+const ROOT = process.cwd();
+let pass = 0;
+let fail = 0;
+const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
+function check(name: string, ok: boolean, detail = ""): void {
+  if (ok) {
+    pass += 1;
+    console.log(`  PASS  ${name}`);
+  } else {
+    fail += 1;
+    console.log(`  FAIL  ${name}${detail ? ` — ${detail}` : ""}`);
+  }
+}
+
+const OPS = resolveSurface(undefined);
+const DEV = resolveSurface("development");
+const write = (pathname: string, surface = OPS) =>
+  decideSurfaceAction({ pathname, method: "POST", surface });
+
+// ── 1. surface resolution ต้อง fail-closed ──────────────────────────────────
+check("resolveSurface(ไม่มี cookie) = operational (fail-closed)", OPS === "operational");
+check("resolveSurface('garbage') = operational", resolveSurface("garbage") === "operational");
+check("resolveSurface('') = operational", resolveSurface("") === "operational");
+check("resolveSurface('development') = development", DEV === "development");
+check(`SURFACE_COOKIE ชื่อเดียว = "${SURFACE_COOKIE}"`, SURFACE_COOKIE === "dna_os_surface");
+
+// ── 2. DENY ตามที่ owner สั่ง (Business surface) ───────────────────────────
+const denied: [string, string][] = [
+  ["/api/admin/ide/file", "source.modify"],
+  ["/api/admin/ide/fs/create", "source.modify"],
+  ["/api/admin/ide/command", "source.modify"],
+  ["/api/admin/ide/factory-workspace/sessions", "source.modify"],
+  ["/api/admin/ide/git/commit", "git.push"],
+  ["/api/admin/ide/deployment/plans", "deployment.execute"],
+  ["/api/admin/ide/release/runs", "deployment.execute"],
+  ["/api/admin/ide/build/runs", "deployment.execute"],
+  ["/api/admin/ide/workers/execute", "developer.worker.execute"],
+  ["/api/admin/ide/execution/run", "developer.worker.execute"],
+  ["/api/admin/ide/queue/jobs", "developer.worker.execute"],
+  ["/api/admin/dev-loop/approve", "developer.workflow.execute"],
+];
+for (const [path, action] of denied) {
+  const d = write(path);
+  check(`BUSINESS DENY ${action} · POST ${path}`, d.allowed === false && d.action === action,
+    `allowed=${d.allowed} action=${d.action}`);
+}
+// ทุก write method บน ide ต้องถูกกัน (ไม่ใช่แค่ POST)
+for (const method of ["PUT", "PATCH", "DELETE"]) {
+  const d = decideSurfaceAction({ pathname: "/api/admin/ide/file", method, surface: OPS });
+  check(`BUSINESS DENY ${method} /api/admin/ide/file`, d.allowed === false);
+}
+
+// ── 3. DEVELOPER surface: ผ่านไป Authority เดิม (ไม่มี gate ใหม่) ───────────
+for (const [path] of denied) {
+  const d = decideSurfaceAction({ pathname: path, method: "POST", surface: DEV });
+  check(`DEVELOPER ALLOW (ส่งต่อ authority เดิม) POST ${path}`, d.allowed === true,
+    d.reason);
+}
+
+// ── 4. READ คงเดิมทั้งสอง surface — Shared Capabilities ของ Business ───────
+for (const path of [
+  "/api/admin/ide/file",
+  "/api/admin/ide/tree",
+  "/api/admin/ide/git/status",
+  "/api/admin/ide/search",
+]) {
+  const d = decideSurfaceAction({ pathname: path, method: "GET", surface: OPS });
+  check(`BUSINESS READ ALLOW GET ${path} (source READ ≠ WRITE)`, d.allowed === true);
+}
+
+// ── 5. Business / LINE / Document / Finance / Connect ไม่ถูกแตะ ───────────
+const businessWrites = [
+  "/api/document/generate",
+  "/api/admin/documents",
+  "/api/admin/partners",
+  "/api/admin/jobs",
+  "/api/admin/transactions",
+  "/api/admin/receipt-documents",
+  "/api/admin/invoices",
+  "/api/admin/finance/summary",
+  "/api/admin/connectors/line/reply",
+  "/api/admin/line-customers/U123/reply",
+  "/api/admin/upload",
+  "/api/chat",
+  "/api/v1/mcp/business/dispatch",
+];
+for (const path of businessWrites) {
+  const d = decideSurfaceAction({ pathname: path, method: "POST", surface: OPS });
+  check(`BUSINESS WRITE ALLOW POST ${path}`, d.allowed === true, d.reason);
+}
+
+// ── 6. registry/permissions.json = ที่เดียวของ policy ─────────────────────
+const policy = (permissions as {
+  capability_actions?: {
+    deny?: Record<string, { prefixes: string[] }>;
+    allow?: Record<string, { prefixes: string[] }>;
+    surfaces?: Record<string, { entry_urls?: string[] }>;
+    write_methods?: string[];
+  };
+}).capability_actions;
+check("capability_actions ประกาศไว้ใน registry กลาง", !!policy);
+const deny = policy?.deny ?? {};
+for (const action of ["source.modify", "git.push", "deployment.execute", "developer.worker.execute"]) {
+  check(`registry ประกาศ DENY ${action}`, Object.keys(deny).includes(action));
+}
+for (const action of ["business.read", "business.write", "document.generate", "connector.execute"]) {
+  check(`registry ประกาศ ALLOW ${action}`, Object.keys(policy?.allow ?? {}).includes(action));
+}
+check(
+  "DENY ไม่ครอบ path ธุรกิจ (document/chat/connect/finance/line/upload/mcp-business)",
+  Object.values(deny)
+    .flatMap((r) => r.prefixes)
+    .every(
+      (p) =>
+        !/^(\/api\/document|\/api\/chat|\/api\/action|\/api\/v1\/mcp\/business|\/api\/admin\/(connectors|line-|finance|documents|partners|jobs|transactions|receipt|invoices|debt|materials|pits|equipment|upload))/.test(p),
+    ),
+);
+const writeMethods = (policy?.write_methods ?? []).map((m) => m.toUpperCase());
+check("write_methods = POST/PUT/PATCH/DELETE", ["POST", "PUT", "PATCH", "DELETE"].every((m) => writeMethods.includes(m)));
+check(
+  "surface entry: /workspace = operational · /developer = development",
+  (policy?.surfaces?.operational?.entry_urls ?? []).includes("/workspace") &&
+    (policy?.surfaces?.development?.entry_urls ?? []).includes("/developer"),
+);
+check("surfaceForPagePath('/workspace') = operational", surfaceForPagePath("/workspace") === "operational");
+check("surfaceForPagePath('/developer') = development", surfaceForPagePath("/developer") === "development");
+check("surfaceForPagePath('/admin/finance') = null (หน้าธุรกิจไม่สลับ surface)", surfaceForPagePath("/admin/finance") === null);
+
+const routeAccess = (permissions as { route_access: { prefix: string; roles: string[] }[] }).route_access;
+const adminTier = [...((permissions as { role_tiers: { admin_tier: string[] } }).role_tiers.admin_tier)].sort();
+const devRoute = routeAccess.find((r) => r.prefix === "/developer");
+check(
+  "route_access /developer = admin_tier ชุดเดียวกับ /admin (ไม่มีสิทธิ์ใหม่)",
+  !!devRoute && JSON.stringify([...devRoute.roles].sort()) === JSON.stringify(adminTier),
+);
+
+// ── 7. middleware บังคับจริงที่ API/Runtime ────────────────────────────────
+const middleware = read("middleware.ts");
+check("middleware อ่าน SURFACE_COOKIE จาก policy", middleware.includes("SURFACE_COOKIE"));
+check("middleware เรียก decideSurfaceAction (ตัวตัดสินใจจริง)", middleware.includes("decideSurfaceAction"));
+check("middleware คืน 403 เมื่อ policy DENY", middleware.includes("status: 403") && middleware.includes("SURFACE_ACTION_DENIED"));
+check("middleware สลับ surface เฉพาะ page navigation", middleware.includes("isPageNavigation") && middleware.includes("surfaceForPagePath"));
+const protectedPagesLine = middleware.split("\n").find((l) => l.includes("PROTECTED_PAGE_PREFIXES")) ?? "";
+check("middleware คุ้มครอง /developer (PROTECTED_PAGE_PREFIXES)", protectedPagesLine.includes('"/developer"'));
+check("middleware matcher มี /developer/:path*", middleware.includes('"/developer/:path*"'));
+check(
+  "surfacePolicy ไม่แตะ session/requireAuth (Identity กลางเดิมยังเป็นผู้ตัดสินคนเดียว)",
+  !read("core/auth/surfacePolicy.ts").includes("getAuthedUser"),
+);
+
+// ── 8. UI SEPARATION — Business Navigation ไม่มีทางเปิด Developer Tools ───
+const DEV_ROUTES = ["/admin/ide", "/admin/dev-loop", "/admin/deploy", "/admin/ui-gallery"];
+const hasRouteLiteral = (src: string) => DEV_ROUTES.some((r) => src.includes(`"${r}"`));
+const frame = read("app/workspace/WorkspaceFrame.tsx");
+check("WorkspaceFrame (APPS/ACTIONS เมนูธุรกิจ) ไม่มี dev route", !hasRouteLiteral(frame));
+const nav = read("core/navigation/resolveNavItems.ts");
+check(
+  "IconRail WORKSPACES ไม่มี developer workspace (ไม่มี href/label)",
+  !nav.includes('"/developer"') && !nav.toLowerCase().includes("developer\"") && !nav.toLowerCase().includes("label: \"developer"),
+);
+const bindings = read("app/workspace/_lib/toolBindings.ts");
+check("toolBindings/SETTINGS_BOXES ไม่มี dev route", !hasRouteLiteral(bindings));
+const businessTools = read("app/workspace/_lib/businessTools.ts");
+check(
+  "HIDDEN_DEV_TOOLS ยังถูกซ่อนจาก business client (ไม่ลบ ไม่ย้าย)",
+  businessTools.includes("HIDDEN_DEV_TOOLS") && businessTools.includes("ซ่อนจาก business client"),
+);
+check("/developer ไม่ render navigation ของ business", !read("app/developer/layout.tsx").includes("<WorkspaceToolNavigation"));
+check(
+  "admin layout ยังคง WorkspaceToolNavigation ของ business เหมือนเดิม (ไม่เปลี่ยน Business UI)",
+  read("app/admin/layout.tsx").includes("WorkspaceToolNavigation"),
+);
+
+// ── 9. หน้า Developer Workspace + หน้าเครื่องมือเดิมยังอยู่ครบ ──────────────
+for (const p of [
+  "app/developer/layout.tsx",
+  "app/developer/page.tsx",
+  "app/admin/ide/page.tsx",
+  "app/admin/dev-loop/page.tsx",
+  "app/admin/deploy/page.tsx",
+  "app/admin/ui-gallery/page.tsx",
+]) {
+  check(`มีหน้าจริง: ${p}`, existsSync(join(ROOT, p)));
+}
+check(
+  "/developer gate ด้วย requireAuthPage(ADMIN_TIER) ชุดเดียวกับ /admin",
+  read("app/developer/layout.tsx").includes('requireAuthPage("/developer", ADMIN_TIER)') &&
+    read("app/admin/layout.tsx").includes('requireAuthPage("/admin", ADMIN_TIER)'),
+);
+
+// ── 10. git.push — หลักฐานว่าวันนี้ไม่มี git write route (อ่านอย่างเดียว) ──
+const gitWrites = ["commit", "push", "merge", "checkout", "reset", "rebase"].filter((op) =>
+  existsSync(join(ROOT, `app/api/admin/ide/git/${op}/route.ts`)),
+);
+check("ไม่มี git write route ในระบบปัจจุบัน (ทุก git route เป็น read)", gitWrites.length === 0, gitWrites.join(","));
+
+// ── 11. SHARED CAPABILITIES ยังอยู่ครบ + business ยัง import ได้เหมือนเดิม ──
+const sharedModules = [
+  "app/api/admin/ide/_lib/businessFailureBridge.ts",
+  "app/api/admin/ide/_lib/businessAcceptanceRuntime.ts",
+  "app/api/admin/ide/_lib/businessJobProgressRuntime.ts",
+  "app/api/admin/ide/_lib/canonicalJobTransportRuntime.ts",
+  "app/api/admin/ide/_lib/fsSecurity.ts",
+  "app/api/admin/ide/_lib/workerSelectorRuntime.ts",
+  "app/api/admin/ide/_lib/workerAdapterRegistry.ts",
+  "app/api/admin/ide/_lib/codeWorkerRuntime.ts",
+  "app/api/admin/ide/_lib/executionRuntime.ts",
+  "app/api/admin/ide/_lib/evidenceCollectorRuntime.ts",
+];
+for (const m of sharedModules) check(`shared module ยังอยู่: ${m}`, existsSync(join(ROOT, m)));
+check(
+  "business ยัง import businessFailureBridge (Failure Bridge) เหมือนเดิม",
+  read("app/api/chat/confirm/route.ts").includes("businessFailureBridge") &&
+    read("app/api/admin/line-customers/[lineUserId]/reply/route.ts").includes("businessFailureBridge"),
+);
+check(
+  "Document API ยัง import businessAcceptance/BusinessJobProgress เหมือนเดิม",
+  read("app/api/admin/documents/route.ts").includes("businessAcceptanceRuntime") &&
+    read("app/api/admin/documents/route.ts").includes("businessJobProgressRuntime"),
+);
+check(
+  "connectors catalog ยัง import worker registry (shared dependency ไม่ถูกตัด)",
+  read("app/api/admin/connectors/_lib/catalog.ts").includes("workerAdapterRegistry"),
+);
+check(
+  "business prebuild ยังใช้ deploy-gate เดิม (ไม่มี gate ใหม่แทนที่)",
+  read("package.json").includes("scripts/deploy-gate.ts"),
+);
+check(
+  "ไม่มีการแตะ Supabase schema หรือ Canonical Finance/Document Writer ใน working tree (git diff --name-only HEAD)",
+  (() => {
+    const changed = execSync("git diff --name-only HEAD", { cwd: ROOT, encoding: "utf-8" })
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    const forbidden = changed.filter((f) =>
+      /^(supabase\/migrations\/|engines\/canonical\/|engines\/documents\/|gateway\/actions)/.test(f),
+    );
+    return forbidden.length === 0;
+  })(),
+);
+
+console.log(`\n=== surface-policy: PASS ${pass} · FAIL ${fail} ===`);
+if (fail > 0) process.exit(1);
+
+
+
