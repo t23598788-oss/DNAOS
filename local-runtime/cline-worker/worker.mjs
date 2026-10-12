@@ -126,6 +126,11 @@ ${who ? `บริบท: กำลังคุยกับคู่ค้า "$
 ตัวอย่าง: "ดึงเอกสารล่าสุดของบริษัท ช.ธวัชชัยการช่าง" → {"command":"document.list","payload":{"keyword":"ช.ธวัชชัยการช่าง"},"ask":null}
 ตัวอย่าง: "แสดงเอกสารต้นฉบับของบริษัทนี้" (มีบริบทคู่ค้า) → {"command":"document.preview","payload":{},"ask":null}
 ตัวอย่าง: "ดูรายจ่ายบริษัท" → {"command":"expense.list","payload":{},"ask":null}
+กติกา receipt: payload.verification ใช้ได้เฉพาะ "verified" | "unverified" | "all" เท่านั้น (ห้ามใช้คำอื่น เช่น confirmed)
+ตัวอย่าง: "แสดงรายการรับเงินที่ยืนยันแล้ว" → {"command":"receipt.list","payload":{"verification":"verified"},"ask":null}
+ตัวอย่าง: "แสดงรายการรับเงินที่ยังไม่ยืนยัน" → {"command":"receipt.list","payload":{"verification":"unverified"},"ask":null}
+ตัวอย่าง: "แสดงหลักฐานรับเงินทั้งหมด" → {"command":"receipt.list","payload":{},"ask":null}
+ตัวอย่าง: "เปิดรายละเอียดหลักฐานล่าสุด" หรือ "เปิดรายละเอียดหลักฐานหนึ่งรายการ" → {"command":"receipt.get","payload":{},"ask":null} (ระบบจะ resolve ให้เองจากบริบท)
 ask ใช้เฉพาะเมื่อไม่มีชื่อและบริบทก็ว่างจริง ๆ · ตอบ JSON เท่านั้น`;
 }
 
@@ -323,6 +328,23 @@ async function executeTask(task) {
       }
     }
     if (!payload.partner_id && who && task?.trace?.context?.who_id) payload.partner_id = String(task.trace.context.who_id);
+    // DNA-000227: receipt.get โดยไม่ระบุ id → DNA OS resolve จากบริบทสนทนา
+    // (AI แปลความหมายแล้ว; ฝั่งระบบเป็นคนเลือกรายการ) — มี who → หลักฐาน
+    // ล่าสุดของบริษัทนั้น · ไม่มี who → ขอคำระบุ (ห้ามเดา)
+    if (command === "receipt.get" && !payload.receipt_id) {
+      if (who && task?.trace?.context?.who_id) {
+        const rl = await dispatchVia(task.session_cookie, "receipt.list", { limit: 20 });
+        const rows = rl.ok && rl.data && Array.isArray(rl.data.receipts) ? rl.data.receipts.filter((r) => String(r.partner_name ?? "").includes(String(who))) : [];
+        if (rows.length > 0) payload.receipt_id = String(rows[0].id);
+      }
+      if (!payload.receipt_id) {
+        await db.from("ai_tasks").update({ session_cookie: null }).eq("id", task.id);
+        const delivered = await postCallback(task.id, { result: { answer: "ระบุบริษัทหรือเลขที่หลักฐานรับเงินเพื่อเปิดรายละเอียดครับ", result: null, ask: "ต้องการเปิดหลักฐานของบริษัทใด หรือเลขที่หลักฐานอะไรครับ", worker: WORKER_ID, durationMs: Date.now() - t0 } });
+        if (!delivered) throw new Error("callback delivery failed after 3 attempts");
+        console.log(`[cline-worker] task ${task.id} done-ask-receipt (${Date.now() - t0}ms)`);
+        return;
+      }
+    }
     // preview: ไม่มี document_id → DNA OS หาใบล่าสุดของคู่ค้าเอง
     if (command === "document.preview" && !payload.document_id && payload.partner_id) {
       const latest = await dispatchVia(task.session_cookie, "invoice.latest", {});

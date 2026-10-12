@@ -1149,7 +1149,9 @@ async function answerWithAi(message: string, contactContext?: string | null, gat
   const providerDown = reason.includes("NO_COMPATIBLE_ADAPTER") || reason.includes("NOT_CONFIGURED");
   const text = providerDown
     ? "AI Provider ยังไม่พร้อมใช้งานครับ (ยังไม่มี provider ที่ตั้งค่า key ไว้ในระบบ) — ลองใหม่หลังตั้งค่าคีย์ใน Environment ครับ"
-    : `ตอบจาก AI ไม่สำเร็จตอนนี้ครับ (${reason}) ลองใหม่อีกครั้งครับ`;
+    : /401|authentication_error|invalid x-api-key|API key/i.test(String(reason))
+      ? `ผู้ให้บริการ AI ยังไม่ยืนยันตัวตน (provider authentication ไม่ผ่าน — ไม่ใช่ปัญหาจากคำสั่งของคุณ) ลองใหม่ภายหลังครับ`
+      : `ตอบจาก AI ไม่สำเร็จตอนนี้ครับ (${reason}) ลองใหม่อีกครั้งครับ`;
   return { sender: "ai" as const, type: "text" as const, text };
 }
 
