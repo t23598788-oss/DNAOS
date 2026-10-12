@@ -132,7 +132,9 @@ ask ใช้เฉพาะเมื่อไม่มีชื่อและ�
 // spawn เดิมทุกอย่าง (quirks: prompt แรก+trailing space, detached process group kill)
 function runCline(message, who) {
   return new Promise((resolve) => {
-    const args = [`${message.trim().slice(0, 2000)} `, "--json", "--auto-approve", "true",
+    // DNA-000225: ใช้ cline-pass (สมาชิก/subscription ของบัญชี owner — เดียวกับ
+    // ที่ extension VS Code ใช้อยู่) แทน cline Credits ที่หมด — ไม่ต้องเติมเครดิต
+    const args = [`${message.trim().slice(0, 2000)} `, "--provider", "cline-pass", "--json", "--auto-approve", "true",
       "-t", String(CLINE_TIMEOUT_SECONDS), "-s", interpreterPrompt(who)];
     let out = "";
     const child = spawn(CLINE_BIN, args, { stdio: ["ignore", "pipe", "pipe"], env: { ...process.env }, detached: true });
