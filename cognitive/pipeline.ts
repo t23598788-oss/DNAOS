@@ -664,8 +664,35 @@ export async function answerCompanyInfoQuestion(
   const match = message
     .trim()
     .match(/^(?:(?:เปิด|ดู|ขอดู|แสดง|ขอ|ค้นหา|หา)\s*)?(?:(?:ข้อมูล|โปรไฟล์)\s*)?(?:บริษัท|คู่ค้า|พาร์ทเนอร์)\s*(?:ชื่อ)?[:：]?\s*(.+)$/);
-  if (!match) return null;
-  const name = match[1].replace(/\s*(?:หน่อย|ด้วย|นะ|ครับ|ค่ะ|คะ|ให้หน่อย|ด้วยครับ|ด้วยค่ะ)\s*$/g, "").trim();
+  // ── DNA-000229: bare company name (คำสั่งต่อเนื่องล้วนๆ เช่น "ช.ธวัชชัยการช่าง")
+  // รู้จักผ่าน validated EXACT match กับ reader เดิม (partner.find + norm เท่ากัน)
+  // เท่านั้น — ห้าม classify ข้อความทั่วไปเป็นบริษัทมั่ว · หลายผลที่ไม่มี exact
+  // → แสดงรายการให้เลือก (คงพฤติกรรม ambiguous เดิม) · 0 ผล → ปล่อย path เดิม
+  let bareName: string | null = null;
+  if (!match) {
+    const q = message.replace(/\s*(?:หน่อย|ด้วย|นะ|ครับ|ค่ะ|คะ|ให้หน่อย)\s*$/g, "").trim();
+    if (!q || q.length < 2) return null;
+    const findRes = await dispatch("partner.find", { keyword: q }).catch(() => null);
+    const rows = findRes?.ok && Array.isArray(findRes.data) ? (findRes.data as { id?: string; name?: string }[]) : [];
+    const norm = (x: string) => x.toLowerCase().replace(/\s+/g, "");
+    const exact = rows.filter((r) => norm(String(r.name ?? "")) === norm(q));
+    if (exact.length === 1) {
+      bareName = String(exact[0].name);
+    } else if (rows.length > 1) {
+      const names = rows.slice(0, 10).map((r) => `• ${r.name}`).join("\n");
+      return {
+        sender: "ai",
+        type: "text",
+        pulse_node: "module:cognitive/pipeline.answerCompanyInfoQuestion",
+        text: `พบ ${rows.length} รายที่คล้ายกับ "${q}" ครับ — ระบุชื่อเต็มเพื่อดูข้อมูล:\n${names}`,
+      };
+    } else {
+      return null;
+    }
+  }
+  const name = match
+    ? match[1].replace(/\s*(?:หน่อย|ด้วย|นะ|ครับ|ค่ะ|คะ|ให้หน่อย|ด้วยครับ|ด้วยค่ะ)\s*$/g, "").trim()
+    : String(bareName);
   // คำกลาง ๆ ที่ไม่ใช่ชื่อบริษัท → ไม่รับ (ปล่อยให้ path อื่นจัดการตามเดิม)
   if (!name || /^(?:ทั้งหมด|ทุกราย|ทุกบริษัท|ทั้งหลาย)$/i.test(name)) return null;
 
