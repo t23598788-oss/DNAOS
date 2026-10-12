@@ -1,0 +1,68 @@
+name: DNA OS Business Suite
+
+# Owner directive 2026-10-12 — ระบบธุรกิจต้องปล่อยของได้โดยไม่ต้องรอปัญหาฝั่ง
+# IDE/Developer: workflow นี้วิ่งเฉพาะไฟล์สายธุรกิจ (path filter) และรันเฉพาะ
+# shared + business suite เท่านั้น — ไม่รัน developer test เลย ปัญหา IDE
+# จึงไม่มีทางมากัน publish สายธุรกิจผ่าน workflow นี้
+#
+# ขอบเขต: AI Workspace/คำสั่งธุรกิจ · Supabase/DB · การเงิน/ภาษี · เอกสารกลาง ·
+# LINE/Connect · ทรัพยากร/ขนส่ง · AI Gateway (business capabilities)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "!app/api/admin/ide/**"
+      - "engines/**"
+      - "supabase/**"
+      - "cognitive/**"
+      - "core/**"
+      - "gateway/**"
+      - "services/**"
+      - "registry/ai-adapter-registry.json"
+      - "registry/command-registry.json"
+      - "registry/test-suites.json"
+      - "scripts/run-suite.ts"
+      - "scripts/release-gate.ts"
+      - "package.json"
+      - ".github/workflows/business-suite.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "!app/api/admin/ide/**"
+      - "engines/**"
+      - "supabase/**"
+      - "cognitive/**"
+      - "core/**"
+      - "gateway/**"
+      - "services/**"
+      - "registry/test-suites.json"
+      - ".github/workflows/business-suite.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: business-suite-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  business:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check (พื้นร่วม Monorepo)
+        run: npx tsc --noEmit
+
+      - name: Business Release Gate (type-check + shared + business suite)
+        run: npx tsx scripts/release-gate.ts business
