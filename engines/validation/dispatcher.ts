@@ -82,8 +82,13 @@ const QUERY_MAP: Record<string, QueryFn> = {
   "partner.find":     async (p) => {
     const keyword = String(p.keyword ?? "").trim().toLowerCase();
     if (!keyword) return [];
+    // DNA-000228: normalize ช่องว่างตอนเทียบ (production bug พิสูจน์แล้ว:
+    // "ช. ธวัชชัยการช่าง" คืน 0 รายทั้งที่ "ช.ธวัชชัยการช่าง" มีอยู่จริง) —
+    // whitespace-insensitive matching ของ reader เดิม ไม่แตะ getPartners()
+    const norm = (s: unknown) => String(s ?? "").toLowerCase().replace(/\s+/g, "");
+    const kw = norm(keyword);
     const partners = await getPartners();
-    return partners.filter((x) => String(x.name ?? "").toLowerCase().includes(keyword));
+    return partners.filter((x) => norm(x.name).includes(kw));
   },
   // GenerateMaterialQuote(raw_input, quantity, customer_id) — was inlined in
   // cognitive/executor's buildMaterialItems() calling getMaterialTypes(),
