@@ -1,0 +1,1567 @@
+{
+  "version": 1,
+  "policy": "ทุก command ต้องมีชื่อเดียว ห้ามสร้างชื่อซ้ำหรือชื่อเพี้ยน",
+  "commands": {
+    "invoice.items": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {
+        "partner_id": "string",
+        "debt": "CurrentDebt | null"
+      },
+      "output": "InvoiceItemsResult",
+      "description": "InvoiceItems(partnerId) — builds debt-priced line items from an already-fetched GetCurrentDebt result (invoice/billing/receipt only; material-priced documents use material.quote). Never re-fetches or guesses debt.",
+      "description_th": "สร้างรายการสินค้า/บริการของใบแจ้งหนี้จากผลลัพธ์ GetCurrentDebt ที่ดึงมาแล้ว",
+      "requires_confirmation": false
+    },
+    "partner.timeline": {
+      "owner": "engines/partner/timeline",
+      "layer": "engines",
+      "input": {
+        "partner_id": "string"
+      },
+      "output": "PartnerTimeline",
+      "description": "แสดง timeline เหตุการณ์ทั้งหมดของคู่ค้าคนนั้นตั้งแต่ครั้งแรก",
+      "description_th": "ประวัติเหตุการณ์และเอกสารทั้งหมดของคู่ค้า เรียงตามวันที่ (handler จริงอยู่ที่ engines/validation/dispatcher.ts + engines/partner/timeline.ts — declaration นี้ถูกเพิ่ม 2026-10-11 เพื่อปิด Shadow-Command gap ที่ทำให้คำสั่งนี้ถูกปฏิเสธทั้งที่ handler พร้อม)",
+      "requires_confirmation": false,
+      "status": "active"
+    },
+    "partner.profile": {
+      "owner": "services/supabase/queries.ts",
+      "layer": "services",
+      "input": {
+        "partner_id": "string"
+      },
+      "output": "PartnerProfile",
+      "description": "PartnerProfile(partnerId) — single-partner lookup by id (name/tax_id/phone/address/type). Wraps the existing getPartnerById().",
+      "description_th": "ข้อมูลโปรไฟล์คู่ค้ารายเดียวตาม id",
+      "requires_confirmation": false
+    },
+    "material.quote": {
+      "owner": "engines/material-resolver.ts + engines/quote-price.ts (orchestrated)",
+      "layer": "engines",
+      "input": {
+        "raw_input": "string",
+        "quantity": "number",
+        "customer_id?": "string"
+      },
+      "output": "MaterialQuoteResult",
+      "description": "GenerateMaterialQuote — resolves material name, finds the nearest priced pit from the customer's GPS, and computes unit price. Also additively returns distance_km/trips/transport_cost/total_price (2026-07-24, wires the existing never-before-connected engines/capacity.ts + engines/cost.ts into real document generation). One business response; AI never sees Material Resolver / GPS lookup / Pricing Engine directly.",
+      "description_th": "จับคู่วัสดุ + หาบ่อที่ใกล้ลูกค้าที่สุด + คำนวณราคา — คืนค่าเพิ่มเติม distance_km/trips/transport_cost/total_price ด้วย (2026-07-24) คืนค่าเดียว AI ไม่ต้องรู้จัก engine ภายใน",
+      "requires_confirmation": false
+    },
+    "debt.current": {
+      "owner": "engines/debt/tracking.ts",
+      "layer": "engines",
+      "input": {
+        "partner_id": "string"
+      },
+      "output": "CurrentDebt",
+      "description": "The one business capability for a single customer's current debt (principal/interest/penalty/collection_fee/total_due/overdue_days) — GetCurrentDebt(partnerId). AI must call this, never the underlying formula directly.",
+      "description_th": "หนี้ปัจจุบันของลูกค้ารายเดียว (single source of truth) — AI ต้องเรียกผ่านชื่อนี้เท่านั้น ห้ามเรียกสูตรคำนวณตรง",
+      "requires_confirmation": false
+    },
+    "debt.list": {
+      "owner": "cognitive/debts",
+      "layer": "cognitive",
+      "input": {},
+      "output": "InvoiceDebt[]",
+      "description": "แสดงรายการหนี้ค้างชำระ (OPEN)",
+      "description_th": "แสดงรายการหนี้ที่ยังค้างชำระ (สถานะ OPEN)",
+      "requires_confirmation": false
+    },
+    "debt.all": {
+      "owner": "cognitive/debts",
+      "layer": "cognitive",
+      "input": {},
+      "output": "InvoiceDebt[]",
+      "description": "แสดงรายการหนี้ทั้งหมดทุกสถานะ",
+      "description_th": "แสดงรายการหนี้ทั้งหมด ทุกสถานะ",
+      "requires_confirmation": false
+    },
+    "debt.trackings": {
+      "owner": "cognitive/debts",
+      "layer": "cognitive",
+      "input": {},
+      "output": "DebtTracking[]",
+      "description": "แสดงรายการลูกหนี้ทั้งหมด (debt_trackings)",
+      "description_th": "แสดงรายการติดตามหนี้ทั้งหมด (จากตาราง debt_trackings)",
+      "requires_confirmation": false
+    },
+    "debt.create": {
+      "owner": "gateway/actions",
+      "layer": "core",
+      "input": {
+        "customer_name": "string",
+        "principal_amount": "number",
+        "fee_rate?": "number",
+        "interest_start_at?": "string"
+      },
+      "output": "DebtTracking",
+      "description": "สร้างรายการติดตามหนี้ใหม่ — ต้องผ่าน preview → execute",
+      "description_th": "สร้างรายการติดตามหนี้ใหม่ — ต้องผ่านขั้นตอน preview → execute",
+      "requires_confirmation": true
+    },
+    "debt.find": {
+      "owner": "engines/validation/resolver",
+      "layer": "engines",
+      "input": {
+        "keyword": "string"
+      },
+      "output": "FindResult",
+      "description": "ค้นหาลูกหนี้ตามชื่อ (fuzzy match)",
+      "description_th": "ค้นหาลูกหนี้ตามชื่อ (แบบเทียบเคียงความคล้าย)",
+      "requires_confirmation": false
+    },
+    "invoice.list": {
+      "owner": "cognitive/invoices",
+      "layer": "cognitive",
+      "input": {},
+      "output": "Document[]",
+      "description": "แสดงรายการใบแจ้งหนี้ทั้งหมด",
+      "description_th": "แสดงรายการใบแจ้งหนี้ (invoice) ทั้งหมด",
+      "requires_confirmation": false
+    },
+    "invoice.latest": {
+      "owner": "cognitive/invoices",
+      "layer": "cognitive",
+      "input": {},
+      "output": "Document",
+      "description": "แสดงใบแจ้งหนี้ล่าสุด",
+      "description_th": "แสดงใบแจ้งหนี้ (invoice) ใบสุดท้าย",
+      "requires_confirmation": false
+    },
+    "invoice.create": {
+      "owner": "cognitive/invoices",
+      "layer": "cognitive",
+      "input": {},
+      "output": "Error",
+      "description": "สร้างใบแจ้งหนี้ — redirect ไป Action API (Rule 71)",
+      "description_th": "สร้างใบแจ้งหนี้ — ส่งต่อไปยัง Action API (ตามกฎข้อที่ 71)",
+      "requires_confirmation": true
+    },
+    "invoice.find": {
+      "owner": "engines/validation/resolver",
+      "layer": "engines",
+      "input": {
+        "keyword": "string"
+      },
+      "output": "FindResult",
+      "description": "ค้นหาใบแจ้งหนี้ตามเลขหรือชื่อลูกค้า",
+      "description_th": "ค้นหาใบแจ้งหนี้ตามเลขที่เอกสารหรือชื่อลูกค้า",
+      "requires_confirmation": false
+    },
+    "document.list": {
+      "owner": "cognitive/documents",
+      "layer": "cognitive",
+      "input": {},
+      "output": "Document[]",
+      "description": "แสดงรายการเอกสารทั้งหมด",
+      "description_th": "แสดงรายการเอกสารทุกประเภท",
+      "requires_confirmation": false
+    },
+    "document.boq": {
+      "owner": "cognitive/documents",
+      "layer": "cognitive",
+      "input": {},
+      "output": "Document[]",
+      "description": "แสดงรายการใบเสนอราคา (BOQ)",
+      "description_th": "แสดงรายการใบเสนอราคา (BOQ)",
+      "requires_confirmation": false
+    },
+    "document.po": {
+      "owner": "cognitive/documents",
+      "layer": "cognitive",
+      "input": {},
+      "output": "Document[]",
+      "description": "แสดงรายการใบสั่งซื้อ (PO)",
+      "description_th": "แสดงรายการใบสั่งซื้อ (PO)",
+      "requires_confirmation": false
+    },
+    "document.do": {
+      "owner": "cognitive/documents",
+      "layer": "cognitive",
+      "input": {},
+      "output": "Document[]",
+      "description": "แสดงรายการใบส่งของ (DO)",
+      "description_th": "แสดงรายการใบส่งของ (DO)",
+      "requires_confirmation": false
+    },
+    "document.receipt": {
+      "owner": "cognitive/documents",
+      "layer": "cognitive",
+      "input": {},
+      "output": "Document[]",
+      "description": "แสดงรายการใบเสร็จรับเงิน",
+      "description_th": "แสดงรายการใบเสร็จรับเงิน",
+      "requires_confirmation": false
+    },
+    "document.create": {
+      "owner": "gateway/actions",
+      "layer": "core",
+      "input": {
+        "document_type": "string",
+        "party_name": "string",
+        "net_amount": "number",
+        "issue_date?": "string",
+        "note?": "string"
+      },
+      "output": "Document",
+      "description": "สร้างเอกสารใหม่ — ต้องผ่าน preview → execute",
+      "description_th": "สร้างเอกสารใหม่ — ต้องผ่านขั้นตอน preview → execute",
+      "requires_confirmation": true
+    },
+    "draft.list": {
+      "owner": "cognitive/documents",
+      "layer": "cognitive",
+      "input": {},
+      "output": "LineDraftDocument[]",
+      "description": "แสดงรายการร่างเอกสารรออนุมัติ",
+      "description_th": "แสดงรายการร่างเอกสารที่มาจาก LINE และกำลังรอการอนุมัติ",
+      "requires_confirmation": false
+    },
+    "job.list": {
+      "owner": "cognitive/jobs",
+      "layer": "cognitive",
+      "input": {},
+      "output": "Job[]",
+      "description": "แสดงรายการงานทั้งหมด",
+      "description_th": "แสดงรายการงานทั้งหมด",
+      "requires_confirmation": false
+    },
+    "job.active": {
+      "owner": "cognitive/jobs",
+      "layer": "cognitive",
+      "input": {},
+      "output": "Job[]",
+      "description": "แสดงรายการงานกำลังส่ง (IN_PROGRESS)",
+      "description_th": "แสดงรายการงานที่กำลังดำเนินการ (สถานะ IN_PROGRESS)",
+      "requires_confirmation": false
+    },
+    "job.assign": {
+      "owner": "services/ai/bridge-local",
+      "layer": "services",
+      "input": {
+        "job_id": "string",
+        "driver": "string"
+      },
+      "output": "BridgeResult",
+      "description": "สั่งงานคนขับ — AI แปลเป็น command",
+      "description_th": "สั่งงานคนขับ — AI ช่วยแปลภาษาพูดเป็นคำสั่งที่ระบบเข้าใจ",
+      "requires_confirmation": true
+    },
+    "job.track": {
+      "owner": "services/ai/bridge-local",
+      "layer": "services",
+      "input": {
+        "job_id": "string"
+      },
+      "output": "BridgeResult",
+      "description": "ติดตามสถานะงาน",
+      "description_th": "ติดตามสถานะของงาน",
+      "requires_confirmation": false
+    },
+    "partner.list": {
+      "owner": "cognitive/partners",
+      "layer": "cognitive",
+      "input": {},
+      "output": "Partner[]",
+      "description": "แสดงรายการคู่ค้าทั้งหมด",
+      "description_th": "แสดงรายการคู่ค้าทั้งหมด (ลูกค้าและผู้ขาย)",
+      "requires_confirmation": false
+    },
+    "partner.find": {
+      "owner": "engines/validation/resolver",
+      "layer": "engines",
+      "input": {
+        "keyword": "string"
+      },
+      "output": "FindResult",
+      "description": "ค้นหาคู่ค้าตามชื่อ/เบอร์/รหัส",
+      "description_th": "ค้นหาคู่ค้าตามชื่อ, เบอร์โทร, หรือรหัส",
+      "requires_confirmation": false
+    },
+    "material.list": {
+      "owner": "cognitive/partners",
+      "layer": "cognitive",
+      "input": {},
+      "output": "MaterialType[]",
+      "description": "แสดงรายการประเภทวัสดุทั้งหมด",
+      "description_th": "แสดงรายการประเภทวัสดุทั้งหมด",
+      "requires_confirmation": false
+    },
+    "pit.find": {
+      "owner": "engines/validation/resolver",
+      "layer": "engines",
+      "input": {
+        "keyword": "string"
+      },
+      "output": "FindResult",
+      "description": "ค้นหาแหล่งวัสดุ/บ่อ/โรงโม่/ท่าทราย",
+      "description_th": "ค้นหาแหล่งวัสดุ เช่น บ่อดิน, โรงโม่, หรือท่าทราย",
+      "requires_confirmation": false
+    },
+    "drive.open": {
+      "owner": "cognitive/documents",
+      "layer": "cognitive",
+      "input": {},
+      "output": "CommandResult",
+      "description": "เปิด Google Drive",
+      "description_th": "เปิดโฟลเดอร์ Google Drive หลักของระบบ",
+      "requires_confirmation": false
+    },
+    "payment": {
+      "owner": "gateway/actions",
+      "layer": "engines",
+      "input": {
+        "invoice_debt_id": "string",
+        "payment_amount": "number",
+        "note?": "string"
+      },
+      "output": "ActionResponse",
+      "description": "ชำระหนี้ — ต้องผ่าน preview → execute พร้อม token guard",
+      "description_th": "บันทึกการชำระหนี้ — ต้องผ่านขั้นตอน preview → execute และมีการยืนยันตัวตน",
+      "requires_confirmation": true
+    },
+    "pay.preview": {
+      "owner": "services/ai/bridge-local",
+      "layer": "services",
+      "input": {
+        "invoice_id": "string"
+      },
+      "output": "BridgeResult",
+      "description": "ดูตัวอย่างก่อนชำระเงิน",
+      "description_th": "แสดงตัวอย่างข้อมูลก่อนยืนยันการชำระเงิน",
+      "requires_confirmation": false
+    },
+    "pay.list": {
+      "owner": "services/ai/bridge-local",
+      "layer": "services",
+      "input": {
+        "date?": "string"
+      },
+      "output": "BridgeResult",
+      "description": "ดูรายการชำระเงิน (events)",
+      "description_th": "ดูประวัติรายการชำระเงิน (จากตาราง events)",
+      "requires_confirmation": false
+    },
+    "doc.list": {
+      "owner": "services/ai/bridge-local",
+      "layer": "services",
+      "input": {
+        "type?": "string"
+      },
+      "output": "BridgeResult",
+      "description": "ดูรายการเอกสาร (AI alias ของ document.list)",
+      "description_th": "ดูรายการเอกสาร (เป็นชื่อเรียกแทน document.list สำหรับ AI)",
+      "requires_confirmation": false
+    },
+    "doc.get": {
+      "owner": "services/ai/bridge-local",
+      "layer": "services",
+      "input": {
+        "id": "string"
+      },
+      "output": "BridgeResult",
+      "description": "ดูเอกสารเฉพาะตามหมายเลข",
+      "description_th": "ดูรายละเอียดเอกสารตามหมายเลขที่ระบุ",
+      "requires_confirmation": false
+    },
+    "quote.calc": {
+      "owner": "services/ai/bridge-local",
+      "layer": "services",
+      "input": {
+        "quantity?": "number",
+        "material?": "string"
+      },
+      "output": "BridgeResult",
+      "description": "คำนวณราคาเสนอ (AI Bridge)",
+      "description_th": "คำนวณราคาเสนอขาย (ผ่าน AI Bridge)",
+      "requires_confirmation": false
+    },
+    "business.load_rules": {
+      "owner": "engines/business",
+      "layer": "engines",
+      "input": {},
+      "output": "{ ok: boolean, rules: RulesConfig, count: number }",
+      "description": "โหลด Business Rules จาก app_configs",
+      "description_th": "โหลดกฎทางธุรกิจทั้งหมดจากตาราง app_configs",
+      "requires_confirmation": false
+    },
+    "business.calculate_price": {
+      "owner": "engines/business",
+      "layer": "engines",
+      "input": {
+        "distance_km": "number",
+        "quantity": "number",
+        "material_price": "number"
+      },
+      "output": "PriceResult",
+      "description": "คำนวณราคาขนส่งวัสดุ (ต้นทุน+markup+ค่าน้ำมัน+ค่าแรง)",
+      "description_th": "คำนวณราคาขนส่งวัสดุ (รวมต้นทุน, ส่วนเพิ่ม, ค่าน้ำมัน, และค่าแรง)",
+      "requires_confirmation": false
+    },
+    "business.calculate_debt": {
+      "owner": "engines/business",
+      "layer": "engines",
+      "input": {
+        "principal": "number",
+        "fee_rate": "number",
+        "interest_rate": "number",
+        "due_date": "string",
+        "paid_amount?": "number"
+      },
+      "output": "DebtCalcResult",
+      "description": "คำนวณยอดหนี้ครบวงจร (เงินต้น+ดอกเบี้ย+ค่าทวงถาม)",
+      "description_th": "คำนวณยอดหนี้แบบครบวงจร (รวมเงินต้น, ดอกเบี้ย, และค่าทวงถาม)",
+      "requires_confirmation": false
+    },
+    "business.calculate_tax": {
+      "owner": "engines/business",
+      "layer": "engines",
+      "input": {
+        "amount": "number",
+        "vat_rate?": "number",
+        "withholding_rate?": "number"
+      },
+      "output": "TaxResult",
+      "description": "คำนวณภาษี VAT + หัก ณ ที่จ่าย",
+      "description_th": "คำนวณภาษีมูลค่าเพิ่ม (VAT) และภาษีหัก ณ ที่จ่าย",
+      "requires_confirmation": false
+    },
+    "registry.load": {
+      "owner": "runtime/engine",
+      "layer": "shared",
+      "input": {},
+      "output": "{ modules: string[], drivers: string[], events: string[], loaded: boolean }",
+      "description": "โหลด Registry ทั้งหมด",
+      "description_th": "โหลดทะเบียนข้อมูลทั้งหมดของระบบ (modules, drivers, events)",
+      "requires_confirmation": false
+    },
+    "registry.resolve": {
+      "owner": "runtime/engine",
+      "layer": "shared",
+      "input": {
+        "moduleId": "string"
+      },
+      "output": "{ found: boolean, module: unknown }",
+      "description": "Resolve module จาก Registry",
+      "description_th": "ค้นหาและคืนค่าโมดูลจากทะเบียนข้อมูล",
+      "requires_confirmation": false
+    },
+    "registry.list_modules": {
+      "owner": "runtime/engine",
+      "layer": "shared",
+      "input": {},
+      "output": "string[]",
+      "description": "แสดงรายการ modules ทั้งหมดใน Registry",
+      "description_th": "แสดงรายชื่อโมดูลทั้งหมดที่ลงทะเบียนไว้",
+      "requires_confirmation": false
+    },
+    "registry.list_drivers": {
+      "owner": "runtime/engine",
+      "layer": "shared",
+      "input": {},
+      "output": "string[]",
+      "description": "แสดงรายการ drivers ทั้งหมดใน Registry",
+      "description_th": "แสดงรายชื่อไดรเวอร์ทั้งหมดที่ลงทะเบียนไว้",
+      "requires_confirmation": false
+    },
+    "registry.list_events": {
+      "owner": "runtime/engine",
+      "layer": "shared",
+      "input": {},
+      "output": "string[]",
+      "description": "แสดงรายการ events ทั้งหมดใน Registry",
+      "description_th": "แสดงรายชื่อเหตุการณ์ (events) ทั้งหมดที่ลงทะเบียนไว้",
+      "requires_confirmation": false
+    },
+    "registry.get_module": {
+      "owner": "runtime/engine",
+      "layer": "shared",
+      "input": {
+        "moduleId": "string"
+      },
+      "output": "unknown",
+      "description": "ดึงข้อมูล module จาก Registry ตาม ID",
+      "description_th": "ดึงข้อมูลโมดูลจากทะเบียนตาม ID ที่ระบุ",
+      "requires_confirmation": false
+    },
+    "registry.get_driver": {
+      "owner": "runtime/engine",
+      "layer": "shared",
+      "input": {
+        "name": "string"
+      },
+      "output": "unknown",
+      "description": "ดึงข้อมูล driver จาก Registry ตามชื่อ",
+      "description_th": "ดึงข้อมูลไดรเวอร์จากทะเบียนตามชื่อที่ระบุ",
+      "requires_confirmation": false
+    },
+    "registry.get_service": {
+      "owner": "runtime/engine",
+      "layer": "shared",
+      "input": {
+        "name": "string"
+      },
+      "output": "unknown",
+      "description": "ดึงข้อมูล service จาก Registry ตามชื่อ",
+      "description_th": "ดึงข้อมูลเซอร์วิสจากทะเบียนตามชื่อที่ระบุ",
+      "requires_confirmation": false
+    },
+    "registry.get_schema": {
+      "owner": "runtime/engine",
+      "layer": "shared",
+      "input": {
+        "name": "string"
+      },
+      "output": "unknown",
+      "description": "ดึง schema จาก Registry ตามชื่อ",
+      "description_th": "ดึงข้อมูล Schema จากทะเบียนตามชื่อที่ระบุ",
+      "requires_confirmation": false
+    },
+    "events.recent": {
+      "owner": "runtime/engine",
+      "layer": "shared",
+      "input": {
+        "count?": "number"
+      },
+      "output": "RuntimeEvent[]",
+      "description": "ดึง events ล่าสุด (default 20)",
+      "description_th": "ดึงประวัติเหตุการณ์ล่าสุด (ค่าเริ่มต้น 20 รายการ)",
+      "requires_confirmation": false
+    },
+    "events.by_trace": {
+      "owner": "runtime/engine",
+      "layer": "shared",
+      "input": {
+        "traceId": "string"
+      },
+      "output": "RuntimeEvent[]",
+      "description": "ดึง events ตาม trace ID",
+      "description_th": "ดึงประวัติเหตุการณ์ตามรหัสติดตาม (Trace ID)",
+      "requires_confirmation": false
+    },
+    "ai.translate": {
+      "owner": "services/ai/translator",
+      "layer": "services",
+      "input": {
+        "text": "string"
+      },
+      "output": "TranslationResult",
+      "description": "แปลภาษาไทยเป็น Intent + Entity + Command (registered ใน Runtime)",
+      "description_th": "แปลภาษาไทยเป็นเจตนา (Intent), ข้อมูล (Entity), และคำสั่ง (Command) ที่ระบบรู้จัก",
+      "requires_confirmation": false
+    },
+    "computer.app.launch": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {
+        "app": "string"
+      },
+      "output": "WorkflowResult",
+      "description": "เปิดแอป macOS (LINE, Chrome, VS Code, Terminal, Finder, Mail, Calendar, GitHub Desktop, Google Maps, Google Earth, PDF Viewer)",
+      "description_th": "สั่งเปิดโปรแกรมบน macOS (เช่น LINE, Chrome, VS Code)",
+      "requires_confirmation": false
+    },
+    "computer.chat.read": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {},
+      "output": "WorkflowResult",
+      "description": "อ่านแชทจากแอปที่ active",
+      "description_th": "อ่านข้อความแชทจากโปรแกรมที่กำลังใช้งานอยู่",
+      "requires_confirmation": false
+    },
+    "computer.chat.summarize": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {},
+      "output": "WorkflowResult",
+      "description": "สรุปแชท/ข้อความ",
+      "description_th": "สรุปเนื้อหาจากแชทหรือข้อความที่อ่าน",
+      "requires_confirmation": false
+    },
+    "computer.db.search_partner": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {},
+      "output": "WorkflowResult",
+      "description": "ค้นหาคู่ค้า (workflow-based)",
+      "description_th": "ค้นหาคู่ค้า (ทำงานตามขั้นตอน workflow)",
+      "requires_confirmation": false
+    },
+    "computer.db.search_debt": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {},
+      "output": "WorkflowResult",
+      "description": "ค้นหาหนี้ (workflow-based)",
+      "description_th": "ค้นหาหนี้ (ทำงานตามขั้นตอน workflow)",
+      "requires_confirmation": false
+    },
+    "computer.db.load_invoice": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {},
+      "output": "WorkflowResult",
+      "description": "โหลดใบแจ้งหนี้ (workflow-based)",
+      "description_th": "โหลดข้อมูลใบแจ้งหนี้ (ทำงานตามขั้นตอน workflow)",
+      "requires_confirmation": false
+    },
+    "computer.calc.price": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {},
+      "output": "WorkflowResult",
+      "description": "คำนวณราคา (workflow-based)",
+      "description_th": "คำนวณราคา (ทำงานตามขั้นตอน workflow)",
+      "requires_confirmation": false
+    },
+    "computer.calc.distance": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {},
+      "output": "WorkflowResult",
+      "description": "เช็คระยะทาง (workflow-based)",
+      "description_th": "ตรวจสอบระยะทาง (ทำงานตามขั้นตอน workflow)",
+      "requires_confirmation": false
+    },
+    "computer.doc.generate": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {},
+      "output": "WorkflowResult",
+      "description": "สร้างเอกสาร (workflow-based)",
+      "description_th": "สร้างเอกสาร (ทำงานตามขั้นตอน workflow)",
+      "requires_confirmation": true
+    },
+    "computer.doc.preview": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {},
+      "output": "WorkflowResult",
+      "description": "ดูตัวอย่างเอกสาร (workflow-based)",
+      "description_th": "ดูตัวอย่างเอกสาร (ทำงานตามขั้นตอน workflow)",
+      "requires_confirmation": false
+    },
+    "computer.line.send": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {
+        "contact": "string",
+        "message": "string"
+      },
+      "output": "WorkflowResult",
+      "description": "ส่งข้อความ LINE (ผ่าน Computer Control)",
+      "description_th": "ส่งข้อความ LINE (ผ่านการควบคุมคอมพิวเตอร์)",
+      "requires_confirmation": true
+    },
+    "computer.db.register": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {},
+      "output": "WorkflowResult",
+      "description": "ลงทะเบียนคู่ค้าใหม่ (workflow-based)",
+      "description_th": "ลงทะเบียนคู่ค้าใหม่ (ทำงานตามขั้นตอน workflow)",
+      "requires_confirmation": true
+    },
+    "computer.email.send": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {
+        "to": "string",
+        "subject": "string",
+        "body": "string"
+      },
+      "output": "WorkflowResult",
+      "description": "ส่งอีเมลผ่าน Apple Mail",
+      "description_th": "ส่งอีเมลผ่านโปรแกรม Apple Mail",
+      "requires_confirmation": true
+    },
+    "computer.dev.deploy": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {},
+      "output": "WorkflowResult",
+      "description": "Deploy ผ่าน Terminal (vercel --prod)",
+      "description_th": "สั่ง Deploy ระบบเวอร์ชันใหม่ผ่าน Terminal (vercel --prod)",
+      "requires_confirmation": true
+    },
+    "computer.dev.push": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {},
+      "output": "WorkflowResult",
+      "description": "Push code ผ่าน GitHub Desktop",
+      "description_th": "สั่ง Push โค้ดล่าสุดผ่านโปรแกรม GitHub Desktop",
+      "requires_confirmation": true
+    },
+    "computer.system.status": {
+      "owner": "core/executor/engine",
+      "layer": "core",
+      "input": {},
+      "output": "Record<string, AppStatus>",
+      "description": "ตรวจสถานะทุกแอปที่ลงทะเบียน",
+      "description_th": "ตรวจสอบสถานะของทุกโปรแกรมที่ลงทะเบียนไว้",
+      "requires_confirmation": false
+    },
+    "storage.scan": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {
+        "actor": "string"
+      },
+      "output": "{ scanRunId, resources, events }",
+      "description": "Walks the curated, bounded scan surface (cache roots + clone candidates), records each real resource in storage_resources, state DISCOVERED.",
+      "description_th": "สแกนพื้นที่ที่กำหนดไว้ (cache/clone candidates) บันทึกทรัพยากรจริงลง storage_resources สถานะ DISCOVERED",
+      "requires_confirmation": false
+    },
+    "storage.classify": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {
+        "scanRunId": "string",
+        "actor": "string"
+      },
+      "output": "{ resources, events }",
+      "description": "Gathers real evidence per resource (fs/git/pattern) and classifies via engines/storage/classifier.ts + decisionEngine.ts, writes storage_classifications/storage_evidence, updates state.",
+      "description_th": "รวบรวมหลักฐานจริงต่อทรัพยากร จำแนกประเภท และตัดสินสถานะ",
+      "requires_confirmation": false
+    },
+    "storage.report": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {
+        "scanRunId": "string"
+      },
+      "output": "StorageReport",
+      "description": "Aggregates SAFE/BLOCKED/UNKNOWN breakdown for a scan run plus real free-space vs 150GB target via df.",
+      "description_th": "สรุปผล SAFE/BLOCKED/UNKNOWN ของการสแกน พร้อมพื้นที่ว่างจริงเทียบเป้าหมาย 150GB",
+      "requires_confirmation": false
+    },
+    "storage.move_safe_to_trash": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {
+        "scanRunId": "string",
+        "actor": "string",
+        "dryRun": "boolean (default true)"
+      },
+      "output": "{ plan, moved, events }",
+      "description": "Moves only resources already in state SAFE to ~/.Trash via adapters/trashAdapter.ts (rename, never rm). Defaults to dry-run; requires explicit dryRun:false. super_admin only.",
+      "description_th": "ย้ายเฉพาะทรัพยากรสถานะ SAFE ไปยัง macOS Trash เท่านั้น (ไม่ใช่การลบถาวร) ค่าเริ่มต้นคือ dry-run",
+      "requires_confirmation": true
+    },
+    "storage.inspect_docker": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "DockerResourceReport",
+      "description": "Read-only Docker inspection (docker system df/images/volumes). Reclaim plan only, never prunes — Docker storage lives in the Desktop VM disk, not Trash-movable.",
+      "description_th": "ตรวจสอบ Docker แบบอ่านอย่างเดียว สร้างแผนคืนพื้นที่เท่านั้น ไม่ prune อัตโนมัติ",
+      "requires_confirmation": false
+    },
+    "storage.verify_supabase": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {
+        "bucket": "string",
+        "objectPath": "string",
+        "expectedSha256": "string?"
+      },
+      "output": "SupabaseObjectVerification",
+      "description": "Verifies a real Supabase Storage object (existence/size/checksum/readability) via adapters/supabaseVerifier.ts. Incomplete verification always returns verified:false — never guessed.",
+      "description_th": "ตรวจสอบ object บน Supabase Storage จริง (มีอยู่/ขนาด/checksum/อ่านได้) ตรวจไม่ครบ = unverified เสมอ",
+      "requires_confirmation": false
+    },
+    "storage.check_threshold": {
+      "owner": "engines/storage/engine.ts",
+      "layer": "engines",
+      "input": {
+        "actor": "string",
+        "reclaimableBytes": "number?"
+      },
+      "output": "{ freeBytes, breached, events }",
+      "description": "Real df check against the 150GB free-space target, records storage_threshold_events. Called by both the UI and local-runtime/storage-threshold-watcher.ts (LaunchAgent, every 6h). Never moves or deletes.",
+      "description_th": "ตรวจพื้นที่ว่างจริงเทียบเป้าหมาย 150GB บันทึกเหตุการณ์ ไม่ย้ายหรือลบไฟล์ใดๆ",
+      "requires_confirmation": false
+    },
+    "workspace.acquire_lock": {
+      "owner": "engines/workspace/lockManager.ts",
+      "layer": "engines",
+      "input": {
+        "resourceType": "file|folder|registry|migration|config|database_schema",
+        "resourcePath": "string",
+        "actor": "string",
+        "sessionId": "string"
+      },
+      "output": "LockAcquireResult",
+      "description": "Real atomic lock acquire via a Postgres partial unique index — concurrent callers for the same resourcePath only ever have one winner.",
+      "description_th": "ขอ lock แบบ atomic จริงผ่าน Postgres unique index",
+      "requires_confirmation": false
+    },
+    "workspace.release_lock": {
+      "owner": "engines/workspace/lockManager.ts",
+      "layer": "engines",
+      "input": {
+        "lockId": "string"
+      },
+      "output": "void",
+      "description": "Releases a held lock (sets released_at). Safe to call even if already released.",
+      "description_th": "ปล่อย lock ที่ถืออยู่",
+      "requires_confirmation": false
+    },
+    "workspace.get_dependents": {
+      "owner": "engines/workspace/dependencyRegistry.ts",
+      "layer": "engines",
+      "input": {
+        "resourcePath": "string"
+      },
+      "output": "DependencyEdge[]",
+      "description": "Real dependents merged from registry/architecture-book.json (import graph) + registry/infra-dependency-graph.json (infra edges). Never fabricated.",
+      "description_th": "หา dependent จริงของทรัพยากรหนึ่งรายการ",
+      "requires_confirmation": false
+    },
+    "workspace.analyze_impact": {
+      "owner": "engines/workspace/dependencyRegistry.ts",
+      "layer": "engines",
+      "input": {
+        "resourcePath": "string"
+      },
+      "output": "DependencyImpact",
+      "description": "safe_to_migrate=false the instant any real dependent is found.",
+      "description_th": "วิเคราะห์ผลกระทบก่อนย้าย/ลบทรัพยากร",
+      "requires_confirmation": false
+    },
+    "workspace.create_migration_plan": {
+      "owner": "engines/workspace/migrationEngine.ts",
+      "layer": "engines",
+      "input": {
+        "resourcePath": "string",
+        "resourceType": "string",
+        "actor": "string"
+      },
+      "output": "ResourceMigrationPlan",
+      "description": "Scan->DependencyAnalysis->ImpactAnalysis->Plan. Writes resource_migration_blocks for every real dependent found.",
+      "description_th": "สร้างแผนย้ายทรัพยากรพร้อมตรวจ dependency จริง",
+      "requires_confirmation": false
+    },
+    "workspace.approve_migration_plan": {
+      "owner": "engines/workspace/migrationEngine.ts",
+      "layer": "engines",
+      "input": {
+        "planId": "string",
+        "actor": "string"
+      },
+      "output": "{ ok, reason? }",
+      "description": "Refuses to approve a plan that isn't SAFE. super_admin only.",
+      "description_th": "อนุมัติแผนย้ายทรัพยากร เฉพาะ super_admin",
+      "requires_confirmation": true
+    },
+    "workspace.execute_migration": {
+      "owner": "engines/workspace/migrationEngine.ts",
+      "layer": "engines",
+      "input": {
+        "planId": "string",
+        "actor": "string"
+      },
+      "output": "{ ok, trashPath?, reason? }",
+      "description": "Moves to ~/.Trash via engines/storage/adapters/trashAdapter.ts — only for a SAFE + approved plan. super_admin only.",
+      "description_th": "ดำเนินการย้ายทรัพยากรไป Trash เฉพาะแผนที่ SAFE และอนุมัติแล้ว",
+      "requires_confirmation": true
+    },
+    "workspace.verify_root": {
+      "owner": "engines/workspace/workspaceRootVerifier.ts",
+      "layer": "engines",
+      "input": {
+        "workspacePath": "string?",
+        "expectedRepositoryRoot": "string?"
+      },
+      "output": "WorkspaceRootCheck",
+      "description": "Read-only workspace preflight. Verifies that a requested worker path exists, is a Git workspace, contains the DNA OS source markers, and—when supplied—matches the declared source of truth. It never falls back to a different directory.",
+      "description_th": "ตรวจ path ของ worker ก่อนเริ่มงาน ยืนยันว่าเป็น source DNA OS จริง และปฏิเสธเมื่อ path หายหรือชี้คนละโครงการ โดยไม่เดาหรือสลับโฟลเดอร์เอง",
+      "requires_confirmation": false
+    },
+    "hardcode.scan": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string (file or directory)"
+      },
+      "output": "ScanReport",
+      "description": "Scans a file or directory for candidate hardcoded values and classifies each one via classify(). Heuristic literal extraction, not a full AST parse.",
+      "description_th": "สแกนไฟล์หรือโฟลเดอร์หาค่าที่อาจฮาร์ดโค้ด แล้วจำแนกประเภทแต่ละค่า",
+      "requires_confirmation": false
+    },
+    "hardcode.classify": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "value": "string",
+        "context_key": "string?",
+        "file": "string",
+        "line": "number",
+        "layer?": "string"
+      },
+      "output": "Classification",
+      "description": "Classifies a single value into one of the 12 hardcode-policy-registry.json categories and returns a verdict. Never guesses ALLOWED for an unrecognized value.",
+      "description_th": "จำแนกค่าหนึ่งค่าเข้าประเภทใดประเภทหนึ่งใน 12 ประเภท พร้อมผลตัดสิน",
+      "requires_confirmation": false
+    },
+    "hardcode.explain": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "classification": "Classification"
+      },
+      "output": "string",
+      "description": "Renders a Classification as a human-readable explanation (what/where/environment-dependence/protocol-or-hardware/where-it-should-live/verdict/rationale).",
+      "description_th": "อธิบายผลการจำแนกเป็นภาษาที่มนุษย์อ่านเข้าใจ",
+      "requires_confirmation": false
+    },
+    "hardcode.register_exception": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "value_or_pattern": "string",
+        "category": "Category",
+        "registered_by": "string",
+        "reason": "string"
+      },
+      "output": "RegisteredException",
+      "description": "Builds a RegisteredException record for a value that should be allowed to hardcode outside the existing registries. Does not write the registry file itself — that write is a reviewed step (review_required per entry).",
+      "description_th": "สร้างระเบียนข้อยกเว้นสำหรับค่าที่อนุญาตให้ฮาร์ดโค้ดนอกเหนือ registry เดิม (ยังไม่เขียนไฟล์เอง ต้องมีการรีวิว)",
+      "requires_confirmation": true
+    },
+    "hardcode.validate_file": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string"
+      },
+      "output": "ScanReport",
+      "description": "scanFile() + buildReport() for exactly one file.",
+      "description_th": "ตรวจสอบไฟล์เดียว คืนรายงานผลการจำแนกทุกค่าที่พบ",
+      "requires_confirmation": false
+    },
+    "hardcode.validate_repository": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string",
+        "extensions": "string[]?"
+      },
+      "output": "ScanReport",
+      "description": "scanRepository() + buildReport() across a directory tree. On-demand only — NOT wired into npm run guard/precommit/deploy-gate as of HCG-P1/P2 (see registry/CURRENT_STATE.json plan_lock.exceptions_log -> HCG).",
+      "description_th": "ตรวจสอบทั้งโฟลเดอร์/repository เรียกใช้ตามต้องการเท่านั้น ยังไม่ผูกกับ guard/precommit/deploy-gate",
+      "requires_confirmation": false
+    },
+    "hardcode.generate_migration_plan": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "classifications": "Classification[]"
+      },
+      "output": "MigrationPlanItem[]",
+      "description": "Produces a per-value migration action list (move-to-target or block-for-review) from a set of Classifications.",
+      "description_th": "สร้างแผน migration รายค่า (ย้ายไปที่ใด หรือบล็อกรอตรวจสอบ)",
+      "requires_confirmation": false
+    },
+    "hardcode.verify_external_constraint": {
+      "owner": "engines/governance/hardcode-decision-engine.ts",
+      "layer": "engines",
+      "input": {
+        "provider": "string",
+        "endpoint_forced_fixed": "boolean?",
+        "varies_by_region_or_env": "boolean?",
+        "has_official_sdk_or_discovery": "boolean?",
+        "is_versioned_api": "boolean?"
+      },
+      "output": "ExternalConstraintCheck",
+      "description": "Section 3/4 checklist for a service/hardware value — does the provider force a fixed endpoint, does it vary by region/environment, is there an official SDK/discovery endpoint, is the API versioned.",
+      "description_th": "ตรวจข้อจำกัดของบริการ/ฮาร์ดแวร์ภายนอกตามเช็คลิสต์ 4 ข้อ",
+      "requires_confirmation": false
+    },
+    "file.inspect": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string"
+      },
+      "output": "{ exists, git_state, registration_state, owning_module, canonical_sibling, duplicate_class, content_hash }",
+      "description": "Real per-file state: git status, registration status (cross-checked vs module-registry.json), duplicate classification via real content hash comparison.",
+      "description_th": "ตรวจสถานะไฟล์จริง (git/registry/duplicate) ไม่เดา",
+      "requires_confirmation": false
+    },
+    "file.snapshot": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string",
+        "reason": "string?"
+      },
+      "output": "FileSnapshotRecord",
+      "description": "Content-addressed snapshot under .dna-os/snapshots/<sha256>/. Secret content (matched against forbidden-hardcode-patterns.json) is never written to disk.",
+      "description_th": "สร้าง snapshot แบบ content-addressed ไม่เขียน secret ลงดิสก์",
+      "requires_confirmation": false
+    },
+    "file.delete.preview": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string",
+        "action": "DestructiveAction?"
+      },
+      "output": "DestructiveActionPreview",
+      "description": "Real preview before any destructive action — session ownership (Rule 116 lock check), git/ignored state, snapshot existence, import usage. Never executes.",
+      "description_th": "ดูตัวอย่างก่อนลบ ตรวจ session/git/snapshot/import จริง",
+      "requires_confirmation": false
+    },
+    "file.delete.execute": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string",
+        "action": "DestructiveAction?",
+        "confirmationToken": "string (>=8 chars)"
+      },
+      "output": "DestructiveActionResult",
+      "description": "The only real path to a destructive action in this capability. Refuses without a real confirmation token, refuses if preview has any blocker, always snapshots before moving to Trash (never rm/unlink even when action='rm').",
+      "description_th": "ทำลายไฟล์จริงได้เฉพาะผ่านทางนี้ ต้องมี token และผ่านทุกเงื่อนไขก่อน ย้ายเข้า Trash เสมอ ไม่ rm จริง",
+      "requires_confirmation": true
+    },
+    "file.restore": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {
+        "contentHash": "string"
+      },
+      "output": "{ ok, content?, reason? }",
+      "description": "Real content-addressed restore from a snapshot. Refuses if the snapshot was secret content (never written) or missing.",
+      "description_th": "กู้คืนไฟล์จริงจาก snapshot ตาม hash",
+      "requires_confirmation": false
+    },
+    "file.find_duplicates": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {
+        "path": "string"
+      },
+      "output": "{ path, sibling, classification }",
+      "description": "Real canonical-sibling lookup + content hash comparison. Never classifies from filename alone.",
+      "description_th": "หา sibling และเทียบเนื้อหาจริง ไม่ตัดสินจากชื่อไฟล์อย่างเดียว",
+      "requires_confirmation": false
+    },
+    "file.reconstruct": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "NOT_IMPLEMENTED",
+      "description": "Declared, not implemented this pass — reconstruct-from-contract (registry/import-graph/route/sibling/session-transcript evidence) needs real design work not attempted yet. See registry/capability-roadmap.json.",
+      "description_th": "ยังไม่ implement — ประกาศไว้เฉยๆ",
+      "requires_confirmation": false
+    },
+    "file.compare": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "NOT_IMPLEMENTED",
+      "description": "Declared, not implemented this pass.",
+      "description_th": "ยังไม่ implement",
+      "requires_confirmation": false
+    },
+    "file.find_owner": {
+      "owner": "engines/workspace/registerFileCommands.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "NOT_IMPLEMENTED",
+      "description": "Declared, not implemented this pass — session-ownership-at-creation-time attribution needs real session-transcript search, only prototyped manually (see the page 2.tsx recovery investigation), not automated.",
+      "description_th": "ยังไม่ implement",
+      "requires_confirmation": false
+    },
+    "invoice.payments": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{allocations}",
+      "description": "PaymentAllocations — read-only การจัดสรรชำระเงินต่อใบแจ้งหนี้ (payment_allocations join invoices/companies) — DNA-000222 coverage",
+      "requires_confirmation": false
+    },
+    "expense.list": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{expenses}",
+      "description": "CompanyExpenses — read-only รายจ่ายบริษัท (company_expenses) — DNA-000222 coverage",
+      "requires_confirmation": false
+    },
+    "bank.statement": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{transactions}",
+      "description": "BankStatement — read-only รายการ statement (bank_statement_transactions) — DNA-000222 coverage",
+      "requires_confirmation": false
+    },
+    "receipt.list": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{receipts,total,limit,offset}",
+      "description": "ReceiptEvidenceList — read-only หลักฐานรับเงิน receipt_documents (ทุกสถานะ+กรอง verified+pagination+total) — DNA-000226 (limit/offset/verification อ่านจาก payload ทาง handler — optional)",
+      "requires_confirmation": false
+    },
+    "receipt.latest": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{receipt}",
+      "description": "ReceiptEvidenceLatest — read-only หลักฐานล่าสุดจาก receipt_documents — DNA-000226",
+      "requires_confirmation": false
+    },
+    "receipt.get": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {
+        "receipt_id": "string"
+      },
+      "output": "{receipt}",
+      "description": "ReceiptEvidenceGet — read-only รายละเอียดหลักฐานรับเงิน1 รายการ — DNA-000226",
+      "requires_confirmation": false
+    },
+    "weather.forecast": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{location,forecast}",
+      "description": "WeatherForecast — พยากรณ์อากาศ Open-Meteo (coords จาก geocoding provider เดิม) — DNA-000232",
+      "requires_confirmation": false,
+      "note_optional": "input ทั้งหมดอ่านจาก payload ทาง handler (validate เอง) — DNA-000232"
+    },
+    "fuel.prices": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{prices,effective_date}",
+      "description": "FuelPricesLive — ราคาเชื้อเพลิงสด Bangchak API — DNA-000232",
+      "requires_confirmation": false
+    },
+    "transport.estimate": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{distance_km,duration,fuel}",
+      "description": "TransportEstimate — ระยะทาง/เวลา/น้ำมัน (read-only calc จาก engines เดิม) — DNA-000232",
+      "requires_confirmation": false,
+      "note_optional": "input ทั้งหมดอ่านจาก payload ทาง handler (validate เอง) — DNA-000232"
+    },
+    "material.sources": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{nearest}",
+      "description": "MaterialSources — แหล่งวัสดุใกล้พิกัด (findNearestPit + pit_profiles coords จริง) — DNA-000232",
+      "requires_confirmation": false,
+      "note_optional": "input ทั้งหมดอ่านจาก payload ทาง handler (validate เอง) — DNA-000232"
+    },
+    "purchase.history": {
+      "owner": "engines/validation/dispatcher.ts",
+      "layer": "engines",
+      "input": {},
+      "output": "{invoices|evidence|PARTIAL_RESULT}",
+      "description": "PurchaseHistory — ประวัติซื้อขายจากใบแจ้งหนี้จริง (ไม่นับ VOID; material จับคู่จาก invoice_items.description ไม่ใช่ FK master)",
+      "requires_confirmation": false
+    }
+  },
+  "query_constraints": {
+    "_policy": "ทุก read command ต้องมี constraint ที่ชัดเจน — dispatcher ใช้สิ่งนี้บังคับ filter",
+    "debt.list": {
+      "table": "invoice_debts",
+      "filters": {
+        "invoice_status": "OPEN"
+      }
+    },
+    "debt.all": {
+      "table": "invoice_debts",
+      "filters": {}
+    },
+    "debt.trackings": {
+      "table": "debt_trackings",
+      "filters": {
+        "deleted_at": null
+      }
+    },
+    "invoice.list": {
+      "table": "documents",
+      "filters": {
+        "document_type": "invoice",
+        "deleted_at": null
+      }
+    },
+    "invoice.latest": {
+      "table": "documents",
+      "filters": {
+        "document_type": "invoice",
+        "deleted_at": null
+      },
+      "limit": 1,
+      "order": "created_at:desc"
+    },
+    "document.list": {
+      "table": "documents",
+      "filters": {
+        "deleted_at": null
+      }
+    },
+    "document.boq": {
+      "table": "documents",
+      "filters": {
+        "document_type": "boq",
+        "deleted_at": null
+      }
+    },
+    "document.po": {
+      "table": "documents",
+      "filters": {
+        "document_type": "purchase_order",
+        "deleted_at": null
+      }
+    },
+    "document.do": {
+      "table": "documents",
+      "filters": {
+        "document_type": "delivery_order",
+        "deleted_at": null
+      }
+    },
+    "document.receipt": {
+      "table": "documents",
+      "filters": {
+        "document_type": "receipt",
+        "deleted_at": null
+      }
+    },
+    "draft.list": {
+      "table": "line_draft_documents",
+      "filters": {
+        "status": "pending"
+      }
+    },
+    "job.list": {
+      "table": "jobs",
+      "filters": {
+        "deleted_at": null
+      }
+    },
+    "job.active": {
+      "table": "jobs",
+      "filters": {
+        "job_status": "IN_PROGRESS",
+        "deleted_at": null
+      }
+    },
+    "partner.list": {
+      "table": "partners",
+      "filters": {
+        "deleted_at": null
+      }
+    },
+    "material.list": {
+      "table": "material_types",
+      "filters": {
+        "deleted_at": null
+      }
+    }
+  },
+  "capability_actions": {
+    "_description": "Capability-based commands ที่ผ่าน V6 Capability Manager (ผูกกับความสามารถ ไม่ใช่ยี่ห้อแอป)",
+    "communication.send_message": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "line-mcp-server/send_line_notify",
+      "fallback": "gmail-mcp-server/send_email",
+      "description": "ส่งข้อความ (LINE → fallback Gmail)",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "communication.read_message": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "line-mcp-server/read_line_messages",
+      "description": "อ่านข้อความ",
+      "requires_confirmation": false,
+      "status": "stub"
+    },
+    "communication.call": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "siri-mcp-server/make_call",
+      "description": "โทรศัพท์",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "documents.open": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "google-drive-mcp/open_drive_file",
+      "description": "เปิดเอกสารจาก Drive",
+      "requires_confirmation": false,
+      "status": "stub"
+    },
+    "documents.create": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "google-drive-mcp/create_document",
+      "fallback": "local-file-mcp/create_local_file",
+      "description": "สร้างเอกสารใหม่",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "documents.export": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "pdf-mcp-server/export_pdf",
+      "description": "Export เอกสารเป็น PDF",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "storage.upload": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "google-drive-mcp/upload_file",
+      "fallback": "supabase-storage-mcp/upload_to_bucket",
+      "description": "อัปโหลดไฟล์",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "storage.download": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "google-drive-mcp/download_file",
+      "description": "ดาวน์โหลดไฟล์",
+      "requires_confirmation": false,
+      "status": "stub"
+    },
+    "storage.list": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "google-drive-mcp/list_files",
+      "description": "แสดงรายการไฟล์",
+      "requires_confirmation": false,
+      "status": "stub"
+    },
+    "database.query": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "supabase-mcp/execute_query",
+      "description": "Query ข้อมูลจาก Supabase",
+      "requires_confirmation": false,
+      "status": "stub"
+    },
+    "database.insert": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "supabase-mcp/insert_record",
+      "description": "เพิ่มข้อมูลใน Supabase",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "database.update": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "supabase-mcp/update_record",
+      "description": "แก้ไขข้อมูลใน Supabase",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "database.delete": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "supabase-mcp/soft_delete_record",
+      "description": "ลบข้อมูลใน Supabase (soft delete)",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "maps.view_location": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "google-maps-mcp/open_location",
+      "fallback": "google-earth-mcp/fly_to_3d_coordinates",
+      "description": "ดูตำแหน่งบนแผนที่",
+      "requires_confirmation": false,
+      "status": "stub"
+    },
+    "maps.get_directions": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "google-maps-mcp/get_directions",
+      "description": "ดูเส้นทาง",
+      "requires_confirmation": false,
+      "status": "stub"
+    },
+    "maps.search_nearby": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "google-maps-mcp/search_nearby_places",
+      "description": "ค้นหาสถานที่ใกล้เคียง",
+      "requires_confirmation": false,
+      "status": "stub"
+    },
+    "ai.translate": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "claude-mcp/translate_text",
+      "fallback": "gemini-mcp/translate",
+      "description": "แปลภาษา (Claude → fallback Gemini; OpenAI removed permanently, owner instruction 2026-07-25)",
+      "requires_confirmation": false,
+      "status": "stub"
+    },
+    "ai.analyze": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "claude-mcp/analyze_data",
+      "fallback": "gemini-mcp/analyze",
+      "description": "วิเคราะห์ข้อมูล (Claude → fallback Gemini; OpenAI removed permanently, owner instruction 2026-07-25)",
+      "requires_confirmation": false,
+      "status": "stub"
+    },
+    "ai.generate": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "claude-mcp/generate_text",
+      "fallback": "gemini-mcp/generate",
+      "description": "สร้างข้อความ (Claude → fallback Gemini; OpenAI removed permanently, owner instruction 2026-07-25)",
+      "requires_confirmation": false,
+      "status": "stub"
+    },
+    "development.deploy": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "vercel-mcp/trigger_deploy",
+      "description": "Deploy ไปยัง Vercel",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "development.push": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "github-mcp/git_push",
+      "description": "Push code ไปยัง GitHub",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "development.status": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "github-mcp/get_status",
+      "description": "ดูสถานะ deployment/repo",
+      "requires_confirmation": false,
+      "status": "stub"
+    },
+    "automation.webhook": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "webhook-mcp/trigger_webhook",
+      "description": "Trigger webhook",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "automation.workflow": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "n8n-mcp/run_workflow",
+      "fallback": "webhook-mcp/trigger_webhook",
+      "description": "รัน automation workflow",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "business.send_email": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "gmail-mcp/send_email",
+      "description": "ส่งอีเมล",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "business.calendar": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "google-calendar-mcp/create_event",
+      "description": "สร้างนัดหมาย",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "business.invoice": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "supabase-mcp/create_invoice_document",
+      "description": "สร้างใบแจ้งหนี้",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "social.post": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "meta-mcp/create_post",
+      "description": "โพสต์ลงโซเชียล",
+      "requires_confirmation": true,
+      "status": "stub"
+    },
+    "social.read_feed": {
+      "owner": "v6-executor/capability-manager",
+      "layer": "core",
+      "primary": "meta-mcp/read_feed",
+      "description": "อ่าน feed โซเชียล",
+      "requires_confirmation": false,
+      "status": "stub"
+    },
+    "_status_policy": "active = ทำงานจริง, stub = ยังไม่ได้เชื่อม MCP, deprecated = เลิกใช้",
+    "partner.list": {
+      "owner": "v3-engines/partner/timeline",
+      "layer": "engines",
+      "input": {},
+      "output": "PartnerSummary[]",
+      "description": "แสดงรายชื่อคู่ค้าทั้งหมดพร้อมสรุปยอดและกิจกรรมล่าสุด",
+      "description_th": "รายชื่อคู่ค้าทั้งหมด + ยอดรวม + วันที่เคลื่อนไหวล่าสุด",
+      "requires_confirmation": false,
+      "status": "active",
+      "query_constraints": {
+        "table": "partners",
+        "filters": [
+          "deleted_at IS NULL"
+        ]
+      }
+    },
+    "observer.read": {
+      "owner": "app/observer",
+      "layer": "ui",
+      "input": {},
+      "output": "ArchitectureSnapshot",
+      "description": "Read-only architecture snapshot for external AI consultation — no DB access, static registry files only",
+      "description_th": "หน้าสำหรับ AI ภายนอก อ่านโครงสร้างระบบ DNA OS (อ่านอย่างเดียว ไม่มี DB)",
+      "requires_confirmation": false,
+      "status": "active",
+      "access": "public_readonly"
+    },
+    "partner.timeline": {
+      "owner": "v3-engines/partner/timeline",
+      "layer": "engines",
+      "input": {
+        "partner_id": "string"
+      },
+      "output": "PartnerTimelineEntry[]",
+      "description": "แสดง timeline เหตุการณ์ทั้งหมดของคู่ค้าคนนั้นตั้งแต่ครั้งแรก",
+      "description_th": "ประวัติเหตุการณ์และเอกสารทั้งหมดของคู่ค้า เรียงตามวันที่",
+      "requires_confirmation": false,
+      "status": "active",
+      "query_constraints": {
+        "table": "documents",
+        "filters": [
+          "partner_id = :partner_id",
+          "deleted_at IS NULL"
+        ]
+      }
+    }
+  }
+}

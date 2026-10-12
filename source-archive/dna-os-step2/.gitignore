@@ -1,0 +1,122 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+scripts/bank-statement-sync/node_modules
+
+# File Existence Intelligence — local content-addressed snapshot store
+# (engines/workspace/snapshotStore.ts). Never committed: may contain full
+# content of files that were never meant to be tracked in the first place.
+/.dna-os
+scripts/bank-statement-sync/debug-*.png
+scripts/bank-statement-sync/debug-*.html
+scripts/bank-statement-sync/last-statement-parse.json
+local-runtime/.runpod-last-active
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# Playwright (TASK-070, capability #62 STEP 1 — real /admin/ide UI audit
+# infrastructure) — real, per-run output/traces and the real saved Supabase
+# session storage state (contains live session cookies, must never be
+# committed).
+/test-results
+/playwright-report
+/blob-report
+/playwright/.cache
+e2e/.auth
+
+# next.js
+/.next/
+/out/
+
+# Local build artifacts — never part of git history: A4/PDF export output and
+# scratch build scripts (tmp/pdfs/build-a4-vector.mjs). The editable sources
+# live in presentation/assets/document-a4/; regenerate output/ locally.
+/output/
+/tmp/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# database backups (contain real business data)
+/backups
+
+# vercel
+.vercel
+
+# /admin/ide workspace trash (owner, 2026-08-05, Phase 3) — trashed items
+# and their metadata ledger must never be committed
+.dnaos-trash
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+lib/macos/line-ctrl
+lib/drivers/line/line-driver
+lib/macos/line-ctrl
+lib/drivers/line/line-driver
+
+# DNA OS — REAL DATA / PRIVATE DATA
+supabase/local-migration/real_data.sql
+_local-data/
+_inventory/
+
+# Contractor pull-model runtime artifacts (NEW-2)
+.agents/
+
+# --- union entries from -DNA-OS-INFRASTRUCTURE- (.gitignore) ---
+node_modules/
+.env
+.env.local
+.env.*.local
+*.log
+.npmrc
+.npm-cache/
+local-runtime/process-locks/
+local-runtime/coordination/
+software/registry-database/data/
+tests/__sandbox__/
+control/conversation-runtime/dist/
+control/scheduler/data/*.jsonl
+control/owner-command/data/latest-work.jsonl
+software/live-census/data/last-census.json
+connections/os-ui/data/*.cursor.json
+connections/voice-command/data/observation-audio/
+connections/human-verified-text/data/sessions/
+connections/os-ui/data/screen-reads/
+local-runtime/work-session-state/
+.agent-host-profiles/
+control/agent-host/test-workspace/
+connections/os-ui/data/screenshots/
+control/computer-use-executor/data/processed/
+control/computer-use-executor/data/results/
+software/system-graph/data/
+*.bak
+*.pre-ownership
+__pycache__/
+*.pyc
+supabase/.temp/
+tmp/
+local-runtime/dna-dev-app-host/build/DNA DEV.app/
+control/runtime-control/data/operations.jsonl
