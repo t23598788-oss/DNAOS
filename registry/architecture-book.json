@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-11T11:03:29.873Z",
+  "generated_at": "2026-10-14T18:14:08.882Z",
   "version": 1,
   "nodes": [
     {
@@ -346,7 +346,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 61,
-          "line_end": 191
+          "line_end": 207
         }
       ],
       "import_sites": [
@@ -2676,7 +2676,9 @@
       "internal_dependencies": [
         "module:services/supabase/queries.ts"
       ],
-      "dependents": [],
+      "dependents": [
+        "module:app/biz/[section]/page.tsx"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "admin",
@@ -3589,6 +3591,7 @@
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/auth/devReviewAccess.ts",
+        "module:core/auth/surfacePolicy.ts",
         "module:services/supabase/browser.ts"
       ],
       "dependents": [],
@@ -3608,14 +3611,14 @@
         {
           "name": "middleware",
           "kind": "function",
-          "line_start": 28,
-          "line_end": 105
+          "line_start": 34,
+          "line_end": 155
         },
         {
           "name": "config",
           "kind": "const",
-          "line_start": 107,
-          "line_end": 127
+          "line_start": 157,
+          "line_end": 181
         }
       ],
       "import_sites": [
@@ -3628,6 +3631,11 @@
           "specifier": "@/core/auth/devReviewAccess",
           "line": 4,
           "resolved_target": "core/auth/devReviewAccess.ts"
+        },
+        {
+          "specifier": "@/core/auth/surfacePolicy",
+          "line": 5,
+          "resolved_target": "core/auth/surfacePolicy.ts"
         }
       ]
     },
@@ -4943,6 +4951,8 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:app/api/chat/_lib/clineTaskQueue.ts",
+        "module:app/api/chat/_lib/clineWorker.ts",
         "module:cognitive/board/index.ts",
         "module:cognitive/evaluation/index.ts",
         "module:cognitive/executor/index.ts",
@@ -4992,20 +5002,20 @@
         {
           "name": "ClientDirective",
           "kind": "type",
-          "line_start": 493,
-          "line_end": 527
+          "line_start": 499,
+          "line_end": 537
         },
         {
           "name": "answerCompanyInfoQuestion",
           "kind": "function",
-          "line_start": 631,
-          "line_end": 705
+          "line_start": 658,
+          "line_end": 763
         },
         {
           "name": "runCognitivePipeline",
           "kind": "function",
-          "line_start": 708,
-          "line_end": 735
+          "line_start": 766,
+          "line_end": 794
         }
       ],
       "import_sites": [
@@ -5115,8 +5125,18 @@
           "resolved_target": "engines/documents/qa.ts"
         },
         {
-          "specifier": "@/cognitive/state",
+          "specifier": "@/app/api/chat/_lib/clineWorker",
           "line": 22,
+          "resolved_target": "app/api/chat/_lib/clineWorker.ts"
+        },
+        {
+          "specifier": "@/app/api/chat/_lib/clineTaskQueue",
+          "line": 23,
+          "resolved_target": "app/api/chat/_lib/clineTaskQueue.ts"
+        },
+        {
+          "specifier": "@/cognitive/state",
+          "line": 24,
           "resolved_target": "cognitive/state/index.ts"
         }
       ]
@@ -6883,6 +6903,7 @@
         "module:app/admin/partners/[id]/page.tsx",
         "module:app/api/admin/ide/_lib/providerRegistryRuntime.ts",
         "module:app/api/chat/_lib/chatResultTypes.ts",
+        "module:app/api/chat/_lib/clineWorker.ts",
         "module:app/workspace-preview/document/DocumentEngineRuntimeRegistration.tsx",
         "module:core/executor/audit.ts",
         "module:core/executor/engine.ts",
@@ -10146,14 +10167,21 @@
       ],
       "dependents": [
         "module:app/api/admin/capability-boxes/run/route.ts",
+        "module:app/api/admin/material-quote/route.ts",
         "module:app/api/chat/_lib/resultContract.ts",
+        "module:app/api/v1/mcp/business/dispatch/route.ts",
         "module:app/api/v1/query/route.ts",
         "module:cognitive/executor/index.ts",
         "module:cognitive/pipeline.ts",
         "module:scripts/core-chain-execution-test.ts",
         "module:scripts/rule72-gate.test.ts"
       ],
-      "data_tables": "UNKNOWN",
+      "data_tables": [
+        "bank_statement_transactions",
+        "company_expenses",
+        "payment_allocations",
+        "receipt_documents"
+      ],
       "business_capabilities": [
         "business.dispatcher.dispatch",
         "business.dispatcher.getCommandDef",
@@ -10175,38 +10203,38 @@
         {
           "name": "DispatchResult",
           "kind": "interface",
-          "line_start": 29,
-          "line_end": 36
+          "line_start": 30,
+          "line_end": 37
         },
         {
           "name": "isRegistered",
           "kind": "function",
-          "line_start": 235,
-          "line_end": 237
+          "line_start": 314,
+          "line_end": 316
         },
         {
           "name": "getCommandDef",
           "kind": "function",
-          "line_start": 239,
-          "line_end": 241
+          "line_start": 318,
+          "line_end": 320
         },
         {
           "name": "listCommands",
           "kind": "function",
-          "line_start": 243,
-          "line_end": 245
+          "line_start": 322,
+          "line_end": 324
         },
         {
           "name": "validateInput",
           "kind": "function",
-          "line_start": 271,
-          "line_end": 283
+          "line_start": 350,
+          "line_end": 362
         },
         {
           "name": "dispatch",
           "kind": "function",
-          "line_start": 285,
-          "line_end": 344
+          "line_start": 364,
+          "line_end": 423
         }
       ],
       "import_sites": [
@@ -10236,28 +10264,33 @@
           "resolved_target": "engines/quote-price.ts"
         },
         {
-          "specifier": "@/engines/capacity",
+          "specifier": "@/services/supabase/queries",
           "line": 21,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/capacity",
+          "line": 22,
           "resolved_target": "engines/capacity.ts"
         },
         {
           "specifier": "@/engines/cost",
-          "line": 22,
+          "line": 23,
           "resolved_target": "engines/cost.ts"
         },
         {
           "specifier": "@/core/config/company-settings",
-          "line": 23,
+          "line": 24,
           "resolved_target": "core/config/company-settings.ts"
         },
         {
           "specifier": "@/registry/command-registry.json",
-          "line": 24,
+          "line": 25,
           "resolved_target": "registry/command-registry.json.ts"
         },
         {
           "specifier": "@/engines/governance/hardcode-decision-engine",
-          "line": 25,
+          "line": 26,
           "resolved_target": "engines/governance/hardcode-decision-engine.ts"
         }
       ]
@@ -13335,7 +13368,6 @@
         "module:app/api/admin/provider-settings/route.ts",
         "module:app/api/admin/pulse/route.ts",
         "module:app/api/admin/quotation-queue/route.ts",
-        "module:app/api/admin/receipt-documents/[id]/company/route.ts",
         "module:app/api/admin/receipt-documents/[id]/confirm/route.ts",
         "module:app/api/admin/receipt-documents/[id]/reject/route.ts",
         "module:app/api/admin/receipt-documents/route.ts",
@@ -13393,6 +13425,7 @@
         "module:engines/canonical/expense-write.ts",
         "module:engines/canonical/inbound-write.ts",
         "module:engines/canonical/payment-write.ts",
+        "module:engines/canonical/receipt-company-assignment.ts",
         "module:engines/canonical/receipt-confirm-flow.ts",
         "module:engines/canonical/resource-transaction-write.ts",
         "module:engines/canonical/transaction-write.ts",
@@ -18147,6 +18180,7 @@
         "module:app/api/admin/line-customers/route.ts",
         "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
         "module:app/api/admin/line-profiles/route.ts",
+        "module:app/api/admin/material-quote/route.ts",
         "module:app/api/admin/notifications/send/route.ts",
         "module:app/api/admin/outbound-drafts/[id]/reject/route.ts",
         "module:app/api/admin/outbound-drafts/[id]/send/route.ts",
@@ -18211,9 +18245,15 @@
         "module:app/api/routes/route.ts",
         "module:app/api/self-description/route.ts",
         "module:app/api/traces/route.ts",
+        "module:app/api/v1/mcp/business/dispatch/route.ts",
         "module:app/app/page.tsx",
+        "module:app/biz/[section]/page.tsx",
+        "module:app/biz/layout.tsx",
+        "module:app/biz/page.tsx",
         "module:app/business-workspace-template/layout.tsx",
         "module:app/business/layout.tsx",
+        "module:app/developer/layout.tsx",
+        "module:app/developer/page.tsx",
         "module:app/oauth/authorize/page.tsx",
         "module:app/page.tsx",
         "module:app/partner/layout.tsx",
@@ -18558,6 +18598,7 @@
         "module:app/api/admin/line-customers/route.ts",
         "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
         "module:app/api/admin/line-profiles/route.ts",
+        "module:app/api/admin/material-quote/route.ts",
         "module:app/api/admin/notifications/send/route.ts",
         "module:app/api/admin/outbound-drafts/[id]/reject/route.ts",
         "module:app/api/admin/outbound-drafts/[id]/send/route.ts",
@@ -18622,6 +18663,7 @@
         "module:app/api/routes/route.ts",
         "module:app/api/self-description/route.ts",
         "module:app/api/traces/route.ts",
+        "module:app/api/v1/mcp/business/dispatch/route.ts",
         "module:core/auth/index.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -18677,8 +18719,13 @@
         "module:app/admin/settings/page.tsx",
         "module:app/admin/system-config/page.tsx",
         "module:app/admin/users/page.tsx",
+        "module:app/biz/[section]/page.tsx",
+        "module:app/biz/layout.tsx",
+        "module:app/biz/page.tsx",
         "module:app/business-workspace-template/layout.tsx",
         "module:app/business/layout.tsx",
+        "module:app/developer/layout.tsx",
+        "module:app/developer/page.tsx",
         "module:app/oauth/authorize/page.tsx",
         "module:app/page.tsx",
         "module:app/partner/layout.tsx",
@@ -18948,7 +18995,8 @@
         "module:components/auth/LogoutButton.tsx"
       ],
       "dependents": [
-        "module:app/admin/ui-gallery/_lib/componentHost.tsx"
+        "module:app/admin/ui-gallery/_lib/componentHost.tsx",
+        "module:app/developer/page.tsx"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -19438,7 +19486,9 @@
       "internal_dependencies": [
         "module:components/documents/DocumentBuilder.tsx"
       ],
-      "dependents": [],
+      "dependents": [
+        "module:app/biz/[section]/page.tsx"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
@@ -20222,7 +20272,9 @@
       "internal_dependencies": [
         "module:components/transactions/TransactionPanel.tsx"
       ],
-      "dependents": [],
+      "dependents": [
+        "module:app/biz/[section]/page.tsx"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
@@ -21682,7 +21734,9 @@
         "module:engines/documents/debt-notice-draft.ts",
         "module:engines/documents/draft-builders.ts"
       ],
-      "dependents": [],
+      "dependents": [
+        "module:app/biz/[section]/page.tsx"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
@@ -21735,7 +21789,9 @@
       "internal_dependencies": [
         "module:components/documents/DebtTrackingManager.tsx"
       ],
-      "dependents": [],
+      "dependents": [
+        "module:app/biz/[section]/page.tsx"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
@@ -22949,12 +23005,14 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:app/api/admin/pits/_lib/businessType.ts",
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
       "data_tables": [
+        "facility_types",
         "material_types",
         "pit_materials",
         "pit_profiles"
@@ -22974,8 +23032,14 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 13,
-          "line_end": 62
+          "line_start": 14,
+          "line_end": 89
+        },
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 98,
+          "line_end": 149
         }
       ],
       "import_sites": [
@@ -22993,6 +23057,11 @@
           "specifier": "@/services/supabase/queries",
           "line": 4,
           "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "./_lib/businessType",
+          "line": 5,
+          "resolved_target": "app/api/admin/pits/_lib/businessType.ts"
         }
       ]
     },
@@ -23591,6 +23660,7 @@
       ],
       "dependents": [],
       "data_tables": [
+        "facility_types",
         "pit_profiles"
       ],
       "business_capabilities": "UNKNOWN",
@@ -23609,7 +23679,7 @@
           "name": "PATCH",
           "kind": "function",
           "line_start": 12,
-          "line_end": 33
+          "line_end": 74
         }
       ],
       "import_sites": [
@@ -23800,6 +23870,7 @@
       "internal_dependencies": [
         "module:supabase/functions/_shared/bank-evidence.ts",
         "module:supabase/functions/_shared/connect-identity.ts",
+        "module:supabase/functions/_shared/connect-receipt-company.ts",
         "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts"
       ],
       "dependents": [],
@@ -23836,6 +23907,11 @@
           "specifier": "../_shared/bank-evidence.ts",
           "line": 23,
           "resolved_target": "supabase/functions/_shared/bank-evidence.ts"
+        },
+        {
+          "specifier": "../_shared/connect-receipt-company.ts",
+          "line": 28,
+          "resolved_target": "supabase/functions/_shared/connect-receipt-company.ts"
         }
       ]
     },
@@ -24111,7 +24187,9 @@
         "module:core/auth/requireAuthPage.ts",
         "module:core/auth/session.ts"
       ],
-      "dependents": [],
+      "dependents": [
+        "module:app/biz/[section]/page.tsx"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
@@ -30640,7 +30718,9 @@
         "module:presentation/shell/navigation/ListColumn.tsx",
         "module:presentation/viewer/MapView.tsx"
       ],
-      "dependents": [],
+      "dependents": [
+        "module:app/biz/[section]/page.tsx"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
@@ -32904,7 +32984,9 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [],
-      "dependents": [],
+      "dependents": [
+        "module:app/biz/[section]/page.tsx"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
@@ -33354,6 +33436,7 @@
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
+        "module:engines/canonical/audit.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
@@ -33375,8 +33458,8 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 13,
-          "line_end": 39
+          "line_start": 14,
+          "line_end": 55
         }
       ],
       "import_sites": [
@@ -33394,6 +33477,11 @@
           "specifier": "@/services/supabase/queries",
           "line": 4,
           "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/audit",
+          "line": 5,
+          "resolved_target": "engines/canonical/audit.ts"
         }
       ]
     },
@@ -33764,7 +33852,9 @@
       "internal_dependencies": [
         "module:engines/documents/document-editor.ts"
       ],
-      "dependents": [],
+      "dependents": [
+        "module:app/biz/[section]/page.tsx"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
@@ -34280,7 +34370,9 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [],
-      "dependents": [],
+      "dependents": [
+        "module:app/biz/[section]/page.tsx"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
@@ -35010,7 +35102,9 @@
       "internal_dependencies": [
         "module:components/finance/FinanceWorkspace.tsx"
       ],
-      "dependents": [],
+      "dependents": [
+        "module:app/biz/[section]/page.tsx"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
@@ -78122,6 +78216,7 @@
       "dependents": [
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/chat/_lib/resultContract.ts",
+        "module:app/api/v1/mcp/business/dispatch/route.ts",
         "module:scripts/canonical-phase-c-acceptance-test.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts"
       ],
@@ -78305,12 +78400,13 @@
       ],
       "dependents": [
         "module:app/api/admin/documents/[id]/artifact-recover/route.ts",
-        "module:app/api/admin/receipt-documents/[id]/company/route.ts",
+        "module:app/api/admin/receipt-documents/[id]/reject/route.ts",
         "module:engines/canonical/artifact-write.ts",
         "module:engines/canonical/debt-write.ts",
         "module:engines/canonical/document-write.ts",
         "module:engines/canonical/expense-write.ts",
         "module:engines/canonical/inbound-write.ts",
+        "module:engines/canonical/receipt-company-assignment.ts",
         "module:engines/canonical/resource-transaction-write.ts",
         "module:engines/canonical/transaction-write.ts",
         "module:gateway/payment-acknowledgement.ts"
@@ -78334,31 +78430,31 @@
           "name": "CANONICAL_AUDIT_ACTIONS",
           "kind": "const",
           "line_start": 18,
-          "line_end": 38
+          "line_end": 46
         },
         {
           "name": "CanonicalAuditAction",
           "kind": "type",
-          "line_start": 40,
-          "line_end": 40
+          "line_start": 48,
+          "line_end": 48
         },
         {
           "name": "CanonicalAuditInput",
           "kind": "interface",
-          "line_start": 42,
-          "line_end": 53
+          "line_start": 50,
+          "line_end": 61
         },
         {
           "name": "CanonicalAuditRecord",
           "kind": "interface",
-          "line_start": 60,
-          "line_end": 66
+          "line_start": 68,
+          "line_end": 74
         },
         {
           "name": "recordCanonicalAudit",
           "kind": "function",
-          "line_start": 68,
-          "line_end": 89
+          "line_start": 76,
+          "line_end": 97
         }
       ],
       "import_sites": [
@@ -89966,7 +90062,8 @@
         "module:services/canonical/read-model.ts"
       ],
       "dependents": [
-        "module:app/api/chat/route.ts"
+        "module:app/api/chat/route.ts",
+        "module:app/api/v1/mcp/business/dispatch/route.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -89981,6 +90078,12 @@
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
       "symbols": [
+        {
+          "name": "renderCanonicalDetailHtml",
+          "kind": "function",
+          "line_start": 291,
+          "line_end": 336
+        },
         {
           "name": "buildChatResult",
           "kind": "function",
@@ -90046,6 +90149,7 @@
         "module:core/shared/types.ts"
       ],
       "dependents": [
+        "module:app/api/chat/_lib/clineWorker.ts",
         "module:app/api/chat/_lib/resultContract.ts",
         "module:app/api/chat/route.ts",
         "module:app/workspace/WorkspaceFrame.tsx"
@@ -91372,14 +91476,10 @@
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
-        "module:engines/canonical/audit.ts",
-        "module:services/supabase/queries.ts"
+        "module:engines/canonical/receipt-company-assignment.ts"
       ],
       "dependents": [],
-      "data_tables": [
-        "companies",
-        "receipt_documents"
-      ],
+      "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
       "lifecycle_status": "active",
@@ -91395,8 +91495,8 @@
         {
           "name": "PATCH",
           "kind": "function",
-          "line_start": 23,
-          "line_end": 77
+          "line_start": 22,
+          "line_end": 44
         }
       ],
       "import_sites": [
@@ -91411,14 +91511,9 @@
           "resolved_target": "core/auth/session.ts"
         },
         {
-          "specifier": "@/services/supabase/queries",
+          "specifier": "@/engines/canonical/receipt-company-assignment",
           "line": 4,
-          "resolved_target": "services/supabase/queries.ts"
-        },
-        {
-          "specifier": "@/engines/canonical/audit",
-          "line": 5,
-          "resolved_target": "engines/canonical/audit.ts"
+          "resolved_target": "engines/canonical/receipt-company-assignment.ts"
         }
       ]
     },
@@ -92169,7 +92264,9 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [],
-      "dependents": [],
+      "dependents": [
+        "module:app/biz/[section]/page.tsx"
+      ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
@@ -93385,6 +93482,161 @@
           "specifier": "../cognitive/pipeline",
           "line": 7,
           "resolved_target": "cognitive/pipeline.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:engines/canonical/receipt-company-assignment.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/canonical/receipt-company-assignment.ts",
+      "purpose_th": "Receipt debtor assignment — the ONE authorized write path for",
+      "exports": [
+        "AssignReceiptCompanyInput",
+        "AssignReceiptCompanyResult",
+        "assignReceiptCompany"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:engines/canonical/audit.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:app/api/admin/receipt-documents/[id]/company/route.ts",
+        "module:app/api/internal/connect/receipt-company/route.ts"
+      ],
+      "data_tables": [
+        "companies",
+        "receipt_documents"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "AssignReceiptCompanyInput",
+          "kind": "interface",
+          "line_start": 17,
+          "line_end": 22
+        },
+        {
+          "name": "AssignReceiptCompanyResult",
+          "kind": "interface",
+          "line_start": 24,
+          "line_end": 31
+        },
+        {
+          "name": "assignReceiptCompany",
+          "kind": "function",
+          "line_start": 33,
+          "line_end": 76
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 14,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/audit",
+          "line": 15,
+          "resolved_target": "engines/canonical/audit.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/internal/connect/receipt-company/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/internal/connect/receipt-company/route.ts",
+      "purpose_th": "POST /api/internal/connect/receipt-company — Connect receipt debtor-assignment",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/canonical/receipt-company-assignment.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 27,
+          "line_end": 61
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/engines/canonical/receipt-company-assignment",
+          "line": 19,
+          "resolved_target": "engines/canonical/receipt-company-assignment.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:supabase/functions/_shared/connect-receipt-company.ts",
+      "type": "Module",
+      "layer": "supabase",
+      "name_en": "supabase/functions/_shared/connect-receipt-company.ts",
+      "purpose_th": "Connect receipt debtor-assignment transport (BOM-070 FINAL HARDENING ·",
+      "exports": [
+        "ConnectReceiptCompanyResult",
+        "sendConnectReceiptCompany"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:supabase/functions/receipt-reconcile-sweep/index.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "supabase",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ConnectReceiptCompanyResult",
+          "kind": "interface",
+          "line_start": 14,
+          "line_end": 18
+        },
+        {
+          "name": "sendConnectReceiptCompany",
+          "kind": "function",
+          "line_start": 20,
+          "line_end": 46
         }
       ]
     }
@@ -95987,6 +96239,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/internal/connect/receipt-company/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/internal/connect/resource-transaction/route.ts",
       "label": "contains"
     },
@@ -97328,6 +97585,11 @@
     {
       "source": "layer:engines",
       "target": "module:engines/canonical/payment-write.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/canonical/receipt-company-assignment.ts",
       "label": "contains"
     },
     {
@@ -99903,6 +100165,11 @@
     {
       "source": "layer:supabase",
       "target": "module:supabase/functions/_shared/connect-payment.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:supabase",
+      "target": "module:supabase/functions/_shared/connect-receipt-company.ts",
       "label": "contains"
     },
     {
@@ -107396,6 +107663,21 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/material-quote/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/material-quote/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/material-quote/route.ts",
+      "target": "module:engines/validation/dispatcher.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/notifications/send/route.ts",
       "target": "module:app/api/admin/ide/_lib/businessFailureBridge.ts",
       "label": "imports"
@@ -107627,6 +107909,11 @@
     },
     {
       "source": "module:app/api/admin/pits/route.ts",
+      "target": "module:app/api/admin/pits/_lib/businessType.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/pits/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
@@ -107842,12 +108129,7 @@
     },
     {
       "source": "module:app/api/admin/receipt-documents/[id]/company/route.ts",
-      "target": "module:engines/canonical/audit.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/receipt-documents/[id]/company/route.ts",
-      "target": "module:services/supabase/queries.ts",
+      "target": "module:engines/canonical/receipt-company-assignment.ts",
       "label": "imports"
     },
     {
@@ -107883,6 +108165,11 @@
     {
       "source": "module:app/api/admin/receipt-documents/[id]/reject/route.ts",
       "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/receipt-documents/[id]/reject/route.ts",
+      "target": "module:engines/canonical/audit.ts",
       "label": "imports"
     },
     {
@@ -108431,6 +108718,21 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/chat/_lib/clineTaskQueue.ts",
+      "target": "module:app/api/chat/_lib/clineWorker.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/chat/_lib/clineWorker.ts",
+      "target": "module:app/api/chat/_lib/chatResultTypes.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/chat/_lib/clineWorker.ts",
+      "target": "module:core/shared/types.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/chat/_lib/localAiBridge.ts",
       "target": "module:services/ai/gateway.ts",
       "label": "imports"
@@ -108931,6 +109233,11 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/internal/connect/receipt-company/route.ts",
+      "target": "module:engines/canonical/receipt-company-assignment.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/internal/connect/resource-transaction/route.ts",
       "target": "module:engines/canonical/resource-transaction-write.ts",
       "label": "imports"
@@ -109186,6 +109493,31 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/v1/mcp/business/dispatch/route.ts",
+      "target": "module:app/api/chat/_lib/resultContract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/business/dispatch/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/business/dispatch/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/business/dispatch/route.ts",
+      "target": "module:engines/validation/dispatcher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/business/dispatch/route.ts",
+      "target": "module:services/canonical/document-detail.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/v1/mcp/contractor/evidence-submit/route.ts",
       "target": "module:app/api/admin/ide/_lib/changeSetRuntime.ts",
       "label": "imports"
@@ -109366,6 +109698,126 @@
       "label": "imports"
     },
     {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/admin/create-document/page.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/admin/debt-tracking/page.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/admin/documents/page.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/admin/equipment/page.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/admin/finance/page.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/admin/line-customers/page.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/admin/line-profiles/page.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/admin/partners/page.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/admin/receipt/page.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/admin/receipts/page.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/admin/relationships/page.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/admin/transactions/page.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/biz/_lib/PitsByTypeView.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:app/biz/_lib/sections.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/[section]/page.tsx",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/_lib/BizNav.tsx",
+      "target": "module:app/biz/_lib/sections.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/_lib/PitsByTypeView.tsx",
+      "target": "module:app/biz/_lib/BizTable.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/layout.tsx",
+      "target": "module:app/biz/_lib/BizNav.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/layout.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/layout.tsx",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/page.tsx",
+      "target": "module:app/biz/_lib/sections.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/page.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/biz/page.tsx",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/business-workspace-template/documents/page.tsx",
       "target": "module:presentation/shell/TemplateShell.tsx",
       "label": "imports"
@@ -109443,6 +109895,31 @@
     {
       "source": "module:app/business/page.tsx",
       "target": "module:registry/module-registry.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/developer/layout.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/developer/layout.tsx",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/developer/page.tsx",
+      "target": "module:components/admin/AdminSidebarNav.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/developer/page.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/developer/page.tsx",
+      "target": "module:core/auth/session.ts",
       "label": "imports"
     },
     {
@@ -110482,6 +110959,16 @@
     },
     {
       "source": "module:cognitive/pipeline.ts",
+      "target": "module:app/api/chat/_lib/clineTaskQueue.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/pipeline.ts",
+      "target": "module:app/api/chat/_lib/clineWorker.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/pipeline.ts",
       "target": "module:cognitive/board/index.ts",
       "label": "imports"
     },
@@ -111172,6 +111659,11 @@
     },
     {
       "source": "module:core/auth/session.ts",
+      "target": "module:registry/permissions.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/auth/surfacePolicy.ts",
       "target": "module:registry/permissions.json.ts",
       "label": "imports"
     },
@@ -112396,6 +112888,16 @@
       "label": "imports"
     },
     {
+      "source": "module:engines/canonical/receipt-company-assignment.ts",
+      "target": "module:engines/canonical/audit.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/canonical/receipt-company-assignment.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:engines/canonical/receipt-confirm-flow.ts",
       "target": "module:engines/canonical/debt-write.ts",
       "label": "imports"
@@ -113396,6 +113898,11 @@
       "label": "imports"
     },
     {
+      "source": "module:engines/validation/dispatcher.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:engines/vehicle-selector.ts",
       "target": "module:core/config-loader.ts",
       "label": "imports"
@@ -113998,6 +114505,11 @@
     {
       "source": "module:middleware.ts",
       "target": "module:core/auth/devReviewAccess.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:middleware.ts",
+      "target": "module:core/auth/surfacePolicy.ts",
       "label": "imports"
     },
     {
@@ -116692,6 +117204,11 @@
     },
     {
       "source": "module:scripts/permission-policy-test.ts",
+      "target": "module:registry/permissions.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/permission-policy-test.ts",
       "target": "module:scripts/session.ts",
       "label": "imports"
     },
@@ -117033,6 +117550,16 @@
     {
       "source": "module:scripts/settings-real-wiring-test.ts",
       "target": "module:core/config/ide-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/surface-policy-test.ts",
+      "target": "module:core/auth/surfacePolicy.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/surface-policy-test.ts",
+      "target": "module:registry/permissions.json.ts",
       "label": "imports"
     },
     {
@@ -118222,6 +118749,11 @@
     },
     {
       "source": "module:supabase/functions/receipt-reconcile-sweep/index.ts",
+      "target": "module:supabase/functions/_shared/connect-receipt-company.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/receipt-reconcile-sweep/index.ts",
       "target": "module:supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
       "label": "imports"
     },
@@ -118277,8 +118809,8 @@
     }
   ],
   "summary": {
-    "total": 1379,
-    "ok": 1379,
+    "total": 1382,
+    "ok": 1382,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

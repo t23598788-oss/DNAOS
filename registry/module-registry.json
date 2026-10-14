@@ -16663,6 +16663,39 @@
         "runCognitivePipeline"
       ],
       "status": "active"
+    },
+    "engines/canonical/receipt-company-assignment.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Receipt debtor assignment — the ONE authorized write path for",
+      "purpose_th": "Receipt debtor assignment — the ONE authorized write path for",
+      "exports": [
+        "AssignReceiptCompanyInput",
+        "AssignReceiptCompanyResult",
+        "assignReceiptCompany"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/connect/receipt-company/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/internal/connect/receipt-company — Connect receipt debtor-assignment",
+      "purpose_th": "POST /api/internal/connect/receipt-company — Connect receipt debtor-assignment",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/_shared/connect-receipt-company.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Connect receipt debtor-assignment transport (BOM-070 FINAL HARDENING ·",
+      "purpose_th": "Connect receipt debtor-assignment transport (BOM-070 FINAL HARDENING ·",
+      "exports": [
+        "ConnectReceiptCompanyResult",
+        "sendConnectReceiptCompany"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
