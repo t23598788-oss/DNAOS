@@ -23,6 +23,10 @@ export const CANONICAL_AUDIT_ACTIONS = [
   "payment.allocated",
   "payment.reallocated",
   "debt.event_created",
+  // BOM-070 FINAL RELEASE (owner 2026-10-14) — ledger correction audit vocabulary,
+  // appended additively (same rule as above); used by the raw-SQL migration
+  // 20261014000003_canonical_ledger_correction_0722ae13 and its rollback.
+  "debt.event_updated",
   "transaction.created",
   "transaction.status_changed",
   "artifact.created",
@@ -35,6 +39,10 @@ export const CANONICAL_AUDIT_ACTIONS = [
   // BATCH 40 (owner 2026-10-08) — payment acknowledgement vocabulary,
   // appended additively (same rule as the D3 additions above)
   "receipt.acknowledged",
+  // BOM-070 FINAL HARDENING (owner 2026-10-14) — receipt rejection vocabulary,
+  // appended additively (same rule as above): the reject route now records
+  // evidence every time it flips a receipt out of the review queue.
+  "receipt.rejected",
 ] as const;
 
 export type CanonicalAuditAction = (typeof CANONICAL_AUDIT_ACTIONS)[number];

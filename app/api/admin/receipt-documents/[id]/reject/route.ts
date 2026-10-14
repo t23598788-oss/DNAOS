@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { recordCanonicalAudit } from "@/engines/canonical/audit"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -26,14 +27,29 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json({ error: `เอกสารนี้ถูกดำเนินการไปแล้ว (สถานะ: ${doc.status})` }, { status: 400 })
   }
 
-  await db.from("receipt_documents")
+  const reason = body?.reason || "ปฏิเสธโดยเจ้าหน้าที่ — ไม่พบหลักฐานเงินเข้าจริงหรือข้อมูลไม่ตรงกัน"
+
+  const { error: upErr } = await db.from("receipt_documents")
     .update({
       status: "rejected",
-      error_th: body?.reason || "ปฏิเสธโดยเจ้าหน้าที่ — ไม่พบหลักฐานเงินเข้าจริงหรือข้อมูลไม่ตรงกัน",
+      error_th: reason,
       confirmed_by: auth.email,
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
+  if (upErr) return NextResponse.json({ error: upErr.message }, { status: 500 })
+
+  // Canonical audit — the same evidence every status change must record.
+  await recordCanonicalAudit({
+    action: "receipt.rejected",
+    entity_type: "receipt_document",
+    entity_id: id,
+    actor: auth.email ?? auth.id,
+    field: "status",
+    old_value: doc.status,
+    new_value: "rejected",
+    evidence: { reason, receipt_status: doc.status },
+  })
 
   return NextResponse.json({ ok: true })
 }

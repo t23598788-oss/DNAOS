@@ -25,6 +25,7 @@ import {
   claimStatementRow,
   releaseStatementClaim,
 } from "../_shared/bank-evidence.ts"
+import { sendConnectReceiptCompany } from "../_shared/connect-receipt-company.ts"
 
 Deno.serve(async (req) => {
   // Rule 103 check done: RECONCILE_CRON_SECRET already exists, shared by
@@ -80,7 +81,15 @@ Deno.serve(async (req) => {
       const identity = await resolveExternalIdentity(supabase, "line", lineUserId)
       companyId = identity?.companyId ?? null
       if (companyId) {
-        await supabase.from("receipt_documents").update({ customer_company_id: companyId }).eq("id", doc.id)
+        // BOM-070 FINAL HARDENING: no direct edge write — assignment goes through
+        // the Connect receipt-company bridge (Next), which reuses the canonical
+        // writer + recordCanonicalAudit. A rejected assignment fails closed here
+        // (the slip stays ai_read for a human).
+        const assigned = await sendConnectReceiptCompany(doc.id, companyId, "system:receipt-reconcile-sweep")
+        if (!assigned.ok) {
+          results[doc.id] = `company backfill failed (${assigned.error}) — left for human`
+          continue
+        }
       }
     }
 

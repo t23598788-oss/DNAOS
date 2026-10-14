@@ -320,7 +320,16 @@ async function main() {
   console.log(`         debt: ledger = snapshot ${money(ledgerTotal)}`);
   check("VAT input is reported as base + VAT (never the gross amount)", preVat > 0 && vatIn > 0, { pre_vat: money(preVat), vat: money(vatIn) });
   check("payments figure comes from allocations", allocTotal > 0, money(allocTotal));
-  check("the negative over-paid balance is preserved (never clamped)", negatives.length === 1 && Number(negatives[0].total_outstanding) < 0, negatives.map((n: Record<string, unknown>) => n.total_outstanding));
+  // BOM-070: verify EVERY over-paid company against its ledger projection
+  // (business rule = "negative preserved, never clamped" — NOT a fixed count).
+  let negativeMismatches = 0;
+  for (const s of negatives) {
+    const projected = Math.round((byCompany.get(String(s.customer_company_id)) ?? 0) * 100) / 100;
+    const preserved = Number(s.total_outstanding) < 0 && Math.abs(Number(s.total_outstanding) - projected) < 0.01;
+    if (!preserved) negativeMismatches += 1;
+    check(`over-paid balance preserved + ledger-projected (${String(s.customer_company_id).slice(0, 8)})`, preserved, { snapshot: s.total_outstanding, projected });
+  }
+  check(`every over-paid balance is preserved (never clamped) across ${negatives.length} company/ies`, negativeMismatches === 0, negativeMismatches);
 
   console.log("\n=== E5.5 ownership regression: no financial path uses the legacy calculators ===");
   const financialPaths = [
