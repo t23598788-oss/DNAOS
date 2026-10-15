@@ -57,14 +57,18 @@ async function liveCheck(): Promise<string> {
     assert.equal(res.status, 200, `LIVE ${table}: the rewired select must be valid (got ${res.status})`);
   }
 
-  // negative control: the old paths are provably dead in LIVE
-  for (const dead of ["partners", "documents"]) {
+  // negative control: the genuinely-dead table is provably gone in LIVE.
+  // public.partners is intentionally NOT in this list — it is a real BASE TABLE
+  // (business partners, created by the June clearinghouse migrations and used by
+  // the pit/ERP features). The document-source rewire moved the draft party path
+  // off the partners table to companies; it never dropped the partners table.
+  for (const dead of ["documents"]) {
     const res = await fetch(`${url}/rest/v1/${dead}?select=id&limit=1`, { headers });
     assert.equal(res.status, 404, `LIVE ${dead} must not exist (got ${res.status})`);
     const body = (await res.json()) as { code?: string };
     assert.equal(body.code, "PGRST205", `LIVE ${dead} must report PGRST205`);
   }
-  return "checked live (3 rewired selects valid · partners/documents = 404 PGRST205)";
+  return "checked live (3 rewired selects valid · documents = 404 PGRST205)";
 }
 
 async function main() {

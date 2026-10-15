@@ -521,6 +521,51 @@ export async function getJobs(status?: string) {
   }));
 }
 
+// ---- JOB single-read helpers (driver auth / existence / reference census) ----
+// Every raw read of public.jobs lives here (the ONE job query module). Engines
+// and routes call these helpers instead of querying jobs directly, so the
+// "exactly one module may query public.jobs" census stays true and no parallel
+// job query is introduced.
+
+/** Raw active job row for driver authorization (soft-deleted rows excluded). */
+export async function getJobById(client: SupabaseClient, jobId: string): Promise<Record<string, unknown> | null> {
+  const { data, error } = await client
+    .from("jobs")
+    .select("id, job_status, site_latitude, site_longitude, pit_profile_id, assigned_person_id")
+    .eq("id", jobId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data as Record<string, unknown> | null) ?? null;
+}
+
+/** Job existence check (id only) — matches the injected structural db shape of
+ *  canonical writers (engines/canonical/resource-transaction-write.ts deps.db). */
+export async function jobExists(
+  client: {
+    from(table: string): {
+      select(columns?: string): {
+        eq(column: string, value: string): {
+          maybeSingle(): Promise<{ data: Record<string, unknown> | null; error: { message: string } | null }>;
+        };
+      };
+    };
+  },
+  jobId: string,
+): Promise<boolean> {
+  const { data, error } = await client.from("jobs").select("id").eq("id", jobId).maybeSingle();
+  if (error) throw new Error(error.message);
+  return data !== null;
+}
+
+/** Number of jobs referencing a pit profile (reference census for deactivation). */
+export async function countJobsByPitProfile(client: SupabaseClient, pitProfileId: string): Promise<number> {
+  const { data, error } = await client.from("jobs").select("id").eq("pit_profile_id", pitProfileId);
+  if (error) throw new Error(error.message);
+  return data?.length ?? 0;
+}
+
+
 // ---- PARTNERS (companies) ----
 
 export async function getPartners() {

@@ -26,12 +26,16 @@ const ROUTE = "app/api/admin/receipt-documents/[id]/company/route.ts"
 const PAGE = "app/admin/receipts/page.tsx"
 const CONFIRM_FLOW = "engines/canonical/receipt-confirm-flow.ts"
 const PAYMENT_WRITE = "engines/canonical/payment-write.ts"
+const ASSIGN_ENGINE = "engines/canonical/receipt-company-assignment.ts"
 
 const route = read(ROUTE)
+const assignEngine = read(ASSIGN_ENGINE)
 check("route requires admin auth", route.includes("requireAuth(ADMIN_TIER)"))
-check("route gates on ai_read only (pre-confirm)", route.includes(`receipt.status !== "ai_read"`) && route.includes("RECEIPT_NOT_ASSIGNABLE"))
-check("route verifies company exists in registry", route.includes(`from("companies")`) && route.includes("COMPANY_NOT_FOUND"))
-check("route writes canonical audit with actor", route.includes("recordCanonicalAudit") && route.includes(`field: "customer_company_id"`) && route.includes("auth.email ?? auth.id"))
+check("route delegates to the ONE canonical assignment writer", route.includes("assignReceiptCompany") && !route.includes(`from("receipt_documents").update`))
+check("engine gates on ai_read only (pre-confirm)", assignEngine.includes(`receipt.status !== "ai_read"`) && assignEngine.includes("RECEIPT_NOT_ASSIGNABLE"))
+check("engine verifies company exists in registry", assignEngine.includes(`from("companies")`) && assignEngine.includes("COMPANY_NOT_FOUND"))
+check("engine writes canonical audit with actor", assignEngine.includes("recordCanonicalAudit") && assignEngine.includes(`field: "customer_company_id"`) && assignEngine.includes("actor: input.actor"))
+check("route passes the authenticated actor", route.includes("auth.email ?? auth.id"))
 check("route is the ONLY new manual writer (sweep auto path remains)", !route.includes("confirm_payment_allocation"))
 
 const page = read(PAGE)

@@ -7,6 +7,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { haversine } from "@/engines/distance"
 import { createBusinessEvent, buildBusinessEventRow, type CreateBusinessEventInput } from "@/engines/canonical/event-write"
+import { getJobById } from "@/services/supabase/queries"
 
 export type TransportEventType =
   | "JOB_ACCEPTED" | "ARRIVED_AT_SOURCE" | "LOADING_STARTED" | "LOADING_COMPLETED"
@@ -54,8 +55,7 @@ export async function authorizeDriverAction(lineUserId: string, jobId: string):
   const { data: drv } = await s.from("driver_profiles")
     .select("id, driver_name, line_user_id, vehicle_plate_text, user_id").eq("line_user_id", lineUserId).is("deleted_at", null).maybeSingle()
   if (!drv) return { ok: false, reason: "DRIVER_NOT_AUTHORIZED (line_user_id ไม่พบใน driver_profiles)" }
-  const { data: job } = await s.from("jobs")
-    .select("id, job_status, site_latitude, site_longitude, pit_profile_id, assigned_person_id").eq("id", jobId).is("deleted_at", null).maybeSingle()
+  const job = await getJobById(s, jobId)
   if (!job) return { ok: false, reason: "JOB_NOT_FOUND" }
   if (job.job_status === "COMPLETED") return { ok: false, reason: "JOB_ALREADY_COMPLETED" }
   if (job.job_status === "SUSPENDED") return { ok: false, reason: "JOB_SUSPENDED" }

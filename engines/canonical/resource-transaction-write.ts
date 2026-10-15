@@ -19,7 +19,7 @@
  * Idempotency: `source_event_id` is unique — a duplicate event returns the
  * existing row (`duplicate: true`) and never inserts twice.
  */
-import { supabaseAdmin } from "@/services/supabase/queries";
+import { supabaseAdmin, jobExists } from "@/services/supabase/queries";
 import { recordCanonicalAudit } from "@/engines/canonical/audit";
 
 /** Raw source facts — money fields deliberately absent (computed by the writer). */
@@ -142,9 +142,13 @@ export async function recordResourceTransaction(
   if (startedAt > receivedAt) {
     throw new Error(`RESOURCE_TRANSACTION_INVALID_TIME: started_at (${input.started_at}) ห้ามมากกว่า received_at (${input.received_at})`);
   }
-  const { data: jobRow, error: jobError } = await deps.db.from("jobs").select("id").eq("id", input.job_id).maybeSingle();
-  if (jobError) throw new Error(`RESOURCE_TRANSACTION_JOB_LOOKUP_FAILED: ${jobError.message}`);
-  if (!jobRow) throw new Error(`RESOURCE_TRANSACTION_JOB_NOT_FOUND: ${input.job_id} ไม่มีจริงใน jobs — reject ไม่เดา`);
+  let jobFound = false;
+  try {
+    jobFound = await jobExists(deps.db, input.job_id);
+  } catch (e) {
+    throw new Error(`RESOURCE_TRANSACTION_JOB_LOOKUP_FAILED: ${(e as Error).message}`);
+  }
+  if (!jobFound) throw new Error(`RESOURCE_TRANSACTION_JOB_NOT_FOUND: ${input.job_id} ไม่มีจริงใน jobs — reject ไม่เดา`);
 
   // Idempotency — same source event never inserts twice.
   const existing = await deps.db.from("resource_transactions").select("id, unit_cost, unit_price, meta").eq("source_event_id", input.source_event_id).limit(1);
