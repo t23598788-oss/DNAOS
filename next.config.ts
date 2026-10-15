@@ -13,6 +13,15 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: __dirname,
   },
+  experimental: {
+    // SANDBOX BUILD FIX (2026-10-15): host reports 60 CPUs so Next.js defaults
+    // to experimental.cpus=59 workers for "Collecting page data" phase.
+    // In this 6 Gi sandbox that spawns ~59 Node processes and triggers OOM
+    // before the build completes. Capping at 2 keeps RSS within limits;
+    // production Vercel/Railway builds are unaffected (they run their own
+    // node_modules and do not read this value in the same way).
+    cpus: 2,
+  },
   // Found live 2026-07-31: Vercel rejected api/admin/runtime/document-engine
   // at 3.7GB uncompressed (limit 250MB). Root cause: engines/documents/
   // selfDescription.ts reads registry/*.json via a dynamically-constructed

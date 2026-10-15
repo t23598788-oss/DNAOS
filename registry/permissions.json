@@ -347,7 +347,7 @@
       },
       "infrastructure_and_credentials": {
         "th": "Infrastructure · Database Management · API Keys/Credentials · Device Connector · Internal System Links",
-        "prefixes": ["/admin/infrastructure", "/admin/api-tokens", "/admin/schema-audit", "/admin/devices", "/admin/reader", "/admin/traces", "/admin/api-explorer", "/admin/engine-explorer", "/admin/system-config", "/admin/dna", "/admin/links", "/admin/backup", "/admin/settings"]
+        "prefixes": ["/admin/infrastructure", "/admin/api-tokens", "/admin/schema-audit", "/admin/devices", "/admin/reader", "/admin/traces", "/admin/api-explorer", "/admin/engine-explorer", "/admin/system-config", "/admin/dna", "/admin/links", "/admin/backup", "/admin/settings", "/admin/dbd"]
       }
     },
     "shared_capabilities_unchanged": "CLI/File reader · File conversion · Document scanner · Deterministic processing · AI Gateway · Browser automation · Computer use · Failure bridge · Checkpoint/Evidence · Connector lifecycle · Desktop/Tauri — capability เหล่านี้ไม่ถูกย้าย/ลบ/สร้างใหม่และผู้ใช้ธุรกิจยังใช้ได้ครบ แต่ *ทางเรียกที่ผูกกับ IDE* (HTTP /api/admin/ide/*) ปิดสำหรับ operational surface ทุก method ตาม owner directive 2026-10-15 — business API/เอกสาร/การเงิน/LINE/Connect ไม่ถูกแตะแม้แต่บรรทัดเดียว"

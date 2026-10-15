@@ -45,6 +45,29 @@ export default function InstallHelpPage() {
           ติดตั้งฟรีจากเบราว์เซอร์ของคุณเอง (PWA) — ไม่ต้องโหลดไฟล์ติดตั้ง และไม่มีส่วนของโค้ดเซิร์ฟเวอร์หรือความลับใด ๆ แจกจ่าย
         </p>
 
+        <div className="mt-5 rounded-xl border border-[#E9E1D6] bg-white p-4">
+          <p className="text-sm font-semibold text-stone-800">เลือกแอปที่ต้องการติดตั้ง</p>
+          <p className="mt-1 text-xs leading-relaxed text-stone-500">
+            DNA OS มีแอปสองตัวที่แยกขอบเขตและทางเข้าออกจากกัน — เปิดหน้าให้ถูกตัวก่อนกดติดตั้ง (ไอคอนติดตั้งในแถบที่อยู่ / เมนูของเบราว์เซอร์) แล้วแอปจะเปิดเข้าพื้นที่นั้นเอง
+          </p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <a href="/workspace" className="block rounded-lg border border-[#E9E1D6] bg-[#FDFBF8] p-3 hover:border-[#B49C7C]">
+              <p className="text-sm font-semibold text-stone-800">แอปธุรกิจ (Business)</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-stone-500">
+                ระบบบริหารธุรกิจ · เอกสาร · การเงิน · LINE · บัญชีผู้ใช้งาน · ค่าบริการและการใช้ทรัพยากร
+              </p>
+              <p className="mt-2 font-mono text-[10px] text-stone-400">เปิดหน้า /workspace แล้วติดตั้ง</p>
+            </a>
+            <a href="/developer" className="block rounded-lg border border-[#E9E1D6] bg-[#FDFBF8] p-3 hover:border-[#B49C7C]">
+              <p className="text-sm font-semibold text-stone-800">แอปนักพัฒนา (Developer)</p>
+              <p className="mt-1 text-[11px] leading-relaxed text-stone-500">
+                IDE · Source Code · AI Agent · Git / Runtime · Infrastructure — ต้องมีสิทธิ์ developer_tier (super_admin)
+              </p>
+              <p className="mt-2 font-mono text-[10px] text-stone-400">เปิดหน้า /developer แล้วติดตั้ง</p>
+            </a>
+          </div>
+        </div>
+
         <ol className="mt-5 space-y-4">
           {STEPS.map((s) => (
             <li key={s.device} className="rounded-xl border border-[#E9E1D6] p-4">

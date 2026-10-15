@@ -322,9 +322,7 @@ export default function PlaygroundPage() {
         <div className="bg-stone-800 rounded-2xl p-4 border border-stone-700 mb-4">
           <label className="text-[10px] text-stone-400 uppercase font-semibold block mb-2">
             X-DNA-Token{" "}
-            <Link href="/admin/api-tokens" className="text-sky-400 hover:underline normal-case">
-              (สร้างที่นี่)
-            </Link>
+            <span className="text-stone-500 normal-case">(สร้างได้ที่หน้า /admin/api-tokens)</span>
           </label>
           <input
             type="password"

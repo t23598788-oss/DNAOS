@@ -16,7 +16,7 @@
  */
 const STATIC_CACHE = "dnaos-static-2026-09-24-a";
 const STATIC_PREFIXES = ["/_next/static/", "/icons/", "/brand/"];
-const STATIC_FILES = ["/manifest.json", "/favicon.ico"];
+const STATIC_FILES = ["/manifest.json", "/manifest-developer.json", "/favicon.ico"];
 
 function isStaticPath(pathname) {
   return STATIC_PREFIXES.some((p) => pathname.startsWith(p)) || STATIC_FILES.includes(pathname);

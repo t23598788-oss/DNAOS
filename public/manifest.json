@@ -1,8 +1,8 @@
 {
-  "name": "DNA OS",
+  "name": "DNA OS Business",
   "short_name": "DNA OS",
-  "description": "Command-driven liquidity & logistics OS",
-  "start_url": "/app",
+  "description": "Command-driven business workspace — เอกสาร การเงิน LINE และระบบบริหารธุรกิจ (เปิด /workspace)",
+  "start_url": "/workspace",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0b0f1a",

@@ -25,16 +25,26 @@ function check(name: string, ok: boolean, detail = ""): void {
 
 // ── manifest + icons ────────────────────────────────────────────────────────
 const manifest = JSON.parse(read("public/manifest.json"));
-check("manifest.start_url = role bounce /app (not an /admin hard-route)",
-  manifest.start_url === "/app");
-check("manifest.scope=/ covers start_url, display standalone",
+check("BUSINESS manifest.start_url = /workspace (Business App opens /workspace)",
+  manifest.start_url === "/workspace");
+check("BUSINESS manifest.scope=/ covers start_url, display standalone",
   manifest.scope === "/" && manifest.display === "standalone");
+const devManifest = JSON.parse(read("public/manifest-developer.json"));
+check("DEVELOPER manifest.start_url = /developer (Developer App opens /developer)",
+  devManifest.start_url === "/developer");
+check("DEVELOPER manifest.scope=/ covers start_url, display standalone",
+  devManifest.scope === "/" && devManifest.display === "standalone");
 const iconsOk = (manifest.icons as { src: string }[]).every((i) => existsSync(join(ROOT, "public", i.src)));
 check("manifest icons exist on disk (192+512)", iconsOk && (manifest.icons?.length ?? 0) >= 2);
-check("layout links manifest + apple-touch-icon + theme-color",
+check("layout links manifest dynamically by app scope (generateMetadata)",
   (() => {
     const l = read("app/layout.tsx");
-    return l.includes('manifest: "/manifest.json"') && l.includes("apple-touch-icon") && l.includes("theme-color");
+    return l.includes("generateMetadata") &&
+      l.includes('appScope === "developer"') &&
+      l.includes('"/manifest-developer.json"') &&
+      l.includes('"/manifest.json"') &&
+      l.includes("apple-touch-icon") &&
+      l.includes("theme-color");
   })());
 
 // ── /app bounce: role-authoritative, existing authorities only ──────────────
@@ -50,6 +60,8 @@ check("sw exists + versioned cache + SKIP_WAITING protocol",
   sw.includes("dnaos-static-") && sw.includes('event.data === "SKIP_WAITING"'));
 check("sw caches ONLY static prefixes (network everything else = HTML/API/auth)",
   sw.includes('"/_next/static/"') && sw.includes('if (!isStaticPath(url.pathname)) return;') && !sw.includes('"/api'));
+check("sw caches BOTH manifests (business + developer)",
+  sw.includes('"/manifest.json"') && sw.includes('"/manifest-developer.json"'));
 check("sw never caches POST + only same-origin", sw.includes('req.method !== "GET"') && sw.includes("url.origin !== self.location.origin"));
 check("sw activate cleans old dnaos-static-* caches (no stuck old UI)",
   sw.includes('k.startsWith("dnaos-static-")') && sw.includes("clients.claim"));
@@ -67,6 +79,11 @@ check("first-install never force-reloads (hadController guard)",
 // ── install help + registry truth ───────────────────────────────────────────
 check("/install help page exists (per-device steps + web fallback)",
   existsSync(join(ROOT, "app/install/page.tsx")) && read("app/install/page.tsx").includes("เพิ่มไปยังหน้าจอโฮม"));
+check("/install help presents Business + Developer install points",
+  read("app/install/page.tsx").includes("แอปธุรกิจ") &&
+    read("app/install/page.tsx").includes("แอปนักพัฒนา") &&
+    read("app/install/page.tsx").includes('href="/workspace"') &&
+    read("app/install/page.tsx").includes('href="/developer"'));
 check("login page links to /install", read("app/login/page.tsx").includes('href="/install"'));
 check("permissions.public_routes documents /install",
   (permissions.public_routes as string[]).includes("/install"));

@@ -147,13 +147,13 @@ for (const path of businessWrites) {
 }
 
 // ── 6. registry/permissions.json = ที่เดียวของ policy ─────────────────────
-const policy = (permissions as {
+const policy = (permissions as unknown as {
   capability_actions?: {
-    deny?: Record<string, { prefixes: string[] }>;
-    deny_all?: Record<string, { prefixes: string[] }>;
-    deny_pages?: Record<string, { prefixes: string[] }>;
-    allow?: Record<string, { prefixes: string[] }>;
-    surfaces?: Record<string, { entry_urls?: string[]; roles?: string[] }>;
+    deny?: Record<string, { prefixes: string[]; note?: string; th?: string; authority?: string }>;
+    deny_all?: Record<string, { prefixes: string[]; note?: string; th?: string; authority?: string }>;
+    deny_pages?: Record<string, { prefixes: string[]; note?: string; th?: string }>;
+    allow?: Record<string, { prefixes: string[]; note?: string; th?: string; authority?: string }>;
+    surfaces?: Record<string, { entry_urls?: string[]; roles?: string[]; th?: string; cookie_value?: string }>;
     write_methods?: string[];
   };
 }).capability_actions;
@@ -454,6 +454,7 @@ for (const [path, scope] of [
   ["/admin/devices", "developer"],
   ["/admin/settings", "developer"],
   ["/admin/backup", "developer"],
+  ["/admin/dbd", "developer"],
   ["/developer", "developer"],
 ] as const) {
   check(`APP SCOPE ${path} = ${scope}`, appScopeForPath(path) === scope, appScopeForPath(path));

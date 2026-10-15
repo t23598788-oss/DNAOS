@@ -68,11 +68,6 @@ const WORKSPACE_NAV_HREFS = {
   Engineering: '/start',
   Knowledge: '/admin',
   Observation: '/observer',
-  // Integrated Development Workspace (owner, 2026-08-05) — the VS Code-shaped
-  // Application Shell (components/ide-shell/IDEWorkspace.tsx). Real route,
-  // added here so it's reachable from the Owner Control Center rather than
-  // an orphan page only reachable by typing the URL.
-  IDE: '/admin/ide',
 } as const;
 
 export default function OperationalWorkspace() {
@@ -158,7 +153,6 @@ function OperationalWorkspaceContent() {
   // _main_nav_note — "Knowledge" here is the honest neutral name until
   // that's resolved, matching what the /admin section below also uses.
   const navItems = [
-    { label: 'IDE', href: WORKSPACE_NAV_HREFS.IDE },
     { label: 'Workspace', href: WORKSPACE_NAV_HREFS.Workspace },
     { label: 'Control', href: WORKSPACE_NAV_HREFS.Control },
     { label: 'System Map', href: WORKSPACE_NAV_HREFS.SystemMap },
@@ -288,9 +282,6 @@ function OperationalWorkspaceContent() {
                   Enter Operations
                 </Link>
               )}
-              <Link href={WORKSPACE_NAV_HREFS.IDE} className={`px-5 py-2.5 rounded-md text-sm font-semibold border transition-colors ${e.interactiveCard} ${ty.heading}`}>
-                Open IDE Workspace
-              </Link>
               {devPortal && (
                 <Link href={devPortal.href} className={`px-5 py-2.5 rounded-md text-sm font-semibold border transition-colors ${e.interactiveCard} ${ty.heading}`}>
                   Open {devPortal.label}

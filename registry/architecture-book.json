@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-11T11:03:29.873Z",
+  "generated_at": "2026-10-15T23:53:29.577Z",
   "version": 1,
   "nodes": [
     {
@@ -346,7 +346,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 61,
-          "line_end": 191
+          "line_end": 207
         }
       ],
       "import_sites": [
@@ -671,13 +671,14 @@
       "purpose_th": "โครงสร้างหลักของหน้าเว็บ — ตั้งค่าฟอนต์, metadata, และโครงสร้าง HTML",
       "exports": [
         "RootLayout",
-        "metadata"
+        "generateMetadata"
       ],
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:app/globals.css.ts",
-        "module:components/pwa/PwaRegistration.tsx"
+        "module:components/pwa/PwaRegistration.tsx",
+        "module:core/auth/surfacePolicy.ts"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
@@ -694,28 +695,33 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
-          "name": "metadata",
-          "kind": "const",
-          "line_start": 16,
-          "line_end": 25
+          "name": "generateMetadata",
+          "kind": "function",
+          "line_start": 28,
+          "line_end": 42
         },
         {
           "name": "RootLayout",
           "kind": "function",
-          "line_start": 27,
-          "line_end": 47
+          "line_start": 44,
+          "line_end": 64
         }
       ],
       "import_sites": [
         {
           "specifier": "./globals.css",
-          "line": 3,
+          "line": 4,
           "resolved_target": "app/globals.css.ts"
         },
         {
           "specifier": "@/components/pwa/PwaRegistration",
-          "line": 4,
+          "line": 5,
           "resolved_target": "components/pwa/PwaRegistration.tsx"
+        },
+        {
+          "specifier": "@/core/auth/surfacePolicy",
+          "line": 6,
+          "resolved_target": "core/auth/surfacePolicy.ts"
         }
       ]
     },
@@ -748,8 +754,8 @@
         {
           "name": "default",
           "kind": "default",
-          "line_start": 37,
-          "line_end": 37
+          "line_start": 46,
+          "line_end": 46
         }
       ]
     },
@@ -3529,7 +3535,7 @@
           "name": "PlaygroundPage",
           "kind": "function",
           "line_start": 50,
-          "line_end": 447
+          "line_end": 445
         }
       ],
       "import_sites": [
@@ -3589,10 +3595,13 @@
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/auth/devReviewAccess.ts",
+        "module:core/auth/surfacePolicy.ts",
         "module:services/supabase/browser.ts"
       ],
       "dependents": [],
-      "data_tables": "UNKNOWN",
+      "data_tables": [
+        "profiles"
+      ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "middleware.ts",
       "lifecycle_status": "active",
@@ -3608,14 +3617,14 @@
         {
           "name": "middleware",
           "kind": "function",
-          "line_start": 28,
-          "line_end": 105
+          "line_start": 62,
+          "line_end": 215
         },
         {
           "name": "config",
           "kind": "const",
-          "line_start": 107,
-          "line_end": 127
+          "line_start": 217,
+          "line_end": 241
         }
       ],
       "import_sites": [
@@ -3628,6 +3637,11 @@
           "specifier": "@/core/auth/devReviewAccess",
           "line": 4,
           "resolved_target": "core/auth/devReviewAccess.ts"
+        },
+        {
+          "specifier": "@/core/auth/surfacePolicy",
+          "line": 5,
+          "resolved_target": "core/auth/surfacePolicy.ts"
         }
       ]
     },
@@ -4943,6 +4957,8 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:app/api/chat/_lib/clineTaskQueue.ts",
+        "module:app/api/chat/_lib/clineWorker.ts",
         "module:cognitive/board/index.ts",
         "module:cognitive/evaluation/index.ts",
         "module:cognitive/executor/index.ts",
@@ -4992,20 +5008,20 @@
         {
           "name": "ClientDirective",
           "kind": "type",
-          "line_start": 493,
-          "line_end": 527
+          "line_start": 499,
+          "line_end": 537
         },
         {
           "name": "answerCompanyInfoQuestion",
           "kind": "function",
-          "line_start": 631,
-          "line_end": 705
+          "line_start": 658,
+          "line_end": 763
         },
         {
           "name": "runCognitivePipeline",
           "kind": "function",
-          "line_start": 708,
-          "line_end": 735
+          "line_start": 766,
+          "line_end": 794
         }
       ],
       "import_sites": [
@@ -5115,8 +5131,18 @@
           "resolved_target": "engines/documents/qa.ts"
         },
         {
-          "specifier": "@/cognitive/state",
+          "specifier": "@/app/api/chat/_lib/clineWorker",
           "line": 22,
+          "resolved_target": "app/api/chat/_lib/clineWorker.ts"
+        },
+        {
+          "specifier": "@/app/api/chat/_lib/clineTaskQueue",
+          "line": 23,
+          "resolved_target": "app/api/chat/_lib/clineTaskQueue.ts"
+        },
+        {
+          "specifier": "@/cognitive/state",
+          "line": 24,
           "resolved_target": "cognitive/state/index.ts"
         }
       ]
@@ -6883,6 +6909,7 @@
         "module:app/admin/partners/[id]/page.tsx",
         "module:app/api/admin/ide/_lib/providerRegistryRuntime.ts",
         "module:app/api/chat/_lib/chatResultTypes.ts",
+        "module:app/api/chat/_lib/clineWorker.ts",
         "module:app/workspace-preview/document/DocumentEngineRuntimeRegistration.tsx",
         "module:core/executor/audit.ts",
         "module:core/executor/engine.ts",
@@ -10147,13 +10174,19 @@
       "dependents": [
         "module:app/api/admin/capability-boxes/run/route.ts",
         "module:app/api/chat/_lib/resultContract.ts",
+        "module:app/api/v1/mcp/business/dispatch/route.ts",
         "module:app/api/v1/query/route.ts",
         "module:cognitive/executor/index.ts",
         "module:cognitive/pipeline.ts",
         "module:scripts/core-chain-execution-test.ts",
         "module:scripts/rule72-gate.test.ts"
       ],
-      "data_tables": "UNKNOWN",
+      "data_tables": [
+        "bank_statement_transactions",
+        "company_expenses",
+        "payment_allocations",
+        "receipt_documents"
+      ],
       "business_capabilities": [
         "business.dispatcher.dispatch",
         "business.dispatcher.getCommandDef",
@@ -10175,38 +10208,38 @@
         {
           "name": "DispatchResult",
           "kind": "interface",
-          "line_start": 29,
-          "line_end": 36
+          "line_start": 30,
+          "line_end": 37
         },
         {
           "name": "isRegistered",
           "kind": "function",
-          "line_start": 235,
-          "line_end": 237
+          "line_start": 314,
+          "line_end": 316
         },
         {
           "name": "getCommandDef",
           "kind": "function",
-          "line_start": 239,
-          "line_end": 241
+          "line_start": 318,
+          "line_end": 320
         },
         {
           "name": "listCommands",
           "kind": "function",
-          "line_start": 243,
-          "line_end": 245
+          "line_start": 322,
+          "line_end": 324
         },
         {
           "name": "validateInput",
           "kind": "function",
-          "line_start": 271,
-          "line_end": 283
+          "line_start": 350,
+          "line_end": 362
         },
         {
           "name": "dispatch",
           "kind": "function",
-          "line_start": 285,
-          "line_end": 344
+          "line_start": 364,
+          "line_end": 423
         }
       ],
       "import_sites": [
@@ -10236,28 +10269,33 @@
           "resolved_target": "engines/quote-price.ts"
         },
         {
-          "specifier": "@/engines/capacity",
+          "specifier": "@/services/supabase/queries",
           "line": 21,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/capacity",
+          "line": 22,
           "resolved_target": "engines/capacity.ts"
         },
         {
           "specifier": "@/engines/cost",
-          "line": 22,
+          "line": 23,
           "resolved_target": "engines/cost.ts"
         },
         {
           "specifier": "@/core/config/company-settings",
-          "line": 23,
+          "line": 24,
           "resolved_target": "core/config/company-settings.ts"
         },
         {
           "specifier": "@/registry/command-registry.json",
-          "line": 24,
+          "line": 25,
           "resolved_target": "registry/command-registry.json.ts"
         },
         {
           "specifier": "@/engines/governance/hardcode-decision-engine",
-          "line": 25,
+          "line": 26,
           "resolved_target": "engines/governance/hardcode-decision-engine.ts"
         }
       ]
@@ -17896,13 +17934,14 @@
       "name_en": "core/auth/session.ts",
       "purpose_th": "จุดเดียวที่ resolve user + role จริงจาก session — นิยาม AppRole และ role tier จาก registry/permissions.json",
       "exports": [
-        "getAuthedUser",
-        "getAccessToken",
         "ADMIN_TIER",
-        "SUPER_ADMIN_ONLY",
         "ANY_AUTHENTICATED",
         "AppRole",
-        "AuthedUser"
+        "AuthedUser",
+        "DEVELOPER_TIER",
+        "SUPER_ADMIN_ONLY",
+        "getAccessToken",
+        "getAuthedUser"
       ],
       "status": "OK",
       "runtime_entry_point": false,
@@ -18211,9 +18250,12 @@
         "module:app/api/routes/route.ts",
         "module:app/api/self-description/route.ts",
         "module:app/api/traces/route.ts",
+        "module:app/api/v1/mcp/business/dispatch/route.ts",
         "module:app/app/page.tsx",
         "module:app/business-workspace-template/layout.tsx",
         "module:app/business/layout.tsx",
+        "module:app/developer/layout.tsx",
+        "module:app/developer/page.tsx",
         "module:app/oauth/authorize/page.tsx",
         "module:app/page.tsx",
         "module:app/partner/layout.tsx",
@@ -18288,16 +18330,22 @@
           "line_end": 25
         },
         {
+          "name": "DEVELOPER_TIER",
+          "kind": "const",
+          "line_start": 29,
+          "line_end": 29
+        },
+        {
           "name": "getAuthedUser",
           "kind": "function",
-          "line_start": 30,
-          "line_end": 80
+          "line_start": 34,
+          "line_end": 84
         },
         {
           "name": "getAccessToken",
           "kind": "function",
-          "line_start": 85,
-          "line_end": 91
+          "line_start": 89,
+          "line_end": 95
         }
       ],
       "import_sites": [
@@ -18622,6 +18670,7 @@
         "module:app/api/routes/route.ts",
         "module:app/api/self-description/route.ts",
         "module:app/api/traces/route.ts",
+        "module:app/api/v1/mcp/business/dispatch/route.ts",
         "module:core/auth/index.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -18679,6 +18728,8 @@
         "module:app/admin/users/page.tsx",
         "module:app/business-workspace-template/layout.tsx",
         "module:app/business/layout.tsx",
+        "module:app/developer/layout.tsx",
+        "module:app/developer/page.tsx",
         "module:app/oauth/authorize/page.tsx",
         "module:app/page.tsx",
         "module:app/partner/layout.tsx",
@@ -18948,7 +18999,8 @@
         "module:components/auth/LogoutButton.tsx"
       ],
       "dependents": [
-        "module:app/admin/ui-gallery/_lib/componentHost.tsx"
+        "module:app/admin/ui-gallery/_lib/componentHost.tsx",
+        "module:app/developer/page.tsx"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -19935,7 +19987,8 @@
         "module:components/admin/VoiceStandbyWidget.tsx",
         "module:core/auth/devReviewAccess.ts",
         "module:core/auth/requireAuthPage.ts",
-        "module:core/auth/session.ts"
+        "module:core/auth/session.ts",
+        "module:core/auth/surfacePolicy.ts"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
@@ -19954,8 +20007,8 @@
         {
           "name": "AdminLayout",
           "kind": "function",
-          "line_start": 50,
-          "line_end": 81
+          "line_start": 51,
+          "line_end": 97
         }
       ],
       "import_sites": [
@@ -19975,13 +20028,18 @@
           "resolved_target": "core/auth/devReviewAccess.ts"
         },
         {
-          "specifier": "@/app/workspace/WorkspaceFrame",
+          "specifier": "@/core/auth/surfacePolicy",
           "line": 5,
+          "resolved_target": "core/auth/surfacePolicy.ts"
+        },
+        {
+          "specifier": "@/app/workspace/WorkspaceFrame",
+          "line": 6,
           "resolved_target": "app/workspace/WorkspaceFrame.tsx"
         },
         {
           "specifier": "@/components/admin/VoiceStandbyWidget",
-          "line": 6,
+          "line": 7,
           "resolved_target": "components/admin/VoiceStandbyWidget.tsx"
         }
       ]
@@ -43926,8 +43984,8 @@
         {
           "name": "OperationalWorkspace",
           "kind": "function",
-          "line_start": 78,
-          "line_end": 84
+          "line_start": 73,
+          "line_end": 79
         }
       ],
       "import_sites": [
@@ -67869,6 +67927,7 @@
         "module:scripts/digitalocean-worker-router-proof.ts",
         "module:scripts/local-worker-test.ts",
         "module:scripts/mcp-worker-test.ts",
+        "module:scripts/surface-policy-test.ts",
         "module:scripts/worker-adapter-test.ts",
         "module:scripts/worker-fallback-test.ts",
         "module:scripts/worker-security-test.ts",
@@ -78122,6 +78181,7 @@
       "dependents": [
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/chat/_lib/resultContract.ts",
+        "module:app/api/v1/mcp/business/dispatch/route.ts",
         "module:scripts/canonical-phase-c-acceptance-test.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts"
       ],
@@ -82548,6 +82608,7 @@
       "exports": [
         "HOST_KEYS",
         "HostProps",
+        "PREVIEW_NAV_ITEMS",
         "REAL_NAV_ITEMS",
         "REAL_RAIL_ITEMS",
         "hasHost",
@@ -82625,34 +82686,40 @@
           "line_end": 70
         },
         {
+          "name": "PREVIEW_NAV_ITEMS",
+          "kind": "const",
+          "line_start": 80,
+          "line_end": 80
+        },
+        {
           "name": "REAL_RAIL_ITEMS",
           "kind": "const",
-          "line_start": 72,
-          "line_end": 77
+          "line_start": 82,
+          "line_end": 87
         },
         {
           "name": "HostProps",
           "kind": "interface",
-          "line_start": 157,
-          "line_end": 166
+          "line_start": 167,
+          "line_end": 176
         },
         {
           "name": "HOST_KEYS",
           "kind": "const",
-          "line_start": 182,
-          "line_end": 224
+          "line_start": 192,
+          "line_end": 234
         },
         {
           "name": "hasHost",
           "kind": "function",
-          "line_start": 226,
-          "line_end": 228
+          "line_start": 236,
+          "line_end": 238
         },
         {
           "name": "renderHost",
           "kind": "function",
-          "line_start": 236,
-          "line_end": 725
+          "line_start": 246,
+          "line_end": 738
         }
       ],
       "import_sites": [
@@ -86338,19 +86405,19 @@
           "name": "TOOL_BINDINGS",
           "kind": "const",
           "line_start": 11,
-          "line_end": 26
+          "line_end": 29
         },
         {
           "name": "SETTINGS_BOXES",
           "kind": "const",
-          "line_start": 29,
-          "line_end": 41
+          "line_start": 43,
+          "line_end": 47
         },
         {
           "name": "orderGrantedTools",
           "kind": "function",
-          "line_start": 44,
-          "line_end": 50
+          "line_start": 50,
+          "line_end": 56
         }
       ]
     },
@@ -88253,7 +88320,7 @@
           "name": "InstallHelpPage",
           "kind": "function",
           "line_start": 39,
-          "line_end": 95
+          "line_end": 118
         }
       ]
     },
@@ -89788,14 +89855,14 @@
         {
           "name": "WorkspaceFrame",
           "kind": "function",
-          "line_start": 147,
-          "line_end": 749
+          "line_start": 151,
+          "line_end": 756
         },
         {
           "name": "WorkspaceToolNavigation",
           "kind": "function",
-          "line_start": 1075,
-          "line_end": 1112
+          "line_start": 1082,
+          "line_end": 1119
         }
       ],
       "import_sites": [
@@ -89953,7 +90020,8 @@
       "name_en": "app/api/chat/_lib/resultContract.ts",
       "purpose_th": "buildChatResult — RESPONSE CONTRACT (owner spec 2026-09-25 BUSINESS RESULT",
       "exports": [
-        "buildChatResult"
+        "buildChatResult",
+        "renderCanonicalDetailHtml"
       ],
       "status": "OK",
       "runtime_entry_point": false,
@@ -89966,7 +90034,8 @@
         "module:services/canonical/read-model.ts"
       ],
       "dependents": [
-        "module:app/api/chat/route.ts"
+        "module:app/api/chat/route.ts",
+        "module:app/api/v1/mcp/business/dispatch/route.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -89981,6 +90050,12 @@
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
       "symbols": [
+        {
+          "name": "renderCanonicalDetailHtml",
+          "kind": "function",
+          "line_start": 291,
+          "line_end": 336
+        },
         {
           "name": "buildChatResult",
           "kind": "function",
@@ -90046,6 +90121,7 @@
         "module:core/shared/types.ts"
       ],
       "dependents": [
+        "module:app/api/chat/_lib/clineWorker.ts",
         "module:app/api/chat/_lib/resultContract.ts",
         "module:app/api/chat/route.ts",
         "module:app/workspace/WorkspaceFrame.tsx"
@@ -93387,6 +93463,492 @@
           "resolved_target": "cognitive/pipeline.ts"
         }
       ]
+    },
+    {
+      "id": "module:scripts/surface-policy-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/surface-policy-test.ts",
+      "purpose_th": "surface-policy-test.ts — CONTROL SURFACE SEPARATION contract test",
+      "exports": [
+        "DEVELOPER_TIER"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:app/api/admin/ide/_lib/workerSelectorRuntime.ts",
+        "module:core/auth/surfacePolicy.ts",
+        "module:registry/permissions.json.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../core/auth/surfacePolicy",
+          "line": 26,
+          "resolved_target": "core/auth/surfacePolicy.ts"
+        },
+        {
+          "specifier": "../registry/permissions.json",
+          "line": 36,
+          "resolved_target": "registry/permissions.json.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:core/auth/surfacePolicy.ts",
+      "type": "Module",
+      "layer": "core",
+      "name_en": "core/auth/surfacePolicy.ts",
+      "purpose_th": "SURFACE / CAPABILITY-ACTION POLICY — the API + runtime half of the",
+      "exports": [
+        "APP_SCOPE_HEADER",
+        "AppScope",
+        "SURFACE_COOKIE",
+        "SurfaceDecision",
+        "SurfaceId",
+        "appScopeForPath",
+        "canEnterSurface",
+        "decideSurfaceAction",
+        "decideSurfacePage",
+        "resolveSurface",
+        "surfaceForPagePath"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:registry/permissions.json.ts"
+      ],
+      "dependents": [
+        "module:app/admin/layout.tsx",
+        "module:app/layout.tsx",
+        "module:middleware.ts",
+        "module:scripts/surface-policy-test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "core",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "SurfaceId",
+          "kind": "type",
+          "line_start": 39,
+          "line_end": 39
+        },
+        {
+          "name": "AppScope",
+          "kind": "type",
+          "line_start": 46,
+          "line_end": 46
+        },
+        {
+          "name": "APP_SCOPE_HEADER",
+          "kind": "const",
+          "line_start": 51,
+          "line_end": 51
+        },
+        {
+          "name": "SURFACE_COOKIE",
+          "kind": "const",
+          "line_start": 54,
+          "line_end": 54
+        },
+        {
+          "name": "canEnterSurface",
+          "kind": "function",
+          "line_start": 86,
+          "line_end": 91
+        },
+        {
+          "name": "resolveSurface",
+          "kind": "function",
+          "line_start": 95,
+          "line_end": 99
+        },
+        {
+          "name": "surfaceForPagePath",
+          "kind": "function",
+          "line_start": 104,
+          "line_end": 112
+        },
+        {
+          "name": "SurfaceDecision",
+          "kind": "interface",
+          "line_start": 114,
+          "line_end": 121
+        },
+        {
+          "name": "appScopeForPath",
+          "kind": "function",
+          "line_start": 139,
+          "line_end": 148
+        },
+        {
+          "name": "decideSurfaceAction",
+          "kind": "function",
+          "line_start": 162,
+          "line_end": 230
+        },
+        {
+          "name": "decideSurfacePage",
+          "kind": "function",
+          "line_start": 238,
+          "line_end": 260
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/registry/permissions.json",
+          "line": 1,
+          "resolved_target": "registry/permissions.json.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/developer/page.tsx",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/developer/page.tsx",
+      "purpose_th": "/developer — DEVELOPER WORKSPACE (owner directive 2026-10-12; access",
+      "exports": [
+        "DeveloperWorkspacePage"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:components/admin/AdminSidebarNav.tsx",
+        "module:core/auth/requireAuthPage.ts",
+        "module:core/auth/session.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "DeveloperWorkspacePage",
+          "kind": "function",
+          "line_start": 55,
+          "line_end": 99
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/components/admin/AdminSidebarNav",
+          "line": 2,
+          "resolved_target": "components/admin/AdminSidebarNav.tsx"
+        },
+        {
+          "specifier": "@/core/auth/requireAuthPage",
+          "line": 3,
+          "resolved_target": "core/auth/requireAuthPage.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 4,
+          "resolved_target": "core/auth/session.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/developer/layout.tsx",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/developer/layout.tsx",
+      "purpose_th": "DEVELOPER WORKSPACE (owner directive 2026-10-12; access separated 2026-10-15)",
+      "exports": [
+        "DeveloperLayout"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/auth/requireAuthPage.ts",
+        "module:core/auth/session.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "DeveloperLayout",
+          "kind": "function",
+          "line_start": 20,
+          "line_end": 32
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/auth/requireAuthPage",
+          "line": 1,
+          "resolved_target": "core/auth/requireAuthPage.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 2,
+          "resolved_target": "core/auth/session.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/chat/_lib/clineWorker.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/chat/_lib/clineWorker.ts",
+      "purpose_th": "Cline worker bridge (OWNER WORKSPACE AI TOOL INTEGRATION, 2026-10-11).",
+      "exports": [
+        "ClineWorkerReply",
+        "ClineWorkerTransport",
+        "__getClineSessionsForTest",
+        "__setClineSessionForTest",
+        "extractClineJson",
+        "parseClineRunOutput",
+        "resolveClineBin",
+        "runOwnerRequestViaCline",
+        "sanitizeClineResult"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:app/api/chat/_lib/chatResultTypes.ts",
+        "module:core/shared/types.ts"
+      ],
+      "dependents": [
+        "module:app/api/chat/_lib/clineTaskQueue.ts",
+        "module:cognitive/pipeline.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ClineWorkerTransport",
+          "kind": "interface",
+          "line_start": 29,
+          "line_end": 38
+        },
+        {
+          "name": "ClineWorkerReply",
+          "kind": "interface",
+          "line_start": 40,
+          "line_end": 50
+        },
+        {
+          "name": "__setClineSessionForTest",
+          "kind": "function",
+          "line_start": 61,
+          "line_end": 63
+        },
+        {
+          "name": "__getClineSessionsForTest",
+          "kind": "function",
+          "line_start": 64,
+          "line_end": 66
+        },
+        {
+          "name": "resolveClineBin",
+          "kind": "function",
+          "line_start": 68,
+          "line_end": 73
+        },
+        {
+          "name": "sanitizeClineResult",
+          "kind": "function",
+          "line_start": 79,
+          "line_end": 171
+        },
+        {
+          "name": "extractClineJson",
+          "kind": "function",
+          "line_start": 174,
+          "line_end": 184
+        },
+        {
+          "name": "parseClineRunOutput",
+          "kind": "function",
+          "line_start": 196,
+          "line_end": 225
+        },
+        {
+          "name": "runOwnerRequestViaCline",
+          "kind": "function",
+          "line_start": 271,
+          "line_end": 411
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./chatResultTypes",
+          "line": 26,
+          "resolved_target": "app/api/chat/_lib/chatResultTypes.ts"
+        },
+        {
+          "specifier": "@/core/shared/types",
+          "line": 27,
+          "resolved_target": "core/shared/types.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/chat/_lib/clineTaskQueue.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/chat/_lib/clineTaskQueue.ts",
+      "purpose_th": "Railway task-queue client (DNA-000218, RAILWAY NATIVE CLINE RUNTIME).",
+      "exports": [
+        "runOwnerRequestViaRailwayTaskQueue"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:app/api/chat/_lib/clineWorker.ts"
+      ],
+      "dependents": [
+        "module:cognitive/pipeline.ts"
+      ],
+      "data_tables": [
+        "ai_tasks"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "runOwnerRequestViaRailwayTaskQueue",
+          "kind": "function",
+          "line_start": 17,
+          "line_end": 92
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./clineWorker",
+          "line": 12,
+          "resolved_target": "app/api/chat/_lib/clineWorker.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/v1/mcp/business/dispatch/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/v1/mcp/business/dispatch/route.ts",
+      "purpose_th": "GET/POST /api/v1/mcp/business/dispatch — THE missing connection reported by",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:app/api/chat/_lib/resultContract.ts",
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:engines/validation/dispatcher.ts",
+        "module:services/canonical/document-detail.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 37,
+          "line_end": 106
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/auth/requireAuth",
+          "line": 21,
+          "resolved_target": "core/auth/requireAuth.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 22,
+          "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/engines/validation/dispatcher",
+          "line": 23,
+          "resolved_target": "engines/validation/dispatcher.ts"
+        },
+        {
+          "specifier": "@/services/canonical/document-detail",
+          "line": 24,
+          "resolved_target": "services/canonical/document-detail.ts"
+        },
+        {
+          "specifier": "@/app/api/chat/_lib/resultContract",
+          "line": 25,
+          "resolved_target": "app/api/chat/_lib/resultContract.ts"
+        }
+      ]
     }
   ],
   "edges": [
@@ -95887,6 +96449,16 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/chat/_lib/clineTaskQueue.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/chat/_lib/clineWorker.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/chat/_lib/localAiBridge.ts",
       "label": "contains"
     },
@@ -96077,6 +96649,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/v1/mcp/business/dispatch/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/v1/mcp/contractor/evidence-submit/route.ts",
       "label": "contains"
     },
@@ -96193,6 +96770,16 @@
     {
       "source": "layer:app",
       "target": "module:app/business/page.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/developer/layout.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/developer/page.tsx",
       "label": "contains"
     },
     {
@@ -96873,6 +97460,11 @@
     {
       "source": "layer:core",
       "target": "module:core/auth/session.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:core",
+      "target": "module:core/auth/surfacePolicy.ts",
       "label": "contains"
     },
     {
@@ -99557,6 +100149,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/surface-policy-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/switch-based-orchestrator-test.ts",
       "label": "contains"
     },
@@ -100523,6 +101120,11 @@
     {
       "source": "module:app/admin/layout.tsx",
       "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/admin/layout.tsx",
+      "target": "module:core/auth/surfacePolicy.ts",
       "label": "imports"
     },
     {
@@ -108431,6 +109033,21 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/chat/_lib/clineTaskQueue.ts",
+      "target": "module:app/api/chat/_lib/clineWorker.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/chat/_lib/clineWorker.ts",
+      "target": "module:app/api/chat/_lib/chatResultTypes.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/chat/_lib/clineWorker.ts",
+      "target": "module:core/shared/types.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/chat/_lib/localAiBridge.ts",
       "target": "module:services/ai/gateway.ts",
       "label": "imports"
@@ -109186,6 +109803,31 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/v1/mcp/business/dispatch/route.ts",
+      "target": "module:app/api/chat/_lib/resultContract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/business/dispatch/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/business/dispatch/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/business/dispatch/route.ts",
+      "target": "module:engines/validation/dispatcher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/mcp/business/dispatch/route.ts",
+      "target": "module:services/canonical/document-detail.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/v1/mcp/contractor/evidence-submit/route.ts",
       "target": "module:app/api/admin/ide/_lib/changeSetRuntime.ts",
       "label": "imports"
@@ -109446,6 +110088,31 @@
       "label": "imports"
     },
     {
+      "source": "module:app/developer/layout.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/developer/layout.tsx",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/developer/page.tsx",
+      "target": "module:components/admin/AdminSidebarNav.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/developer/page.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/developer/page.tsx",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/download/loading.tsx",
       "target": "module:presentation/feedback/CapabilitySkeleton.tsx",
       "label": "imports"
@@ -109473,6 +110140,11 @@
     {
       "source": "module:app/layout.tsx",
       "target": "module:components/pwa/PwaRegistration.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/layout.tsx",
+      "target": "module:core/auth/surfacePolicy.ts",
       "label": "imports"
     },
     {
@@ -110482,6 +111154,16 @@
     },
     {
       "source": "module:cognitive/pipeline.ts",
+      "target": "module:app/api/chat/_lib/clineTaskQueue.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/pipeline.ts",
+      "target": "module:app/api/chat/_lib/clineWorker.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:cognitive/pipeline.ts",
       "target": "module:cognitive/board/index.ts",
       "label": "imports"
     },
@@ -111172,6 +111854,11 @@
     },
     {
       "source": "module:core/auth/session.ts",
+      "target": "module:registry/permissions.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:core/auth/surfacePolicy.ts",
       "target": "module:registry/permissions.json.ts",
       "label": "imports"
     },
@@ -113396,6 +114083,11 @@
       "label": "imports"
     },
     {
+      "source": "module:engines/validation/dispatcher.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:engines/vehicle-selector.ts",
       "target": "module:core/config-loader.ts",
       "label": "imports"
@@ -113998,6 +114690,11 @@
     {
       "source": "module:middleware.ts",
       "target": "module:core/auth/devReviewAccess.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:middleware.ts",
+      "target": "module:core/auth/surfacePolicy.ts",
       "label": "imports"
     },
     {
@@ -116692,6 +117389,11 @@
     },
     {
       "source": "module:scripts/permission-policy-test.ts",
+      "target": "module:registry/permissions.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/permission-policy-test.ts",
       "target": "module:scripts/session.ts",
       "label": "imports"
     },
@@ -117033,6 +117735,21 @@
     {
       "source": "module:scripts/settings-real-wiring-test.ts",
       "target": "module:core/config/ide-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/surface-policy-test.ts",
+      "target": "module:app/api/admin/ide/_lib/workerSelectorRuntime.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/surface-policy-test.ts",
+      "target": "module:core/auth/surfacePolicy.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/surface-policy-test.ts",
+      "target": "module:registry/permissions.json.ts",
       "label": "imports"
     },
     {
@@ -118277,8 +118994,8 @@
     }
   ],
   "summary": {
-    "total": 1379,
-    "ok": 1379,
+    "total": 1386,
+    "ok": 1386,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

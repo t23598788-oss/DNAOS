@@ -1,0 +1,14 @@
+{
+  "name": "DNA OS Developer",
+  "short_name": "DNA OS Dev",
+  "description": "Developer workspace — IDE, Source Code, AI Agent, Git / Runtime และ Infrastructure (เปิด /developer)",
+  "start_url": "/developer",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0b0f1a",
+  "theme_color": "#0b0f1a",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

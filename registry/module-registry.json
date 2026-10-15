@@ -79,7 +79,7 @@
       "purpose_th": "โครงสร้างหลักของหน้าเว็บ — ตั้งค่าฟอนต์, metadata, และโครงสร้าง HTML",
       "exports": [
         "RootLayout",
-        "metadata"
+        "generateMetadata"
       ],
       "status": "active"
     },
@@ -3240,13 +3240,14 @@
       "purpose": "TASK-001: single source of truth for resolving the authed user + role from the shared Supabase session; defines AppRole and the role tiers read from registry/permissions.json.",
       "purpose_th": "จุดเดียวที่ resolve user + role จริงจาก session — นิยาม AppRole และ role tier จาก registry/permissions.json",
       "exports": [
-        "getAuthedUser",
-        "getAccessToken",
         "ADMIN_TIER",
-        "SUPER_ADMIN_ONLY",
         "ANY_AUTHENTICATED",
         "AppRole",
-        "AuthedUser"
+        "AuthedUser",
+        "DEVELOPER_TIER",
+        "SUPER_ADMIN_ONLY",
+        "getAccessToken",
+        "getAuthedUser"
       ],
       "status": "active"
     },
@@ -14618,6 +14619,7 @@
       "exports": [
         "HOST_KEYS",
         "HostProps",
+        "PREVIEW_NAV_ITEMS",
         "REAL_NAV_ITEMS",
         "REAL_RAIL_ITEMS",
         "hasHost",
@@ -15965,7 +15967,8 @@
       "purpose": "buildChatResult — RESPONSE CONTRACT (owner spec 2026-09-25 BUSINESS RESULT",
       "purpose_th": "buildChatResult — RESPONSE CONTRACT (owner spec 2026-09-25 BUSINESS RESULT",
       "exports": [
-        "buildChatResult"
+        "buildChatResult",
+        "renderCanonicalDetailHtml"
       ],
       "status": "active"
     },
@@ -16661,6 +16664,94 @@
       "exports": [
         "answerCompanyInfoQuestion",
         "runCognitivePipeline"
+      ],
+      "status": "active"
+    },
+    "scripts/surface-policy-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "surface-policy-test.ts — CONTROL SURFACE SEPARATION contract test",
+      "purpose_th": "surface-policy-test.ts — CONTROL SURFACE SEPARATION contract test",
+      "exports": [
+        "DEVELOPER_TIER"
+      ],
+      "status": "active"
+    },
+    "core/auth/surfacePolicy.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "SURFACE / CAPABILITY-ACTION POLICY — the API + runtime half of the",
+      "purpose_th": "SURFACE / CAPABILITY-ACTION POLICY — the API + runtime half of the",
+      "exports": [
+        "APP_SCOPE_HEADER",
+        "AppScope",
+        "SURFACE_COOKIE",
+        "SurfaceDecision",
+        "SurfaceId",
+        "appScopeForPath",
+        "canEnterSurface",
+        "decideSurfaceAction",
+        "decideSurfacePage",
+        "resolveSurface",
+        "surfaceForPagePath"
+      ],
+      "status": "active"
+    },
+    "app/developer/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/developer — DEVELOPER WORKSPACE (owner directive 2026-10-12; access",
+      "purpose_th": "/developer — DEVELOPER WORKSPACE (owner directive 2026-10-12; access",
+      "exports": [
+        "DeveloperWorkspacePage"
+      ],
+      "status": "active"
+    },
+    "app/developer/layout.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "DEVELOPER WORKSPACE (owner directive 2026-10-12; access separated 2026-10-15)",
+      "purpose_th": "DEVELOPER WORKSPACE (owner directive 2026-10-12; access separated 2026-10-15)",
+      "exports": [
+        "DeveloperLayout"
+      ],
+      "status": "active"
+    },
+    "app/api/chat/_lib/clineWorker.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Cline worker bridge (OWNER WORKSPACE AI TOOL INTEGRATION, 2026-10-11).",
+      "purpose_th": "Cline worker bridge (OWNER WORKSPACE AI TOOL INTEGRATION, 2026-10-11).",
+      "exports": [
+        "ClineWorkerReply",
+        "ClineWorkerTransport",
+        "__getClineSessionsForTest",
+        "__setClineSessionForTest",
+        "extractClineJson",
+        "parseClineRunOutput",
+        "resolveClineBin",
+        "runOwnerRequestViaCline",
+        "sanitizeClineResult"
+      ],
+      "status": "active"
+    },
+    "app/api/chat/_lib/clineTaskQueue.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Railway task-queue client (DNA-000218, RAILWAY NATIVE CLINE RUNTIME).",
+      "purpose_th": "Railway task-queue client (DNA-000218, RAILWAY NATIVE CLINE RUNTIME).",
+      "exports": [
+        "runOwnerRequestViaRailwayTaskQueue"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/mcp/business/dispatch/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET/POST /api/v1/mcp/business/dispatch — THE missing connection reported by",
+      "purpose_th": "GET/POST /api/v1/mcp/business/dispatch — THE missing connection reported by",
+      "exports": [
+        "POST"
       ],
       "status": "active"
     }
