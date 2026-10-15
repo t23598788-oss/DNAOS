@@ -3,7 +3,9 @@ import { createServerClient } from "@supabase/ssr";
 import { SESSION_COOKIE_MAX_AGE } from "@/services/supabase/browser";
 import { LOCAL_UI_REVIEW_HEADER, isLocalReviewRequest } from "@/core/auth/devReviewAccess";
 import {
+  APP_SCOPE_HEADER,
   SURFACE_COOKIE,
+  appScopeForPath,
   canEnterSurface,
   decideSurfaceAction,
   decideSurfacePage,
@@ -68,6 +70,13 @@ export async function middleware(req: NextRequest) {
   // header ภายในถูก strip จากทุกคำขอ (รวมคำขอที่ browser ส่งมาเอง) เพื่อไม่ให้ปลอมได้
   const requestHeaders = new Headers(req.headers);
   requestHeaders.delete(LOCAL_UI_REVIEW_HEADER);
+  // APP SCOPE (owner directive 2026-10-15 — strict Business ⇄ Developer
+  // application separation): stamp which application this page belongs to,
+  // computed from the same registry, so the Server Component layout can refuse
+  // to render the OTHER app's navigation/icons. A client-supplied copy is
+  // stripped first and never trusted (same discipline as the review header).
+  requestHeaders.delete(APP_SCOPE_HEADER);
+  requestHeaders.set(APP_SCOPE_HEADER, appScopeForPath(pathname));
   if (isLocalReviewRequest(pathname, req.headers.get("host"))) {
     requestHeaders.set(LOCAL_UI_REVIEW_HEADER, "1");
     return NextResponse.next({ request: { headers: requestHeaders } });

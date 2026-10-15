@@ -24,7 +24,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { execSync } from "node:child_process";
 import {
+  APP_SCOPE_HEADER,
   SURFACE_COOKIE,
+  appScopeForPath,
   canEnterSurface,
   decideSurfaceAction,
   decideSurfacePage,
@@ -420,6 +422,150 @@ for (const method of ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE"]) {
     check(`NEGATIVE: operational ${method} ${path} = DENY`, d.allowed === false, `allowed=${d.allowed}`);
   }
 }
+
+// ── 13. STRICT APPLICATION SEPARATION (owner directive 2026-10-15) ─────────
+// BUSINESS_APP = Business Workspace · Documents · Finance · Business Operations · Account
+// DEVELOPER_APP = IDE · Source Code · AI Agents · Git/Runtime · Infrastructure
+// กติกา: ห้ามมี cross-app navigation ในทุก role รวมถึง super_admin
+const stripComments = (src: string) =>
+  src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "").replace(/\{\/\*[\s\S]*?\*\/\}/g, "");
+
+// 13.1 app scope ต่อ path (มาจาก registry เดียวกัน ไม่ผูกกับ role)
+for (const [path, scope] of [
+  ["/admin/relationships", "business"],
+  ["/admin/finance", "business"],
+  ["/admin/documents", "business"],
+  ["/admin/create-document", "business"],
+  ["/admin/transactions", "business"],
+  ["/admin/jobs", "business"],
+  ["/admin/partners", "business"],
+  ["/admin/storage", "business"],
+  ["/admin/users", "business"],
+  ["/workspace", "business"],
+  ["/business", "business"],
+  ["/admin", "business"],
+  ["/admin/ide", "developer"],
+  ["/admin/dev-loop", "developer"],
+  ["/admin/deploy", "developer"],
+  ["/admin/ui-gallery", "developer"],
+  ["/admin/infrastructure", "developer"],
+  ["/admin/api-tokens", "developer"],
+  ["/admin/schema-audit", "developer"],
+  ["/admin/devices", "developer"],
+  ["/admin/settings", "developer"],
+  ["/admin/backup", "developer"],
+  ["/developer", "developer"],
+] as const) {
+  check(`APP SCOPE ${path} = ${scope}`, appScopeForPath(path) === scope, appScopeForPath(path));
+}
+check("APP_SCOPE_HEADER ชื่อเดียว = \"x-dnaos-app\"", APP_SCOPE_HEADER === "x-dnaos-app");
+
+// 13.2 middleware stamp + strip header (composition signal ต้องปลอมไม่ได้)
+check("middleware stamp APP_SCOPE_HEADER จาก appScopeForPath", middleware.includes("APP_SCOPE_HEADER") && middleware.includes("appScopeForPath"));
+check("middleware strip header ที่ client ส่งมา ก่อน stamp", /requestHeaders\.delete\(APP_SCOPE_HEADER\)[\s\S]{0,120}requestHeaders\.set\(APP_SCOPE_HEADER/.test(middleware));
+
+// 13.3 Business navigation ถูก render เฉพาะ Business App
+const adminLayout = read("app/admin/layout.tsx");
+check(
+  "app/admin/layout.tsx อ่าน APP_SCOPE_HEADER",
+  adminLayout.includes("APP_SCOPE_HEADER") && adminLayout.includes("requestHeaders.get(APP_SCOPE_HEADER)"),
+);
+check(
+  "WorkspaceToolNavigation ถูก gate ด้วย app scope (ไม่ render แบบไม่มีเงื่อนไข)",
+  /\{isBusinessApp && <WorkspaceToolNavigation \/>\}/.test(adminLayout) &&
+    !/^\s*<WorkspaceToolNavigation \/>\s*$/m.test(adminLayout),
+);
+check(
+  "gate เป็น scope-based ไม่ใช่ role-based (super_admin ก็ไม่เห็นสลับแอป)",
+  !/role|super_admin|admin_tier/i.test(
+    adminLayout.slice(adminLayout.indexOf("const appScope"), adminLayout.indexOf("const appScope") + 400),
+  ),
+);
+check(
+  "Developer App page (app/admin/ide) ใช้ layout เดียวกันแต่ได้ scope=developer",
+  read("app/admin/ide/page.tsx").includes("IDEWorkspace"),
+);
+
+// 13.4 BUSINESS_APP: ไม่มี dev route literal ในซอร์สของ navigation/shell
+const BUSINESS_SURFACES = [
+  "app/workspace/WorkspaceFrame.tsx",
+  "app/workspace/_lib/toolBindings.ts",
+  "core/navigation/resolveNavItems.ts",
+  "components/workspace/WorkspaceShell.tsx",
+  "presentation/shell/navigation/IconRail.tsx",
+  "app/business/layout.tsx",
+  "app/partner/layout.tsx",
+  "app/user/layout.tsx",
+  "app/admin/layout.tsx",
+  "app/workspace/page.tsx",
+];
+for (const f of BUSINESS_SURFACES) {
+  const src = stripComments(read(f));
+  const leaked = DEV_ROUTES.filter((r) => src.includes(`"${r}"`));
+  check(`BUSINESS_APP ${f} ไม่มี dev route literal`, leaked.length === 0, leaked.join(","));
+}
+
+// 13.5 DEVELOPER_APP: ไม่มี business route literal ในซอร์สของ navigation/shell
+const BUSINESS_ROUTES = [
+  "/workspace",
+  "/business",
+  "/admin/relationships",
+  "/admin/finance",
+  "/admin/create-document",
+  "/admin/documents",
+  "/admin/jobs",
+  "/admin/transactions",
+  "/admin/debt-tracking",
+  "/admin/partners",
+  "/admin/storage",
+  "/admin/event-inbox",
+  "/admin/line-customers",
+  "/admin/pits",
+  "/admin/equipment",
+];
+const DEVELOPER_SURFACES = [
+  "app/developer/layout.tsx",
+  "app/developer/page.tsx",
+  "components/ide-shell/IDEWorkspace.tsx",
+];
+for (const f of DEVELOPER_SURFACES) {
+  const src = stripComments(read(f));
+  const leaked = BUSINESS_ROUTES.filter((r) => src.includes(`"${r}"`));
+  check(`DEVELOPER_APP ${f} ไม่มี business route literal`, leaked.length === 0, leaked.join(","));
+}
+
+// 13.6 super_admin ก็ยังแยกแอป (composition ไม่ขึ้นกับ role) + ยังเข้า dev ได้
+check(
+  "super_admin ยังเข้า development surface ได้ (ไม่ถูกตัดสิทธิ์โดยไม่ตั้งใจ)",
+  canEnterSurface("super_admin", "development") === true,
+);
+check(
+  "Developer App ไม่มี Business navigation ในทุกกรณี (role-independent gate)",
+  DEVELOPER_SURFACES.every((f) => !stripComments(read(f)).includes("<WorkspaceToolNavigation")),
+);
+check(
+  "Business App ไม่มี Developer navigation (ไม่มี WorkspaceToolNavigation แบบ dev / ไม่มี sidebar นักพัฒนา)",
+  !read("app/workspace/WorkspaceFrame.tsx").includes("AdminSidebarNav") &&
+    !read("app/business/layout.tsx").includes("AdminSidebarNav") &&
+    !read("app/user/layout.tsx").includes("AdminSidebarNav") &&
+    !read("app/partner/layout.tsx").includes("AdminSidebarNav"),
+);
+check(
+  "Developer hub (/developer) มี navigation ของตัวเอง ไม่ปนเมนูธุรกิจ",
+  read("app/developer/page.tsx").includes("DEV_NAV") && read("app/developer/page.tsx").includes("AdminSidebarNav"),
+);
+
+// 13.7 UI Gallery (อยู่ใน DEVELOPER app) — preview ของ shell/sidebar ต้องไม่ render
+// เมนูธุรกิจที่กดข้ามแอปได้
+const galleryHost = stripComments(read("app/admin/ui-gallery/_lib/componentHost.tsx"));
+check(
+  "UI Gallery ใช้ PREVIEW_NAV_ITEMS กับ shell preview (ไม่ใช้ REAL_NAV_ITEMS)",
+  galleryHost.includes("PREVIEW_NAV_ITEMS") && !galleryHost.includes("navItems={REAL_NAV_ITEMS}"),
+);
+check(
+  "UI Gallery sidebar preview ไม่มี href ของ route ธุรกิจจริง",
+  !/href:\s*"\/(admin|workspace|business|partner|user)/.test(galleryHost),
+);
 
 console.log(`\n=== surface-policy: PASS ${pass} · FAIL ${fail} ===`);
 if (fail > 0) process.exit(1);

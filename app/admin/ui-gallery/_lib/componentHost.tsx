@@ -69,6 +69,16 @@ const RAIL_ICON: Record<string, ElementType> = { LayoutGrid, Briefcase, Users, U
 /** nav items จริงจาก core/navigation/resolveNavItems.ts (ไม่ใช่รายการที่ประดิษฐ์ขึ้น) */
 export const REAL_NAV_ITEMS = resolveNavItems("admin");
 
+// STRICT APPLICATION SEPARATION (owner directive 2026-10-15): this gallery lives
+// in the DEVELOPER app (/admin/ui-gallery) and must never render a navigable
+// Business-App menu or icon. The shell/sidebar previews below keep the real
+// labels/icons/spacing so design review stays honest, but their hrefs are
+// neutralised ("#") — so no click can carry a user from the Developer App into
+// the Business App, for any role (super_admin included). The catalogue's own
+// textual route references ("route จริงที่เปิดเทียบได้") remain data, not app
+// navigation, and are disclosed as such.
+export const PREVIEW_NAV_ITEMS = REAL_NAV_ITEMS.map((n) => ({ ...n, href: "#" }));
+
 export const REAL_RAIL_ITEMS: IconRailItem[] = REAL_NAV_ITEMS.map((n) => ({
   key: n.key,
   label: n.label,
@@ -265,7 +275,7 @@ export function renderHost(hostKey: string | undefined, props: HostProps = {}): 
     case "shell-workspace-shell":
       return (
         <Stage>
-          <WorkspaceShell navItems={REAL_NAV_ITEMS} activeKey="admin" userEmail={NO_SESSION} theme={theme}>
+          <WorkspaceShell navItems={PREVIEW_NAV_ITEMS} activeKey="admin" userEmail={NO_SESSION} theme={theme}>
             <NeutralContent label={`WorkspaceShell — theme="${theme}"`} />
           </WorkspaceShell>
         </Stage>
@@ -348,10 +358,13 @@ export function renderHost(hostKey: string | undefined, props: HostProps = {}): 
       );
 
     case "sidebar-admin-sidebar-nav": {
+      // STRICT APPLICATION SEPARATION (owner directive 2026-10-15): ตัวอย่างเมนูนี้
+      // อยู่บนหน้าของ DEVELOPER app จึงใช้ href="#" (ไม่ชี้ route ธุรกิจจริง) —
+      // ยังเห็น label/icon/กลุ่ม dev ครบเพื่อรีวิวดีไซน์ แต่กดข้ามแอปไม่ได้
       const items = [
-        { href: "/admin/line-customers", label: "เมนูตัวอย่าง 1", icon: "LayoutGrid", group: undefined as string | undefined },
-        { href: "/admin/relationships", label: "เมนูตัวอย่าง 2", icon: "Network", group: undefined as string | undefined },
-        { href: "/admin/ide", label: "เมนูตัวอย่าง (dev)", icon: "Cpu", group: "dev" as string | undefined },
+        { href: "#", label: "เมนูตัวอย่าง 1", icon: "LayoutGrid", group: undefined as string | undefined },
+        { href: "#", label: "เมนูตัวอย่าง 2", icon: "Network", group: undefined as string | undefined },
+        { href: "#", label: "เมนูตัวอย่าง (dev)", icon: "Cpu", group: "dev" as string | undefined },
       ];
       return (
         <Stage height={420}>

@@ -38,6 +38,18 @@ import permissions from "@/registry/permissions.json";
 
 export type SurfaceId = "operational" | "development";
 
+/** Which APPLICATION a page belongs to (owner directive 2026-10-15 — strict
+ *  Business ⇄ Developer application separation). This is a COMPOSITION signal,
+ *  not an authorization one: it decides which app shell/navigation a page is
+ *  allowed to render, so neither app can ever embed the other's controls —
+ *  regardless of the caller's role, super_admin included. */
+export type AppScope = "business" | "developer";
+
+/** Request header middleware sets (after stripping any client-supplied copy of
+ *  it) so a Server Component layout can read which app it is rendering. Same
+ *  pattern as core/auth/devReviewAccess.ts#LOCAL_UI_REVIEW_HEADER. */
+export const APP_SCOPE_HEADER = "x-dnaos-app";
+
 /** Single cookie name — written by middleware.ts, read here and there only. */
 export const SURFACE_COOKIE = "dna_os_surface";
 
@@ -110,6 +122,29 @@ export interface SurfaceDecision {
 
 function matchesPrefix(pathname: string, prefix: string): boolean {
   return pathname === prefix || pathname.startsWith(prefix.endsWith("/") ? prefix : prefix + "/");
+}
+
+/**
+ * Which application owns `pathname` (owner directive 2026-10-15).
+ *
+ * DEVELOPER_APP = development surface entry URLs (/developer) + every
+ * deny_pages prefix (IDE, Dev Loop, Deploy, UI Gallery, Infrastructure,
+ * API tokens, schema, devices, settings, backup, …).
+ * BUSINESS_APP = everything else (Business Workspace, Documents, Finance,
+ * Business Operations, Account).
+ *
+ * Reads the SAME registry as every other decision here — one source of truth,
+ * no second list, no role involved (composition must not depend on who asks).
+ */
+export function appScopeForPath(pathname: string): AppScope {
+  const policy = capabilityActions();
+  const devEntries = policy.surfaces?.development?.entry_urls ?? [];
+  if (devEntries.some((url) => matchesPrefix(pathname, url))) return "developer";
+  for (const rule of Object.values(policy.deny_pages ?? {})) {
+    if (!Array.isArray(rule?.prefixes)) continue;
+    if (rule.prefixes.some((prefix) => matchesPrefix(pathname, prefix))) return "developer";
+  }
+  return "business";
 }
 
 /**

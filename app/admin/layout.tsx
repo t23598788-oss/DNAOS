@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { requireAuthPage } from "@/core/auth/requireAuthPage";
 import { ADMIN_TIER } from "@/core/auth/session";
 import { LOCAL_UI_REVIEW_HEADER } from "@/core/auth/devReviewAccess";
+import { APP_SCOPE_HEADER } from "@/core/auth/surfacePolicy";
 import { WorkspaceToolNavigation } from "@/app/workspace/WorkspaceFrame";
 import { VoiceStandbyWidget } from "@/components/admin/VoiceStandbyWidget";
 
@@ -62,12 +63,27 @@ export default async function AdminLayout({
     await requireAuthPage("/admin", ADMIN_TIER);
   }
 
+  // ── STRICT APPLICATION SEPARATION (owner directive 2026-10-15) ────────────
+  // app/admin/* holds pages of BOTH applications. middleware.ts stamps
+  // APP_SCOPE_HEADER ("business" | "developer") from registry/permissions.json
+  // (core/auth/surfacePolicy.ts#appScopeForPath) — so the Business Workspace
+  // navigation (WorkspaceToolNavigation: the top-left grid icon + business tool
+  // drawer, incl. its link to /workspace) is rendered ONLY on Business-App
+  // pages. Developer-App pages (/admin/ide, dev-loop, deploy, ui-gallery,
+  // infrastructure, api-tokens, schema-audit, devices, settings, backup, …)
+  // render WITHOUT it — no Business navigation/icon inside the Developer App,
+  // for ANY role including super_admin.
+  // This is composition only; access is already denied at the server by
+  // middleware (capability_actions.deny_pages) before this layout ever runs.
+  const appScope = requestHeaders.get(APP_SCOPE_HEADER);
+  const isBusinessApp = appScope !== "developer";
+
   return (
     <div className="dna-admin-shell bg-stone-50">
       {/* ONE NAVIGATION (2026-10-06): ไม่มีแถบ Back/Home ถาวร —
           navigation = shell ของแต่ละหน้า (ปุ่มขอบจอ + drawer) กับ browser
           back เท่านั้น — หน้า children ทั้งหมดเลื่อนใน region เดียวด้านล่างนี้ */}
-      <WorkspaceToolNavigation />
+      {isBusinessApp && <WorkspaceToolNavigation />}
       <div className="dna-admin-content">
         {children}
       </div>
