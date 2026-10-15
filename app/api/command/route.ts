@@ -24,9 +24,12 @@ export async function POST(request: NextRequest) {
       // keyed per authenticated user — never a shared default bucket.
       // gatewayContext (owner mission 2026-10-10): same fix as the LINE bridge —
       // without it answerWithAi() always answered "ไม่มี AI session context".
+      // AI SANDBOX ISOLATION (owner directive 2026-10-15): สาย command bar ของ
+      // Admin Workspace = Owner AI — ประกาศ sandbox ชัดเจน ไม่พึ่งดีฟอลท์
       const result = await runCognitivePipeline(body.userCommand, null, `u:${auth.id}:command`, null, {
         ownerId: auth.id,
         sessionId: `u:${auth.id}:command`,
+        sandbox: "owner",
       });
       state = toDisplayState(result);
     } else if (body.command) {

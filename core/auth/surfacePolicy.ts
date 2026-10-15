@@ -47,6 +47,27 @@ interface CapabilityActionRegistry {
   surfaces?: Record<string, { entry_urls?: string[]; cookie_value?: string; th?: string }>;
   deny?: Record<string, { prefixes: string[]; th?: string; authority?: string }>;
   allow?: Record<string, { prefixes: string[]; th?: string; authority?: string }>;
+  sandbox?: SandboxRegistry;
+}
+
+/** AI SANDBOX ISOLATION (owner directive 2026-10-15, ต่อจาก unified outbound):
+ *  สอง Runtime Boundary — OWNER AI กับ SALES AI — อ่านจาก registry เดียวกัน
+ *  นี้ (ไม่ใช่ registry คู่ขนาน) โดย dispatcher เป็นจุดบังคับเดียว ทุกสาย AI
+ *  เดิน dispatch ผ่าน engines/validation/dispatcher.ts แล้วตรวจจากที่นี่ */
+export type SandboxId = "owner" | "sales";
+
+interface SandboxRegistry {
+  authority?: string;
+  fail_closed?: boolean;
+  sandboxes?: Record<string, SandboxDefinition>;
+}
+
+export interface SandboxDefinition {
+  th?: string;
+  /** command prefixes ที่สาย AI sandbox นี้เรียกได้ (whitelist — ที่ไม่อยู่ = DENY) */
+  allow_prefixes?: string[];
+  /** command prefixes ที่ DENY หนักเสมอ แม้ match allow (defense-in-depth) */
+  deny_prefixes?: string[];
 }
 
 const REGISTRY = permissions as typeof permissions & {
@@ -140,4 +161,39 @@ export function decideSurfaceAction(input: {
   }
 
   return { allowed: true, action: "", surface, reason: "ไม่ได้อยู่ในชุด developer-plane action" };
+}
+
+/** ตัวจับคู่สำหรับคำสั่ง registry (รูปแบบ "module.action") — prefix เช่น
+ *  "material." จับ "material.quote" และทุกคำสั่งใต้โมดูลเดียวกัน
+ *  (ไม่อนุญาต string เดียว match ผิดโมดูล — ต้องไม่ใช่ '/'-path rule เดิม) */
+function commandMatchesPrefix(command: string, prefix: string): boolean {
+  return command === prefix || command.startsWith(prefix);
+}
+
+/** Fail-closed: sandbox ที่ไม่รู้จัก/ประกาศไม่ครบ = DENY เสมอ (ไม่เดา)
+ *  'owner' ยังไม่ถูกทำโทษ — Owner AI เป็นขอบเขตทั้งระบบที่มีอยู่เดิม;
+ *  ผ่านการแยกเป็นสายมาตั้งแต่ requireAuth(ADMIN_TIER) ทุกจุด */
+export function decideSandboxCommand(input: {
+  command: string;
+  sandbox: SandboxId;
+}): { allowed: boolean; sandbox: SandboxId; reason: string } {
+  const { command, sandbox } = input;
+  if (sandbox === "owner") {
+    return { allowed: true, sandbox, reason: "OWNER AI sandbox — บอบเบอร์เขต Owner เต็มรูปตาม requireAuth(ADMIN_TIER) เดิม" };
+  }
+  const def = REGISTRY.capability_actions?.sandbox?.sandboxes?.sales;
+  if (!def || !(def.allow_prefixes ?? []).length) {
+    return { allowed: false, sandbox, reason: `sandbox "${sandbox}" ยังไม่ประกาศใน registry/permissions.json — ปฏิเสธ (fail-closed, ห้ามเดา)` };
+  }
+  for (const prefix of def.deny_prefixes ?? []) {
+    if (commandMatchesPrefix(command, prefix)) {
+      return { allowed: false, sandbox, reason: `SALES_SANDBOX_DENY: command "${command}" ตรง deny "${prefix}" — Owner/finance tools สงวนไว้สาย OWNER AI เดิม` };
+    }
+  }
+  for (const prefix of def.allow_prefixes ?? []) {
+    if (commandMatchesPrefix(command, prefix)) {
+      return { allowed: true, sandbox, reason: `SALES_SANDBOX_ALLOW: "${command}" อยู่ในชุดเครื่องมือขายที่ registry อนุญาต` };
+    }
+  }
+  return { allowed: false, sandbox, reason: `SALES_SANDBOX_DENY: "${command}" ไม่อยู่ใน allow-list ของ sandbox ขาย (whitelist fail-closed)` };
 }

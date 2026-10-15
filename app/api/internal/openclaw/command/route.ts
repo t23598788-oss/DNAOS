@@ -31,10 +31,19 @@ export async function POST(req: Request) {
     // authenticates with a shared secret, so its identity is the CHANNEL (plus
     // userId when the edge function provides one) — never the shared
     // `__default__` bucket that other users could also land in.
+    // AI SANDBOX ISOLATION (owner directive 2026-10-15): สายนี้เป็นสาย Owner AI
+    // (internal bridge ของ Admin Workspace) — ประกาศ sandbox ชัดเจนเพื่อกัน
+    // การอ่านเป็น fail-open ด้วย sandbox ดีฟอลท์แบบฝั่งสายที่ไม่ประกาศ
     const result = await runCognitivePipeline(
       body.userCommand,
       body.contactContext ?? null,
       `channel:openclaw:${body.userId && body.userId.trim() ? body.userId.trim() : "shared"}`,
+      null,
+      {
+        ownerId: `channel:openclaw:${body.userId && body.userId.trim() ? body.userId.trim() : "shared"}`,
+        sessionId: `channel:openclaw:${body.userId && body.userId.trim() ? body.userId.trim() : "shared"}`,
+        sandbox: "owner",
+      },
     )
     return NextResponse.json({ ok: true, reply: toReplyText(result) })
   } catch {

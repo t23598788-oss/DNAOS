@@ -93,11 +93,21 @@ export async function POST(req: NextRequest, { params }: Params) {
   // entirely for this contact's financial documents instead of relying on
   // AI name-matching against whatever the question text says.
   const companyId = (link as any)?.company_id ?? null
+  // AI SANDBOX ISOLATION (owner directive 2026-10-15): เส้นทางนี้คือ SALES AI
+  // ตัวจริง (คุยกับลูกค้า/ผู้ติดต่อ LINE — Material/Price/Supplier/Conversation)
+  // จึงต้องประกาศ sandbox: "sales" ผ่าน GatewayContext เดิม — ชั้น pipeline จะ
+  // บังคับ prefix `sales:` ให้ session/memory key อัตโนมัติ และ dispatcher จะ
+  // fail-closed คำสั่งนอก whitelist ขายทั้งหมด (การเงิน/เอกสาร/Owner tools)
   const result = await runCognitivePipeline(
     question,
     contextLines.join("\n"),
     lineUserId,
     companyId ? { id: String(companyId), name: companyName ?? "" } : null,
+    {
+      ownerId: `line-customer:${lineUserId}`,
+      sessionId: `line-ask:${lineUserId}`,
+      sandbox: "sales",
+    },
   )
   return NextResponse.json(result)
 }

@@ -49,7 +49,10 @@ const INTENT_CATALOG: Record<string, string[]> = {
 
 const WORKFLOW_INTENTS = new Set(["collect_debt", "continue_workflow"]);
 const TRANSPORT_INTENTS = new Set(["send_line", "execute_pending"]);
-type GatewayContext = { ownerId: string; sessionId: string };
+type GatewayContext = { ownerId: string; sessionId: string; sandbox?: "owner" | "sales" };
+/** AI SANDBOX ISOLATION (owner 2026-10-15): sandbox ของสาย AI — ไม่ประกาศ = owner
+ *  (กติกา back-compat: สาย Owner เดิมไม่ต้องส่งอะไรเพิ่ม) */
+type SandboxCtx = { sandbox: "owner" | "sales" };
 
 const WORKFLOWS: Record<string, WorkflowDefinition> = {
   open_profile: {
@@ -657,8 +660,11 @@ async function runOwnerClineWithFallback(
 }
 export async function answerCompanyInfoQuestion(
   message: string,
-  deps: { dispatch?: typeof dispatchCommand; sessionKey?: string | null } = {},
+  // AI SANDBOX ISOLATION (owner 2026-10-15): ctx sandbox ของสายเรียกไหลเข้าทุก
+  // dispatch จุดตรง — ไม่จ่าย = Owner สายเดิมเปลี่ยนพฤติกรรม 0 จุด (fail-closed)
+  deps: { dispatch?: typeof dispatchCommand; sessionKey?: string | null; ctx?: SandboxCtx } = {},
 ): Promise<{ sender: "ai"; type: "text"; text: string; pulse_node: string } | null> {
+  const dispatchCtx = deps.ctx;
   const dispatch = deps.dispatch ?? dispatchCommand;
   // จับรูปแบบภาษาไทยของเจ้าของ: (verb ได้)? (ข้อมูล|โปรไฟล์)? (บริษัท|คู่ค้า|พาร์ทเนอร์) <ชื่อ>
   const match = message
@@ -672,7 +678,7 @@ export async function answerCompanyInfoQuestion(
   if (!match) {
     const q = message.replace(/\s*(?:หน่อย|ด้วย|นะ|ครับ|ค่ะ|คะ|ให้หน่อย)\s*$/g, "").trim();
     if (!q || q.length < 2) return null;
-    const findRes = await dispatch("partner.find", { keyword: q }).catch(() => null);
+    const findRes = await dispatch("partner.find", { keyword: q }, false, dispatchCtx).catch(() => null);
     const rows = findRes?.ok && Array.isArray(findRes.data) ? (findRes.data as { id?: string; name?: string }[]) : [];
     const norm = (x: string) => x.toLowerCase().replace(/\s+/g, "");
     const exact = rows.filter((r) => norm(String(r.name ?? "")) === norm(q));
@@ -696,7 +702,7 @@ export async function answerCompanyInfoQuestion(
   // คำกลาง ๆ ที่ไม่ใช่ชื่อบริษัท → ไม่รับ (ปล่อยให้ path อื่นจัดการตามเดิม)
   if (!name || /^(?:ทั้งหมด|ทุกราย|ทุกบริษัท|ทั้งหลาย)$/i.test(name)) return null;
 
-  const findResult = await dispatch("partner.find", { keyword: name }).catch(() => null);
+  const findResult = await dispatch("partner.find", { keyword: name }, false, dispatchCtx).catch(() => null);
   const rows =
     findResult?.ok && Array.isArray(findResult.data)
       ? (findResult.data as { id?: string; name?: string }[])
@@ -727,8 +733,8 @@ export async function answerCompanyInfoQuestion(
   }
 
   const [profileResult, timelineDispatch] = await Promise.all([
-    dispatch("partner.profile", { partner_id: String(chosen.id) }).catch(() => null),
-    dispatch("partner.timeline", { partner_id: String(chosen.id) }).catch(() => null),
+    dispatch("partner.profile", { partner_id: String(chosen.id) }, false, dispatchCtx).catch(() => null),
+    dispatch("partner.timeline", { partner_id: String(chosen.id) }, false, dispatchCtx).catch(() => null),
   ]);
   const profile =
     profileResult?.ok && profileResult.data && typeof profileResult.data === "object"
@@ -793,6 +799,19 @@ export async function runCognitivePipeline(
   return runCognitiveCore(message, contactContext, sessionKey, knownCustomer, gatewayContext, workerTransport);
 }
 
+/** sandbox ของสายปัจจุบัน — default owner (สายเดิมไม่แตะอะไรเลย) */
+function sandboxOf(gatewayContext?: GatewayContext): SandboxCtx["sandbox"] {
+  return gatewayContext?.sandbox === "sales" ? "sales" : "owner";
+}
+
+/** บังคับ namespace ของหน่วยความจำราย sandbox — กันปนกับสาย Owner ที่ใช้รูปแบบ
+ *  key เดียวกัน (เดิม: ask route ส่ง raw lineUserId สองกันกับ LINE owner bridge) */
+function memoryKeyFor(key: string | null | undefined, sandbox: SandboxCtx["sandbox"]): string | null {
+  if (!key) return null;
+  if (sandbox === "sales") return key.startsWith("sales:") ? key : `sales:${key}`;
+  return key;
+}
+
 async function runCognitiveCore(
   message: string,
   contactContext?: string | null,
@@ -801,6 +820,13 @@ async function runCognitiveCore(
   gatewayContext?: GatewayContext,
   workerTransport?: ClineWorkerTransport,
 ): Promise<PipelineResult> {
+  // AI SANDBOX ISOLATION (owner 2026-10-15): sandbox ผูกกับสายเรียกตั้งแต่หัวสาย;
+  // หน่วยความจำ/ประวัติ/ctx ที่จ่ายให้ dispatcher ทุกจุดไหลจาก bind หน้านี้
+  // (per-call binding — concurrent-safe แบบไม่มี state โมดูล) · sale sบังคับ
+  // prefix `sales:` กัน key เดียวกับสาย Owner (เดิม ask ส่ง raw lineUserId เสน่ระเบียบล)
+  const sandbox = sandboxOf(gatewayContext);
+  const sandboxCtx: SandboxCtx = { sandbox };
+  sessionKey = memoryKeyFor(sessionKey, sandbox) ?? sessionKey;
   // Owner directive (2026-08-01): "เกี่ยวกับเรื่องการเงินเอกสารไม่ต้องให้ ai
   // เข้ามาอยู่...มันเป็นตรรกะการบวกเลขเฉยๆ" — when the caller already knows
   // exactly which customer this is (e.g. an Action Bar button clicked from
@@ -852,7 +878,7 @@ async function runCognitiveCore(
 
   const session = toSession(memory);
   const objective = resolveObjective(enriched, session);
-  const dbResults = await fetchForSituation(enriched.who, enriched.what);
+  const dbResults = await fetchForSituation(enriched.who, enriched.what, sandboxCtx);
   const situationInput: SituationInput = {
     objective_id: objective.id,
     intent_type: enriched.intent_type,
@@ -878,7 +904,7 @@ async function runCognitiveCore(
     next_actions: reasoning.next_actions,
   };
   const executionPlan = plan(decision, objective, WORKFLOWS);
-  const executionResults = await executePlan(executionPlan, worldState);
+  const executionResults = await executePlan(executionPlan, worldState, sandboxCtx);
   const evaluation = evaluate(executionResults, worldState, executionPlan.expected_result, objective.success_criteria);
   const reflection = reflect(executionResults as ExecutionResult[], worldState, decision.decision);
   const learned = learn(reflection, evaluation);
@@ -923,7 +949,7 @@ async function runCognitiveCore(
     // ภาษาคน ("เปิดข้อมูลบริษัท ช.ธวัชชัยการช่าง") → business readers เดิม
     // (partner.find/profile/timeline ผ่าน dispatcher) — deterministic, READ-ONLY,
     // ไม่ผ่าน AI Gateway: เคยตกหลุม answerWithAi → openai 429 บน production
-    const companyAnswer = await answerCompanyInfoQuestion(message, { sessionKey });
+    const companyAnswer = await answerCompanyInfoQuestion(message, { sessionKey, ctx: sandboxCtx });
     if (companyAnswer) return companyAnswer;
 
     // OWNER WORKSPACE AI TOOL INTEGRATION (2026-10-11): คำสั่งที่ deterministic
@@ -1271,22 +1297,23 @@ function enrichWithTranslator(enriched: EnrichedInput, rawMessage: string): Enri
 // path uses (see cognitive/executor/index.ts's dispatchToData). Swallows a
 // failed/empty dispatch into [], matching the .catch(() => []) behavior of
 // the raw calls this replaces.
-async function dispatchList(command: string, payload: Record<string, unknown> = {}): Promise<Record<string, unknown>[]> {
-  const dispatched = await dispatchCommand(command, payload).catch(() => null);
+async function dispatchList(command: string, payload: Record<string, unknown> = {}, ctx?: SandboxCtx): Promise<Record<string, unknown>[]> {
+  const dispatched = await dispatchCommand(command, payload, false, ctx).catch(() => null);
   if (!dispatched?.ok || !dispatched.data) return [];
   return Array.isArray(dispatched.data) ? dispatched.data as Record<string, unknown>[] : [dispatched.data as Record<string, unknown>];
 }
 
-async function fetchForSituation(who: string | null, what: string | null): Promise<Record<string, unknown[]>> {
+async function fetchForSituation(who: string | null, what: string | null, ctx?: SandboxCtx): Promise<Record<string, unknown[]>> {
   const results: Record<string, unknown[]> = {};
 
   if (who) {
+    // AI SANDBOX ISOLATION: ctx sandbox ไหลตามสายเรียก — dispatcher บังคับเดียว
     const [partners, trackings, debts, docs, jobs] = await Promise.all([
-      dispatchList("partner.list"),
-      dispatchList("debt.trackings"),
-      dispatchList("debt.list"),
-      dispatchList("document.list"),
-      dispatchList("job.list"),
+      dispatchList("partner.list", {}, ctx),
+      dispatchList("debt.trackings", {}, ctx),
+      dispatchList("debt.list", {}, ctx),
+      dispatchList("document.list", {}, ctx),
+      dispatchList("job.list", {}, ctx),
     ]);
     const needle = who.toLowerCase();
     const matchedDocs = docs.filter((doc) => String(doc.party_name ?? "").toLowerCase().includes(needle));
@@ -1302,13 +1329,13 @@ async function fetchForSituation(who: string | null, what: string | null): Promi
       String(job.contact_name ?? "").toLowerCase().includes(needle)
     );
   } else if (what) {
-    if (["debt", "invoice_debts"].includes(what)) results.invoice_debts = await dispatchList("debt.list");
-    if (["customer", "partner", "supplier"].includes(what)) results.partners = await dispatchList("partner.list");
-    if (what === "job") results.jobs = await dispatchList("job.list");
-    if (what === "material") results.material_types = await dispatchList("material.list");
+    if (["debt", "invoice_debts"].includes(what)) results.invoice_debts = await dispatchList("debt.list", {}, ctx);
+    if (["customer", "partner", "supplier"].includes(what)) results.partners = await dispatchList("partner.list", {}, ctx);
+    if (what === "job") results.jobs = await dispatchList("job.list", {}, ctx);
+    if (what === "material") results.material_types = await dispatchList("material.list", {}, ctx);
     if (["document", "invoice", "quotation", "boq", "receipt"].includes(what)) {
       const command = what === "document" ? "document.list" : what === "invoice" ? "invoice.list" : what === "quotation" ? "document.boq" : what === "receipt" ? "document.receipt" : "document.list";
-      results.documents = await dispatchList(command);
+      results.documents = await dispatchList(command, {}, ctx);
     }
   }
 

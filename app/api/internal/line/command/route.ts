@@ -45,9 +45,12 @@ export async function POST(req: Request) {
     // "ไม่มี AI session context" — the exact complaint the owner reported. The
     // owner-only bridge now supplies the same {ownerId, sessionId} every other
     // pipeline caller passes, so the AI gateway + resolver work end-to-end.
+    // AI SANDBOX ISOLATION (owner directive 2026-10-15): สายนี้เป็น Owner AI —
+    // ประกาศ sandbox: "owner" ชัดเจน ไม่พึ่งดีฟอลท์ fail-open
     const result = await runCognitivePipeline(body.commandText, null, body.lineUserId, null, {
       ownerId: `line-owner:${body.lineUserId}`,
       sessionId: `line:${body.lineUserId}`,
+      sandbox: "owner",
     })
     const navigateUrl = "navigate_url" in result ? result.navigate_url ?? null : null
     const workspace = "workspace" in result ? result.workspace ?? null : null

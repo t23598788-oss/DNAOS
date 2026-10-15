@@ -252,72 +252,170 @@
     "enforcement": "core/auth/surfacePolicy.ts#decideSurfaceAction (ตัวตัดสินใจ อ่านไฟล์นี้ไฟล์เดียว) + middleware.ts (เรียกทุกคำขอ /api/admin/* ก่อนถึง route) · ตรวจด้วย scripts/surface-policy-test.ts",
     "default_surface": "operational",
     "fail_closed": "ไม่มี cookie / ค่าผิด / อ่านไม่ได้ = operational (Business) = DENY ทุก developer-plane write",
-    "write_methods": ["POST", "PUT", "PATCH", "DELETE"],
+    "write_methods": [
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE"
+    ],
     "surfaces": {
       "operational": {
         "th": "Business Workspace — ใช้ระบบธุรกิจ, เรียก Shared Capabilities, จัดการข้อมูล Supabase, การเงิน/เอกสาร, LINE และ Connect",
         "cookie_value": "operational",
-        "entry_urls": ["/workspace"],
-        "allows": ["business.read", "business.write", "document.generate", "connector.execute"]
+        "entry_urls": [
+          "/workspace"
+        ],
+        "allows": [
+          "business.read",
+          "business.write",
+          "document.generate",
+          "connector.execute"
+        ]
       },
       "development": {
         "th": "Developer Workspace — แก้ไขไฟล์/Source, Worker Selector, Code Generation, GitHub และ Development Workflow",
         "cookie_value": "development",
-        "entry_urls": ["/developer", "/admin/ide", "/admin/dev-loop", "/admin/deploy", "/admin/ui-gallery"],
-        "allows": ["source.modify", "git.push", "deployment.execute", "developer.worker.execute", "developer.workflow.execute"]
+        "entry_urls": [
+          "/developer"
+        ],
+        "entry_rule": "มีทางเข้าเดียวคือ /developer (หน้า Developer Workspace เท่านั้น) — หน้าเครื่องมือ dev ต่าง ๆ (/admin/ide, /admin/dev-loop, /admin/deploy, /admin/ui-gallery) และลิงก์จากหน้าธุรกิจ เช่น /admin/dbd → Deploy/API Explorer ไม่มีสิทธิ์สลับ surface (UI leak ถูกปิดด้วย policy ชุดเดิม ไม่มีระบบสิทธิ์ใหม่)",
+        "allows": [
+          "source.modify",
+          "git.push",
+          "deployment.execute",
+          "developer.worker.execute",
+          "developer.workflow.execute"
+        ]
       }
     },
     "allow": {
       "business.read": {
         "th": "อ่านข้อมูล/ระบบได้ทั้งสอง surface — source READ ไม่ใช่ source WRITE (sourceReadIsNotWrite ของ authority เดิม)",
-        "prefixes": ["/api/admin", "/api/document", "/api/action", "/api/explain", "/api/chat", "/api/v1/query"],
+        "prefixes": [
+          "/api/admin",
+          "/api/document",
+          "/api/action",
+          "/api/explain",
+          "/api/chat",
+          "/api/v1/query"
+        ],
         "authority": "requireAuth(ADMIN_TIER) / X-DNA-Token scope เดิม ไม่เปลี่ยน"
       },
       "business.write": {
         "th": "เขียนข้อมูลธุรกิจตามสิทธิ์เดิม (role เดิม ไม่มีสิทธิ์ใหม่)",
-        "prefixes": ["/api/admin/partners", "/api/admin/jobs", "/api/admin/transactions", "/api/admin/receipt-documents", "/api/admin/invoices", "/api/admin/debt-trackings", "/api/admin/materials", "/api/admin/pits", "/api/admin/equipment", "/api/admin/line-customers", "/api/admin/upload"],
+        "prefixes": [
+          "/api/admin/partners",
+          "/api/admin/jobs",
+          "/api/admin/transactions",
+          "/api/admin/receipt-documents",
+          "/api/admin/invoices",
+          "/api/admin/debt-trackings",
+          "/api/admin/materials",
+          "/api/admin/pits",
+          "/api/admin/equipment",
+          "/api/admin/line-customers",
+          "/api/admin/upload"
+        ],
         "authority": "requireAuth(ADMIN_TIER) + route_access/api_access เดิม"
       },
       "document.generate": {
         "th": "สร้าง/ส่งเอกสารกลางตามเดิม — ห้ามแตะ canonical finance/document writer",
-        "prefixes": ["/api/document", "/api/admin/documents"],
+        "prefixes": [
+          "/api/document",
+          "/api/admin/documents"
+        ],
         "authority": "Canonical Job Contract + document authority เดิม"
       },
       "connector.execute": {
         "th": "รัน connector/LINE/business dispatch ตามสิทธิ์เดิม",
-        "prefixes": ["/api/admin/connectors", "/api/admin/line-customers", "/api/admin/line-profiles", "/api/v1/mcp/business"],
+        "prefixes": [
+          "/api/admin/connectors",
+          "/api/admin/line-customers",
+          "/api/admin/line-profiles",
+          "/api/v1/mcp/business"
+        ],
         "authority": "Connector Lifecycle + business dispatch เดิม"
       }
     },
     "deny": {
       "git.push": {
         "th": "DENY git.push กับ Business surface",
-        "prefixes": ["/api/admin/ide/git"],
+        "prefixes": [
+          "/api/admin/ide/git"
+        ],
         "note": "ปัจจุบันไม่มี git write route (ทุก /api/admin/ide/git/* เป็น GET read) — ประกาศไว้เพื่อกัน route เขียน git ใหม่โดยอัตโนมัติที่ middleware",
         "authority": "GitHub ยังเป็น source repository หลัก — ไม่มีการสร้าง repository ใหม่หรือย้าย authority"
       },
       "deployment.execute": {
         "th": "DENY deployment.execute กับ Business surface",
-        "prefixes": ["/api/admin/ide/deployment", "/api/admin/ide/release", "/api/admin/ide/build"],
+        "prefixes": [
+          "/api/admin/ide/deployment",
+          "/api/admin/ide/release",
+          "/api/admin/ide/build"
+        ],
         "authority": "scripts/deploy-gate.ts + release gate เดิม (ไม่ deploy production เมื่อ gate ไม่ผ่าน)"
       },
       "developer.worker.execute": {
         "th": "DENY developer.worker.execute กับ Business surface",
-        "prefixes": ["/api/admin/ide/workers", "/api/admin/ide/execution", "/api/admin/ide/queue"],
+        "prefixes": [
+          "/api/admin/ide/workers",
+          "/api/admin/ide/execution",
+          "/api/admin/ide/queue"
+        ],
         "authority": "Worker Selector / code worker runtime เดิม — เรียกจาก Developer surface เท่านั้น"
       },
       "source.modify": {
         "th": "DENY source.modify กับ Business surface (file write, fs create/rename/move/trash, command surface, factory proposal/execute)",
-        "prefixes": ["/api/admin/ide"],
+        "prefixes": [
+          "/api/admin/ide"
+        ],
         "authority": "requireAuth(ADMIN_TIER) → fsSecurity.ts → change-set/review → build gate → scripts/deploy-gate.ts (chain เดิม ไม่ถูกแทนที่)"
       },
       "developer.workflow.execute": {
         "th": "DENY development workflow (Dev Loop approve/run) กับ Business surface",
-        "prefixes": ["/api/admin/dev-loop"],
+        "prefixes": [
+          "/api/admin/dev-loop"
+        ],
         "authority": "Dev Loop evidence เดิม — เปลี่ยนได้จาก Developer Workspace เท่านั้น"
       }
     },
-    "shared_capabilities_unchanged": "CLI/File reader · File conversion · Document scanner · Deterministic processing · AI Gateway · Browser automation · Computer use · Failure bridge · Checkpoint/Evidence · Connector lifecycle · Desktop/Tauri — ยังเรียกจาก Business ได้ตามเดิม เพราะนโยบายนี้ปิดเฉพาะ developer-plane WRITE (GET/HEAD ไม่ถูกแตะ) และไม่มีไฟล์ capability เหล่านี้ถูกย้าย/ลบ/สร้างใหม่"
+    "shared_capabilities_unchanged": "CLI/File reader · File conversion · Document scanner · Deterministic processing · AI Gateway · Browser automation · Computer use · Failure bridge · Checkpoint/Evidence · Connector lifecycle · Desktop/Tauri — ยังเรียกจาก Business ได้ตามเดิม เพราะนโยบายนี้ปิดเฉพาะ developer-plane WRITE (GET/HEAD ไม่ถูกแตะ) และไม่มีไฟล์ capability เหล่านี้ถูกย้าย/ลบ/สร้างใหม่",
+    "sandbox": {
+      "authority": "AI SANDBOX ISOLATION — owner directive 2026-10-15 (แยก Owner AI / Sales AI เป็นสอง Runtime Boundary · จุดบังคับเดียว = engines/validation/dispatcher ผ่าน core/auth/surfacePolicy.decideSandboxCommand · fail-closed: ไม่ประกาศ = DENY)",
+      "fail_closed": true,
+      "sandboxes": {
+        "sales": {
+          "th": "SALES AI — LINE/Chatbot · Material Search · Price Search · Supplier Matching · Sales Conversation",
+          "allow_prefixes": [
+            "material.",
+            "weather.",
+            "fuel.",
+            "transport.",
+            "price."
+          ],
+          "deny_prefixes": [
+            "finance.",
+            "document.",
+            "invoice.",
+            "receipt.",
+            "payment.",
+            "debt.",
+            "expense.",
+            "bank.",
+            "partner.timeline",
+            "company.",
+            "cline.",
+            "admin.",
+            "registry.",
+            "factory.",
+            "deploy.",
+            "git.",
+            "connector.",
+            "legacy."
+          ]
+        }
+      }
+    }
   },
   "public_routes": [
     "/",

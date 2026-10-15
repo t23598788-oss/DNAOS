@@ -5,6 +5,10 @@
 
 import { previewDocumentCreate } from "@/gateway/actions";
 import { dispatch as dispatchCommand, isRegistered } from "@/engines/validation/dispatcher";
+
+// AI SANDBOX ISOLATION (owner 2026-10-15): ตัวห้อยผ่านทุก dispatch → dispatcher
+// เป็นจุดบังคับเดียว fail-closed (default = owner สายเดิมเปลี่ยนพฤติกรรม 0 จุด)
+export interface ExecutorCallContext { sandbox?: "owner" | "sales" }
 import { DOC_LABELS, type DocType } from "@/engines/documents/engine";
 import type { CurrentDebt } from "@/engines/debt/tracking";
 import { executeCapability } from "@/plugins/capability-manager";
@@ -20,7 +24,12 @@ interface StepResult extends ExecutionOutput {
   data: StepData;
 }
 
-export async function executePlan(plan: ExecutionPlan, worldState: WorldState): Promise<StepResult[]> {
+export async function executePlan(
+  plan: ExecutionPlan,
+  worldState: WorldState,
+  // AI SANDBOX ISOLATION: ctx sandbox จาก pipeline (ออปชัน — undefined = Owner สายเดิม)
+  ctx?: ExecutorCallContext,
+): Promise<StepResult[]> {
   if (plan.ask_user || plan.steps.length === 0) return [];
 
   const results: StepResult[] = [];
@@ -28,7 +37,7 @@ export async function executePlan(plan: ExecutionPlan, worldState: WorldState): 
   for (const step of [...plan.steps].sort((a, b) => a.group - b.group || a.id - b.id)) {
     const started = Date.now();
     try {
-      const data = await runStep(step, worldState, results);
+      const data = await runStep(step, worldState, results, ctx);
       results.push({
         tool: step.tool,
         success: true,
@@ -55,12 +64,12 @@ export async function executePlan(plan: ExecutionPlan, worldState: WorldState): 
   return results;
 }
 
-async function runStep(step: ToolStepPlan, worldState: WorldState, results: StepResult[]): Promise<StepData> {
+async function runStep(step: ToolStepPlan, worldState: WorldState, results: StepResult[], ctx?: ExecutorCallContext): Promise<StepData> {
   const args = resolveRuntimeArgs(step.args, results);
 
   const registryCommand = toRegistryCommand(step.tool);
   if (registryCommand && isRegistered(registryCommand)) {
-    const dispatched = await dispatchCommand(registryCommand, args, !step.tool.endsWith(".create"));
+    const dispatched = await dispatchCommand(registryCommand, args, !step.tool.endsWith(".create"), ctx);
     if (!dispatched.ok && dispatched.violations.length > 0) {
       throw new Error(`Rule violation: ${dispatched.violations.join("; ")}`);
     }
@@ -71,30 +80,30 @@ async function runStep(step: ToolStepPlan, worldState: WorldState, results: Step
 
   switch (step.tool) {
     case "identity.resolve":
-      return resolveIdentity(args.name ?? worldState.context.who ?? "");
+      return resolveIdentity(args.name ?? worldState.context.who ?? "", ctx);
     case "debt.query":
-      return queryDebt(args.customer_id, worldState, results);
+      return queryDebt(args.customer_id, worldState, results, ctx);
     case "document.query":
     case "invoice.query":
     case "quotation.query":
     case "boq.query":
-      return queryDocuments(args.customer_id, worldState, results, args.document_type);
+      return queryDocuments(args.customer_id, worldState, results, args.document_type, ctx);
     case "customer.list":
     case "partner.list":
-      return dispatchToData("partner.list", {});
+      return dispatchToData("partner.list", {}, ctx);
     case "material.list":
-      return dispatchToData("material.list", {});
+      return dispatchToData("material.list", {}, ctx);
     case "job.query":
-      return queryJobs(worldState);
+      return queryJobs(worldState, ctx);
     case "job.list":
-      return dispatchToData("job.list", {});
+      return dispatchToData("job.list", {}, ctx);
     case "invoice.create":
     case "quotation.create":
     case "boq.create":
     case "receipt.create":
     case "delivery_order.create":
     case "billing.create":
-      return executeDocumentCommand(step.tool, args, worldState, results);
+      return executeDocumentCommand(step.tool, args, worldState, results, ctx);
     case "document.present":
       return presentDocument(results);
     case "pdf.export":
@@ -136,22 +145,22 @@ function toRegistryCommand(tool: string): string | null {
 // services/engines directly. Swallows a failed/empty dispatch into an empty
 // result rather than throwing, matching the existing behavior of the raw
 // calls this replaces.
-async function dispatchToData(command: string, payload: Record<string, unknown>): Promise<Record<string, unknown>[]> {
-  const dispatched = await dispatchCommand(command, payload);
+async function dispatchToData(command: string, payload: Record<string, unknown>, ctx?: ExecutorCallContext): Promise<Record<string, unknown>[]> {
+  const dispatched = await dispatchCommand(command, payload, false, ctx);
   if (!dispatched.ok || !dispatched.data) return [];
   return Array.isArray(dispatched.data) ? dispatched.data as Record<string, unknown>[] : [dispatched.data as Record<string, unknown>];
 }
 
-async function resolveIdentity(name: string): Promise<Record<string, unknown>[]> {
+async function resolveIdentity(name: string, ctx?: ExecutorCallContext): Promise<Record<string, unknown>[]> {
   const query = name.trim();
   if (!query) return [];
-  return dispatchToData("partner.find", { keyword: query });
+  return dispatchToData("partner.find", { keyword: query }, ctx);
 }
 
-async function queryDebt(customerId: string | undefined, worldState: WorldState, results: StepResult[]): Promise<Record<string, unknown>[]> {
+async function queryDebt(customerId: string | undefined, worldState: WorldState, results: StepResult[], ctx?: ExecutorCallContext): Promise<Record<string, unknown>[]> {
   const resolved = resolveCustomer(customerId, worldState, results);
   const customerName = resolved.name ?? worldState.context.who;
-  const [debts, docs] = await Promise.all([dispatchToData("debt.list", {}), dispatchToData("document.list", {})]);
+  const [debts, docs] = await Promise.all([dispatchToData("debt.list", {}, ctx), dispatchToData("document.list", {}, ctx)]);
 
   const invoiceDebts = debts
     .map((debt) => {
@@ -173,7 +182,7 @@ async function queryDebt(customerId: string | undefined, worldState: WorldState,
   // exist in app_configs) and was silently swallowed by a try/catch that
   // fell back to raw, uninflated principal_amount.
   if (!resolved.id) return [];
-  const dispatched = await dispatchCommand("debt.current", { partner_id: resolved.id });
+  const dispatched = await dispatchCommand("debt.current", { partner_id: resolved.id }, false, ctx);
   if (!dispatched.ok || !dispatched.data) return [];
   const debt = dispatched.data as {
     principal: number; interest: number; penalty: number; collection_fee: number;
@@ -199,14 +208,14 @@ function documentCommandFor(docType?: string): string {
   return "document.list";
 }
 
-async function queryDocuments(customerId: string | undefined, worldState: WorldState, results: StepResult[], docType?: string): Promise<Record<string, unknown>[]> {
+async function queryDocuments(customerId: string | undefined, worldState: WorldState, results: StepResult[], docType?: string, ctx?: ExecutorCallContext): Promise<Record<string, unknown>[]> {
   const resolved = resolveCustomer(customerId, worldState, results);
-  const docs = await dispatchToData(documentCommandFor(docType), {});
+  const docs = await dispatchToData(documentCommandFor(docType), {}, ctx);
   return docs.filter((doc) => matchesCustomer(doc.party_name, resolved.name ?? worldState.context.who));
 }
 
-async function queryJobs(worldState: WorldState): Promise<Record<string, unknown>[]> {
-  const jobs = await dispatchToData("job.list", {});
+async function queryJobs(worldState: WorldState, ctx?: ExecutorCallContext): Promise<Record<string, unknown>[]> {
+  const jobs = await dispatchToData("job.list", {}, ctx);
   return jobs.filter((job) =>
     matchesCustomer(job.contact_name, worldState.context.who) ||
     matchesCustomer(job.project_name, worldState.context.who)
@@ -246,17 +255,17 @@ interface InvoicePreviewResult {
 // engines, never the reverse). cognitive/ is allowed to import both, same
 // pattern already used everywhere else in this file. No behavior changed,
 // only which file owns the orchestration.
-async function generateInvoicePreview(p: { partner_id: string; document_type: string; note?: string }): Promise<InvoicePreviewResult> {
-  const partnerResult = await dispatchCommand("partner.profile", { partner_id: p.partner_id });
+async function generateInvoicePreview(p: { partner_id: string; document_type: string; note?: string }, ctx?: ExecutorCallContext): Promise<InvoicePreviewResult> {
+  const partnerResult = await dispatchCommand("partner.profile", { partner_id: p.partner_id }, false, ctx);
   if (!partnerResult.ok || !partnerResult.data) {
     return { status: "PARTNER_NOT_FOUND", reason: "ไม่พบข้อมูลลูกค้ารายนี้ในระบบ" };
   }
   const partner = partnerResult.data as { id: string; name: string; tax_id?: string | null; phone?: string | null };
 
-  const debtResult = await dispatchCommand("debt.current", { partner_id: p.partner_id });
+  const debtResult = await dispatchCommand("debt.current", { partner_id: p.partner_id }, false, ctx);
   const debt = (debtResult.ok ? debtResult.data : null) as CurrentDebt | null;
 
-  const itemsResult = await dispatchCommand("invoice.items", { partner_id: p.partner_id, debt });
+  const itemsResult = await dispatchCommand("invoice.items", { partner_id: p.partner_id, debt }, false, ctx);
   const itemsData = itemsResult.data as { status: "OK" | "NO_OUTSTANDING_DEBT"; items: { description: string; qty: number; unit: string; unitPrice: number }[] };
 
   if (itemsData.status === "NO_OUTSTANDING_DEBT") {
@@ -277,7 +286,7 @@ async function generateInvoicePreview(p: { partner_id: string; document_type: st
   // so html/flex_preview render these SAME numbers instead of generateDoc
   // computing its own. ConfirmInvoice later persists this exact same
   // result via the preview_token — never a second calculation.
-  const taxResult = await dispatchCommand("business.calculate_tax", { amount: subtotal });
+  const taxResult = await dispatchCommand("business.calculate_tax", { amount: subtotal }, false, ctx);
   const tax = taxResult.data as { subtotal: number; vat: number; vat_rate: number; total: number };
 
   const preview = await previewDocumentCreate({
@@ -307,7 +316,7 @@ async function generateInvoicePreview(p: { partner_id: string; document_type: st
   };
 }
 
-async function executeDocumentCommand(tool: string, args: Record<string, string>, worldState: WorldState, results: StepResult[]): Promise<Record<string, unknown>> {
+async function executeDocumentCommand(tool: string, args: Record<string, string>, worldState: WorldState, results: StepResult[], ctx?: ExecutorCallContext): Promise<Record<string, unknown>> {
   const resolved = resolveCustomer(args.customer_id, worldState, results);
   const documentType = tool.replace(".create", "") as DocType;
 
@@ -327,7 +336,7 @@ async function executeDocumentCommand(tool: string, args: Record<string, string>
       partner_id: resolved.id,
       document_type: documentType,
       note: [worldState.context.what].filter(Boolean).join("\n") || undefined,
-    });
+    }, ctx);
 
     // Owner decision 2026-07-17: never fabricate an empty financial
     // document — surface the real business state instead of a ฿0.00 card.
@@ -364,7 +373,7 @@ async function executeDocumentCommand(tool: string, args: Record<string, string>
 
   // Material-priced documents (quotation/boq/delivery_order) — unchanged
   // scope, separate capability (material.quote), not part of this redesign.
-  const items = await buildMaterialItems(worldState.context.raw_input, resolved.id);
+  const items = await buildMaterialItems(worldState.context.raw_input, resolved.id, ctx);
   const label = DOC_LABELS[documentType] ?? DOC_LABELS.invoice;
   const netAmount = items.reduce((sum, it) => sum + it.qty * it.unitPrice, 0);
 
@@ -552,7 +561,7 @@ const QUANTITY_PATTERN = /(\d+(?:\.\d+)?)\s*(คิว|ตัน|คัน|เ�
 // real inputs it needs (quantity+unit, a resolvable material, a priced pit
 // reachable from the customer's known GPS) is missing, instead of silently
 // producing an empty or zero-priced document.
-async function buildMaterialItems(rawInput: string, customerId: string) {
+async function buildMaterialItems(rawInput: string, customerId: string, ctx?: ExecutorCallContext) {
   const qtyMatch = rawInput.match(QUANTITY_PATTERN);
   if (!qtyMatch) {
     throw new Error(`ไม่พบจำนวนและหน่วยในข้อความ (เช่น "หิน 30 คิว") กรุณาระบุให้ชัดเจนก่อนสร้างเอกสาร: "${rawInput}"`);
@@ -563,7 +572,7 @@ async function buildMaterialItems(rawInput: string, customerId: string) {
   // capability, owner 2026-07-17, Architecture Correction. AI no longer
   // imports Material Resolver / GPS lookup / Pricing Engine directly; it
   // asks one named command and only knows the business response.
-  const dispatched = await dispatchCommand("material.quote", { raw_input: rawInput, quantity, customer_id: customerId });
+  const dispatched = await dispatchCommand("material.quote", { raw_input: rawInput, quantity, customer_id: customerId }, false, ctx);
   if (!dispatched.ok) throw new Error(dispatched.violations.join("; ") || "ไม่สามารถคำนวณราคาวัสดุได้");
   const quote = dispatched.data as {
     matched: boolean; candidates?: string[]; material_name?: string;
