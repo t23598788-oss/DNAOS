@@ -321,6 +321,59 @@ const QUERY_MAP: Record<string, QueryFn> = {
     if (!nearest) throw new Error("ไม่พบแหล่งวัสดุที่ระบุพิกัดได้");
     return nearest;
   },
+  // PitSearch(keyword) — RESOURCE INTELLIGENCE (owner 2026-10-15): สาย Sales AI
+  // ต้องรู้จักแหล่งทรัพยากร/ผู้ประกอบการจากข้อมูลจริง pit_profiles เท่านั้น —
+  // ประกาศใน registry (ผู้ประกอบการ/บ่อทราย/โรงโม่/ท่าทราย) แต่เคยไร้ handler,
+  // แก้ที่นี่: อ่านตารางเดิม (pit_profiles + pit_materials) เดิม ไม่สร้างตาราง/ไม่แก้ UI
+  // · ราคาที่คืนมามาจาก pit_materials.price จริงทุกตัว — ไม่มีหลักฐาน = null ไม่แต่ง
+  // · 0 ผล = NOT_FOUND จริงใจ (hits: []) ไม่เดาไม่จำลอง
+  "pit.find":       async (p) => {
+    const keyword = String(p.keyword ?? "").trim();
+    if (!keyword) throw new Error("ต้องระบุ keyword");
+    const pits = await supabaseAdmin()
+      .from("pit_profiles")
+      .select("id, pit_name, address, latitude, longitude, is_open, formatted_address")
+      .is("deleted_at", null)
+      .or(`pit_name.ilike.${keyword},pit_name.ilike.%${keyword}%,address.ilike.%${keyword}%`)
+      .limit(20);
+    if (pits.error) throw new Error("query error: " + pits.error.message);
+    type Pit = { id: string; pit_name: string | null; address?: string | null; formatted_address?: string | null; latitude: number | null; longitude: number | null; is_open: boolean | null };
+    const rows = (pits.data ?? []) as unknown as Pit[];
+    type Link = { pit_profile_id: string; material_type_id: string; price: number | null };
+    type PgResp<T> = { data: T[] | null; error: { message: string } | null };
+    const links: PgResp<Link> = rows.length
+      ? (await supabaseAdmin()
+          .from("pit_materials")
+          .select("pit_profile_id, material_type_id, price")
+          .is("deleted_at", null)
+          .in("pit_profile_id", rows.map((r) => r.id)))
+      : { data: null, error: null };
+    if (links.error) throw new Error("query error: " + links.error.message);
+    const mats: PgResp<{ id: string; name: string }> = rows.length
+      ? (await supabaseAdmin().from("material_types").select("id, name").is("deleted_at", null))
+      : { data: null, error: null };
+    if (mats.error) throw new Error("query error: " + mats.error.message);
+    const matName = new Map((mats.data ?? []).map((m) => [m.id, m.name]));
+    const linkedRows = (links.data ?? []) as unknown as Link[];
+    const hits = rows.map((r) => {
+      const linked = linkedRows.filter((l) => l.pit_profile_id === r.id);
+      const withPrice = linked.filter((l) => l.price != null && l.price > 0);
+      return {
+        pit_name: r.pit_name,
+        address: r.address ?? r.formatted_address ?? null,
+        latitude: r.latitude,
+        longitude: r.longitude,
+        is_open: r.is_open,
+        materials: linked.map((l) => ({
+          name: matName.get(l.material_type_id) ?? l.material_type_id,
+          price: l.price != null && l.price > 0 ? l.price : null,
+          price_source: l.price != null && l.price > 0 ? "pit_materials" : null,
+        })),
+        price_min: withPrice.length ? Math.min(...withPrice.map((l) => Number(l.price))) : null,
+      };
+    });
+    return { result_type: "PIT_SEARCH", keyword, total: hits.length, hits };
+  },
   "bank.statement":   async () => {
     const { data, error } = await supabaseAdmin()
       .from("bank_statement_transactions")

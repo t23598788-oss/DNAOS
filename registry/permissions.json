@@ -387,11 +387,12 @@
         "sales": {
           "th": "SALES AI — LINE/Chatbot · Material Search · Price Search · Supplier Matching · Sales Conversation",
           "allow_prefixes": [
-            "material.",
-            "weather.",
             "fuel.",
+            "material.",
+            "pit.",
+            "price.",
             "transport.",
-            "price."
+            "weather."
           ],
           "deny_prefixes": [
             "finance.",
