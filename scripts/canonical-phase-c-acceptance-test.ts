@@ -39,11 +39,10 @@ import { supabaseAdmin } from "@/services/supabase/queries";
 import { getTransactionDetail } from "@/services/canonical/transaction-detail";
 import { getDocumentDetail } from "@/services/canonical/document-detail";
 import { getCanonicalAllocations } from "@/services/canonical/payments";
+import { ensurePhaseCSnapshot } from "./canonical-phase-snapshot";
 
-const BEFORE = JSON.parse(readFileSync("/tmp/phaseC-before.json", "utf8")) as {
-  row_counts: { t: string; n: number }[];
-  financial_totals: Record<string, string>[];
-};
+type PhaseCSnapshot = { row_counts: { t: string; n: number }[]; financial_totals: Record<string, string>[] };
+let BEFORE: PhaseCSnapshot | null = null;
 
 let passed = 0;
 const failures: string[] = [];
@@ -66,6 +65,10 @@ const rows = async <T>(table: string, build: (q: any) => any): Promise<T[]> => {
 };
 
 async function main() {
+  // self-bootstrap the pre-run baseline (pre-existing ENOENT process gap —
+  // nothing in the repo ever produced /tmp/phaseC-before.json); NEVER overwrites an existing one
+  await ensurePhaseCSnapshot();
+  if (!BEFORE) BEFORE = JSON.parse(readFileSync("/tmp/phaseC-before.json", "utf8")) as PhaseCSnapshot;
   console.log("=== 0. API wiring / no UI change (source assertions) ===");
   const routeFiles = [
     "app/api/admin/transactions/route.ts",
@@ -257,7 +260,7 @@ async function main() {
     .or("reference_no.is.null,reference_no.not.like.D10-ACCEPTANCE-%");
   const sum = (pick: (r: Record<string, unknown>) => unknown) =>
     (fin ?? []).reduce((a: number, r: Record<string, unknown>) => a + Number(pick(r) ?? 0), 0).toFixed(2);
-  const beforeInv = BEFORE.financial_totals.find((r) => r.t === "invoices")!;
+  const beforeInv = BEFORE!.financial_totals.find((r) => r.t === "invoices")!;
   check("invoices count unchanged", String((fin ?? []).length) === String(beforeInv.n), { now: (fin ?? []).length, before: beforeInv.n });
   check("invoices subtotal unchanged", sum((r) => r.subtotal) === Number(beforeInv.sub).toFixed(2), { now: sum((r) => r.subtotal), before: beforeInv.sub });
   check("invoices VAT unchanged", sum((r) => r.vat_amount) === Number(beforeInv.vat).toFixed(2));
@@ -297,7 +300,7 @@ async function main() {
     const { count } = await db.from(table).select("*", { count: "exact", head: true });
     countsAfter[table] = count ?? 0;
   }
-  const drifted = BEFORE.row_counts.filter((r) => countsAfter[r.t] !== r.n).map((r) => ({ table: r.t, before: r.n, after: countsAfter[r.t] }));
+  const drifted = BEFORE!.row_counts.filter((r) => countsAfter[r.t] !== r.n).map((r) => ({ table: r.t, before: r.n, after: countsAfter[r.t] }));
   // Two tables are allowed to GROW by design, never to shrink:
   //   debt_snapshots — Phase D5 repairs "ledger without snapshot" by creating the projection
   //   audit_logs     — append-only evidence written by every canonical write
@@ -311,7 +314,7 @@ async function main() {
   check("no table shrank (nothing was deleted)", shrank.length === 0, shrank);
   // audit_logs is append-only evidence: it may grow (canonical writes add rows) but must never shrink
   const { count: auditNow } = await db.from("audit_logs").select("*", { count: "exact", head: true });
-  const auditBefore = BEFORE.row_counts.find((r) => r.t === "audit_logs")!.n;
+  const auditBefore = BEFORE!.row_counts.find((r) => r.t === "audit_logs")!.n;
   check("audit_logs only grew (append-only evidence, nothing deleted)", (auditNow ?? 0) >= auditBefore, { now: auditNow, before: auditBefore });
 
   console.log("\n============================================================");

@@ -72,18 +72,21 @@ async function main() {
   // ── 2. anon / authenticated / PUBLIC denied, service_role granted — via pg_proc.proacl (authoritative) ──
   {
     const sql = "select proname, proacl from pg_proc where proname like 'ai_connection_vault_%' order by proname;"
-    const out = execSync(`supabase db query --linked "${sql}"`, { encoding: "utf-8" })
-    const jsonStart = out.indexOf("{")
-    const jsonEnd = out.lastIndexOf("}")
-    const parsed = JSON.parse(out.slice(jsonStart, jsonEnd + 1)) as { rows: { proname: string; proacl: string | null }[] }
-    for (const row of parsed.rows) {
+    // CLI >= 2.120: `--output-format json` จำเป็น (default เป็น text/ตาราง ASCII) —
+    // ส่งออกเป็น ARRAY ของ row; CLI เก่าคืน {rows:[...]} — รองรับทั้งสอง shape
+    const out = execSync(`supabase db query --linked --output-format json "${sql}"`, { encoding: "utf-8" })
+    const jsonStart = out.indexOf("[") === -1 ? out.indexOf("{") : Math.min(...[out.indexOf("["), out.indexOf("{")].filter((i) => i >= 0))
+    const jsonEnd = Math.max(out.lastIndexOf(""), out.lastIndexOf("]"), out.lastIndexOf("}"))
+    const parsed = JSON.parse(out.slice(jsonStart, jsonEnd + 1)) as { rows: { proname: string; proacl: string | null }[] } | { proname: string; proacl: string | null }[]
+    const rows = Array.isArray(parsed) ? parsed : parsed.rows
+    for (const row of rows) {
       const acl = row.proacl ?? ""
       check(`${row.proname}: no anon grant in proacl`, !acl.includes("anon="), acl)
       check(`${row.proname}: no authenticated grant in proacl`, !acl.includes("authenticated="), acl)
       check(`${row.proname}: no bare PUBLIC grant in proacl (no "=X/" entry without a role name)`, !/^\{?=X\//.test(acl) && !acl.includes(",=X/"), acl)
       check(`${row.proname}: service_role IS granted in proacl`, acl.includes("service_role="), acl)
     }
-    check("exactly 3 ai_connection_vault_* functions exist (no extra/list function)", parsed.rows.length === 3, `found ${parsed.rows.length}`)
+    check("exactly 3 ai_connection_vault_* functions exist (no extra/list function)", rows.length === 3, `found ${rows.length}`)
   }
 
   // ── 3. service_role can perform each operation — real round trip ──

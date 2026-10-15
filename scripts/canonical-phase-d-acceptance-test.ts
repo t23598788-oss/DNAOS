@@ -33,15 +33,14 @@ import {
 } from "@/engines/canonical/document-write";
 import { resolveOrderForDocument, createTransaction } from "@/engines/canonical/transaction-write";
 import { confirmPayment } from "@/engines/canonical/payment-write";
+import { ensurePhaseCSnapshot } from "./canonical-phase-snapshot";
 import { refreshDebtSnapshotFromLedger } from "@/engines/canonical/debt-write";
 import { persistGeneratedArtifact, signedArtifactUrl } from "@/engines/canonical/artifact-write";
 import { getDocumentDetail } from "@/services/canonical/document-detail";
 import { getTransactionDetail } from "@/services/canonical/transaction-detail";
 
-const BEFORE = JSON.parse(readFileSync("/tmp/phaseC-before.json", "utf8")) as {
-  row_counts: { t: string; n: number }[];
-  financial_totals: Record<string, string>[];
-};
+type PhaseCSnapshot = { row_counts: { t: string; n: number }[]; financial_totals: Record<string, string>[] };
+let BEFORE: PhaseCSnapshot | null = null;
 
 let passed = 0;
 const failures: string[] = [];
@@ -61,6 +60,10 @@ const db = supabaseAdmin();
 const ACTOR = "acceptance:phaseD";
 
 async function main() {
+  // baseline MUST be captured before this suite's own writes (line ~105) —
+  // self-bootstrap the pre-existing ENOENT process gap, never overwrite an existing baseline
+  await ensurePhaseCSnapshot();
+  if (!BEFORE) BEFORE = JSON.parse(readFileSync("/tmp/phaseC-before.json", "utf8")) as PhaseCSnapshot;
   console.log("=== 0. source assertions: no writer bypasses the canonical services ===");
   const writers = [
     "app/api/admin/documents/route.ts",
@@ -324,7 +327,7 @@ async function main() {
 
   console.log("\n=== 11. nothing else drifted ===");
   const { count: invoicesNow } = await db.from("invoices").select("id", { count: "exact", head: true });
-  const beforeInv = BEFORE.row_counts.find((r) => r.t === "invoices")!;
+  const beforeInv = BEFORE!.row_counts.find((r) => r.t === "invoices")!;
   // documents created by THIS run are counted separately (the harness knows its own marker)
   const { data: acceptanceDocs } = await db.from("invoices").select("id, invoice_status, total_amount").like("reference_no", "D10-ACCEPTANCE-%");
   const createdByThisRun = (acceptanceDocs ?? []).length;
@@ -339,14 +342,14 @@ async function main() {
     void: voidedRollbacks.length,
   });
   const { count: receiptsNow } = await db.from("receipt_documents").select("id", { count: "exact", head: true });
-  const beforeReceipts = BEFORE.row_counts.find((r) => r.t === "receipt_documents")!;
+  const beforeReceipts = BEFORE!.row_counts.find((r) => r.t === "receipt_documents")!;
   check("no receipt row was created or removed", (receiptsNow ?? 0) === beforeReceipts.n, { now: receiptsNow, before: beforeReceipts.n });
   const { data: oldInvoices } = await db
     .from("invoices")
     .select("total_amount, reference_no")
     .or("reference_no.is.null,reference_no.not.like.D10-ACCEPTANCE-%");
   const legacySum = (oldInvoices ?? []).reduce((s: number, r: Record<string, unknown>) => s + Number(r.total_amount ?? 0), 0);
-  const beforeTotal = Number(BEFORE.financial_totals.find((r) => r.t === "invoices")!.total);
+  const beforeTotal = Number(BEFORE!.financial_totals.find((r) => r.t === "invoices")!.total);
   check("legacy invoice totals are untouched (acceptance documents excluded)", Math.abs(legacySum - beforeTotal) < 0.01, {
     now: legacySum.toFixed(2),
     before: beforeTotal.toFixed(2),
