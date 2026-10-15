@@ -434,10 +434,10 @@
     "/install"
   ],
   "workspace_landing": {
-    "note": "Single source of truth for role -> post-login destination. Read only by core/auth/resolveDestination.ts — no route file may hardcode its own landing map (same rule as route_access above). super_admin/admin/employee land directly on /admin/relationships (Navigation redesign, owner, 2026-07-16: Relationship Workspace is the system Home), not /admin, so the login flow itself never passes through app/admin/page.tsx's own redirect.",
-    "super_admin": "/admin/relationships",
-    "admin": "/admin/relationships",
-    "employee": "/admin/relationships",
+    "note": "Single source of truth for role -> post-login destination. Read only by core/auth/resolveDestination.ts — no route file may hardcode its own landing map (same rule as route_access above). super_admin/admin/employee land directly on /workspace (Business Workspace — หน้าจอใช้งานจริงเพียงหน้าจอเดียวของ DNA OS, owner 2026-09-22 / BOS login final routing fix 2026-10-17), so the login flow opens the BOS Workspace shell directly. partner/customer land on their own portals.",
+    "super_admin": "/workspace",
+    "admin": "/workspace",
+    "employee": "/workspace",
     "partner": "/partner",
     "customer": "/user"
   },
