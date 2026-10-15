@@ -407,6 +407,56 @@ async function dispatcherTableResult(
   };
 }
 
+// ── debt.list → ตารางธุรกิจภาษาไทย (FIELD GAPS owner mission 2026-10-15) ──
+// เส้นทางเดิม: dispatch("debt.list") (canonical reader เดิม) → เสนอแมพเข้า
+// Dynamic Table Renderer เดิมของ workspace (type "table") — ไม่มี renderer ใหม่
+// ไม่มี data path ใหม่ · เห็นเท่านั้นฟิลด์จริง: เลขที่ใบแจ้งหนี้ / บริษัท / ยอดค้างชำระ /
+// วันที่ / สถานะ — ไม่มี UUID, JSON, หรือชื่อคำสั่งภายในบนจอ
+
+const DEBT_COLUMNS: ResultTable["columns"] = [
+  { key: "invoice_no", label: "เลขที่ใบแจ้งหนี้" },
+  { key: "company", label: "บริษัท" },
+  { key: "outstanding", label: "ยอดค้างชำระ" },
+  { key: "date", label: "วันที่" },
+  { key: "status", label: "สถานะ" },
+];
+
+function debtStatusLabel(derived: unknown): string {
+  const D = String(derived ?? "");
+  if (D === "PARTIALLY_PAID") return "ชำระบางส่วน";
+  if (D === "UNKNOWN") return "ยังไม่ระบุสถานะ";
+  if (D === "OVERDUE") return "ค้างชำระเกินกำหนด";
+  return "ค้างชำระ"; // derived_status ที่ผ่าน getOpenDebts ได้คือรายการค้างเสมอ (ไม่มี PAID/VOID)
+}
+
+const nonEmpty = (v: unknown): string => {
+  const s = String(v ?? "").trim();
+  // กันฟิลด์ identity หลุดขึ้นจอในรูป UUID (เมื่อไรข้อมูลร้องขอไม่มีจริง → เส้นว่างเลย —)
+  return s && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s) ? s : "—";
+};
+
+async function debtListResult(): Promise<ChatResult | null> {
+  const r = await dispatch("debt.list", {});
+  if (!r.ok || !Array.isArray(r.data)) return null;
+  const rows = r.data as Record<string, unknown>[];
+  return {
+    type: "table",
+    title: rows.length === 0 ? "หนี้ค้างชำระ — ไม่มีรายการ" : `หนี้ค้างชำระ (${rows.length} รายการ)`,
+    table: {
+      columns: DEBT_COLUMNS,
+      rows: rows.length === 0
+        ? [DEBT_COLUMNS.map((_, i) => (i === 0 ? "ไม่มีรายการ" : "—"))]
+        : rows.map((d) => [
+            nonEmpty(d.document_number),
+            nonEmpty(d.customer_name),
+            cell(Number(d.outstanding_amount ?? 0)),
+            nonEmpty(String(d.issue_date ?? "").slice(0, 10)),
+            debtStatusLabel(d.derived_status ?? d.invoice_status),
+          ]),
+    },
+  };
+}
+
 async function localAiCommandResult(
   req: Request,
   message: string,
@@ -431,7 +481,7 @@ async function localAiCommandResult(
     case "draft.list":
       return dispatcherTableResult("draft.list", {});
     case "debt.list":
-      return dispatcherTableResult("debt.list", {});
+      return debtListResult();
     case "invoice.latest":
       return dispatcherTableResult("invoice.latest", {});
     default:

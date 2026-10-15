@@ -89,18 +89,46 @@ export async function getOpenDebts() {
     .not("derived_status", "in", '("VOID","PAID")')
     .gt("outstanding", 0);
   if (error) throw new Error(error.message);
-  return (data ?? []).map((d: any) => ({
-    id: d.invoice_id,
-    document_id: d.invoice_id,
-    document_number: d.invoice_no,
-    principal_amount: Number(d.receivable_amount ?? 0),
-    outstanding_amount: Number(d.outstanding ?? 0),
-    invoice_status: "OPEN",
-    paid_amount: Number(d.paid_amount ?? 0),
-    current_interest_amount: 0,
-    receivable_basis: d.receivable_basis,
-    created_at: null,
-  }));
+  const rows = data ?? [];
+  // FIELD GAPS FIXED (owner mission 2026-10-15 — debt.list → Workspace): the
+  // presentation layer needs the COMPANY name and the INVOICE DATE. The view
+  // doesn't carry them, so read them from the same underlying invoices it is
+  // built on (companies FK embed) — read-only, no new table/view/shape.
+  const meta = new Map<string, { name: string; date: string | null }>();
+  const ids = rows.map((d: any) => d.invoice_id);
+  if (ids.length > 0) {
+    const { data: inv, error: invErr } = await supabaseAdmin()
+      .from("invoices")
+      .select("id, invoice_date, companies(name)")
+      .in("id", ids);
+    if (!invErr) {
+      for (const r of inv ?? []) {
+        meta.set(r.id, {
+          name: (r as any).companies?.name ?? "",
+          date: (r as any).invoice_date ?? null,
+        });
+      }
+    }
+    // a failed meta read leaves name/date empty — canonical amounts/status stay authoritative
+  }
+  return rows.map((d: any) => {
+    const m = meta.get(d.invoice_id) ?? { name: "", date: null };
+    return {
+      id: d.invoice_id,
+      document_id: d.invoice_id,
+      document_number: d.invoice_no,
+      customer_name: m.name,
+      issue_date: m.date,
+      principal_amount: Number(d.receivable_amount ?? 0),
+      outstanding_amount: Number(d.outstanding ?? 0),
+      invoice_status: "OPEN",
+      derived_status: d.derived_status ?? null,
+      paid_amount: Number(d.paid_amount ?? 0),
+      current_interest_amount: 0,
+      receivable_basis: d.receivable_basis,
+      created_at: null,
+    };
+  });
 }
 
 export async function getAllDebts() {
