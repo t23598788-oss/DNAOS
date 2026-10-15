@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { SESSION_COOKIE_MAX_AGE } from "@/services/supabase/browser";
 import { LOCAL_UI_REVIEW_HEADER, isLocalReviewRequest } from "@/core/auth/devReviewAccess";
+import {
+  SURFACE_COOKIE,
+  canEnterSurface,
+  decideSurfaceAction,
+  decideSurfacePage,
+  resolveSurface,
+  surfaceForPagePath,
+} from "@/core/auth/surfacePolicy";
 
 // TASK-001 (SSO): coarse "must be authenticated" gate + Supabase session
 // refresh, for every Portal and every protected API route — not just
@@ -14,7 +22,7 @@ import { LOCAL_UI_REVIEW_HEADER, isLocalReviewRequest } from "@/core/auth/devRev
 // surface — not a public production business route. Adding the prefix here means
 // anonymous visitors in production get the same /login redirect every other protected
 // area gets; the dev-only review allowance below is what lets the Owner open it locally.
-const PROTECTED_PAGE_PREFIXES = ["/admin", "/business", "/user", "/partner", "/account", "/workspace-preview", "/business-workspace-template"];
+const PROTECTED_PAGE_PREFIXES = ["/admin", "/business", "/user", "/partner", "/account", "/workspace-preview", "/business-workspace-template", "/developer"];
 // Exact-match only, never startsWith — "/" as a PREFIX would match every
 // route in the app (every pathname starts with "/"), locking out /login,
 // /api/*, /liff, /oauth, everything. Root Domain UI Conversion (owner,
@@ -24,6 +32,30 @@ const PROTECTED_PAGE_PREFIXES = ["/admin", "/business", "/user", "/partner", "/a
 const PROTECTED_EXACT_PAGES = ["/"];
 const PROTECTED_API_PREFIXES = ["/api/admin", "/api/document", "/api/action", "/api/explain"];
 const PAGE_EXEMPTIONS = ["/admin/login"];
+
+/**
+ * Role lookup used ONLY for a surface-switch decision (owner directive
+ * 2026-10-15). Reads the same `profiles` row core/auth/session.ts already reads
+ * (RLS policy `profiles_select_own` allows the caller's own row) — it is NOT a
+ * second identity/session system, and it never runs for ordinary requests: only
+ * when a workspace ENTRY URL is opened. Fail-closed: any error/timeout returns
+ * null → the caller may NOT enter the development surface (stays operational).
+ */
+async function resolveSurfaceRole(
+  supabase: Awaited<ReturnType<typeof createServerClient>>,
+  userId: string,
+): Promise<string | null> {
+  try {
+    const result = (await Promise.race([
+      supabase.from("profiles").select("role").eq("id", userId).maybeSingle(),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("surface role timeout")), 3000)),
+    ])) as { data?: { role?: string } | null };
+    const role = result?.data?.role;
+    return typeof role === "string" ? role : null;
+  } catch {
+    return null;
+  }
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -101,6 +133,75 @@ export async function middleware(req: NextRequest) {
     return NextResponse.json({ ok: false, error: "ต้อง login ก่อนใช้งาน" }, { status: 401 });
   }
 
+  // ── CONTROL SURFACE ENFORCEMENT (owner directive 2026-10-12, extended 2026-10-15) ──
+  // ยุติแผนแยก source แบบตัดความสัมพันธ์ — แยกแค่ CONTROL SURFACE ที่ runtime จริง:
+  //  (1) Business surface สั่ง developer-plane action ไม่ได้ (source.modify / git.push /
+  //      deployment.execute / developer.worker.execute / developer.workflow.execute)
+  //  (2) owner directive 2026-10-15: developer-plane READ (Source Code, Git Status,
+  //      Infrastructure) ถูกปิด **ทุก HTTP method รวม GET/HEAD** สำหรับ Business surface
+  //  (3) owner directive 2026-10-15: หน้า Developer/Infrastructure ปิดที่ server (404)
+  //      สำหรับ Business surface — ทั้งเปิด URL ตรงและผ่านเมนู
+  //  Policy อ่านจาก registry/permissions.json#capability_actions ที่เดียว ผ่าน
+  //  core/auth/surfacePolicy.ts (fail-closed: ไม่มี/ค่าผิด = operational)
+  //  สาย developer ยังเดินเข้า requireAuth + fsSecurity + review/build/deploy-gate
+  //  ของเดิมทุกชั้น — ไม่มี gate ใหม่ถูกสร้างแทนของเดิม
+  const surface = resolveSurface(req.cookies.get(SURFACE_COOKIE)?.value);
+  const isPageNavigation =
+    req.method === "GET" && (req.headers.get("accept") ?? "").includes("text/html");
+
+  if (isProtectedApi) {
+    const decision = decideSurfaceAction({ pathname, method: req.method, surface });
+    if (!decision.allowed) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: decision.code ?? "SURFACE_ACTION_DENIED",
+          action: decision.action,
+          surface: decision.surface,
+          error: decision.reason,
+        },
+        { status: 403 },
+      );
+    }
+  }
+
+  if (isPageNavigation) {
+    // ── SURFACE SWITCH — เฉพาะการเปิดหน้า workspace เท่านั้น ───────────────
+    // Page navigation ไปยัง entry URL เท่านั้นที่สลับ surface (api call ไม่มีวัน
+    // mint surface ของตัวเอง) · httpOnly เพื่อไม่ให้ script ฝั่ง clientเขียนเอง
+    // owner directive 2026-10-15: สลับเข้า development surface ได้เฉพาะ role ที่
+    // registry อนุญาต (surfaces.development.roles) — role อื่นถูกปฏิเสธแบบ
+    // fail-closed (อ่าน role ไม่ได้ = ไม่อนุญาต) จึงเรียก developer API ไม่ได้เลย
+    const writeSurfaceCookie = (value: "operational" | "development") =>
+      response.cookies.set(SURFACE_COOKIE, value, {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 60 * 60 * 12,
+        secure: process.env.NODE_ENV === "production",
+      });
+    const mayEnterDevelopment = async () =>
+      !!user && canEnterSurface(await resolveSurfaceRole(supabase, user.id), "development");
+
+    // (3) PAGE deny — server-side, ก่อนถึง layout/page ของ route นั้น.
+    // ยกเว้นเดียว: role ที่ registry อนุญาตให้เข้า development surface (เช่น
+    // เจ้าของ/super_admin เปิด /admin/ide ตรง ๆ) → สลับ surface ให้แล้วไปต่อ
+    // ไม่ต้องอ้อมผ่าน /developer ก่อน · role อื่นเจอ 404
+    const pageDecision = decideSurfacePage({ pathname, surface });
+    if (!pageDecision.allowed) {
+      if (!(await mayEnterDevelopment())) {
+        return new NextResponse(null, { status: 404 });
+      }
+      writeSurfaceCookie("development");
+    } else {
+      const targetSurface = surfaceForPagePath(pathname);
+      if (targetSurface && req.cookies.get(SURFACE_COOKIE)?.value !== targetSurface) {
+        const mayEnter = targetSurface === "operational" ? true : await mayEnterDevelopment();
+        if (mayEnter) writeSurfaceCookie(targetSurface);
+      }
+    }
+  }
+
   return response;
 }
 
@@ -114,6 +215,10 @@ export const config = {
     "/account/:path*",
     "/workspace-preview/:path*",
     "/business-workspace-template/:path*",
+    // DEVELOPER WORKSPACE (owner directive 2026-10-12) — URL แยกจาก Business,
+    // ต้องผ่าน gate หน้า (requireAuthPage ใน layout) และเป็น entry ที่สลับ
+    // surface เป็น development
+    "/developer/:path*",
     // /workspace (owner approval 2026-09-24): middleware ต้องรันเพื่อ strip header
     // ปลอมจากทุกคำขอ และติด LOCAL_UI_REVIEW_HEADER เฉพาะ dev+loopback เท่านั้น
     // (ตัวหน้าเองยังกัน anonymous ด้วย getAuthedUser ใน page — ไม่ได้เพิ่ม prefix

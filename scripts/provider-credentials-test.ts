@@ -50,8 +50,16 @@ const connectorsPage = read("app/admin/connectors/page.tsx");
 
 const BOARD_MODULE = '@/components/admin/ConnectionsCredentialsBoard';
 
-// ── A: Workspace → Settings reachable ────────────────────────────────────────
-check("A. workspace Settings box → /admin/settings", toolBindings.includes('"credentials"') && toolBindings.includes('"/admin/settings"'));
+// ── A: Settings page reachability ───────────────────────────────────────────
+// OWNER DIRECTIVE 2026-10-15: /admin/settings แสดง Connections & Credentials,
+// Supabase SQL Editor / Table Editor / API Keys, Railway/Vercel/GitHub links —
+// เป็น Internal System Links ที่ห้ามอยู่ในหน้าจอผู้ใช้ธุรกิจ ฉะนั้น "workspace
+// Settings box → /admin/settings" จึงถูกถอดออกจาก surface ผู้ใช้ (หน้าจริงยังอยู่
+// และยังเปิดได้จาก Developer Workspace / super_admin เท่านั้น)
+check(
+  "A. business surface ไม่ผูก /admin/settings อีกแล้ว (owner directive 2026-10-15)",
+  !toolBindings.includes('"/admin/settings"'),
+);
 check("A. Settings page hosts Connections & Credentials section", settings.includes('id="connections-credentials"') && settings.includes("Connections &amp; Credentials"));
 
 // ── B: line-customers → PROVIDER CONTROL → API & Credentials Management ─────
@@ -159,7 +167,7 @@ const eventsWriters = filesWith(/\.from\("provider_credential_events"\)/);
 check("N. ONLY the metadata layer writes provider_credential_events", JSON.stringify(eventsWriters) === JSON.stringify([META]), JSON.stringify(eventsWriters));
 
 // ── PHASE 8 entry points ────────────────────────────────────────────────────
-check("PHASE8. ONE chat surface → Settings (frame gear · หน้าเลขา dashboard เดิมถูกตัดออก — ยุบทุกความสามารถเข้าแชตบอร์ดหลัก)", frameShell.includes('router.push("/admin/settings")') && !existsSync(join(ROOT, "app/admin/dashboard/page.tsx")));
+check("PHASE8. ONE chat surface — frame gear → /admin/settings ถูกถอดจากหน้าจอผู้ใช้ธุรกิจ (owner directive 2026-10-15) · หน้าเลขา dashboard เดิมยังถูกตัดออก", !frameShell.includes('router.push("/admin/settings")') && !existsSync(join(ROOT, "app/admin/dashboard/page.tsx")));
 check("PHASE8. Setup Provider deep-link preselects connectors page", connectorsPage.includes('get("provider")') && board.includes("/admin/connectors?provider="));
 check("PHASE8. Verify All action exists on board", board.includes("Verify All"));
 

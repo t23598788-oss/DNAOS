@@ -13,10 +13,10 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Grid2X2, Ellipsis, MessageSquare, Settings, FileText, MessageCircle,
+  Grid2X2, Ellipsis, MessageSquare, FileText, MessageCircle,
   Wallet, MapPin, Briefcase, Users, ScanLine, Files, FileOutput, Printer,
   Download, Share2, History, Paperclip, ArrowUp, Mic, X,
-  FileSignature, Banknote, Mountain, Server, Cloud,
+  FileSignature, Banknote, Mountain,
 } from "lucide-react";
 import { openExternal } from "@/components/admin/openExternal";
 import FlexPreview from "@/presentation/viewer/FlexPreview";
@@ -40,13 +40,19 @@ type FrameItem = {
   disabledNote?: string;
 };
 
-// RUNPOD console shortcut (owner 2026-08-03): เดิมอยู่ใน IconRail ของ
-// relationships — shell ใหม่คงไว้ใน drawer (external = เปิด browser จริง
-// ไม่ใช่ navigate webview เหมือนเหตุผลเดิมที่ rail ไม่มี href)
-const RUNPOD_CONSOLE_URL = "https://console.runpod.io/pods";
-
 /** apps ตาม reference: ไฟล์·เอกสาร·LINE·การเงิน·GPS·งาน·รายชื่อ·สแกน/AI (+ความสัมพันธ์ ตามคำสั่ง map ของ Owner) */
 /** รายการถัดไป = จุดหมาย rail เดิมของ relationships ที่ย้ายมา shell (คงทางเข้าไว้ครบทุกตัว) */
+/**
+ * OWNER DIRECTIVE 2026-10-15 — BUSINESS USER SURFACE ONLY.
+ * เมนูนี้คือหน้าจอ "ผู้ใช้ธุรกิจ" จึงต้องมีแต่เครื่องมือธุรกิจเท่านั้น:
+ *  - ตัด `/admin/infrastructure` (Infrastructure) ออก — และห้ามนำหน้านั้นมาใช้เป็น
+ *    หน้าค่าบริการของผู้ใช้ (owner directive ข้อ 7); การอ่านข้อมูล infrastructure
+ *    ถูกปิดที่ middleware ทุก HTTP method สำหรับ surface นี้อยู่แล้ว
+ *  - ตัด external RunPod console (Cloud GPU) ออก — ห้ามเปิด console ของผู้ให้บริการ
+ *    ภายนอก (Railway/Vercel/RunPod) จากหน้าจอผู้ใช้ธุรกิจ
+ * ทั้งสองรายการยังอยู่ที่เดิมในระบบ (backend ไม่ได้ถูกลบ) — เข้าถึงได้จาก
+ * Developer Workspace (/developer) ซึ่งต้องมีสิทธิ์ developer_tier
+ */
 const APPS: FrameItem[] = [
   { icon: Files, label: "ไฟล์", route: "/admin/storage" },
   { icon: FileText, label: "เอกสาร", route: "/admin/create-document" },
@@ -60,8 +66,6 @@ const APPS: FrameItem[] = [
   { icon: FileSignature, label: "รายการเอกสาร", route: "/admin/transactions" },
   { icon: Banknote, label: "ลูกหนี้", route: "/admin/debt-tracking" },
   { icon: Mountain, label: "บ่อวัสดุ", route: "/admin/pits" },
-  { icon: Server, label: "ค่าใช้จ่าย", route: "/admin/infrastructure" },
-  { icon: Cloud, label: "Cloud GPU", external: RUNPOD_CONSOLE_URL },
 ];
 
 /** actions ตาม reference — เหลือแค่ตัวที่มี backend จริง (ประวัติ→event-inbox) ที่เหลือ disabled */
@@ -554,9 +558,12 @@ export function WorkspaceFrame({
       >
         <MessageSquare />
       </button>
-      <button className="gear" onClick={() => router.push("/admin/settings")} aria-label="Settings">
-        <Settings />
-      </button>
+      {/* OWNER DIRECTIVE 2026-10-15: ปุ่ม Settings (เดิม → /admin/settings) ถูกถอดออก
+          จากหน้าจอผู้ใช้ธุรกิจ — หน้านั้นแสดง Connections & Credentials, Supabase SQL
+          Editor/API Keys, Railway/Vercel/GitHub links ซึ่งเป็น Internal System Links
+          ที่เจ้าของสั่งห้ามไว้ในหน้าจอผู้ใช้. ตัวหน้า /admin/settings ยังอยู่และยัง
+          ถูกปิดที่ server สำหรับ operational surface (ดู deny_pages) — เข้าจาก
+          Developer Workspace (/developer) เท่านั้น */}
 
       {/* แผง "ประวัติการสื่อสาร" — รูปแบบตาม reference .inbox: เปิดทับ canvas (stage ซ่อน) */}
       {panelIsOpen && messagePanel && (

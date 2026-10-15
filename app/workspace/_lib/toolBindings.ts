@@ -11,7 +11,10 @@ export interface ToolBinding {
 export const TOOL_BINDINGS: Record<string, ToolBinding> = {
   documents: { route: "/admin/create-document", pendingReason: "เปิดเครื่องมือเอกสารเดิมเพื่อสร้างและดูเอกสาร" },
   chat: { route: "/admin/relationships", pendingReason: "เปิดพื้นที่ข้อความเดิม — ยังไม่ได้รวมทุกช่องทางในกล่องเดียว" },
-  connections: { route: "/admin/connectors", pendingReason: "จัดการการเชื่อมต่อผ่านหน้าตั้งค่าเดิม" },
+  // OWNER DIRECTIVE 2026-10-15: เดิมผูกกับ /admin/connectors (หน้าจัดการผู้ให้บริการ
+  // ภายนอก — GitHub/Railway/Vercel/Supabase). หน้าจอผู้ใช้ธุรกิจไม่ควรพาไปที่นั่นแล้ว
+  // จึงคงเป็น "ยังไม่เชื่อม" ตรง ๆ (ห้ามผูก route ที่เจ้าของสั่งห้าม) — หน้าจริงยังอยู่
+  connections: { pendingReason: "ยังไม่ได้เชื่อมการจัดการการเชื่อมต่อในพื้นที่ผู้ใช้ธุรกิจ" },
   finance: { route: "/admin/finance", pendingReason: "เปิดระบบการเงินเดิม" },
   people: { targetIds: ["partners-table"], pendingReason: "ยังไม่ได้รับข้อมูลคู่ค้าจากระบบกลาง" },
   jobs: { targetIds: ["jobs-table"], pendingReason: "ยังไม่ได้รับข้อมูลงานจากระบบกลาง" },
@@ -25,19 +28,22 @@ export const TOOL_BINDINGS: Record<string, ToolBinding> = {
   transfer: { route: "/admin/storage", pendingReason: "เปิดที่จัดเก็บเดิม — แปลงไฟล์และแชร์รวมยังรอเชื่อม" },
 };
 
-/** Static service boxes, not a second registry or infrastructure provisioner. */
+/**
+ * Static service boxes, not a second registry or infrastructure provisioner.
+ *
+ * OWNER DIRECTIVE 2026-10-15 — BUSINESS USER SURFACE ONLY: entries that pointed at
+ * Developer / Infrastructure / credentials screens (/admin/infrastructure,
+ * /admin/schema-audit, /admin/connectors, /admin/settings, /admin/devices,
+ * /admin/engine-explorer, /admin/backup) were removed from this business-surface
+ * source. Those screens still exist and still work — they are now reachable only
+ * from the Developer Workspace (/developer, role_tiers.developer_tier) and are
+ * closed at the server for the operational surface (registry/permissions.json →
+ * capability_actions.deny_pages). Nothing was deleted from the backend.
+ */
 export const SETTINGS_BOXES = [
-  { key: "database", label: "ฐานข้อมูลและบริการ", route: "/admin/infrastructure" },
-  { key: "schema", label: "โครงสร้างข้อมูล / Schema", route: "/admin/schema-audit" },
   { key: "files", label: "ไฟล์และเอกสาร", route: "/admin/storage" },
   { key: "access", label: "ผู้ใช้และสิทธิ์", route: "/admin/users" },
-  { key: "connect", label: "Connect / ผู้ให้บริการ", route: "/admin/connectors" },
-  { key: "credentials", label: "Connections & Credentials", route: "/admin/settings" },
-  { key: "devices", label: "อุปกรณ์ที่จับคู่ (Device Connector)", route: "/admin/devices" },
-  { key: "capabilities", label: "งานและความสามารถ", route: "/admin/engine-explorer" },
   { key: "history", label: "เหตุการณ์และหลักฐาน", route: "/admin/event-inbox" },
-  { key: "backup", label: "สำรองและกู้คืน", route: "/admin/backup" },
-  { key: "configuration", label: "ตั้งค่าระบบ", route: "/admin/settings" },
 ] as const;
 
 /** Layout changes can only select known, granted keys; they cannot grant access. */

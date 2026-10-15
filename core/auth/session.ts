@@ -23,6 +23,10 @@ export interface AuthedUser {
 export const ADMIN_TIER = permissions.role_tiers.admin_tier as AppRole[];
 export const SUPER_ADMIN_ONLY = permissions.role_tiers.super_admin_only as AppRole[];
 export const ANY_AUTHENTICATED = permissions.role_tiers.any_authenticated as AppRole[];
+// Developer Workspace tier (owner directive 2026-10-15): แยกออกจาก admin_tier —
+// employee/ผู้ใช้งานธุรกิจทั่วไปเข้า Developer Surface ไม่ได้. ยังอ่านจากไฟล์
+// registry เดิม (permissions.json) ไม่มีระบบ auth/registry ที่สอง.
+export const DEVELOPER_TIER = permissions.role_tiers.developer_tier as AppRole[];
 
 // The one place that resolves "who is making this request" from the shared
 // Supabase Auth session cookie (TASK-001) — every requireAuth/requireAuthPage
