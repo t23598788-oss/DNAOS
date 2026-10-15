@@ -5,6 +5,8 @@ import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { debtReminderFlex } from "@/engines/documents/flex-template"
 import { loadCompanySettings } from "@/core/config/company-settings"
+import { deliverBusinessResult, findRecentIdenticalOutbound } from "@/engines/delivery/result-delivery"
+import { resolveExternalIdentity } from "@/engines/connect/identity"
 import { sendLineMessage } from "@/registry/communication"
 import { normalizeSendResult } from "@/app/api/admin/ide/_lib/businessFailureBridge"
 
@@ -120,35 +122,80 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json({ ok: true, flex_preview: flex })
   }
 
-  const lineRes = await sendLineMessage(supabase(), lineUserId, [
-    { type: "flex", altText: "แจ้งยอดค้างชำระ", contents: flex },
-  ])
+  // UNIFIED DELIVERY (owner directive ต่อจาก 24823b1): ขั้นส่งไปผ่าน Response
+  // Gateway กลางเดียว (deliverBusinessResult) — ไม่สร้าง Sender ใหม่:
+  // send wrapper เดินช่องทางส่งเดิม (registry/communication.sendLineMessage —
+  // connector Run gate + canonical credential path) กับ payload Flex เดิม
+  // ทุกตัวอักษร; engine ดูแล normalize/retry(5xx ครั้งเดียว)/RESULT-ID
+  // idempotency/audit/live_commands แบบเดียวกับทุกเส้นทางรวมส่ง
+  const replyText = `💰 แจ้งยอดค้างชำระ ${debt.total_due.toLocaleString("th-TH")} บาท ส่งให้ลูกค้าแล้ว`
 
-  // Business → Infrastructure failure bridge (owner, 2026-09-19): the
-  // debt figure and business_event stay untouched on infrastructure
-  // failure (writes below never run); Business receives ONLY the
-  // normalized result — never raw provider error text.
-  const normalized = await normalizeSendResult(lineRes, {
-    providerSlug: "line",
-    businessAction: "line.send_debt",
-    ownerId: auth.id,
-    actor: auth.email,
-    source: "/api/admin/line-customers/[lineUserId]/send-debt",
-  })
-  if (!normalized.ok) {
-    return NextResponse.json(normalized, { status: 503 })
+  // Recipient mapping ผ่าน Connect Identity เดิม — ผู้รับมาจาก company_line_links
+  // (row จริงข้างบน) ไม่พบ จึงยอมใช้ lineUserId จาก params ไปเทียบร่วม; อ่านๆ
+  // ชั้น identity ไม่ได้ = ปฏิเสธ (fail-closed)
+  try {
+    await resolveExternalIdentity(supabase(), { provider: "line", externalSubjectId: lineUserId })
+  } catch {
+    return NextResponse.json({ error: "อ่านตาราง Connect Identity ไม่สำเร็จ — ปฏิเสธส่งเพื่อกัน mapping ผิด (fail-closed)" }, { status: 500 })
+  }
+
+  // กันการ์ดแจ้งยอดเดิมซ้ำข้ามช่องทาง (bot ก็เขียน line_events ขาออกเหมือนกัน)
+  try {
+    const duplicated = await findRecentIdenticalOutbound(supabase(), lineUserId, replyText)
+    if (duplicated) {
+      return NextResponse.json(
+        { ok: false, error: "การ์ดแจ้งยอดข้อความเดียวกันถูกส่งให้ลูกค้านี้แล้วเมื่อเร็ว ๆ นี้ — ไม่ส่งซ้ำ" },
+        { status: 409 },
+      )
+    }
+  } catch {
+    return NextResponse.json({ error: "อ่านประวัติการส่ง (line_events) ไม่สำเร็จ — ปฏิเสธส่งเพื่อกันส่งซ้ำ (fail-closed)" }, { status: 500 })
+  }
+
+  let lastNormalized: Awaited<ReturnType<typeof normalizeSendResult>> | null = null
+  const normalizer = (async (res: { success: boolean; error?: string }) => {
+    lastNormalized = await normalizeSendResult(res, {
+      providerSlug: "line",
+      businessAction: "line.send_debt",
+      ownerId: auth.id,
+      actor: auth.email,
+      source: "/api/admin/line-customers/[lineUserId]/send-debt",
+    })
+    return lastNormalized
+  }) as never
+
+  const delivery = await deliverBusinessResult(
+    { lineUserId, replyText, resultKey: `debtNotice:${lineUserId}:${company.id}:${new Date().toISOString().slice(0, 10)}`, navigateUrl: null, workspace: null, authorize: async () => true },
+    {
+      db: supabase() as never,
+      normalizer,
+      // payload Flex เดิมเป๊ะ — ยังเดิน channel เดิม (sendLineMessage) เท่านั้น
+      send: ((_db: never, to: string, _messages: unknown[]) =>
+        sendLineMessage(supabase(), to, [{ type: "flex", altText: "แจ้งยอดค้างชำระ", contents: flex }])) as never,
+    },
+  )
+
+  if (delivery.status !== "SENT") {
+    if (delivery.status === "SKIPPED_DUPLICATE") {
+      return NextResponse.json(
+        { ok: false, error: "แจ้งยอดค้างชำระรายนี้ส่งให้ลูกค้าแล้วภายใน 24 ชม. — ไม่ส่งซ้ำ" },
+        { status: 409 },
+      )
+    }
+    // FAILED — สัญญาเดิม: business_event/line_events ยังไม่ถูกเขียน (writes ข้างล่างไม่ run)
+    return NextResponse.json(lastNormalized ?? { ok: false, code: "SEND_FAILED", message: "ส่งไม่สำเร็จ", failureClass: delivery.failureClass ?? null, workId: null, incidentId: null }, { status: 503 })
   }
 
   await db.from("line_events").insert({
     line_user_id: lineUserId,
     raw_type: "flex",
-    raw_text: `💰 แจ้งยอดค้างชำระ ${debt.total_due.toLocaleString("th-TH")} บาท ส่งให้ลูกค้าแล้ว`,
+    raw_text: replyText,
     status: "processed",
     direction: "out",
     // Delivery evidence completeness (mission 2026-10-10 §4): the provider
     // message id from the push answer — same field every other out writer
     // records since BATCH 38.
-    line_message_id: lineRes.messageId ?? null,
+    line_message_id: delivery.messageId ?? null,
     // Owner request 2026-07-24: admin control room must show the EXACT card
     // the customer received — the real Flex JSON, not a paraphrased summary.
     extracted: { flex },
@@ -184,5 +231,5 @@ export async function POST(req: Request, { params }: Params) {
     actor: auth.email ?? auth.id ?? "admin",
   })
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, delivery: { status: delivery.status, message_id: delivery.messageId ?? null, attempts: delivery.attempts } })
 }

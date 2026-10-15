@@ -126,6 +126,34 @@ function retryableFailureClass(cls?: NormalizedFailureClass | null): boolean {
   return cls === "PROVIDER_UNAVAILABLE";
 }
 
+/**
+ * กันส่งข้อความเดียวกันซ้ำข้ามช่องทาง (มิติ 8 — รวม Delivery เดียว 2026-10-15):
+ * อ่าน `line_events` ขาออก (direction:"out" — เพราะทุก Writer ขาออกของระบบ
+ * เขียนแถวนี้เหมือนกันทั้ง bot replies ของ webhook v2 (response.ts
+ * logOutboundToDb) และ routes ของ admin) ภายในกรอบชั่วโมง — พบข้อความ
+ * ตรงกันเป๊ะ (raw_text เท่ากับที่เตรียมส่ง) = คืน true ให้ caller
+ * หยุดก่อนยิง provider · อ่านไม่ได้ = fail-closed error ให้ caller
+ * ปฏิเสธการส่งเอง (ไม่เดา)
+ */
+export async function findRecentIdenticalOutbound(
+  db: SupabaseClient,
+  lineUserId: string,
+  text: string,
+  sinceHours = 24,
+): Promise<boolean> {
+  const since = new Date(Date.now() - sinceHours * 3600_000).toISOString();
+  const { data, error } = await db
+    .from("line_events")
+    .select("id")
+    .eq("line_user_id", lineUserId)
+    .eq("direction", "out")
+    .eq("raw_text", text)
+    .gte("created_at", since)
+    .limit(1);
+  if (error) throw new Error(`OUTBOUND_HISTORY_UNREADABLE: ${error.message}`);
+  return Array.isArray(data) && data.length > 0;
+}
+
 export async function deliverBusinessResult(
   input: ResultDeliveryInput,
   depsIn?: Partial<DeliveryDeps>,
