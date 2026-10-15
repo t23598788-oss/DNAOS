@@ -130,16 +130,15 @@ export interface CreateBusinessEventInput {
   actor: string;
 }
 
-/** CREATE EVENT — the only path that inserts a business event. */
-export async function createBusinessEvent(
-  db: SupabaseClient,
-  input: CreateBusinessEventInput,
-): Promise<WriteResult<{ id: string; event_code: string; status: string }>> {
-  if (!input.eventCode || !input.title) return { ok: false, error: "EVENT_REQUIRED_FIELDS" };
+/**
+ * THE one canonical created-event row shape. Exported PURE so every adjacent
+ * recorder (e.g. transport driver-workflow, which must record through this
+ * authority instead of inserting directly) hands the EXACT same row shape
+ * through the writer — never rebuilds a shadow of it (no second row-semantics).
+ */
+export function buildBusinessEventRow(input: CreateBusinessEventInput): Record<string, unknown> {
   const status = input.status ?? "created";
-  if (!BUSINESS_EVENT_STATES.includes(status)) return { ok: false, error: `EVENT_UNKNOWN_STATE:${status}` };
-
-  const row = {
+  return {
     event_code: input.eventCode,
     event_type: input.eventType ?? null,
     event_date: input.eventDate,
@@ -166,6 +165,18 @@ export async function createBusinessEvent(
       source_provider: input.source.provider,
     },
   };
+}
+
+/** CREATE EVENT — the only path that inserts a business event. */
+export async function createBusinessEvent(
+  db: SupabaseClient,
+  input: CreateBusinessEventInput,
+): Promise<WriteResult<{ id: string; event_code: string; status: string }>> {
+  if (!input.eventCode || !input.title) return { ok: false, error: "EVENT_REQUIRED_FIELDS" };
+  const status = input.status ?? "created";
+  if (!BUSINESS_EVENT_STATES.includes(status)) return { ok: false, error: `EVENT_UNKNOWN_STATE:${status}` };
+
+  const row = buildBusinessEventRow(input);
 
   const { data, error } = await db.from("business_events").insert(row).select("id, event_code, status").single();
   if (error) return { ok: false, error: error.message };
