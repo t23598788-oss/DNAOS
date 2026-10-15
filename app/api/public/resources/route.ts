@@ -18,7 +18,8 @@ import { requireAuth } from "@/core/auth/requireAuth";
 import { ANY_AUTHENTICATED } from "@/core/auth/session";
 import {
   addMyDemandRequest, addMyMaterialListing, createMyResourceSite,
-  listMyResources, listPublicRegistry, updateMyMaterialPrice, updateMyResourceSite,
+  getMyInventory, listMyResources, listPublicRegistry, recordMyStockMovement,
+  updateMyMaterialPrice, updateMyResourceSite,
 } from "@/engines/public-registry/service";
 
 export async function GET(req: Request) {
@@ -31,6 +32,11 @@ export async function GET(req: Request) {
   // mine — ต้อง login (ทุก role ที่มีจริง ใช้ขอเดิม)
   const auth = await requireAuth(ANY_AUTHENTICATED);
   if (auth instanceof NextResponse) return auth;
+  // WORKSTREAM 1 — inventory (สต็อกของฉันแยกจานตามโกดัง + ประวัติเคลื่อนไหว)
+  if (action === "inventory") {
+    const result = await getMyInventory(auth.id);
+    return NextResponse.json(result, { status: result.ok ? 200 : 500 });
+  }
   const result = await listMyResources(auth.id);
   return NextResponse.json(result, { status: result.ok ? 200 : 500 });
 }
@@ -42,6 +48,7 @@ export async function POST(req: Request) {
     action?: string; pit_id?: string; pit_name?: string; phone?: string; address?: string;
     latitude?: number; longitude?: number; is_open?: boolean;
     material_type_id?: string; price?: number | null; requested_quantity?: number | null;
+    direction?: string; quantity?: number | null; unit?: string;
   } | null;
   const action = body?.action ?? "";
   const r = await (async (): Promise<{ ok: boolean; error?: string; [k: string]: unknown }> => {
@@ -66,6 +73,22 @@ export async function POST(req: Request) {
       case "add_demand":
         if (!body?.pit_id || !body?.material_type_id) return { ok: false, error: "ต้องระบุ pit_id + material_type_id" };
         return addMyDemandRequest(auth.id, { pit_id: body.pit_id, material_type_id: body.material_type_id, requested_quantity: body.requested_quantity ?? null });
+      case "record_stock_movement": {
+        // WORKSTREAM 1 — รับเข้า/จ่ายออก/จอง/คืนจอง ผ่าน canonical writer เส้นเดียว
+        const dirs = ["in", "out", "reserve", "release"] as const;
+        if (!body?.pit_id || !body?.material_type_id) return { ok: false, error: "ต้องระบุ pit_id + material_type_id" };
+        if (!body?.unit?.trim()) return { ok: false, error: "ต้องระบุหน่วยนับที่มีหลักฐาน (unit)" };
+        if (!(dirs as readonly string[]).includes(String(body?.direction?.trim()))) return { ok: false, error: "direction ต้องเป็น in|out|reserve|release" };
+        try {
+          return await recordMyStockMovement(auth.id, {
+            pit_id: body.pit_id, material_type_id: body.material_type_id,
+            direction: body.direction as (typeof dirs)[number],
+            quantity: Number(body.quantity), unit: String(body.unit ?? "").trim(), evidence_note: null,
+          });
+        } catch (e) {
+          return { ok: false, error: e instanceof Error ? e.message : "invalid movement" };
+        }
+      }
       default:
         return { ok: false, error: `action ไม่รู้จัก: ${action || "(empty)"}` };
     }
