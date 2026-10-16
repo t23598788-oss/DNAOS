@@ -60,7 +60,8 @@
         "capability_models": {
           "screen.describe": "qwen2.5vl:7b",
           "document.ocr": "qwen2.5vl:72b",
-          "text.entity_extract": "thawatchai"
+          "text.entity_extract": "thawatchai",
+          "intent.classify": "qwen3:8b"
         },
         "unconfigured_error": "AI_GATEWAY_OLLAMA_NOT_CONFIGURED"
       },
@@ -263,6 +264,7 @@
         "status": "gateway-adapter",
         "note": "fetch-based chat/completions adapter in services/ai/adapters.ts (owner mission 2026-10-10 LINE BUSINESS AI)"
       },
+      "display_name": "OpenAI (GPT)",
       "disabled_reason": "Owner order 2026-07-25 (เอา ChatGPT ออกจากระบบให้ถาวร) + live incident 2026-10-11: key ค้างอยู่บน Railway ทำให้ resolver เลือก openai เป็น adapter ตัวสุดท้ายของ conversation.answer/intent.classify → AI_GATEWAY_OPENAI_HTTP_429 บน owner command — consumer audit: LINE entity_extract ยังมี gemini (priority เท่า id น้อยกว่า), IDE workers ใช้ local ollama adapter, owner chat fail-closed ไป deterministic paths ตามเดิม"
     }
   ]

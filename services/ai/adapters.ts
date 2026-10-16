@@ -60,6 +60,10 @@ export const ollamaAdapter: AiAdapter = {
         stream: false,
         // Deterministic outputs (intent.classify / OCR / structured) — temp 0
         options: { temperature: 0 },
+        // Transport correlation (2026-10-17): request id สำหรับจับคู่ log บน
+        // เครื่องที่รัน Ollama จริง — Ollama เองเมินคีย์ที่ไม่รู้จักอยู่แล้ว
+        // (body ที่เหลือเหมือนเดิมทุกฟิลด์ — เปลี่ยนสัญญา provider ไม่แตะ)
+        request_id: context.transportRequestId ?? undefined,
       }),
       signal: AbortSignal.timeout(OLLAMA_TIMEOUT_MS),
     });

@@ -129,6 +129,10 @@ export interface AiAdapterInvokeContext {
   /** Test/DI seam only — never a production path around configuration. */
   env?: (name: string) => string | undefined;
   fetchImpl?: typeof fetch;
+  /** Transport correlation only (2026-10-17): id ของรอบเรียก เพื่อจับคู่ log
+   *  บนเครื่องที่รัน Ollama จริง (Mac) กับ log ฝั่ง Railway — ไม่ใช่ evidence
+   *  id ของ gateway (gateway มีของตัวเอง) และไม่ใช่สิทธิ์ใด ๆ */
+  transportRequestId?: string;
 }
 
 export interface AiAdapterStatus {

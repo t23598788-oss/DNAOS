@@ -126,7 +126,7 @@ async function spawnDaemon(env: Record<string, string>): Promise<{ url: string; 
     await check("5a. REAL forward code.read (loopback daemon)", async () => {
       const res = await forwardToComputeDaemon(
         { toolId: "compute.code.read", payload: { path: "answer.ts" }, commandId: "cmd-relay-1", workspaceRoot: wsRoot },
-        { ok: true, config: liveConfig },
+        { ok: true, tls: null, config: liveConfig },
       );
       assert.equal(res.ok, true);
       if (!res.ok) return;
@@ -137,7 +137,7 @@ async function spawnDaemon(env: Record<string, string>): Promise<{ url: string; 
     await check("5b. REAL forward test.run (type-check fixture)", async () => {
       const res = await forwardToComputeDaemon(
         { toolId: "compute.test.run", payload: { script: "type-check" }, commandId: "cmd-relay-2", workspaceRoot: wsRoot },
-        { ok: true, config: liveConfig },
+        { ok: true, tls: null, config: liveConfig },
       );
       assert.equal(res.ok, true);
       if (!res.ok) return;
@@ -148,7 +148,7 @@ async function spawnDaemon(env: Record<string, string>): Promise<{ url: string; 
     await check("5c. daemon-side SCOPE_DENIED carried verbatim (off-allowlist script)", async () => {
       const res = await forwardToComputeDaemon(
         { toolId: "compute.build.run", payload: { script: "not-allowed-script" }, commandId: "cmd-relay-3", workspaceRoot: wsRoot },
-        { ok: true, config: liveConfig },
+        { ok: true, tls: null, config: liveConfig },
       );
       assert.equal(res.ok, true);
       if (!res.ok) return;
@@ -158,7 +158,7 @@ async function spawnDaemon(env: Record<string, string>): Promise<{ url: string; 
     await check("5d. ai.infer honest NOT_CONFIGURED (no endpoint configured)", async () => {
       const res = await forwardToComputeDaemon(
         { toolId: "compute.ai.infer", payload: { prompt: "ping" }, commandId: "cmd-relay-4", workspaceRoot: null },
-        { ok: true, config: liveConfig },
+        { ok: true, tls: null, config: liveConfig },
       );
       assert.equal(res.ok, true);
       if (!res.ok) return;
@@ -168,7 +168,7 @@ async function spawnDaemon(env: Record<string, string>): Promise<{ url: string; 
     await check("6b. wrong bearer → RELAY_UNREACHABLE", async () => {
       const res = await forwardToComputeDaemon(
         { toolId: "compute.code.read", payload: { path: "answer.ts" }, commandId: "cmd-relay-5", workspaceRoot: wsRoot },
-        { ok: true, config: { url: daemon.url, token: "WRONG" } },
+        { ok: true, tls: null, config: { url: daemon.url, token: "WRONG" } },
       );
       assert.equal(res.ok, false);
       if (res.ok) return;

@@ -40,6 +40,9 @@ export interface DispatchResult {
   requires_confirmation: boolean;
   violations: string[];
   hardcode_warnings?: Classification[];
+  /** execution-surface classification for discovery (PHASE 2 alignment) */
+  code?: "SHADOW_COMMAND" | "UNIMPLEMENTED" | "APPROVAL_REQUIRED" | "OK";
+  surface?: "chat" | "write" | "system" | "unimplemented";
 }
 
 interface CommandDef {
@@ -466,6 +469,34 @@ export function listCommands(): string[] {
   return Object.keys(commands);
 }
 
+/** Commands that have a REAL dispatcher executor (a QUERY_MAP handler). */
+export function listExecutableCommands(): string[] {
+  return Object.keys(QUERY_MAP);
+}
+
+/**
+ * PHASE 2 — capability execution surface. Classifies a registered command by
+ * its real executor path (single source = dispatcher QUERY_MAP + the
+ * requires_confirmation flag + a system-tool prefix set). Discovery surfaces
+ * must only expose "chat" as available; write/system/unimplemented are never
+ * advertised as chat-executable.
+ */
+const SYSTEM_COMMAND_PREFIXES = [
+  "file.", "hardcode.", "storage.", "workspace.", "registry.", "computer.",
+  "drive.", "events.",
+];
+
+export type CommandSurface = "chat" | "write" | "system" | "unimplemented";
+
+export function getCommandSurface(command: string): CommandSurface {
+  if (command in QUERY_MAP) return "chat";
+  const def = commands[command];
+  if (!def) return "unimplemented";
+  if (def.requires_confirmation) return "write";
+  if (SYSTEM_COMMAND_PREFIXES.some((p) => command.startsWith(p))) return "system";
+  return "unimplemented";
+}
+
 /**
  * HCG-P2 — Command Execution Layer wiring, REPORT_ONLY (registry/hardcode-governance/
  * enforcement-config.json -> integration_points.command_execution_layer). Classifies
@@ -534,6 +565,8 @@ export async function dispatch(
       data: null,
       requires_confirmation: false,
       violations: [`command "${command}" ไม่อยู่ใน registry — Shadow Command ถูกปฏิเสธ`],
+      code: "SHADOW_COMMAND",
+      surface: "unimplemented",
     };
   }
 
@@ -548,6 +581,8 @@ export async function dispatch(
       violations: violations.length > 0
         ? violations
         : [`command "${command}" ต้องได้รับการยืนยันจากมนุษย์ก่อน (Rule 72)`],
+      code: "APPROVAL_REQUIRED",
+      surface: "write",
     };
   }
 
@@ -561,7 +596,7 @@ export async function dispatch(
   if (queryFn) {
     try {
       const data = await queryFn(payload);
-      return { ok: true, command, data, requires_confirmation: false, violations: [], hardcode_warnings };
+      return { ok: true, command, data, requires_confirmation: false, violations: [], hardcode_warnings, code: "OK", surface: "chat" };
     } catch (err) {
       return {
         ok: false, command, data: null, requires_confirmation: false,
@@ -572,11 +607,13 @@ export async function dispatch(
   }
 
   return {
-    ok: true,
+    ok: false,
     command,
-    data: { message: `command "${command}" registered แต่ยังไม่มี query handler — ต้องพัฒนาเพิ่ม` },
+    data: null,
     requires_confirmation: def.requires_confirmation,
-    violations: [],
+    violations: [`command "${command}" ยังไม่มี executor ที่พร้อมใช้งาน (unimplemented) — ไม่ประกาศว่า available`],
+    code: "UNIMPLEMENTED",
+    surface: "unimplemented",
     hardcode_warnings,
   };
 }

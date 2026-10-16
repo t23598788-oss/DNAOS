@@ -11,6 +11,7 @@ import {
   type OwnerRuntimeAnswer,
 } from "@/core/owner-runtime/client";
 import { translateLocalAiCommand } from "./_lib/localAiBridge";
+import type { LayerTrace } from "./_lib/resultContract";
 
 // ── owner runtime read path (BATCH 12, owner spec) ─────────────────────────
 // After the deterministic command/intent layers and the canonical capability
@@ -144,23 +145,52 @@ export async function POST(request: Request) {
     // canonical เดิม — AI ไม่เขียน DB ไม่ execute อะไรทั้งสิ้น · fail-closed:
     // แปลไม่ได้/ไม่ configured = null → เดินต่อ owner-runtime เหมือนเดิมทุกประการ
     let localAiCommandUsed: string | null = null;
+    // LOCAL AI BUSINESS COMMAND PATH (owner, 2026-10-17 ข้อ 1): AI ตีความคำสั่ง
+    // ธุรกิจได้เมื่อ Structured Intent ยังไม่สมบูรณ์ — เช่น "ยอดหนี้ของบริษัท X"
+    // ตรง finance regex แต่ intent เดิมไม่มีชิ่อที่ขอบริษัท (mock answer รวม) ->
+    // ให้ Local AI แปลได้ (debt.current ของบริษัทเจาะจง) · deterministic commands
+    // ที่ทำงานถูกต้องอยู่ (navigate/external/window/line/pulse) ไม่ถูกแตะทุกประการ
+    const structuredIntentIncomplete =
+      result.type === "finance_summary" &&
+      /บริษัท|หจก|บจก|ห้างหุ้นส่วน/.test(rawMessage);
     // sections = board fallback (ข้อมูล workspace เดิม) ไม่ใช่คำตอบจริงของคำถาม
     // — ปล่อยให้ Local AI แปลและแทนที่ได้ แต่ถ้า AI แปลไม่ได้ sections เดิมคงอยู่
     const bridgeEligible =
       !deterministicCue &&
-      (result.type === "text" || result.type === "error" || result.type === "sections");
+      (result.type === "text" || result.type === "error" || result.type === "sections" || structuredIntentIncomplete);
+    // หลักฐานแต่ละชั้น (owner ข้อ 5): INPUT → AI → TOOL → DISPATCHER →
+    // DATABASE → RESULT → WORKSPACE — ค่าจริงจากเส้นทางที่กำลังรันเท่านั้น
+    const trace: LayerTrace = {
+      input: { message: rawMessage.slice(0, 400), session_key: memorySessionKey, user: auth.email },
+    };
     if (bridgeEligible) {
-      const localCommand = await translateLocalAiCommand(rawMessage, {
+      const bridgeOutcome = await translateLocalAiCommand(rawMessage, {
         ownerId: auth.id,
         sessionId: memorySessionKey,
       });
-      if (localCommand) {
-        const aiResult = await buildChatResult(request, rawMessage, response, localCommand);
+      if (trace) {
+        trace.ai = {
+          status: bridgeOutcome.status,
+          request_id: bridgeOutcome.provenance?.requestId ?? null,
+          error: bridgeOutcome.error,
+          command: bridgeOutcome.command?.action ?? null,
+          payload: bridgeOutcome.command?.payload ?? null,
+          provider: bridgeOutcome.provenance?.provider ?? null,
+          capability: bridgeOutcome.provenance?.capability ?? null,
+          evidenceId: bridgeOutcome.provenance?.evidenceId ?? null,
+          occurredAt: bridgeOutcome.provenance?.occurredAt ?? null,
+        };
+      }
+      if (bridgeOutcome.command) {
+        const aiResult = await buildChatResult(request, rawMessage, response, bridgeOutcome.command, trace);
         if (aiResult && aiResult.type !== "text" && aiResult.type !== "error") {
           result = aiResult;
-          localAiCommandUsed = localCommand.action;
+          localAiCommandUsed = bridgeOutcome.command.action;
         }
       }
+    } else if (trace) {
+      // deterministic/capability layer ตอบก่อนอยู่แล้ว (คู่ในเงีื่อนไขห้ามทำลาย)
+      trace.ai = { status: "SKIPPED", reason: "deterministic layer replied first", note: "ห้ามทำลาย deterministic commands ที่ทำงานถูกต้อง" };
     }
     if (!deterministicCue && !(result.type !== "text" && result.type !== "error")) {
       // identity_id comes ONLY from the authenticated session mapping —
@@ -196,6 +226,14 @@ export async function POST(request: Request) {
       result,
       // LOCAL AI RUNTIME evidence: action ที่ Local AI แปลได้ (null = ไม่ผ่าน bridge)
       ...(localAiCommandUsed ? { local_ai_command: localAiCommandUsed } : {}),
+      // LOCAL AI BUSINESS COMMAND PATH (owner, 2026-10-17): สถานะ AI layer จริง
+      // AI_OK | AI_UNRESOLVED (แปลไม่ได้) | AI_UNAVAILABLE (gateway/provider ล้ม) | SKIPPED
+      ...(trace.ai ? { ai_status: String(trace.ai.status) } : {}),
+      // TRANSPORT CORRELATION (RAILWAY↔MAC LOCAL AI, 2026-10-17): id เดียวกัน
+      // กับ log บน Mac (worker) และ relay runtime — ใช้พิสูจน์ REQUEST_ID_MATCH
+      ...(bridgeEligible && trace.ai?.request_id ? { local_ai_request_id: String(trace.ai.request_id) } : {}),
+      // หลักฐานการทำงานแต่ละชั้น INPUT→AI→TOOL→DISPATCHER→DATABASE→RESULT→WORKSPACE
+      ...(Object.keys(trace).length > 1 ? { layers: trace } : {}),
     });
   } catch (error) {
     return NextResponse.json({

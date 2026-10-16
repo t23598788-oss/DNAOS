@@ -278,6 +278,53 @@ async function documentResult(
   };
 }
 
+// ── layer evidence (LOCAL AI BUSINESS COMMAND PATH, owner 2026-10-17) ────────
+// หลักฐานการทำงานแต่ละชั้น — ค่าทั้งหมดมาจากเส้นทางจริงที่กำลังรันเท่านั้น
+// (ไม่ประดิษฐ์สถานะ): dispatch ที่จับได้ ใส่ทั้ง TOOL/DISPATCHER/DATABASE ไว้เลย
+export interface LayerTrace {
+  input?: Record<string, unknown>;
+  ai?: Record<string, unknown>;
+  tool?: Record<string, unknown>;
+  dispatcher?: Record<string, unknown>;
+  database?: Record<string, unknown>;
+  result?: Record<string, unknown>;
+  workspace?: Record<string, unknown>;
+}
+
+/** หลักฐาน DATABASE layer: reader เดิมของแต่ละ command จาก QUERY_MAP เดิม
+ * (ห้ามหลอกว่าระบบมาจากตารางอื่น) — dispatcher คือเจ้าเดียวที่เรียกมัน */
+export const STYLE_CHAIN_DB_READERS: Record<string, string> = {
+  "partner.find": "services/supabase/queries#getPartners (company table — canonical reader เดิม)",
+  "debt.current": "engines/debt/tracking#getCurrentDebt (debt_snapshots + debt_events — canonical reader เดิม)",
+  "debt.list": "services/supabase/queries#getOpenDebts (invoice_payment_summary + invoices — canonical view เดิม)",
+  "job.active": "services/supabase/queries#getJobs (jobs IN_PROGRESS)",
+  "job.list": "services/supabase/queries#getJobs",
+  "draft.list": "services/supabase/queries#getPendingDrafts",
+  "invoice.latest": "services/supabase/queries#getLatestInvoice",
+};
+
+async function dispatchWithTrace(
+  command: string,
+  payload: Record<string, unknown>,
+  trace?: LayerTrace,
+) {
+  const r = await dispatch(command, payload);
+  if (trace) {
+    trace.tool = { ...trace.tool, last_command: command };
+    trace.dispatcher = {
+      command,
+      ok: r.ok,
+      violations: r.violations ?? [],
+      requires_confirmation: r.requires_confirmation,
+      code: r.code ?? null,
+      surface: r.surface ?? null,
+      hardcode_warnings: Array.isArray(r.hardcode_warnings) ? r.hardcode_warnings.length : 0,
+    };
+    trace.database = { reader: STYLE_CHAIN_DB_READERS[command] ?? "canonical dispatcher QUERY_MAP" };
+  }
+  return r;
+}
+
 // ── canonical detail → read-only HTML (version snapshot ต้นฉบับ) ─────────────
 
 const esc = (v: unknown): string =>
@@ -380,8 +427,9 @@ async function timelineResult(_req: Request, name: string): Promise<Extract<Chat
 async function dispatcherTableResult(
   command: string,
   payload: Record<string, unknown>,
+  trace?: LayerTrace,
 ): Promise<ChatResult | null> {
-  const r = await dispatch(command, payload);
+  const r = await dispatchWithTrace(command, payload, trace);
   if (!r.ok || !Array.isArray(r.data)) return null;
   // ผลอ่านสำเร็จแต่ไม่มีรายการ → แสดงตารางว่างตรง ๆ (ซื่อสัตย์ว่าอ่านแล้วจริง)
   // ไม่ใช่ null (กัน fallback ไปแปลงเป็นคำตอบอย่างอื่น)
@@ -405,6 +453,198 @@ async function dispatcherTableResult(
       rows: rows.map((row) => keys.map((k) => (row[k] === null || row[k] === undefined ? "—" : String(row[k])))),
     },
   };
+}
+
+// ── debt.current (หนี้ของบริษัทเจาะจง) — LOCAL AI BUSINESS COMMAND PATH ────
+// (owner, 2026-10-17) เส้นทาง canonical เดิมทั้งหมด: partner.find (ค้นชื่อบริษัท
+// → id เดียว) → debt.current (ส่งตัวตน partner_id ติดเข้าสู่ GetCurrentDebt) →
+// debt.list (เลขที่เอกสารของใบแจ้งหนี้ค้างบริษัทเดียวกัน เมื่อมี) · ไม่สร้าง Reader
+// / Writer คู่ขนาน · แสดงเท่านั้นข้อมูลจริง: ชื่อบริษัท / เลขที่เอกสาร / ยอดหนี้ /
+// สถานะ — ไม่มีข้อมูล → NOT_FOUND ไม่มีสิทธิ์ → BLOCKED (ไม่แต่งตัวเลข)
+
+async function companyDebtResult(companyName: string, trace?: LayerTrace): Promise<ChatResult | null> {
+  // ชั้น 1 — TOOL: partner.find (registry command ที่ลงทะเบียนไว้) → ตัวตนบริษัท
+  const findResult = await dispatchWithTrace("partner.find", { keyword: companyName }, trace);
+  if (!findResult.ok) {
+    if (trace) trace.result = { status: "BLOCKED", command: "partner.find", violations: findResult.violations ?? [] };
+    return {
+      type: "table",
+      title: `ยอดหนี้ของ "${companyName}" — BLOCKED`,
+      table: {
+        columns: [
+          { key: "company", label: "บริษัท" },
+          { key: "doc", label: "เลขที่เอกสาร" },
+          { key: "amount", label: "ยอดหนี้ (คงชำระ)" },
+          { key: "status", label: "สถานะ" },
+        ],
+        rows: [[companyName, "—", "—", `BLOCKED: ${(findResult.violations ?? []).join("; ") || "dispatcher ปฏิเสธ"}`]],
+      },
+    };
+  }
+  type PartnerRow = { id?: string; name?: string };
+  let found = (Array.isArray(findResult.data) ? findResult.data : []) as PartnerRow[];
+  let identityFallback: string[] | null = null;
+  if (found.length === 0) {
+    // IDENTITY FALLBACK (close-text Thai, presentation layer เท่านั้น): ชื่อที่
+    // พิมพ์ผิดอักษรกลมกลืน (ท/ธ, ฒ/ช — ของจริง: "ช.ทวัฒชัยการช่าง" vs "ช.ธวัชชัยการช่าง")
+    // ลองตัวแปรแล้วใช้ guard เดิม (ชื่อเต็มตรงหรือผลลัพธ์เดียวเท่านั้น) และชื่อที่
+    // แสดงบนจอเป็นชื่อจาก DB จริงเสมอ — dispatcher/registry/ข้อมูลไม่ถูกแตะ
+    const variants = thaiCloseVariants(companyName);
+    for (const v of variants) {
+      const alt = await dispatchWithTrace("partner.find", { keyword: v }, trace);
+      if (alt.ok && Array.isArray(alt.data) && (alt.data as PartnerRow[]).length > 0) {
+        found = alt.data as PartnerRow[];
+        identityFallback = variants.slice(0, variants.indexOf(v) + 1);
+        break;
+      }
+    }
+  }
+  if (found.length === 0) {
+    if (trace) trace.result = { status: "NOT_FOUND", command: "partner.find", keyword: companyName, variants_tried: thaiCloseVariants(companyName) };
+    return {
+      type: "table",
+      title: `ยอดหนี้ของ "${companyName}"`,
+      table: {
+        columns: [
+          { key: "company", label: "บริษัท" },
+          { key: "doc", label: "เลขที่เอกสาร" },
+          { key: "amount", label: "ยอดหนี้ (คงชำระ)" },
+          { key: "status", label: "สถานะ" },
+        ],
+        rows: [[companyName, "—", "—", "NOT_FOUND — ไม่พบบริษัทนี้ในระบบ"]],
+      },
+    };
+  }
+  const exact = found.filter((p) => String(p.name ?? "").trim() === companyName.trim());
+  const partner = exact.length >= 1 ? exact[0] : found.length === 1 ? found[0] : undefined;
+  if (!partner?.id) {
+    return {
+      type: "table",
+      title: `พบ ${found.length} รายที่ตรงกับ "${companyName}" — ระบุชื่อบริษัทให้ตรงเพื่อดูยอดหนี้`,
+      table: {
+        columns: [{ key: "name", label: "ชื่อบริษัท" }],
+        rows: found.slice(0, 20).map((p) => [String(p.name ?? "—")]),
+      },
+    };
+  }
+
+  // ชั้น 2 — TOOL: debt.current ผ่านตัวตนเดิมจาก partner.find (Canonical เดิม)
+  const debtResult = await dispatchWithTrace("debt.current", { partner_id: String(partner.id) }, trace);
+  if (!debtResult.ok) {
+    if (trace) trace.result = { status: "BLOCKED", command: "debt.current", violations: debtResult.violations ?? [] };
+    return {
+      type: "table",
+      title: `ยอดหนี้ของ "${String(partner.name ?? companyName)}"`,
+      table: {
+        columns: [
+          { key: "company", label: "บริษัท" },
+          { key: "doc", label: "เลขที่เอกสาร" },
+          { key: "amount", label: "ยอดหนี้ (คงชำระ)" },
+          { key: "status", label: "สถานะ" },
+        ],
+        rows: [[String(partner.name ?? companyName), "—", "—", `BLOCKED: ${(debtResult.violations ?? []).join("; ") || "dispatcher ปฏิเสธ"}`]],
+      },
+    };
+  }
+  const debt = debtResult.data as {
+    principal?: number | null;
+    interest?: number | null;
+    penalty?: number | null;
+    total_due?: number | null;
+    overdue_days?: number | null;
+    debt_type?: string | null;
+    document_type?: string | null;
+  } | null;
+  if (!debt || !debt.total_due) {
+    if (trace) trace.result = { status: "NOT_FOUND", command: "debt.current", partner_id: String(partner.id), identity_fallback: identityFallback };
+    return {
+      type: "table",
+      title: `ยอดหนี้ของ "${String(partner.name ?? companyName)}"`,
+      table: {
+        columns: [
+          { key: "company", label: "บริษัท" },
+          { key: "doc", label: "เลขที่เอกสาร" },
+          { key: "amount", label: "ยอดหนี้ (คงชำระ)" },
+          { key: "status", label: "สถานะ" },
+        ],
+        rows: [[String(partner.name ?? companyName), "—", "—", "NOT_FOUND — ไม่มีข้อมูลหนี้ค้างของบริษัทนี้ในระบบ"]],
+      },
+    };
+  }
+
+  // ชั้น 3 — เลขที่เอกสาร: จาก canonical view เดิม (debt.list = invoice_payment_summary)
+  // เฉพาะแถวของบริษัทนี้เท่านั้น (เทียบชื่อเต็มจาก partner.find — ข้อมูลจริงเท่านั้น)
+  const debtList = await dispatchWithTrace("debt.list", {}, trace);
+  type OpenDebtRow = { document_number?: string | null; customer_name?: string | null; outstanding_amount?: number | null; derived_status?: string | null };
+  const companyInvoices = (Array.isArray(debtList?.data) ? (debtList.data as OpenDebtRow[]) : [])
+    .filter((d) => String(d.customer_name ?? "").trim() === String(partner.name ?? '').trim());
+  const docNumbers = [...new Set(companyInvoices.map((d) => String(d.document_number ?? "").trim()).filter(Boolean))];
+
+  const status = overdueStatusLabel(debt.overdue_days, debt.debt_type);
+  if (trace) {
+    trace.result = {
+      status: "OK",
+      partner_id: String(partner.id),
+      total_due: debt.total_due,
+      overdue_days: debt.overdue_days ?? null,
+      invoices_matched: companyInvoices.length,
+      identity_fallback: identityFallback,
+    };
+    trace.workspace = {
+      renders_as: "table (field-group: บริษัท/เลขที่เอกสาร/ยอดหนี้/สถานะ)",
+      client_gap: "app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx — same DisplayBlock as other canonical tables",
+    };
+  }
+  return {
+    type: "table",
+    title: `ยอดหนี้ของ "${String(partner.name ?? companyName)}"`,
+    table: {
+      columns: [
+        { key: "company", label: "บริษัท" },
+        { key: "doc", label: "เลขที่เอกสาร" },
+        { key: "amount", label: "ยอดหนี้ (คงชำระ)" },
+        { key: "status", label: "สถานะ" },
+      ],
+      rows: docNumbers.length > 0
+        ? docNumbers.slice(0, 20).map((no) => [
+            String(partner.name ?? "—"),
+            no,
+            formatMoney(Number(debt.total_due)),
+            status,
+          ])
+        : [[
+            String(partner.name ?? "—"),
+            "—",
+            formatMoney(Number(debt.total_due)),
+            status,
+          ]],
+    },
+  };
+}
+
+// ตัวแปรชื่อบริษัทแบบปิด (ใช้เข้า partner.find เท่านั้น — ไม่แสดงบนจอ)
+// อักษรกลมกลืนไทยที่พิมพ์สับสนกันได้จริง: ท/ธ และ ฒ/ช
+function thaiCloseVariants(name: string): string[] {
+  // ใช้แทนที่อักษรทีละตัว (parallel) — การแทนที่นเรียงลำดับจะย้อนค่าที่แทนกลับ (ท→ธ โดน ธ→ท)
+  const pairs = new Map<string, string>([["ท", "ธ"], ["ธ", "ท"], ["ฒ", "ช"]]);
+  const out = new Set<string>();
+  for (const [k, v] of pairs) {
+    if (name.includes(k)) out.add(name.split(k).join(v));
+  }
+  const combined = [...name].map((ch) => pairs.get(ch) ?? ch).join("");
+  if (combined !== name && Object.keys(Object.fromEntries(pairs)).some((k) => name.includes(k))) out.add(combined);
+  out.delete(name);
+  return [...out].slice(0, 6);
+}
+
+function overdueStatusLabel(overdueDays: unknown, debtType: unknown): string {
+  const d = Number(overdueDays ?? 0);
+  const type = String(debtType ?? "");
+  const base = d > 0 ? `ค้างชำระเกินกำหนด ${d} วัน` : "ค้างชำระ";
+  if (type === "loan") return `${base} · ประเภท: เงินกู้`;
+  if (type === "damages") return `${base} · ประเภท: ชดใช้ค่าเสียหาย`;
+  if (type === "collection_reminder") return `${base} · ประเภท: หนี้ค่าเก็บหนี้`;
+  return base; // trade_receivable เป็นค่าเริ่มต้นของ debt_snapshots — ไม่ต้องติดป้ายจากการเดา
 }
 
 // ── debt.list → ตารางธุรกิจภาษาไทย (FIELD GAPS owner mission 2026-10-15) ──
@@ -435,8 +675,8 @@ const nonEmpty = (v: unknown): string => {
   return s && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s) ? s : "—";
 };
 
-async function debtListResult(): Promise<ChatResult | null> {
-  const r = await dispatch("debt.list", {});
+async function debtListResult(trace?: LayerTrace): Promise<ChatResult | null> {
+  const r = await dispatchWithTrace("debt.list", {}, trace);
   if (!r.ok || !Array.isArray(r.data)) return null;
   const rows = r.data as Record<string, unknown>[];
   return {
@@ -461,6 +701,7 @@ async function localAiCommandResult(
   req: Request,
   message: string,
   cmd: import("./localAiBridge").LocalAiCommand,
+  trace?: LayerTrace,
 ): Promise<ChatResult | null> {
   switch (cmd.action) {
     case "finance.summary":
@@ -475,15 +716,23 @@ async function localAiCommandResult(
       return type ? documentResult(req, type, message) : null;
     }
     case "job.active":
-      return dispatcherTableResult("job.active", {});
+      return dispatcherTableResult("job.active", {}, trace);
     case "job.list":
-      return dispatcherTableResult("job.list", {});
+      return dispatcherTableResult("job.list", {}, trace);
     case "draft.list":
-      return dispatcherTableResult("draft.list", {});
+      return dispatcherTableResult("draft.list", {}, trace);
     case "debt.list":
-      return debtListResult();
+      return debtListResult(trace);
     case "invoice.latest":
-      return dispatcherTableResult("invoice.latest", {});
+      return dispatcherTableResult("invoice.latest", {}, trace);
+    case "debt.current": {
+      // LOCAL AI BUSINESS COMMAND PATH (owner, 2026-10-17): หนี้ของบริษัทเจาะจง
+      // วิ่งผ่าน Canonical Dispatcher เดิมทั้งสาย — partner.find (แปลชื่อบริษัท
+      // เป็นตัวตน/identity) → debt.current (partner_id ตัวเดียวกัน) → debt.list
+      // (เลขที่เอกสารของใบแจ้งหนี้ค้าง เมื่อมี) — ไม่มี Reader/Writer คู่ขนาน
+      const company = String(cmd.payload.company ?? "").trim();
+      return company ? companyDebtResult(company, trace) : null;
+    }
     default:
       return null;
   }
@@ -505,7 +754,13 @@ export async function buildChatResult(
   message: string,
   pipeline: PipelineLike,
   localCommand?: import("./localAiBridge").LocalAiCommand | null,
+  trace?: LayerTrace,
 ): Promise<ChatResult | null> {
+  // หลักฐานชั้น INPUT ของเส้นทาง Local AI (ข้อ 5 owner): ข้อความต้นทาง +
+  // ตัวตน AI command ที่ถูกแปลได้ (route เติม ai/provenance เอง ในขั้นถัดไป)
+  if (trace && localCommand) {
+    trace.input = { message: message.slice(0, 400), command: localCommand.action, payload: localCommand.payload };
+  }
   // Rule 72 preview — confirmation (html/flex = preview ตัวจริงจาก board เดิม)
   if (pipeline.confirm_token) {
     return {
@@ -529,8 +784,14 @@ export async function buildChatResult(
     // (finance_result / timeline_result / document_result / dispatcher) —
     // ไม่มี renderer ใหม่ ไม่มี data path ใหม่
     if (localCommand) {
-      const r = await localAiCommandResult(req, message, localCommand);
-      if (r) return r;
+      const r = await localAiCommandResult(req, message, localCommand, trace);
+      if (r) {
+        if (trace && !trace.result) {
+          trace.result = { status: "OK", renders_as: r.type };
+          trace.workspace = { renders_as: r.type, client: "app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx" };
+        }
+        return r;
+      }
     }
     if (isFinanceIntent(message)) {
       const r = await financeResult(req);

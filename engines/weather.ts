@@ -96,6 +96,53 @@ export async function getKhonKaenWeatherNow(): Promise<WeatherNow | null> {
 // dayOffset: 0 = today, 1 = tomorrow, 2 = the day after — reads the matching
 // index in Open-Meteo's own `daily` arrays (real forecast, not a guess
 // derived from "now").
+
+// ── DNA-000232: coords-generic forecast + Open-Meteo geocoding (provider เดิม) ──
+// ไม่แตะฟังก์ชันเดิม — ขยายให้รองรับ location ใดก็ได้ตามคำสั่ง (กติกา: ห้าม
+// แต่ง coords เอง — มาจาก geocoding ของ provider ตัวเดียวกันเท่านั้น)
+export async function geocodeOpenMeteo(placeName: string): Promise<{ lat: number; lng: number; label: string } | null> {
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(placeName)}&count=1&language=th&countryCode=TH`;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const r = data?.results?.[0];
+    if (typeof r?.latitude !== "number" || typeof r?.longitude !== "number") return null;
+    return { lat: r.latitude, lng: r.longitude, label: [r.name, r.admin1, r.country].filter(Boolean).join(", ") };
+  } catch {
+    return null; // honest failure — ผู้ใช้/AI ต้องส่ง coords เองถ้า geocode ไม่ได้
+  }
+}
+
+export async function getWeatherForecast(lat: number, lng: number, dayOffset: number): Promise<WeatherDay | null> {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const day = Math.max(0, Math.min(Number(dayOffset) || 0, 7));
+  const days = day + 1;
+  const url =
+    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}` +
+    `&daily=weather_code,precipitation_probability_max,precipitation_sum,temperature_2m_max,temperature_2m_min` +
+    `&timezone=Asia%2FBangkok&forecast_days=${days}`;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const daily = data?.daily;
+    const code = daily?.weather_code?.[day];
+    const tempMax = daily?.temperature_2m_max?.[day];
+    const tempMin = daily?.temperature_2m_min?.[day];
+    if (typeof code !== "number" || typeof tempMax !== "number" || typeof tempMin !== "number") return null;
+    return {
+      date: daily.time?.[day] ?? "",
+      conditionTh: WEATHER_CODE_TH[code] ?? "ไม่ทราบสภาพอากาศแน่ชัด",
+      tempMaxC: tempMax,
+      tempMinC: tempMin,
+      rainChancePct: typeof daily?.precipitation_probability_max?.[day] === "number" ? daily.precipitation_probability_max[day] : null,
+      rainSumMm: typeof daily?.precipitation_sum?.[day] === "number" ? daily.precipitation_sum[day] : null,
+    };
+  } catch {
+    return null;
+  }
+}
 export async function getKhonKaenWeatherForDay(dayOffset: number): Promise<WeatherDay | null> {
   const days = Math.max(1, dayOffset + 1);
   const url =

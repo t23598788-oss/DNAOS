@@ -236,7 +236,10 @@ async function main(): Promise<void> {
   const providerNamed = capabilityNames.filter((c) => providerNames.some((p) => c.toLowerCase().includes(p)));
   check("T12c no capability is named after a provider", providerNamed.length === 0, providerNamed.join(","));
   check("T12d the two new capabilities are declared with a real adapter", registry.adapters.some((a) => a.capabilities.includes("text.entity_extract")) && registry.adapters.some((a) => a.capabilities.includes("location.geocode")));
-  check("T12e declared adapters only name proven providers", registry.adapters.every((a) => ["ollama", "anthropic", "gemini", "digitalocean"].includes(a.id)));
+  // openai เพิ่มเข้า registry เมื่อ owner mission 2026-10-10 (LINE BUSINESS AI)
+  // โดยมี implementation จริงใน services/ai/adapters.ts (fetch-based) —
+  // จึงเป็น proven provider แล้ว แม้ตอนนี้ enabled:false ก็ตาม
+  check("T12e declared adapters only name proven providers", registry.adapters.every((a) => ["ollama", "anthropic", "gemini", "digitalocean", "openai"].includes(a.id)));
   check("T12f the non-executable provider is declared but not selectable", registry.adapters.some((a) => a.id === "digitalocean" && a.enabled === false) && !AI_ADAPTER_IMPLEMENTATIONS.digitalocean);
 }
 
