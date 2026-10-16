@@ -75,6 +75,10 @@
     "dna-os-mcp-server": {
       "entry": ["src/index.ts", "src/index-http.ts", "src/index-governance-http.ts"],
       "project": ["src/**/*.ts"]
+    },
+    "dna-os-compute": {
+      "entry": ["src/daemon.ts"],
+      "project": ["src/**/*.ts"]
     }
   },
   "ignoreDependencies": [
