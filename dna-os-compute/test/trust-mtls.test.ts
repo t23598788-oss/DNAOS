@@ -11,6 +11,16 @@
  *   6. rotation: new leaf + allowlist swap → old 401, new SUCCEEDED
  *   7. relay TLS posture fail-closed (https w/o trio; http with trio refused)
  *   8. relay e2e over real mTLS === Phase 2's invariants
+ *
+ * Run — from the REPO ROOT (tsx reads the root tsconfig whose paths map
+ * '@/…', so no extra hook is needed; computing-package tsconfig has no
+ * paths entry, which is why running from dna-os-compute/ would fail on
+ * the Business-side relay import):
+ *   npx tsx --test dna-os-compute/test/trust-mtls.test.ts
+ *
+ * Fallback (cwd-independent, in-repo @/ alias hook — plain JS, no deps):
+ *   cd dna-os-compute && npx tsx --test --import ./test/alias-resolver.mjs test/trust-mtls.test.ts
+ * (see test/alias-resolver.mjs header for its known limits under tsx.)
  */
 import assert from "node:assert";
 import { execFileSync } from "node:child_process";

@@ -52,9 +52,12 @@ export async function runBuildOrTestScript(
   if (typeof payload?.script !== "string" || !(allow as readonly string[]).includes(payload.script)) {
     return { status: "SCOPE_DENIED", output: null, error: `script '${String(payload?.script ?? "")}' is not on the ${kind} allowlist: ${allow.join(", ")}` };
   }
-  const env: Record<string, string> = {};
+  // Typed as NodeJS.ProcessEnv because Next.js's global augmentation makes
+  // ProcessEnv.NNODE_ENV a required literal union — Record<string,string>
+  // fails assignability under the root tsconfig. Default honestly to "test".
+  const env: NodeJS.ProcessEnv = { NODE_ENV: process.env.NODE_ENV ?? "test" };
   for (const key of ENV_WHITELIST) {
-    if (process.env[key] !== undefined) env[key] = process.env[key] as string;
+    if (process.env[key] !== undefined) env[key] = process.env[key];
   }
   env.npm_config_yes = "false"; // never let a script install interactively
   const npm = process.platform === "win32" ? "npm.cmd" : "npm";
