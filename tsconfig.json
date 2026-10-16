@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,9 +23,15 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "@/types/*": ["./core/shared/*"],
-      "@/drivers/*": ["./plugins/drivers/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@/types/*": [
+        "./core/shared/*"
+      ],
+      "@/drivers/*": [
+        "./plugins/drivers/*"
+      ]
     }
   },
   "include": [
@@ -35,6 +45,6 @@
   "exclude": [
     "node_modules",
     "supabase/functions/**/*",
-    "dna-os-compute/**/*"
+    "dna-os-compute/"
   ]
 }

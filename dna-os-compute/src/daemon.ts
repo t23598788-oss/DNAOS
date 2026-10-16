@@ -15,6 +15,8 @@
  *   the process never even looks for them.
  */
 import http from "http";
+import https from "https";
+import fs from "fs";
 import { timingSafeEqual } from "crypto";
 import type { CommandKind, RemoteCommand, RemoteResult, RemoteHeartbeat } from "./types.js";
 import { COMMAND_KINDS } from "./types.js";
@@ -22,6 +24,7 @@ import { readWorkspaceFile } from "./workspace.js";
 import { inferForward } from "./inference.js";
 import { runBuildOrTestScript } from "./exec.js";
 import { snapshotMetering, type GpuAdapter, type MeteringSnapshot } from "./metering.js";
+import { createHash } from "crypto";
 
 export interface DaemonConfig {
   token: string | null; // DNA_COMPUTE_TOKEN; null = only /health works
@@ -29,6 +32,12 @@ export interface DaemonConfig {
   bindHost: string; // default 127.0.0.1
   port: number;
   deviceId: string | null; // DNA_COMPUTE_DEVICE_ID (registration is a later phase)
+  /** Phase 4 — mTLS trust (optional; OFF unless explicitly configured).
+   * When set, a TLS layer requires a CA-signed client cert BEFORE the HTTP
+   * handler ever runs; allowedClientFprs is the honest authority allowlist
+   * (deny even authorized-but-revoked clients). */
+  tls?: { caCertPath: string; serverCertPath: string; serverKeyPath: string; minVersion?: "TLSv1.2" | "TLSv1.3" };
+  allowedClientFprs?: Set<string>;
 }
 
 function safeEqual(a: string, b: string): boolean {
@@ -123,7 +132,12 @@ export class RemoteComputeDaemon {
     return done(r.status, r.output, r.error, r.meta);
   }
 
-  /** The one HTTP handler. Returns true when the request was consumed. */
+  /** The one HTTP handler. Works identically over http or https.
+   * Phase 4: when TLS is on, the TLS layer already proves a CA-signed
+   * client cert; the mTLS fingerprint allowlist (config.allowedClientFprs)
+   * turns into a SECOND 401 check BEFORE the bearer-token check — an
+   * authorized-but-revoked client gets the same denial as an anonymous one
+   * (honest, no downgrade once TLS trust is on). */
   async handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
 
@@ -140,6 +154,25 @@ export class RemoteComputeDaemon {
       res.writeHead(401, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ ok: false, error: "DNA_COMPUTE_TOKEN missing or bearer mismatch" }));
       return;
+    }
+
+    // Phase 4 — mTLS client-fingerprint allowlist: the ACTUAL authority —
+    // a CA-certed client NOT on the list is DENIED even if it also carries
+    // the bearer (cert possession ≠ authorization). Non-TLS sockets (plain
+    // http when TLS off) skip this block entirely.
+    if (this.config.allowedClientFprs && this.config.allowedClientFprs.size > 0) {
+      const maybeTls = req.socket as { getPeerCertificate?: (full?: boolean) => { raw?: Buffer } };
+      if (typeof maybeTls.getPeerCertificate === "function") {
+        const raw = maybeTls.getPeerCertificate().raw;
+        // fingerprint = SHA-256 of DER bytes — the EXACT same value openssl
+        // x509 -fingerprint -sha256 prints (trust.ts certFingerprint).
+        const providedFpr = raw ? createHash("sha256").update(raw).digest("hex") : null;
+        if (!providedFpr || !this.config.allowedClientFprs.has(providedFpr)) {
+          res.writeHead(401, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ ok: false, error: `mTLS client fingerprint not on the authorized allowlist (got ${providedFpr ?? "none"})` }));
+          return;
+        }
+      }
     }
 
     // Phase 3 — resource metering (token-gated: real CPU/RAM/GPU numbers).
@@ -197,24 +230,57 @@ export class RemoteComputeDaemon {
     res.end(JSON.stringify({ ok: false, error: "no such compute surface" }));
   }
 
-  start(): Promise<http.Server> {
-    return new Promise((resolve) => {
-      const server = http.createServer((req, res) => {
+  start(): Promise<http.Server | https.Server> {
+    return new Promise((resolve, reject) => {
+      const handler = (req: http.IncomingMessage, res: http.ServerResponse) => {
         void this.handleRequest(req, res);
-      });
+      };
+      let server: http.Server | https.Server;
+      if (this.config.tls) {
+        try {
+          const caPem = fs.readFileSync(this.config.tls.caCertPath, "utf-8");
+          const certPem = fs.readFileSync(this.config.tls.serverCertPath, "utf-8");
+          const keyPem = fs.readFileSync(this.config.tls.serverKeyPath, "utf-8");
+          server = https.createServer(
+            {
+              ca: caPem,
+              cert: certPem,
+              key: keyPem,
+              requestCert: true,       // mTLS: client MUST present a CA-signed cert
+              rejectUnauthorized: true, // unsigned/foreign CA cert is dead at the TLS layer
+              minVersion: this.config.tls.minVersion ?? "TLSv1.2",
+            },
+            handler,
+          );
+        } catch (error) {
+          reject(new Error(`TLS trust files unreadable — staying OFF (fail-closed): ${error instanceof Error ? error.message : String(error)}`));
+          return;
+        }
+      } else {
+        server = http.createServer(handler);
+      }
       server.listen(this.config.port, this.config.bindHost, () => resolve(server));
     });
   }
 }
 
-/** Bootstrap from env only (no credential file, no business plane). */
+/** Bootstrap from env only (no credential file, no business plane).
+ * Phase 4 TLS: DNA_COMPUTE_TLS_DIR + DNA_COMPUTE_FPRS (comma-separated
+ * sha256 hex) turn the SAME surface into mTLS; an enabled-but-broken TLS
+ * config is a boot FAILURE (fail-closed), never a silent HTTP downgrade. */
 export function daemonFromEnv(overrides: Partial<DaemonConfig> = {}, gpuAdapter?: GpuAdapter): RemoteComputeDaemon {
+  const tlsDir = process.env.DNA_COMPUTE_TLS_DIR ?? null;
+  const fprsRaw = process.env.DNA_COMPUTE_FPRS ?? "";
+  const allowedClientFprs = new Set(fprsRaw.split(",").map((s) => s.trim().toLowerCase()).filter(Boolean));
   const config: DaemonConfig = {
     token: process.env.DNA_COMPUTE_TOKEN ?? null,
     inferEndpoint: process.env.DNA_COMPUTE_INFER_ENDPOINT ?? null,
     bindHost: process.env.DNA_COMPUTE_BIND_HOST ?? "127.0.0.1",
     port: Number(process.env.DNA_COMPUTE_PORT ?? 0),
     deviceId: process.env.DNA_COMPUTE_DEVICE_ID ?? null,
+    ...(tlsDir
+      ? { tls: { caCertPath: `${tlsDir}/ca-cert.pem`, serverCertPath: `${tlsDir}/server-daemon.cert.pem`, serverKeyPath: `${tlsDir}/server-daemon.key.pem` }, allowedClientFprs }
+      : {}),
     ...overrides,
   };
   return new RemoteComputeDaemon(config, gpuAdapter);

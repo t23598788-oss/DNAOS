@@ -11,7 +11,43 @@
  *    fingerprint may appear in reports).
  */
 import { createHash, timingSafeEqual } from "crypto";
+import https from "https";
 import { evaluateScope, type GrantRow, type ScopeDecision } from "@/core/policy/scope";
+
+/** Phase 4 — https face of the relay fetch function over node:https with a
+ * REAL mTLS agent (CA-verified server + client-identity cert). Returned
+ * function matches the same minimal {ok, status, json} contract as fetch.
+ * Reject unauthorized (server cert must chain to the CA) — never negotiated
+ * down midway; used for https:// daemons ONLY (never mixed). */
+export function buildHttpsFetch(tls: { caPem: string; certPem: string; keyPem: string }): (url: string, init: { method: string; headers: Record<string, string>; body?: string; timeoutMs: number }) => Promise<{ ok: boolean; status: number; body: string }> {
+  return (url, init) =>
+    new Promise((resolve, reject) => {
+      try {
+        const agent = new https.Agent({
+          ca: tls.caPem,
+          cert: tls.certPem,
+          key: tls.keyPem,
+          rejectUnauthorized: true, // server cert MUST chain to our CA (Phase 4)
+          minVersion: "TLSv1.2" as const,
+        });
+        const u = new URL(url);
+        const req = https.request(
+          { hostname: u.hostname, port: u.port || 443, path: u.pathname + u.search, method: init.method, headers: init.headers, agent },
+          (res) => {
+            let body = "";
+            res.on("data", (c: Buffer) => (body += String(c)));
+            res.on("end", () => resolve({ ok: (res.statusCode ?? 500) < 400, status: res.statusCode ?? 500, body }));
+          },
+        );
+        req.setTimeout(init.timeoutMs, () => req.destroy(new Error("timeout")));
+        req.on("error", reject);
+        if (init.body) req.write(init.body);
+        req.end();
+      } catch (error) {
+        reject(error);
+      }
+    });
+}
 
 /** Compute server grants are device-scoped rows in scoped_grants with
  * resource = compute tool id; evaluateScope's existing resource matching

@@ -15,16 +15,23 @@
  *    COMMAND_KINDS): exactly FOUR compute tool ids exist; anything else is
  *    TOOL_KIND_UNKNOWN without a single byte reaching the daemon.
  *  - Env contract (fail-closed, honest, never logged):
- *      DNA_COMPUTE_DAEMON_URL   e.g. http://127.0.0.1:PORT
+ *      DNA_COMPUTE_DAEMON_URL   e.g. http://127.0.0.1:PORT (or https://…)
  *      DNA_COMPUTE_TOKEN        the daemon's bearer token
+ *      DNA_COMPUTE_TLS_CA_FILE       PEM of the daemon's root CA (https)
+ *      DNA_COMPUTE_TLS_CERT_FILE     Business server client cert (mTLS)
+ *      DNA_COMPUTE_TLS_KEY_FILE      Business server client key
  *    No URL/token → every forward returns RELAY_NOT_CONFIGURED; the route
  *    checks BEFORE creating any device_command row, so an unconfigured
- *    daemon can never leave a stale dispatched command behind.
+ *    daemon can never leave a stale dispatched command behind. An https://
+ *    URL REQUIRES the three TLS files (Phase 4 mTLS) — their absence is
+ *    RELAY_NOT_CONFIGURED too, never a silent plain-HTTP downgrade.
  *  - Workspace root is asserted SERVER-SIDE ONLY (never from the client):
  *    this keeps Phase 1's guard contract intact — a bearer token never
  *    widens anything beyond what DNA OS itself states.
  */
 import { createHash, timingSafeEqual } from "crypto";
+import { existsSync, readFileSync } from "fs";
+import { buildHttpsFetch } from "./computeRelayRuntime";
 
 /** The closed compute tool-id set (managed.run payload.tool_id). */
 export const COMPUTE_TOOL_IDS = ["compute.code.read", "compute.build.run", "compute.test.run", "compute.ai.infer"] as const;
@@ -44,19 +51,42 @@ export function toolIdToDaemonKind(toolId: string): DaemonRequestKind | null {
 }
 
 export interface RelayConfig { url: string; token: string; }
+export interface RelayTls { caPem: string; certPem: string; keyPem: string; }
 export type RelayConfigResult =
-  | { ok: true; config: RelayConfig }
+  | { ok: true; config: RelayConfig; tls: RelayTls | null }
   | { ok: false; code: "RELAY_NOT_CONFIGURED"; error: string };
 
 /** Read env once per call; honest when either half is missing. Public URL is
  * fine to expose (it answers to /health), but the token NEVER leaves this
- * module except into the Authorization header — never into logs/proposals. */
+ * module except into the Authorization header — never into logs/proposals.
+ * Phase 4: https:// REQUIRES the three TLS env paths (mTLS client identity);
+ * missing/unreadable → RELAY_NOT_CONFIGURED — never a plain-HTTP downgrade. */
 export function resolveRelayConfig(readEnv: (k: string) => string | undefined = (k) => process.env[k]): RelayConfigResult {
   const url = (readEnv("DNA_COMPUTE_DAEMON_URL") ?? "").trim();
   const token = (readEnv("DNA_COMPUTE_TOKEN") ?? "").trim();
-  if (!url || !/^https?:\/\//.test(url)) return { ok: false, code: "RELAY_NOT_CONFIGURED", error: "DNA_COMPUTE_DAEMON_URL is not configured (set it to the compute daemon's http://host:port)" };
+  if (!url || !/^https?:\/\//.test(url)) return { ok: false, code: "RELAY_NOT_CONFIGURED", error: "DNA_COMPUTE_DAEMON_URL is not configured (set it to the compute daemon's http(s)://host:port)" };
   if (!token) return { ok: false, code: "RELAY_NOT_CONFIGURED", error: "DNA_COMPUTE_TOKEN is not configured (the daemon's bearer token)" };
-  return { ok: true, config: { url: url.replace(/\/$/, ""), token } };
+  const isHttps = url.startsWith("https://");
+  let tls: RelayTls | null = null;
+  if (isHttps) {
+    const caFile = readEnv("DNA_COMPUTE_TLS_CA_FILE") ?? "";
+    const certFile = readEnv("DNA_COMPUTE_TLS_CERT_FILE") ?? "";
+    const keyFile = readEnv("DNA_COMPUTE_TLS_KEY_FILE") ?? "";
+    const missing = [!caFile && "DNA_COMPUTE_TLS_CA_FILE", !certFile && "DNA_COMPUTE_TLS_CERT_FILE", !keyFile && "DNA_COMPUTE_TLS_KEY_FILE"].filter(Boolean);
+    if (missing.length > 0) {
+      return { ok: false, code: "RELAY_NOT_CONFIGURED", error: `https:// daemon requires the mTLS trio; missing env: ${missing.join(", ")}` };
+    }
+    try {
+      tls = { caPem: readFileSync(caFile, "utf-8"), certPem: readFileSync(certFile, "utf-8"), keyPem: readFileSync(keyFile, "utf-8") };
+    } catch (error) {
+      return { ok: false, code: "RELAY_NOT_CONFIGURED", error: `TLS file(s) unreadable (fail-closed — never plain-HTTP): ${error instanceof Error ? error.message : String(error)}` };
+    }
+  } else {
+    for (const k of ["DNA_COMPUTE_TLS_CA_FILE", "DNA_COMPUTE_TLS_CERT_FILE", "DNA_COMPUTE_TLS_KEY_FILE"]) {
+      if (readEnv(k) !== undefined && readEnv(k) !== "") return { ok: false, code: "RELAY_NOT_CONFIGURED", error: `${k} is set but DNA_COMPUTE_DAEMON_URL is plain http:// — either switch the URL to https:// or remove ${k} (mixed posture refused by construction)` };
+    }
+  }
+  return { ok: true, config: { url: url.replace(/\/$/, ""), token }, tls };
 }
 
 /** Recursive stable stringify so identical semantics always hash equal. */
@@ -111,6 +141,21 @@ export async function forwardToComputeDaemon(input: {
   /** Server-asserted workspace root (absolute); null only for ai.infer. */
   workspaceRoot: string | null;
 }, configResult: RelayConfigResult, fetchFn: typeof fetch = fetch, timeoutMs = 600_000): Promise<ForwardResult> {
+  // Phase 4 — mTLS: when the resolved config carries TLS identity material,
+  // the ONLY transport node:https with mutual-TLS agent (server cert chained
+  // to our CA, client cert/key pinned); plain fetchFunction invoked only for
+  // loopback http://.
+  const effectiveFetch: typeof fetch = configResult.ok && configResult.tls
+    ? ((async (url: any, init: any) => {
+        const raw = await buildHttpsFetch(configResult.tls!)(String(url), {
+          method: init.method,
+          headers: init.headers,
+          body: init.body,
+          timeoutMs: init.timeoutMs ?? timeoutMs,
+        });
+        return new Response(raw.body, { status: raw.status }) as unknown as Response;
+      }) as unknown as typeof fetch)
+    : fetchFn;
   if (toolIdToDaemonKind(input.toolId) === null) {
     return { ok: false, code: "TOOL_KIND_UNKNOWN", error: `tool_id '${input.toolId}' is not in the closed relay set: ${COMPUTE_TOOL_IDS.join(", ")}` };
   }
@@ -121,7 +166,7 @@ export async function forwardToComputeDaemon(input: {
   if (!configResult.ok) return { ok: false, code: "RELAY_NOT_CONFIGURED", error: configResult.error };
   const { url, token } = configResult.config;
   try {
-    const res = await fetchFn(`${url}/commands`, {
+    const res = await effectiveFetch(`${url}/commands`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify({ commandId: input.commandId, kind: toolIdToDaemonKind(input.toolId), payload, workspaceRoot: input.workspaceRoot }),
