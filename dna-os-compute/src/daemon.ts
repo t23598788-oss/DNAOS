@@ -21,6 +21,7 @@ import { COMMAND_KINDS } from "./types.js";
 import { readWorkspaceFile } from "./workspace.js";
 import { inferForward } from "./inference.js";
 import { runBuildOrTestScript } from "./exec.js";
+import { snapshotMetering, type GpuAdapter, type MeteringSnapshot } from "./metering.js";
 
 export interface DaemonConfig {
   token: string | null; // DNA_COMPUTE_TOKEN; null = only /health works
@@ -51,7 +52,7 @@ export interface DaemonState {
 export class RemoteComputeDaemon {
   private state: DaemonState;
 
-  constructor(private config: DaemonConfig) {
+  constructor(private config: DaemonConfig, private gpuAdapter?: GpuAdapter) {
     this.state = {
       deviceId: config.deviceId,
       startedAt: new Date().toISOString(),
@@ -133,9 +134,25 @@ export class RemoteComputeDaemon {
     }
 
     // Everything else requires the token (deny-by-default).
+    // Phase 3 resource metering lives BELOW the gate: real CPU/RAM/GPU
+    // numbers are protected exactly like /commands (401 without token).
     if (!this.config.token || !safeEqual(req.headers.authorization ?? "", `Bearer ${this.config.token}`)) {
       res.writeHead(401, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ ok: false, error: "DNA_COMPUTE_TOKEN missing or bearer mismatch" }));
+      return;
+    }
+
+    // Phase 3 — resource metering (token-gated: real CPU/RAM/GPU numbers).
+    if (url.pathname === "/metering" && req.method === "GET") {
+      const snap: MeteringSnapshot = await snapshotMetering(this.gpuAdapter);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: true, metering: snap }));
+      return;
+    }
+    if (url.pathname === "/gpu" && req.method === "GET") {
+      const snap = await snapshotMetering(this.gpuAdapter);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: true, gpu: snap.gpu }));
       return;
     }
 
@@ -191,7 +208,7 @@ export class RemoteComputeDaemon {
 }
 
 /** Bootstrap from env only (no credential file, no business plane). */
-export function daemonFromEnv(overrides: Partial<DaemonConfig> = {}): RemoteComputeDaemon {
+export function daemonFromEnv(overrides: Partial<DaemonConfig> = {}, gpuAdapter?: GpuAdapter): RemoteComputeDaemon {
   const config: DaemonConfig = {
     token: process.env.DNA_COMPUTE_TOKEN ?? null,
     inferEndpoint: process.env.DNA_COMPUTE_INFER_ENDPOINT ?? null,
@@ -200,5 +217,5 @@ export function daemonFromEnv(overrides: Partial<DaemonConfig> = {}): RemoteComp
     deviceId: process.env.DNA_COMPUTE_DEVICE_ID ?? null,
     ...overrides,
   };
-  return new RemoteComputeDaemon(config);
+  return new RemoteComputeDaemon(config, gpuAdapter);
 }

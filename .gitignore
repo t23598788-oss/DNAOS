@@ -49,6 +49,7 @@ e2e/.auth
 # dna-os-compute sub-package build output (same policy as dna-os-mcp-server/dist —
 # build artifacts are never part of git history)
 dna-os-compute/dist/
+dna-os-compute/portable/
 
 # misc
 .DS_Store

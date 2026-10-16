@@ -15,13 +15,14 @@
  * the REAL daemon (not a mock server) is exercised end-to-end.
  */
 import { daemonFromEnv } from "./daemon.js";
+import { gpuAdapterFor } from "./metering.js";
 
 async function main(): Promise<void> {
   if (process.argv.includes("--version")) {
     console.log("dna-os-compute@0.1.0");
     process.exit(0);
   }
-  const daemon = daemonFromEnv();
+  const daemon = daemonFromEnv({}, gpuAdapterFor());
   const server = await daemon.start();
   const addr = server.address();
   const port = typeof addr === "object" && addr ? addr.port : Number(process.env.DNA_COMPUTE_PORT ?? 0);
