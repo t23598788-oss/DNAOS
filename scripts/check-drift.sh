@@ -83,7 +83,11 @@ echo "--- Checking for undeclared top-level directories ---"
 # OFL-licensed Noto Sans Thai TTFs that engines/documents/artifact.ts installs into
 # the fontconfig user dir before SVG→PNG render (the production container ships zero
 # fonts; real tofu incident). Data-only folder, no code imports it directly.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff architecture connections assets"
+# dna-os-compute/ (owner mission 2026-10-16, REMOTE COMPUTE RUNTIME PHASE 1-4) —
+# standalone compute package ที่มี package.json/tsconfig/test ของตัวเอง (tracked 27 ไฟล์)
+# ใช้ call convention เดียวกับ dna-os-mcp-server: ขอบเขตโครงสร้าง (allowlist + scope + audit)
+# ไม่มี business logic · ประกาศที่นี่เพื่อให้ทุก folder ที่ tracked จริงหยุดโดน flag เป็น Shadow Layer
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff architecture connections assets dna-os-compute"
 
 for dir in */; do
   dirname=$(basename "$dir")
@@ -129,8 +133,11 @@ if find lib/drivers -maxdepth 1 -name "*.ts" 2>/dev/null | grep -q .; then
 fi
 
 # Rule: No hardcoded credentials in source
+# backups/ = data snapshot จริง (gitignored, .gitignore:68 "/backups") ไม่ใช่ source —
+# ถ้าไม่ตัดออก จะเจอ false positive: URL รูปโปรไฟล์ LINE (line-scdn.net) มี substring "eyJ"
+# อยู่ใน path และทำให้ deploy-gate ถูกบล็อกทั้งที่ไม่มี credential ในซอร์สเลย
 if grep -rn "eyJ" --include="*.json" --include="*.ts" \
-   --exclude-dir=node_modules --exclude-dir=.next . 2>/dev/null | grep -v "package" | grep -q .; then
+   --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=backups . 2>/dev/null | grep -v "package" | grep -q .; then
   echo "  DRIFT: JWT token found hardcoded in source — Rule 67, 69"
   DRIFT=$((DRIFT + 1))
 fi
