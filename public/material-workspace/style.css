@@ -1,0 +1,304 @@
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box}html,body{width:100%;height:100%;overflow:hidden}body{margin:0;font:12px 'Sarabun',system-ui,sans-serif;color:#464441;background:#fff;display:grid;grid-template-columns:48px minmax(0,1fr);-webkit-font-smoothing:antialiased}button,input,select{font:inherit}button{cursor:pointer;background:white;border:1px solid #e7e5e2;border-radius:4px;padding:5px 8px;color:#63615e;white-space:nowrap}button:hover{background:#f5f3f0}button:disabled{opacity:.35;cursor:default}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #797774;outline-offset:1px}aside{height:100dvh;display:flex;align-items:center;flex-direction:column;gap:7px;background:#f9f7f4;border-right:1px solid #e4e2df;padding:8px 4px;overflow:auto}.brand{font-size:23px;color:#676562;height:33px}.nav{border:0;background:transparent;font-size:20px;width:36px;height:36px;padding:3px}.active{background:#ebe9e6;color:#5f5d5a}.aside-bottom{margin-top:auto;padding:10px}.dot{display:block;width:6px;height:6px;border-radius:50%;background:#c3a26b}main{height:100dvh;min-width:0;display:flex;flex-direction:column;overflow:hidden}header{height:44px;flex:0 0 44px;display:flex;gap:7px;align-items:center;padding:0 10px;border-bottom:1px solid #e4e2df;background:#fbf9f6;overflow-x:auto;scrollbar-width:thin}header strong{font-size:14px;white-space:nowrap;margin:0 8px 0 2px;min-width:100px}.history{display:flex;gap:2px}.history button{font-size:22px;line-height:20px;width:26px;height:28px;border:0;background:transparent;padding:0}input,select{border:1px solid #e7e5e2;padding:5px 8px;border-radius:4px;color:#5a5855;background:white;min-width:0}header input{flex:1;min-width:120px;max-width:240px}header select{max-width:120px}.primary{background:#656360;color:white;border-color:#656360}.primary:hover{background:#53514e}section{flex:1;min-height:0;min-width:0;overflow:hidden;padding:0}.sheet{height:100%;display:flex;flex-direction:column;overflow:hidden}.table-wrap{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-gutter:stable}table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;table-layout:fixed;white-space:nowrap}th{position:sticky;top:0;z-index:3;background:#f6f4f1;text-align:left;font-size:14px;color:#8b8986;font-weight:500;padding:9px 10px;border-bottom:1px solid #e4e2df;border-right:1px solid #eceae7}td{padding:0 7px;height:36px;border-bottom:1px solid #efedea;border-right:1px solid #f2f0ed;font-size:14px}tr:hover td{background:#fdfbf8}th:first-child,td:first-child{position:sticky;left:0;min-width:36px;width:36px;background:#f9f7f4;z-index:2;text-align:center;color:#a19f9c;font-size:14px}th:first-child{z-index:4}th:nth-child(2),td:nth-child(2){position:sticky;left:36px;background:#fff;z-index:2}th:nth-child(2){background:#f6f4f1;z-index:4}td input{border:1px solid transparent;padding:5px 3px;background:transparent;width:100%;min-width:45px;font-size:14px;border-radius:2px}td input:hover{border-color:#d6d4d1}td input:focus{background:#fff;border-color:#787673}td input[type=number]{width:75px;text-align:right}td:nth-child(2) input{width:100px;color:#676562;font-weight:500}.wide{width:200px}td:nth-child(3) input{width:190px}td:nth-child(4) input{width:115px}td:nth-child(5) input{width:55px}td:nth-child(9) input{width:110px}.status{font-size:14px;color:#74726f}.status.low{color:#b18436}.delete{border:0;padding:4px;color:#a9a7a4}footer{height:27px;flex:0 0 27px;padding:0 10px;display:flex;align-items:center;gap:20px;border-top:1px solid #e4e2df;font-size:14px;color:#999794;background:#fbf9f6}footer span:last-child{margin-left:auto}dialog{border:1px solid #e6e4e1;border-radius:8px;padding:20px;width:500px;max-width:95vw;max-height:90dvh;overflow:auto}dialog::backdrop{background:#35333035}dialog h2{margin:0;font-size:18px}dialog p{color:#8f8d8a;font-size:14px}label{display:block;margin-top:10px;color:#73716e;font-size:14px}label input{display:block;width:100%;margin-top:4px}.actions{display:flex;gap:6px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}.help{line-height:1.7}#connectError{color:#b44538}#toast{position:fixed;bottom:40px;right:20px;background:#474542;color:white;padding:10px 16px;border-radius:6px;display:none;z-index:10}#columnDialog{width:260px}#columnOptions{margin:15px 0}#columnOptions label{display:flex;align-items:center;gap:10px;margin:9px 0}#columnOptions input{width:auto;margin:0}#closeColumns{width:100%}[hidden]{display:none!important}.hidden-col{display:none!important}@media(max-width:600px){body{grid-template-columns:40px minmax(0,1fr)}aside{padding:7px 2px}.nav{width:32px}header{padding:0 6px;gap:5px}header strong{min-width:auto;font-size:14px;margin-right:2px}header input{min-width:100px}footer{gap:10px}footer span:last-child{display:none}}
+aside .bottom-gear{margin-top:auto}aside{gap:8px}button svg{width:19px;height:19px;display:block;flex-shrink:0}header button svg{width:16px;height:16px}.nav{display:flex;align-items:center;justify-content:center;font-size:14px}.nav svg{width:20px;height:20px}#homePane,#toolPane{flex:1;min-height:0;overflow:hidden}#homePane{display:flex;flex-direction:column}.chat-board{height:100%;width:100%;display:flex;flex-direction:column;padding:20px 24px;max-width:900px;margin:auto}#chatMessages{flex:1;min-height:0;overflow:auto;padding:15px 0}.home-blank{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#666461}.home-blank h1{font-size:23px;font-weight:500;margin:0 0 7px}.home-blank p{font-size:14px;color:#a7a5a2}#chatForm{border:1px solid #e5e3e0;border-radius:12px;padding:12px;background:white}#chatDraft{font:inherit;width:100%;resize:none;border:0;outline:none;min-height:46px;background:transparent}.compose-actions{display:flex;gap:8px}.compose-actions button{border:0;background:transparent;padding:6px}.compose-actions #sendChat{margin-left:auto;background:#656360}.chat-message{max-width:90%;padding:11px 14px;border-radius:10px;margin:0 0 16px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:16px;line-height:1.7}.chat-message.user{margin-left:auto;width:fit-content;background:#f5f3f0}.chat-message.ai{background:#fff;border:1px solid #eae8e5}.chat-message.system{color:#95683c;font-size:14px}#toolPane{position:relative}#toolFrame{height:100%;width:100%;border:0;display:block}#toolUnavailable{padding:30px;color:#888683}#toolsDialog{position:fixed;inset:48px auto auto 56px;margin:0;width:400px;max-width:calc(100vw - 66px);height:auto;max-height:calc(100dvh - 62px);border-radius:8px;padding:18px}#toolsDialog::backdrop{background:#35333012}.menu-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}#toolSearch{width:100%;margin-bottom:10px}#toolList{display:flex;flex-direction:column;gap:4px}.tool-item{display:flex;gap:10px;text-align:left;align-items:center;padding:9px;border:0}.tool-item svg{width:18px}.tool-item small{margin-left:auto;font-size:14px;color:#a2a09d}.tool-group{font-size:14px;color:#9b9996;padding:14px 7px 5px}#stockPane[hidden],#homePane[hidden],#toolPane[hidden]{display:none!important}#voiceChat[aria-pressed=true]{color:#686663;background:#f1efec}#toast{bottom:18px}.table-wrap{scrollbar-gutter:auto}
+
+/* Warm neutral palette */
+:root{color-scheme:light}.primary,.compose-actions #sendChat{background:#514b45;border-color:#514b45}.primary:hover{background:#3e3934}.active{background:#e9e4de;color:#514b45}button:focus-visible,input:focus-visible,select:focus-visible{outline-color:#8b8075}.status{color:#746b61}td:nth-child(2) input{color:#62594f}#voiceChat[aria-pressed=true]{color:#514b45;background:#e9e4de}
+
+/* Softer chrome, looped Thai type, and floating composer */
+:root{--ink:#292724;--muted:#625e58;--paper:#fff;--chrome:#fdfcfb;--chat-width:900px}
+body,button,input,select,textarea{font-family:'Sarabun',Tahoma,sans-serif;color:var(--ink)}
+body{font-size:14px}aside{background:var(--chrome);border-right:1px solid #f2f0ed;padding-top:4px}
+header{height:36px;flex-basis:36px;background:var(--chrome);border-bottom:1px solid #f2f0ed;gap:6px}
+header button{padding:3px 6px;border-color:#eeebe7;background:transparent}header input,header select{padding:3px 7px;border-color:#eeebe7}header .primary{background:#514b45;color:white}
+.history button{height:26px}.nav{color:#4c4944}.nav.active{background:#f0ece7;color:#3c3832}.nav svg{stroke-width:1.65}
+th{color:#45413c}td input,td:nth-child(2) input{color:var(--ink)}.status{color:#5b554d}.home-blank{color:var(--ink)}.home-blank p{color:var(--muted)}
+.chat-board{position:relative;max-width:var(--chat-width);padding:0 24px;height:100%}
+#chatMessages{height:100%;padding:20px 0 140px;scroll-padding-bottom:140px;line-height:1.75;overscroll-behavior:contain}
+.home-blank{height:calc(100% + 120px)}.home-blank h1{font-size:24px;font-weight:500}
+#chatForm{position:absolute;left:24px;right:24px;bottom:8px;z-index:2;margin:0;border:1px solid rgba(103,94,83,.14);border-radius:18px;background:rgba(255,255,255,.57);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);box-shadow:0 4px 22px rgba(45,38,30,.035);padding:10px 12px}
+#chatDraft{color:var(--ink);font-size:16px;min-height:46px;line-height:1.65}#chatDraft::placeholder{color:#625e58}
+.compose-actions{gap:6px}.compose-actions button{border-radius:8px;padding:5px}.compose-actions #sendChat{background:#514b45;color:#fff}
+/* WORKSPACE READABILITY STANDARD (owner 2026-10-19): ข้อความสนทนา = 16px */
+.chat-message{font-size:16px;color:var(--ink);max-width:100%}.chat-message.ai{width:100%;border:0;background:transparent;padding:12px 0}
+#toolsDialog{top:40px}#toolsDialog p,.tool-group,dialog p,label{color:#625e58}
+@media(max-width:600px){.chat-board{padding:0 14px}#chatForm{left:14px;right:14px;bottom:6px}}
+#chatMessages:has(.home-blank){padding:0}.home-blank{height:100%}
+
+.compose-actions #sendChat{background:#527262;color:#fff}.compose-actions #sendChat:hover{background:#42604f}
+
+/* Resource control workspace identity — presentation only. */
+.workspace-heading{display:flex;flex-direction:column;min-width:180px;margin:0 8px 0 2px;line-height:1.2}.workspace-heading strong{margin:0}.workspace-heading span{color:#77726c;font-size:14px;white-space:nowrap}
+
+/* Nearly invisible top chrome; clear navigation arrows */
+header{background:#fff;border-bottom-color:transparent;box-shadow:none}
+.history button{color:#25231f}.history button svg{stroke-width:2.1}.history button:disabled{color:#56514b;opacity:.62}
+
+/* Thai glyph clearance: explicit line boxes prevent top and bottom clipping. */
+th{font-size:14px;font-weight:700;line-height:1.7;padding:8px 10px;color:#292724}
+td{height:44px;vertical-align:middle}td input{display:block;height:40px;line-height:26px;font-size:14px;padding:6px 3px;box-sizing:border-box}td input[type=number]{line-height:26px}
+header #add{background:#171717;border-color:#171717;color:#fff}header #add:hover{background:#303030}
+
+/* Viewport-locked resource control canvas: lists scroll internally, never the page. */
+#stockPane{padding:10px 12px 12px;background:#faf9f7}.control-workspace{height:100%;min-height:0;display:grid;grid-template-columns:minmax(235px,22%) minmax(360px,1fr) minmax(220px,21%);gap:10px}.control-rail,.control-center,.control-context{min-height:0;border:1px solid #e9e5e0;border-radius:8px;background:#fff;overflow:hidden;display:flex;flex-direction:column}.control-rail,.control-context{padding:10px}.control-center{padding:16px}.tool-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}.tool-grid button{height:34px;text-align:left;font-size:14px}.tool-grid button:nth-child(3){grid-column:span 2;background:#171717;color:#fff;border-color:#171717}.panel-label{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid #f0ede9;padding:9px 0 6px;font-size:14px;color:#716a62}.panel-label:first-of-type{border-top:0;padding-top:0}.panel-label strong{font-size:14px;color:#8a8178}.scroll-list{min-height:0;flex:1;overflow:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:5px;padding-right:2px}.control-rail .scroll-list{flex-basis:0}.issues{max-height:31%;flex:none}.pit-item,.issue-item,.material-item{width:100%;text-align:left;padding:8px;border-color:#eeeae5;background:#fff;white-space:normal}.pit-item{display:grid;grid-template-columns:1fr auto;gap:2px}.pit-item strong{font-size:14px}.pit-item span,.issue-item span,.material-item span,.selected-summary span{color:#766f67;font-size:14px}.pit-item em{grid-column:2;grid-row:1 / span 2;font-size:14px;color:#857567;font-style:normal;align-self:center}.pit-item.selected{border-color:#6e655c;background:#f5f1ec}.issue-item strong,.issue-item span,.material-item strong,.material-item span{display:block}.issue-item strong{color:#8a5738}.material-item{display:flex;justify-content:space-between;align-items:center}.empty{margin:8px;color:#8a8178;font-size:14px}.form-heading{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.form-heading h1{font-size:18px;margin:0 0 4px;color:#292724}.form-heading p{margin:0;color:#716a62;line-height:1.55}.form-status{margin:14px 0;border-left:3px solid #aaa39b;background:#faf9f7;padding:8px 10px;color:#625e58}.form-status.saving{border-color:#937746}.form-status.success{border-color:#527262;color:#315242}.form-status.error{border-color:#a24f45;color:#8b3f37}.form-status.warning{border-color:#af7d2a}.form-status.neutral{border-color:#aaa39b}#controlForm{display:flex;min-height:0;flex:1;flex-direction:column;justify-content:center}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.form-grid label{display:flex;flex-direction:column;gap:5px;color:#625e58;font-size:14px}.form-grid input,.form-grid select{width:100%;height:36px}.form-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:18px}.form-note{color:#716a62;font-size:14px;line-height:1.55}.unsupported,.quality-summary{border:1px dashed #d8d0c7;padding:16px;color:#625e58;background:#fcfbfa}.unsupported strong{display:block;color:#8a5738;margin-bottom:5px}.selected-summary{display:flex;flex-direction:column;gap:5px;min-height:82px;padding:3px 0 10px}.selected-summary strong{font-size:14px}.live-status{padding:10px;border-radius:5px;background:#faf9f7;color:#625e58;line-height:1.5}.live-status.loading,.live-status.saving{color:#725d35}.live-status.success{color:#315242;background:#f1f7f3}.live-status.error{color:#8b3f37;background:#fdf4f3}.live-status.offline{color:#8a5738;background:#fdf8ef}@media(max-width:850px){.control-workspace{grid-template-columns:minmax(210px,32%) minmax(330px,1fr)}.control-context{display:none}}@media(max-width:600px){.control-workspace{grid-template-columns:1fr}.control-rail{display:none}.control-center{min-height:0}.form-grid{grid-template-columns:1fr}}
+
+.counters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:0 0 9px}.counters span{border:1px solid #eeeae5;border-radius:4px;padding:4px 5px;color:#756e66;font-size:14px}.counters b{display:block;color:#292724;font-size:14px}.danger-box{border:1px solid #dfb9b4;background:#fff8f7;padding:14px;color:#693d38;line-height:1.55;overflow:auto}.danger-box h3{margin:14px 0 4px;font-size:14px;color:#693d38}.danger-box ul{margin:8px 0;padding-left:18px}.danger-box label{display:flex;gap:6px;align-items:flex-start;flex-direction:column;margin-top:10px}.danger-box input{min-width:auto}.danger-box input[name=confirmation]{width:100%;box-sizing:border-box}.danger-box code{font-size:14px;overflow-wrap:anywhere}.danger{background:#8d4039;border-color:#8d4039;color:#fff}.danger:hover{background:#74332d}.danger:disabled{opacity:.6;cursor:wait}
+
+/* ── SINGLE ADAPTIVE CHAT COMPOSER (shell-owned CSS · owner 2026-10-18) ──────────────
+   หน้าจอแชตเดิม (/workspace?materialSurface=chat) โหลดครั้งเดียวใน #chatFrame และคงอยู่ตลอด
+   session ⇒ มี Composer ตัวจริงเพียงกล่องเดียว และข้อความที่พิมพ์ค้างไม่หายเมื่อสลับหน้าจอ
+     · หน้าจอแชต (ไม่ตั้ง body.chat-compact)      → เต็มพื้นที่ = Composer ปกติด้านล่าง
+     · เครื่องมือ/ตาราง/เอกสาร (body.chat-compact) → ย่อเป็นกล่องลอยโปร่งใสด้านล่าง
+   ใช้เฉพาะ selector ของ shell นี้ (#homePane/#chatFrame/#stockPane/#toolPane) — ไม่แตะ CSS
+   ภายใน iframe หรือหน้าจออื่น และไม่ใช้ selector ระดับ element แบบ global
+   (ไม่มี aside{position:fixed} · ไม่มี main{margin-left:...}) */
+#homePane{display:flex;flex-direction:column;position:relative}
+#chatFrame{height:100%;width:100%;border:0;display:block;background:transparent}
+body.chat-compact #homePane{position:fixed;left:56px;right:52px;width:min(560px,calc(100vw - 108px));margin-inline:auto;bottom:12px;height:66px;z-index:6;border-radius:14px;overflow:hidden;box-shadow:0 6px 24px #35333026;opacity:.55;transition:opacity .16s ease,height .16s ease,box-shadow .16s ease}
+body.chat-compact #homePane:hover{opacity:1;height:126px;box-shadow:0 10px 30px #35333033}
+/* โฟกัสที่กล่องพิมพ์ (แจ้งจากหน้าจอแชตเดิมผ่าน postMessage) → คงความชัด/ขยายเท่าที่จำเป็นต่อการพิมพ์ */
+body.chat-compact.chat-composer-active #homePane{opacity:1;height:126px;box-shadow:0 10px 30px #35333033}
+/* จองพื้นที่ด้านล่างให้ Composer ลอย ⇒ ไม่บังตาราง ข้อความ หรือเอกสารที่อยู่ข้างหลัง
+   OWNER 2026-10-18: กล่องเปล่า ~50px + ระยะขอบ 12px → จอง 84px พอ (เดิม 92px) */
+body.chat-compact #stockPane,body.chat-compact #toolPane{padding-bottom:84px}
+
+/* ── BUSINESS TOOL LAUNCHER (owner baseline 2026-10-18) ───────────────────────
+   จุดเปิดเดียว = #toolsMain ในแถบนำทางเดิม · ไม่มี sidebar/tab bar/launcher ชุดที่สอง
+   ใช้ asset โลโก้จริงใน public/brand/providers (ผู้ให้บริการ) และ lucide path เดิมของ shell
+   สำหรับเครื่องมือธุรกิจภายใน · สถานะมาจาก Connect Registry เท่านั้น */
+aside .profile{margin-top:auto;border:0;background:transparent;padding:0;display:grid;place-items:center;width:36px;height:36px}
+aside .profile img{width:28px;height:28px;border-radius:50%;object-fit:contain;background:#fff;border:1px solid #e7e5e2}
+aside .profile #companyLogoFallback{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#ebe9e6;color:#5b554d;font-size:14px;font-weight:700;letter-spacing:.02em}
+aside .profile:hover #companyLogoFallback{background:#e2ded8}
+aside .profile[aria-expanded=true]{background:#ebe9e6}
+aside .bottom-gear{margin-top:0}
+.launcher{position:fixed;left:54px;top:42px;z-index:60;width:410px;max-width:calc(100vw - 66px);max-height:calc(100dvh - 52px);display:flex;flex-direction:column;background:#fff;border:1px solid #e4e0da;border-radius:10px;box-shadow:0 14px 38px #35333024;overflow:hidden}
+.launcher-head{display:flex;align-items:flex-start;gap:10px;padding:13px 14px 10px;border-bottom:1px solid #f0ece7}
+.launcher-title{display:flex;flex-direction:column;gap:2px;min-width:0}.launcher-title strong{font-size:14px;color:#292724}.launcher-title span{font-size:14px;color:#8a8178;line-height:1.45}
+.launcher-head button{min-height:0;padding:3px 8px;font-size:14px;color:#716a62;margin-left:auto}
+.launcher-status{padding:6px 14px;font-size:14px;line-height:1.45;color:#716a62;background:#faf9f7;border-bottom:1px solid #f3efeb}
+.launcher-status.warn{color:#8a5738;background:#fdf8ef}
+.launcher-body{overflow:auto;overscroll-behavior:contain;padding:4px 8px 8px}
+.launcher-group{padding:8px 2px 2px}.launcher-group+.launcher-group{border-top:1px solid #f4f1ed;margin-top:4px}
+.launcher-group-head{display:flex;align-items:baseline;gap:7px;padding:2px 6px 6px}.launcher-group-head b{font-size:14px;color:#8a8178;font-weight:600;letter-spacing:.05em}.launcher-group-head strong{font-size:14px;color:#514b45}.launcher-group-head span{margin-left:auto;font-size:14px;color:#a29a91}
+.launcher-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.launcher-item{display:flex;align-items:center;gap:8px;width:100%;min-width:0;text-align:left;border:1px solid transparent;background:transparent;padding:6px;border-radius:8px;white-space:normal}
+.launcher-item:hover{background:#faf8f5;border-color:#eee9e2}
+.launcher-item .tool-logo,.launcher-item .tool-icon{flex:0 0 26px;width:26px;height:26px;display:grid;place-items:center}
+.launcher-item .tool-logo img{width:22px;height:22px;object-fit:contain;display:block}
+.launcher-item .tool-icon{color:#6d665e;background:#f5f2ed;border-radius:7px}.launcher-item .tool-icon svg{width:16px;height:16px}
+.launcher-item .tool-copy{display:flex;flex-direction:column;gap:1px;min-width:0;flex:1}
+.launcher-item .tool-name{font-size:14px;font-weight:600;color:#3c3833;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.launcher-item .tool-detail{font-size:14px;color:#8e867d;line-height:1.35;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.launcher-item .status{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;font-size:14px;line-height:1;padding:3px 5px;border-radius:999px;border:1px solid #e7e2db;background:#fbfaf8;color:#716a62;white-space:nowrap}
+.launcher-item .status i{width:5px;height:5px;border-radius:50%;background:currentColor}
+.launcher-item .status.st-connected{color:#2f6b4f;border-color:#cfe6da;background:#f3faf6}
+.launcher-item .status.st-not-connected{color:#7a5a2f;border-color:#eadfcb;background:#fdf9f0}
+.launcher-item .status.st-not-configured{color:#716a62;border-color:#e7e2db;background:#fbfaf8}
+.launcher-item .status.st-unavailable{color:#8b3f37;border-color:#efd4d1;background:#fdf4f3}
+.launcher-item[data-status=UNAVAILABLE] .tool-name{color:#6f6860}
+.launcher-foot{border-top:1px solid #f0ece7;padding:7px 8px 8px;background:#fdfcfa}
+.dev-entry{display:flex;align-items:center;gap:8px;width:100%;border:1px dashed #ddd6cd;background:#fff;border-radius:8px;padding:7px 9px;text-align:left;color:#5b554d}
+.dev-entry:hover{background:#faf8f5}.dev-entry span{font-size:14px;font-weight:600}.dev-entry small{margin-left:auto;font-size:14px;color:#9b938a}
+.profile-menu{position:fixed;left:54px;bottom:54px;z-index:60;width:300px;max-width:calc(100vw - 66px);background:#fff;border:1px solid #e4e0da;border-radius:10px;box-shadow:0 14px 38px #35333024;padding:7px;display:flex;flex-direction:column;gap:2px}
+.profile-card{display:flex;align-items:center;gap:9px;padding:8px 8px 9px;border-bottom:1px solid #f1ede8;margin-bottom:4px}
+.profile-card img{width:34px;height:34px;border-radius:50%;object-fit:contain;background:#fff;border:1px solid #eee9e2}
+.profile-copy{display:flex;flex-direction:column;gap:1px;min-width:0}.profile-copy strong{font-size:14px;color:#3c3833;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.profile-copy span{font-size:14px;color:#8e867d}
+.profile-menu button{display:flex;align-items:center;gap:8px;border:0;background:transparent;border-radius:7px;padding:7px 8px;text-align:left;font-size:14px;color:#3c3833;white-space:nowrap}
+.profile-menu button:hover{background:#faf8f5}.profile-menu button small{margin-left:auto;font-size:14px;color:#9b938a}
+.profile-menu button:disabled{opacity:.45;cursor:not-allowed}
+.bank-note{font-size:14px;color:#8e867d;padding:3px 8px 4px}
+@media(max-width:520px){.launcher-grid{grid-template-columns:1fr}.launcher{width:calc(100vw - 62px)}.profile-menu{width:calc(100vw - 62px)}}
+
+/* ── TAB BAR (owner 2026-10-18) ───────────────────────────────────────────────
+   แถบบนของ Workspace = แท็บของหน้าจอที่เปิดจริง (โลโก้/ไอคอน · ชื่อ · ปุ่มปิด · สถานะ active)
+   ล็อกตำแหน่ง: sticky + main{overflow:hidden} + พื้นที่เนื้อหา scroll ภายในเอง ⇒ ไม่เลื่อนหาย
+   ช่องค้นหา/ตัวกรอง/เพิ่มทรัพยากร ไม่อยู่ที่นี่ — ย้ายเข้า .resource-toolbar ของ #stockPane */
+header.tabbar{position:sticky;top:0;z-index:20;height:40px;flex:0 0 40px;display:flex;align-items:center;gap:6px;padding:0 8px;background:#f6f3ef;border-bottom:1px solid #e6e1da;box-shadow:none;overflow:hidden}
+header.tabbar .history{display:flex;gap:2px;flex:0 0 auto;padding-right:6px;border-right:1px solid #e6e1da}
+header.tabbar .history button{height:26px;width:24px;border:0;background:transparent;padding:0;color:#3f3a34;border-radius:6px}
+header.tabbar .history button:hover:not(:disabled){background:#e9e4dd}
+header.tabbar .history button:disabled{opacity:.32;cursor:default;background:transparent}
+.tab-list{display:flex;align-items:center;gap:4px;flex:1 1 auto;min-width:0;height:100%;overflow-x:auto;overflow-y:hidden;scrollbar-width:none}
+.tab-list::-webkit-scrollbar{display:none}
+.tab{display:flex;align-items:center;flex:0 0 auto;height:29px;max-width:220px;min-width:0;border-radius:8px;border:1px solid transparent;background:#eae5de;color:#4c4740}
+.tab:hover{background:#e4ded6}
+.tab.is-active{background:#fff;border-color:#e2dcd4;color:#292724;box-shadow:0 1px 2px #35333014}
+.tab-main{display:flex;align-items:center;gap:6px;min-width:0;height:27px;padding:0 2px 0 8px;border:0;background:transparent;color:inherit;font:inherit;font-size:14px;border-radius:7px}
+.tab-icon{display:grid;place-items:center;width:16px;height:16px;flex:0 0 16px;color:#6b635a}
+.tab-icon svg{width:15px;height:15px;display:block}
+.tab-icon img{width:16px;height:16px;object-fit:contain;display:block}
+.tab-label{min-width:0;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tab-close{display:grid;place-items:center;width:18px;height:18px;flex:0 0 18px;margin:0 5px 0 2px;padding:0;border:0;border-radius:5px;background:transparent;color:#8b837a;font-size:14px;line-height:1}
+.tab-close:hover{background:#e9e3db;color:#3c3832}
+.tab-new{display:grid;place-items:center;width:26px;height:26px;flex:0 0 26px;padding:0;border:1px solid transparent;border-radius:7px;background:transparent;color:#5f584f}
+.tab-new:hover{background:#e9e4dd;border-color:#ded7ce}
+.tab-new svg{width:15px;height:15px}
+
+/* จัดการแท็บ/หน้าต่าง (⋯) + ค้นหา (🔍) — อยู่บน Tab Bar ตามคำสั่ง owner 2026-10-18 */
+.tab-tool{display:grid;place-items:center;width:26px;height:26px;flex:0 0 26px;padding:0;border:1px solid transparent;border-radius:7px;background:transparent;color:#5f584f}
+.tab-tool:hover{background:#e9e4dd;border-color:#ded7ce}
+.tab-tool[aria-expanded=true]{background:#e9e4dd;border-color:#ded7ce;color:#292724}
+.tab-tool svg{width:16px;height:16px}
+.tab-pop{position:fixed;top:42px;right:8px;z-index:70;width:330px;max-width:calc(100vw - 24px);max-height:min(64dvh,460px);display:flex;flex-direction:column;gap:6px;padding:8px;background:#fff;border:1px solid #e4e0da;border-radius:10px;box-shadow:0 14px 38px #35333024;overflow:hidden}
+.tab-pop-head{display:flex;align-items:baseline;gap:8px;padding:2px 4px 4px}
+.tab-pop-head strong{font-size:14px;color:#292724}.tab-pop-head span{margin-left:auto;font-size:14px;color:#8a8178}
+.tab-pop-list{display:flex;flex-direction:column;gap:2px;min-height:0;overflow:auto;overscroll-behavior:contain}
+.tab-menu-item{display:flex;align-items:center;gap:2px;border-radius:7px}
+.tab-menu-item:hover{background:#faf8f5}.tab-menu-item.is-active{background:#f3efea}
+.tab-menu-main{display:flex;align-items:center;gap:7px;flex:1 1 auto;min-width:0;border:0;background:transparent;padding:7px 6px;border-radius:7px;text-align:left;font-size:14px;color:#3c3833}
+.tab-menu-main .tab-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tab-menu-main small{margin-left:auto;font-size:14px;color:#9b938a;white-space:nowrap}
+.tab-menu-close{display:grid;place-items:center;width:22px;height:22px;flex:0 0 22px;margin-right:4px;border:0;border-radius:5px;background:transparent;color:#8b837a}
+.tab-menu-close:hover{background:#e9e3db;color:#3c3832}
+.tab-pop-actions{display:flex;flex-wrap:wrap;gap:4px;border-top:1px solid #f1ede8;padding-top:6px}
+.tab-pop-actions button{font-size:14px;color:#514b45}
+.tab-pop-search{display:flex;gap:5px}
+.tab-pop-search input{flex:1 1 auto;min-width:0;height:30px}
+.tab-pop-search button{height:30px;padding:0 10px}
+.tab-pop-row{display:flex;align-items:center;gap:7px;width:100%;border:0;background:transparent;padding:7px 6px;border-radius:7px;text-align:left;white-space:normal}
+.tab-pop-row:hover{background:#faf8f5}
+.tab-pop-copy{display:flex;flex-direction:column;gap:1px;min-width:0}
+.tab-pop-copy strong{font-size:14px;color:#3c3833;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tab-pop-copy small{font-size:14px;color:#9b938a}
+.tab-pop-empty{margin:6px;font-size:14px;color:#8a8178}
+.tab-pop-note{margin:0;padding:0 4px;font-size:14px;line-height:1.5;color:#8a8178}
+
+/* TOOLS ของหน้าจอทรัพยากร — อยู่ภายในหน้าจอนี้เท่านั้น */
+#stockPane{display:flex;flex-direction:column;min-height:0}
+.resource-toolbar{display:flex;align-items:center;gap:6px;flex:0 0 auto;padding:0 0 8px}
+.resource-toolbar #search{height:30px;flex:1 1 160px;max-width:280px;min-width:90px}
+.resource-toolbar #category{height:30px;flex:0 1 170px;max-width:190px}
+.resource-toolbar #refresh{display:grid;place-items:center;width:30px;height:30px;padding:0}
+.resource-toolbar #add{height:30px;padding:0 10px;background:#171717;border-color:#171717;color:#fff}
+.resource-toolbar #add:hover{background:#303030}
+.control-workspace{flex:1 1 auto;height:auto;min-height:0}
+@media(max-width:600px){.resource-toolbar{flex-wrap:wrap}.resource-toolbar #search{max-width:none}}
+
+/* ── WORKSPACE THEME TOKENS + CUSTOMIZATION (owner 2026-10-18) ─────────────────
+   The palette is applied by workspace-preferences.js as CSS custom properties.
+   Defaults below equal the pre-existing shell palette, so an untouched workspace
+   renders exactly as before. Only shell-owned surfaces are themed; pages opened in
+   #toolFrame keep their own established design system (boundary 07). */
+html,body{background:var(--ws-bg,#fff)}
+body{font-size:var(--ws-font-size,14px)}
+main{background:var(--ws-bg,#fff)}
+aside{background:var(--ws-sidebar-bg,#fdfcfb);border-right-color:var(--ws-line,#f2f0ed);backdrop-filter:blur(var(--ws-blur,8px));-webkit-backdrop-filter:blur(var(--ws-blur,8px))}
+.nav{color:var(--ws-muted,#4c4944)}
+.nav svg{width:var(--ws-icon-size,20px);height:var(--ws-icon-size,20px)}
+.nav.active{background:var(--ws-soft-strong,#f0ece7);color:var(--ws-ink,#292724)}
+aside .profile #companyLogoFallback{background:var(--ws-soft-strong,#ebe9e6);color:var(--ws-ink,#5b554d)}
+header.tabbar{background:var(--ws-tabbar-bg,#f6f3ef);border-bottom-color:var(--ws-line,#e6e1da);backdrop-filter:blur(var(--ws-blur,8px));-webkit-backdrop-filter:blur(var(--ws-blur,8px))}
+header.tabbar .history{border-right-color:var(--ws-line,#e6e1da)}
+header.tabbar .history button{color:var(--ws-ink,#3f3a34)}
+header.tabbar .history button:hover:not(:disabled){background:var(--ws-soft-strong,#e9e4dd)}
+.tab{background:var(--ws-tab-bg,#eae5de);color:var(--ws-muted,#4c4740)}
+.tab:hover{background:var(--ws-tab-hover,#e4ded6)}
+.tab.is-active{background:var(--ws-tab-active,#fff);border-color:var(--ws-border,#e2dcd4);color:var(--ws-ink,#292724)}
+.tab-icon{color:var(--ws-muted,#6b635a)}
+.tab-close{color:var(--ws-muted,#8b837a)}
+.tab-close:hover{background:var(--ws-soft-strong,#e9e3db);color:var(--ws-ink,#3c3832)}
+.tab-new,.tab-tool{color:var(--ws-muted,#5f584f)}
+.tab-new:hover,.tab-tool:hover,.tab-tool[aria-expanded=true]{background:var(--ws-soft-strong,#e9e4dd);border-color:var(--ws-border,#ded7ce);color:var(--ws-ink,#292724)}
+.tab-pop,.launcher,.profile-menu,.ws-settings,.ws-shortcut-dialog{background:var(--ws-panel-bg,#fff);border-color:var(--ws-panel-border,#e4e0da);border-radius:calc(var(--ws-radius,14px) - 2px)}
+.tab-pop-head strong,.tab-pop-copy strong,.tab-menu-main,.tab-pop-actions button{color:var(--ws-ink,#292724)}
+.tab-pop-head span,.tab-pop-copy small,.tab-pop-note,.tab-menu-main small{color:var(--ws-muted,#8a8178)}
+.tab-pop-row:hover,.tab-menu-item:hover,.tab-menu-item.is-active{background:var(--ws-soft,#faf8f5)}
+.tab-menu-close:hover{background:var(--ws-soft-strong,#e9e3db);color:var(--ws-ink,#3c3832)}
+#stockPane{background:var(--ws-bg,#faf9f7)}
+.control-rail,.control-center,.control-context{border-color:var(--ws-panel-border,#e9e5e0);background:var(--ws-panel-bg,#fff);border-radius:var(--ws-radius,8px)}
+.resource-toolbar input,.resource-toolbar select,.control-rail input,.control-center input,.control-center select,.control-center textarea{background:var(--ws-input-bg,#fff);border-color:var(--ws-input-border,#e7e5e2);color:var(--ws-ink,#5a5855)}
+.pit-item,.issue-item,.material-item{background:transparent;border-color:var(--ws-line,#eeeae5);color:var(--ws-ink,#292724)}
+.pit-item span,.issue-item span,.material-item span,.selected-summary span,.panel-label,.form-heading p,.form-note{color:var(--ws-muted,#766f67)}
+.form-heading h1,.selected-summary strong,.counters b,.material-item strong{color:var(--ws-ink,#292724)}
+.form-status,.live-status,.unsupported,.quality-summary{background:var(--ws-soft,#faf9f7);color:var(--ws-muted,#625e58);border-color:var(--ws-line,#e9e5e0)}
+.counters span{border-color:var(--ws-line,#eeeae5);color:var(--ws-muted,#756e66)}
+
+/* dark workspace chrome: keep the shell readable without touching admin pages */
+html[data-ws-theme=dark] .control-center .form-heading h1,
+html[data-ws-theme=dark] .control-center .form-heading p,
+html[data-ws-theme=dark] .control-center .form-status,
+html[data-ws-theme=dark] .control-center .form-note,
+html[data-ws-theme=dark] .control-center .unsupported,
+html[data-ws-theme=dark] .control-center .quality-summary{color:var(--ws-ink,#f2ede6)}
+html[data-ws-theme=dark] .control-center .form-status.neutral,
+html[data-ws-theme=dark] .control-center .live-status{color:var(--ws-muted,#b9b0a5)}
+html[data-ws-theme=dark] .tool-grid button{background:transparent;border-color:var(--ws-panel-border);color:var(--ws-ink)}
+html[data-ws-theme=dark] .tool-grid button:nth-child(3){background:var(--ws-ink);color:var(--ws-bg);border-color:var(--ws-ink)}
+html[data-ws-theme=dark] .resource-toolbar #add{background:var(--ws-ink);border-color:var(--ws-ink);color:var(--ws-bg)}
+
+/* ── APPEARANCE SETTINGS PANEL — opened from the existing #settings gear ─────── */
+.ws-settings{position:fixed;left:54px;bottom:52px;z-index:75;width:352px;max-width:calc(100vw - 66px);max-height:calc(100dvh - 66px);display:flex;flex-direction:column;border:1px solid var(--ws-panel-border,#e4e0da);box-shadow:0 16px 42px rgba(35,32,28,.18);overflow:hidden}
+.ws-settings[hidden]{display:none!important}
+.ws-settings-head{display:flex;align-items:center;gap:10px;padding:11px 13px 9px;border-bottom:1px solid var(--ws-line,#f0ece7)}
+.ws-settings-head strong{font-size:14px;color:var(--ws-ink,#292724)}
+.ws-settings-head span{margin-left:auto;font-size:14px;color:var(--ws-muted,#9b938a)}
+.ws-settings-head button{min-height:0;padding:3px 8px;font-size:14px;color:var(--ws-muted,#716a62)}
+.ws-settings-body{overflow:auto;overscroll-behavior:contain;padding:10px 13px 14px}
+.ws-section{padding:9px 0 4px}
+.ws-section+.ws-section{border-top:1px solid var(--ws-line,#f0ece7);margin-top:6px}
+.ws-section>h3{margin:0 0 8px;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ws-muted,#8a8178)}
+.ws-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-bottom:9px}
+.ws-presets button{padding:7px 5px;font-size:14px;border:1px solid var(--ws-input-border,#e7e5e2);background:var(--ws-input-bg,#fff);color:var(--ws-ink,#514b45);border-radius:8px;white-space:normal;line-height:1.3}
+.ws-presets button[aria-pressed=true]{border-color:var(--ws-ink,#514b45);box-shadow:0 0 0 1px var(--ws-ink,#514b45) inset}
+.ws-field{display:grid;grid-template-columns:1fr auto;align-items:center;gap:7px;margin:7px 0;font-size:14px;color:var(--ws-muted,#625e58)}
+.ws-field>span{min-width:0}
+.ws-field input[type=color]{width:34px;height:24px;padding:0;border:1px solid var(--ws-input-border,#e7e5e2);border-radius:6px;background:transparent;cursor:pointer}
+.ws-field input[type=range]{width:100%;grid-column:1 / span 2;accent-color:var(--ws-ink,#514b45);margin:1px 0 0}
+.ws-field output{font-size:14px;color:var(--ws-muted,#8a8178);min-width:36px;text-align:right}
+.ws-field select{height:26px;font-size:14px;background:var(--ws-input-bg,#fff);border-color:var(--ws-input-border,#e7e5e2);color:var(--ws-ink,#514b45)}
+.ws-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:10px}
+.ws-actions button{font-size:14px;padding:5px 9px}
+.ws-actions .primary{background:var(--ws-ink,#514b45);border-color:var(--ws-ink,#514b45);color:var(--ws-bg,#fff)}
+.ws-note{font-size:14px;line-height:1.55;color:var(--ws-muted,#8a8178);margin:0 0 8px}
+
+/* ── SHORTCUT RAIL — user shortcuts open through the existing Tab Bar ───────── */
+.shortcut-rail{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;padding:2px 0}
+.shortcut{position:relative;display:grid;place-items:center;width:36px;height:36px;padding:0;border:0;background:transparent;border-radius:9px;color:var(--ws-muted,#4c4944)}
+.shortcut:hover{background:var(--ws-soft-strong,#e9e4dd);color:var(--ws-ink,#292724)}
+.shortcut img{width:calc(var(--ws-icon-size,20px) + 2px);height:calc(var(--ws-icon-size,20px) + 2px);object-fit:contain;display:block;border-radius:4px}
+.shortcut svg{width:var(--ws-icon-size,20px);height:var(--ws-icon-size,20px);display:block}
+.shortcut-add{color:var(--ws-muted,#8a8178);border:1px dashed var(--ws-input-border,#d9d2c8);border-radius:9px;font-size:18px}
+.shortcut-add:hover{color:var(--ws-ink,#292724);border-color:var(--ws-border,#b9b0a5);background:var(--ws-soft,#f7f3ee)}
+.shortcut-rail:empty{display:none}
+
+/* ── SHORTCUT MANAGER (add / remove / icon / size) ───────────────────────────── */
+.ws-shortcut-dialog{width:440px;max-width:calc(100vw - 24px);max-height:calc(100dvh - 40px);border:1px solid var(--ws-panel-border,#e4e0da);padding:0;overflow:hidden}
+.ws-shortcut-dialog::backdrop{background:rgba(35,32,28,.28)}
+.ws-shortcut-head{display:flex;align-items:center;gap:10px;padding:11px 13px 9px;border-bottom:1px solid var(--ws-line,#f0ece7)}
+.ws-shortcut-head strong{font-size:14px;color:var(--ws-ink,#292724)}
+.ws-shortcut-head button{margin-left:auto;min-height:0;padding:3px 8px;font-size:14px;color:var(--ws-muted,#716a62)}
+.ws-shortcut-body{padding:10px 13px 14px;overflow:auto;max-height:calc(100dvh - 112px)}
+.ws-shortcut-list{display:flex;flex-direction:column;gap:4px;margin:0 0 8px}
+.ws-shortcut-empty{font-size:14px;color:var(--ws-muted,#8a8178);padding:8px 0}
+.ws-shortcut-row{display:flex;align-items:center;gap:7px;padding:5px 6px;border:1px solid var(--ws-line,#eee9e2);border-radius:8px}
+.ws-shortcut-row .shortcut-visual{display:grid;place-items:center;width:24px;height:24px;flex:0 0 24px;color:var(--ws-ink,#514b45)}
+.ws-shortcut-row .shortcut-visual img{width:20px;height:20px;object-fit:contain}
+.ws-shortcut-row .shortcut-visual svg{width:18px;height:18px}
+.ws-shortcut-row .shortcut-copy{display:flex;flex-direction:column;min-width:0;flex:1 1 auto}
+.ws-shortcut-row .shortcut-copy strong{font-size:14px;color:var(--ws-ink,#3c3833);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-shortcut-row .shortcut-copy small{font-size:14px;color:var(--ws-muted,#9b938a);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-shortcut-row select{height:24px;font-size:14px;max-width:94px;background:var(--ws-input-bg,#fff);border-color:var(--ws-input-border,#e7e5e2);color:var(--ws-ink,#514b45)}
+.ws-shortcut-row .shortcut-remove{border:0;background:transparent;color:var(--ws-muted,#8b837a);padding:3px 5px;min-height:0;font-size:14px}
+.ws-shortcut-row .shortcut-remove:hover{color:#a24f45;background:transparent}
+.ws-shortcut-form{display:grid;gap:6px;border-top:1px solid var(--ws-line,#f0ece7);padding-top:9px}
+.ws-shortcut-form label{display:grid;gap:3px;margin:0;font-size:14px;color:var(--ws-muted,#716a62)}
+.ws-shortcut-form input,.ws-shortcut-form select{height:28px;font-size:14px;background:var(--ws-input-bg,#fff);border-color:var(--ws-input-border,#e7e5e2);color:var(--ws-ink,#514b45)}
+.ws-shortcut-form .ws-form-row{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ws-shortcut-form .primary{justify-self:end;background:var(--ws-ink,#514b45);border-color:var(--ws-ink,#514b45);color:var(--ws-bg,#fff);font-size:14px;padding:5px 12px}
+.ws-shortcut-size{display:flex;align-items:center;gap:7px;margin-top:8px;font-size:14px;color:var(--ws-muted,#716a62)}
+.ws-shortcut-size input{flex:1 1 auto}
+@media(max-width:520px){.ws-settings{width:calc(100vw - 64px)}}
+/* Table headers use the same central ink/muted values (no per-table theme). */
+th{color:var(--ws-muted,#45413c)}
+td input,td:nth-child(2) input{color:var(--ws-ink,#292724)}
+/* Menus / windows / profile / launcher read the same central values. */
+.launcher-title strong,.launcher-group-head strong,.launcher-item .tool-name,.profile-copy strong,.profile-menu button,.dev-entry,.profile-card strong{color:var(--ws-ink,#292724)}
+.launcher-title span,.launcher-status,.launcher-group-head b,.launcher-group-head span,.launcher-item .tool-detail,.launcher-item .status,.profile-copy span,.profile-menu button small,.bank-note,.dev-entry small{color:var(--ws-muted,#8a8178)}
+.launcher-head,.launcher-group+.launcher-group,.launcher-foot,.profile-card{border-color:var(--ws-line,#f0ece7)}
+.launcher-status,.launcher-foot,.launcher-item .tool-icon,.dev-entry{background:var(--ws-soft,#faf9f7)}
+.launcher-item:hover,.profile-menu button:hover,.dev-entry:hover{background:var(--ws-soft-strong,#f5f2ed);border-color:var(--ws-border,#eee9e2)}
+.profile-card img,.dev-entry{border-color:var(--ws-border,#eee9e2)}
+#toolsDialog{background:var(--ws-panel-bg,#fff);border-color:var(--ws-panel-border,#e4e0da);color:var(--ws-ink,#292724)}
+#toolsDialog p,.tool-group,dialog p,label{color:var(--ws-muted,#625e58)}
+.form-grid label{color:var(--ws-muted,#625e58)}

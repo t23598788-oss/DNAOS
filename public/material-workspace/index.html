@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="th">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ศูนย์ควบคุมทรัพยากร — DNA OS</title>
+  <link rel="stylesheet" href="style.css">
+  <body>
+    <aside aria-label="เครื่องมือ">
+      <button class="nav" id="toolsMain" aria-label="เปิดเครื่องมือ" title="เปิดเครื่องมือ"></button>
+      <button class="nav" id="chatHome" aria-label="แชท DNA OS" title="แชท DNA OS"></button>
+      <button class="nav active" data-view="all" title="ศูนย์ควบคุมทรัพยากร" aria-label="ศูนย์ควบคุมทรัพยากร">▤</button><button data-view="low" hidden tabindex="-1" aria-hidden="true"></button>
+      <!-- USER SHORTCUTS (owner 2026-10-18 ข้อ 04)
+           ไอคอนหลักยังอยู่ตำแหน่งเดิม · (+) เปิดตัวจัดการทางลัด · ทุกทางลัดเปิดผ่าน
+           openToolRoute/openExternalTool เดิม ⇒ ไปขึ้น Tab Bar เดิมเสมอ ไม่มี navigation ชุดที่สอง -->
+      <div class="shortcut-rail" id="shortcutRail" aria-label="ทางลัดของฉัน"></div>
+      <button class="nav shortcut-add" id="shortcutAdd" title="เพิ่มทางลัด" aria-label="เพิ่มทางลัด" aria-haspopup="dialog" aria-expanded="false">＋</button>
+      <!-- COMPANY PROFILE — ตำแหน่งเดียวในแถบนำทางเดิม (ปุ่มล่างสุดเหนือการเชื่อมต่อ)
+           รูป/ชื่อมาจาก /api/admin/settings เดิม · ไม่มี session = ตัวอักษรย่อ ไม่ใช่โลโก้ปลอม -->
+      <button class="nav profile" id="companyProfile" title="โปรไฟล์บริษัท" aria-label="เปิดเมนูโปรไฟล์บริษัท" aria-haspopup="menu" aria-expanded="false">
+        <img id="companyLogo" alt="" hidden referrerpolicy="no-referrer">
+        <span id="companyLogoFallback" aria-hidden="true">DNA</span>
+      </button>
+      <button class="nav bottom-gear" id="settings" title="ตั้งค่า Workspace" aria-label="ตั้งค่า Workspace" aria-haspopup="dialog" aria-expanded="false">⚙</button>
+    </aside>
+    <main>
+      <!-- TAB BAR (owner 2026-10-18): แถบบน = พื้นที่ของ "หน้าจอที่เปิดอยู่" เท่านั้น
+           ไม่มีช่องค้นหา / ตัวกรองประเภทแหล่ง / เพิ่มทรัพยากร (ย้ายเข้า #stockPane แล้ว)
+           ตำแหน่งล็อกด้วย position:sticky และ main{overflow:hidden} ⇒ ไม่เลื่อนหาย -->
+      <header class="tabbar" id="tabBar">
+        <div class="history">
+          <button id="back" title="ย้อนกลับ" aria-label="ย้อนกลับ">‹</button>
+          <button id="forward" title="ไปข้างหน้า" aria-label="ไปข้างหน้า">›</button>
+        </div>
+        <div class="tab-list" id="tabStrip" role="tablist" aria-label="แท็บที่เปิดอยู่"></div>
+        <!-- ปุ่มจัดการแท็บ/หน้าต่างทั้งหมดอยู่บน Tab Bar ตามคำสั่ง owner 2026-10-18:
+             ＋ เปิดแท็บใหม่ · 🔍 ค้นหา/เปิดเว็บด้วย URL · ⋯ เมนูจัดการแท็บและหน้าต่าง
+             (เดิม ⋯ อยู่ด้านขวาของพื้นที่กลาง — ย้ายขึ้นมาที่นี่ ไม่มีปุ่มซ้ำในพื้นที่กลาง) -->
+        <button type="button" class="tab-new" id="newTab" title="เปิดแท็บใหม่" aria-label="เปิดแท็บใหม่">＋</button>
+        <button type="button" class="tab-tool" id="tabSearch" title="ค้นหา / เปิดเว็บไซต์ด้วย URL" aria-label="ค้นหาหรือเปิดเว็บไซต์ด้วย URL" aria-haspopup="dialog" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+        <button type="button" class="tab-tool" id="tabOverflow" title="จัดการแท็บและหน้าต่าง" aria-label="จัดการแท็บและหน้าต่าง" aria-haspopup="menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>
+        </button>
+      </header>
+
+      <!-- แผงของ Tab Bar — วางนอก header เพราะ header มี overflow:hidden (จะตัด popover) -->
+      <div class="tab-pop" id="tabOverflowPanel" role="menu" aria-label="จัดการแท็บและหน้าต่าง" hidden>
+        <div class="tab-pop-head"><strong>แท็บและหน้าต่าง</strong><span id="tabMenuCount"></span></div>
+        <div class="tab-pop-list" id="tabMenuList" role="none"></div>
+        <div class="tab-pop-actions">
+          <button type="button" id="tabMenuNew">เปิดแท็บใหม่</button>
+          <button type="button" id="tabMenuCloseOthers">ปิดแท็บอื่น</button>
+          <button type="button" id="tabMenuCloseAll">ปิดแท็บทั้งหมด</button>
+        </div>
+      </div>
+      <div class="tab-pop" id="tabSearchPanel" role="dialog" aria-label="ค้นหาและเปิดเว็บไซต์" hidden>
+        <form class="tab-pop-search" id="tabSearchForm">
+          <input id="tabSearchInput" type="search" autocomplete="off" aria-label="ค้นหาแท็บ เครื่องมือ หรือ URL" placeholder="ค้นหาแท็บ · เครื่องมือ หรือวาง URL…">
+          <button class="primary" type="submit">เปิด</button>
+        </form>
+        <div class="tab-pop-list" id="tabSearchResults" role="listbox" aria-label="ผลการค้นหา"></div>
+        <p class="tab-pop-note" id="tabSearchNote">URL จะถูกตรวจสิทธิ์การฝังก่อน — เว็บที่ห้าม iframe เปิดในเบราว์เซอร์จริง</p>
+      </div>
+      <section id="stockPane" hidden>
+        <!-- TOOLS ของหน้าจอทรัพยากรเท่านั้น (owner 2026-10-18) — ไม่ขึ้นบน Tab Bar อีก -->
+        <div class="resource-toolbar" role="toolbar" aria-label="เครื่องมือศูนย์ควบคุมทรัพยากร">
+          <input id="search" aria-label="ค้นหารายการ" placeholder="ค้นหาแหล่ง / วัสดุ…">
+          <select id="category" aria-label="ประเภทแหล่ง"><option value="">ทุกประเภทแหล่ง</option></select>
+          <button id="refresh" title="โหลดข้อมูลใหม่" aria-label="โหลดข้อมูลใหม่">↻</button>
+          <button class="primary" id="add">เพิ่มทรัพยากร</button>
+        </div>
+        <div class="control-workspace">
+          <section class="control-rail" aria-label="รายการควบคุม">
+            <div class="tool-grid" aria-label="เครื่องมือควบคุม">
+              <button type="button" data-action="create">เพิ่มทรัพยากร</button><button type="button" data-action="edit">แก้ไขข้อมูล</button><button type="button" data-action="price">จัดการราคา</button><button type="button" data-action="quality">ตรวจข้อมูลที่ขาด</button><button type="button" data-action="disable">ลบหรือปิดใช้งาน</button><button type="button" data-action="master">Material Master</button>
+            </div>
+            <div id="counters" class="counters" aria-live="polite"></div>
+            <div class="panel-label"><span>แหล่งทรัพยากร</span><strong id="pitCount">กำลังโหลด…</strong></div><div id="pitList" class="scroll-list" aria-live="polite"></div>
+            <div class="panel-label"><span>ปัญหาข้อมูล</span><strong id="issueCount">—</strong></div><div id="issueList" class="scroll-list issues" aria-live="polite"></div>
+          </section>
+          <section class="control-center" aria-label="แบบฟอร์มควบคุม">
+            <div class="form-heading"><div><h1 id="formTitle">เลือกเครื่องมือ</h1><p id="formLead">เลือกแหล่งทรัพยากรหรือเครื่องมือเพื่อเริ่มทำงาน</p></div><button type="button" id="cancelForm" hidden>ยกเลิก</button></div>
+            <div id="formStatus" class="form-status" role="status">พร้อมใช้งาน</div><form id="controlForm" novalidate></form>
+          </section>
+          <section class="control-context" aria-label="ข้อมูลอ้างอิง">
+            <div class="panel-label"><span>แหล่งที่เลือก</span></div><div id="selectedSummary" class="selected-summary">ยังไม่ได้เลือกแหล่งทรัพยากร</div>
+            <div class="panel-label"><span>วัสดุและราคาปัจจุบัน</span><strong id="materialCount">—</strong></div><div id="materialList" class="scroll-list"></div>
+            <div class="panel-label"><span>สถานะระบบ</span></div><div id="liveStatus" class="live-status" aria-live="polite">กำลังโหลดข้อมูลจากระบบเดิม…</div>
+          </section>
+        </div>
+      </section>
+      <!-- SINGLE ADAPTIVE CHAT COMPOSER (owner 2026-10-18): หน้าแชตเดิม (/workspace?materialSurface=chat)
+           ถูกโหลดครั้งเดียวและคงอยู่ตลอด session ⇒ มี Composer ตัวจริงเพียงกล่องเดียว และข้อความที่พิมพ์ค้าง
+           ไม่หายเมื่อสลับแท็บ (แท็บ Workspace = หน้าจอเต็ม · แท็บอื่น = กล่องลอยเดิม ไม่สร้างหน้าแชตใหม่) -->
+      <section id="homePane">
+        <iframe id="chatFrame" title="แชท DNA OS" src="/workspace?materialSurface=chat"></iframe>
+      </section>
+      <section id="toolPane" hidden><iframe id="toolFrame" title="เครื่องมือ DNA OS"></iframe><div id="toolUnavailable" hidden></div></section>
+    </main>
+    <div hidden><span id="count"></span><span id="mode"></span><span id="total"></span><span id="value"></span><span id="low"></span><span id="badge"></span><span id="hint"></span></div>
+    <!-- BUSINESS TOOL LAUNCHER (owner baseline 2026-10-18)
+         จุดเปิดเดียว = #toolsMain (ปุ่มสี่เหลี่ยมเดิมในแถบนำทาง) · hover เปิดชั่วคราว · click เปิด/ปิด
+         กลุ่ม 01–06 · โลโก้ผู้ให้บริการจริงจาก public/brand/providers (asset ที่มีอยู่/นำเข้าใหม่จากต้นทาง)
+         สถานะทุกตัวอ่านจาก Connect Registry เดิม (/api/admin/connectors + providers) เท่านั้น -->
+    <section id="businessLauncher" class="launcher" role="dialog" aria-modal="false" aria-label="Business Tool Launcher" hidden>
+      <div class="launcher-head">
+        <div class="launcher-title"><strong>Business Tools</strong><span>เครื่องมือธุรกิจ · โลโก้จริง · สถานะจาก Connect Registry</span></div>
+        <button type="button" id="closeLauncher" aria-label="ปิดรายการเครื่องมือ">ปิด</button>
+      </div>
+      <div class="launcher-status" id="launcherRegistryNote" role="status">กำลังอ่านสถานะจาก Connect Registry…</div>
+      <div class="launcher-body" id="launcherGroups"></div>
+      <div class="launcher-foot">
+        <button type="button" id="devToolsEntry" class="dev-entry"><span>เครื่องมือผู้พัฒนา</span><small>แยกจากเครื่องมือธุรกิจ</small></button>
+      </div>
+    </section>
+
+    <!-- COMPANY PROFILE MENU — เมนูเดิม: ข้อมูลบริษัท · ตั้งค่า · ค่าใช้จ่าย -->
+    <section id="profileMenu" class="profile-menu" role="menu" aria-label="เมนูโปรไฟล์บริษัท" hidden>
+      <div class="profile-card">
+        <img id="profileLogo" alt="" hidden referrerpolicy="no-referrer">
+        <div class="profile-copy"><strong id="profileCompanyName">ยังไม่มีข้อมูลบริษัท</strong><span id="profileCompanyTax">—</span></div>
+      </div>
+      <button type="button" role="menuitem" data-profile-route="/admin/settings">ข้อมูลบริษัท<small>หน้าตั้งค่าเดิม</small></button>
+      <button type="button" role="menuitem" data-profile-route="/admin/settings#connections-credentials">ตั้งค่า<small>Connections &amp; Credentials</small></button>
+      <button type="button" role="menuitem" data-profile-route="/admin/infrastructure">ค่าใช้จ่าย<small>โครงสร้างพื้นฐาน</small></button>
+      <button type="button" role="menuitem" id="profileLogoPick">เปลี่ยนโลโก้บริษัท<small>Storage เดิม · สิทธิ์เดิม</small></button>
+      <input id="profileLogoInput" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+    </section>
+
+    <dialog id="toolsDialog"><div class="menu-heading"><h2>เครื่องมือผู้พัฒนา</h2><button id="closeTools" aria-label="ปิดเครื่องมือ">ปิด</button></div><input id="toolSearch" aria-label="ค้นหาเครื่องมือ" placeholder="ค้นหาเครื่องมือ…"><div id="toolList"></div></dialog>
+
+    <!-- WORKSPACE APPEARANCE STANDARD (owner lock 2026-10-18)
+         จุดตั้งค่าเดิม = ปุ่มเฟือง #settings · แสดงเฉพาะ "หน้าตา" เท่านั้น
+         ไม่มีโปรไฟล์ซ้ำ · ไม่มีหน้าจัดการองค์กร/การเชื่อมต่อซ้ำ
+         การเชื่อมต่อใช้ Connections & Credentials เดิมที่ /admin/settings#connections-credentials -->
+    <section id="workspaceSettings" class="ws-settings" role="dialog" aria-modal="false" aria-label="ตั้งค่าหน้าตา Workspace" hidden>
+      <div class="ws-settings-head"><strong>ตั้งค่าหน้าตา Workspace</strong><span id="wsSettingsSaved">บันทึกตามบัญชี</span><button type="button" id="wsSettingsClose" aria-label="ปิดตั้งค่าหน้าตา Workspace">ปิด</button></div>
+      <div class="ws-settings-body">
+        <section class="ws-section">
+          <h3>ธีมมาตรฐาน DNA OS</h3>
+          <div class="ws-presets" role="group" aria-label="ธีมมาตรฐาน">
+            <button type="button" data-ws-preset="clear">กระจกใส</button>
+            <button type="button" data-ws-preset="light">กระจกสว่าง</button>
+            <button type="button" data-ws-preset="dark">กระจกเข้ม</button>
+            <button type="button" data-ws-preset="tinted">กระจกสี</button>
+            <button type="button" data-ws-preset="auto">อัตโนมัติ</button>
+            <button type="button" data-ws-preset="custom">ปรับแต่งเอง</button>
+          </div>
+          <p class="ws-note" id="wsAutoNote" hidden>อัตโนมัติ: ใช้ Light Glass / Dark Glass ตาม Appearance ของระบบ</p>
+          <label class="ws-field"><span>โทนสี</span><input type="color" id="wsTone" aria-label="โทนสี Workspace"></label>
+          <label class="ws-field"><span>ความโปร่งใส</span><output id="wsOpacityValue"></output><input type="range" id="wsOpacity" min="30" max="100" step="1" aria-label="ความโปร่งใส"></label>
+          <label class="ws-field"><span>ความเบลอ</span><output id="wsBlurValue"></output><input type="range" id="wsBlur" min="0" max="24" step="1" aria-label="ความเบลอ"></label>
+          <label class="ws-field"><span>ขนาดตัวอักษร</span><output id="wsFontSizeValue"></output><input type="range" id="wsFontSize" min="14" max="18" step="1" aria-label="ขนาดตัวอักษร"></label>
+          <label class="ws-field"><span>ขนาดไอคอน</span><output id="wsIconSizeValue"></output><input type="range" id="wsIconSize" min="14" max="28" step="1" aria-label="ขนาดไอคอน"></label>
+          <label class="ws-field"><span>ความโค้งของมุม</span><output id="wsRadiusValue"></output><input type="range" id="wsRadius" min="0" max="28" step="1" aria-label="ความโค้งของมุม"></label>
+          <div class="ws-actions"><button type="button" id="wsReset">คืนค่าเริ่มต้น</button></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- SHORTCUT MANAGER (owner 2026-10-18 ข้อ 04) — เพิ่ม/ลบ/เปลี่ยนไอคอน/ขนาด
+         เลือกได้เฉพาะเครื่องมือ DNA OS ที่มีจริง บริการที่ลงทะเบียนแล้ว และเว็บไซต์ที่ผู้ใช้กรอก
+         ทางลัดทุกตัวเปิดผ่าน openToolRoute/openExternalTool เดิม (Tab Bar เดิม) -->
+    <dialog id="shortcutDialog" class="ws-shortcut-dialog">
+      <div class="ws-shortcut-head"><strong>ทางลัดของฉัน</strong><button type="button" id="shortcutClose" aria-label="ปิดทางลัด">ปิด</button></div>
+      <div class="ws-shortcut-body">
+        <div class="ws-shortcut-list" id="shortcutList"></div>
+        <form class="ws-shortcut-form" id="shortcutForm">
+          <label>ประเภท<select id="shortcutKind" aria-label="ประเภททางลัด"><option value="route">เครื่องมือ DNA OS</option><option value="service">บริการที่ลงทะเบียนแล้ว</option><option value="external">เว็บไซต์ที่ต้องการเปิด</option></select></label>
+          <label id="shortcutRouteField">เครื่องมือ<select id="shortcutRoute" aria-label="เลือกเครื่องมือ DNA OS"></select></label>
+          <label id="shortcutServiceField" hidden>บริการ<select id="shortcutService" aria-label="เลือกบริการที่ลงทะเบียนแล้ว"></select></label>
+          <div class="ws-form-row" id="shortcutExternalFields" hidden>
+            <label>ชื่อเว็บไซต์<input id="shortcutLabel" maxlength="60" placeholder="เช่น แผนที่บริษัท"></label>
+            <label>URL<input id="shortcutUrl" type="url" placeholder="https://…"></label>
+          </div>
+          <label id="shortcutIconField">ไอคอน<select id="shortcutIcon" aria-label="ไอคอนทางลัด"></select></label>
+          <p class="ws-note" id="shortcutProviderNote" hidden>บริการภายนอกใช้โลโก้จริงของผู้ให้บริการ และแก้ไม่ได้</p>
+          <button class="primary" type="submit" id="shortcutSubmit">เพิ่มทางลัด</button>
+        </form>
+        <div class="ws-shortcut-size"><span>ขนาดไอคอน</span><input type="range" id="shortcutIconSize" min="14" max="28" step="1" aria-label="ขนาดไอคอนทางลัด"><output id="shortcutIconSizeValue"></output></div>
+      </div>
+    </dialog>
+
+    <div id="toast" role="status"></div>
+    <script src="workspace-preferences.js"></script>
+    <script src="app.js"></script>
+    <script src="shell.js"></script>
+    <script src="business-launcher.js"></script>
+    <script src="workspace-customization.js"></script>
+  </body>
+</html>

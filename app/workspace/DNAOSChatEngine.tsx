@@ -17,7 +17,8 @@ import {
   Grid2X2, Ellipsis, MessageSquare, Settings, FileText, MessageCircle,
   Wallet, MapPin, Briefcase, Users, ScanLine, Files, FileOutput, Printer,
   Download, Share2, History, Paperclip, ArrowUp, X,
-  FileSignature, Banknote, Mountain, Server, Cloud,
+  FileSignature, Banknote, Mountain, Server, Cloud, Volume2,
+  Image as ImageIcon, Mic, Plus,
 } from "lucide-react";
 import { openExternal } from "@/components/admin/openExternal";
 import FlexPreview from "@/presentation/viewer/FlexPreview";
@@ -74,9 +75,39 @@ const ACTIONS: FrameItem[] = [
   { icon: Share2, label: "แชร์ / ส่งต่อ", disabledNote: "ยังไม่มี backend แชร์/ส่ง" },
 ];
 
+/**
+ * QAI COMPOSER TOOLS (owner 2026-10-18 ข้อ 02)
+ * แสดงเฉพาะเครื่องมือที่มีอยู่จริง — ทั้งสามรายการใช้ "ระบบอัปโหลดเดิม"
+ * (POST /api/admin/upload · bucket attachments · route เดิม) ต่างกันแค่ชนิดไฟล์ที่เปิดให้เลือก
+ * ไม่มีระบบอัปโหลด/เครื่องมือใหม่ และไม่มี backend ใหม่
+ */
+type ComposerToolId = "file" | "image" | "document";
+const COMPOSER_TOOLS: { id: ComposerToolId; label: string; icon: React.ElementType; accept: string }[] = [
+  { id: "file", label: "แนบไฟล์", icon: Paperclip, accept: "" },
+  { id: "image", label: "รูปภาพ", icon: ImageIcon, accept: "image/png,image/jpeg,image/webp,image/gif" },
+  { id: "document", label: "เอกสาร", icon: FileText, accept: ".pdf,.doc,.docx,.xls,.xlsx,.csv,.txt" },
+];
+
+/**
+ * ระบบรับเสียงเดิมของ DNA OS = มีแต่ TTS (speak) — ยังไม่มี speech-input capability
+ * ที่ลงทะเบียนไว้ จึงตรวจเฉพาะ hook ที่มีจริงก่อนเปิดใช้ปุ่มไมค์
+ * (ไม่สร้าง Voice Engine ใหม่ตามข้อ 03 · ถ้าไม่มี = แสดงสถานะไม่พร้อมใช้งาน)
+ */
+function voiceInputAvailable(): boolean {
+  if (typeof window === "undefined") return false;
+  return typeof (window as unknown as { dnaVoiceInput?: unknown }).dnaVoiceInput === "function";
+}
+
 /** CSS ยึด tokens + โครงสร้างของ reference (paper/ink/line/soft · edge drawer · stage โล่ง) */
 const FRAME_CSS = `
-#dna-frame{--paper:#fdfbf8;--ink:#36332f;--line:#e9e1d6;--soft:#f0ebe5;position:relative;background:var(--paper);color:var(--ink);font:14px/1.6 system-ui,sans-serif;border:1px solid var(--line);border-radius:16px;overflow:hidden;height:100dvh;display:flex;flex-direction:column}
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap');
+/* Theme tokens arrive from the shell's existing settings point via postMessage
+   (dna-workspace-theme). Defaults equal the pre-existing palette, so an
+   unthemed workspace renders exactly as before. */
+/* WORKSPACE READABILITY STANDARD (owner 2026-10-19): หมึกหลักเข้มขึ้น (#2a2723 เดิม #36332f)
+   · base 14px · ข้อความหลัก/สนทนา 16px · หัวข้อ 18–20px · ทุกข้อความ ≥14px */
+#dna-frame{--paper:#fff;--ink:#2a2723;--line:#ece7e0;--soft:#f6f3ef;--muted:color-mix(in srgb,var(--ink) 74%,var(--paper));--qai-compose-bg:rgba(255,255,255,.78);--qai-compose-hover:#fff;--qai-compose-focus:#fff;--qai-compose-border:rgba(120,110,98,.16);--qai-compose-border-strong:rgba(120,110,98,.32);--qai-blur:8px;--qai-radius:14px;position:relative;background:var(--paper);color:var(--ink);font:14px/1.6 'Sarabun',Tahoma,system-ui,sans-serif;font-size:var(--qai-font-size,14px);border:1px solid var(--line);border-radius:16px;overflow:hidden;height:100dvh;display:flex;flex-direction:column}
+#dna-frame .stage{position:relative;flex:1 1 auto;min-height:0;padding:56px 48px calc(10px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column}
 #dna-frame *{box-sizing:border-box}
 #dna-frame button,#dna-frame textarea{font:inherit;color:inherit}
 #dna-frame button{background:transparent;border:1px solid var(--line);border-radius:9px;padding:8px 12px;min-height:44px;cursor:pointer}
@@ -85,8 +116,7 @@ const FRAME_CSS = `
 #dna-frame button[aria-disabled=true]:hover{background:transparent}
 #dna-frame .corner{position:absolute;z-index:4;right:14px;top:16px;background:var(--paper)}
 #dna-frame .gear{position:absolute;left:12px;bottom:16px;z-index:3;background:var(--paper)}
-#dna-frame .stage{position:relative;flex:1 1 auto;min-height:0;padding:84px 64px 78px;display:flex;flex-direction:column}
-#dna-frame .stage--bleed{padding:76px 12px 12px}
+#dna-frame .stage--bleed{padding:52px 12px calc(10px + env(safe-area-inset-bottom,0px))}
 #dna-frame .edge{position:absolute;top:20px;padding:8px}
 #dna-frame .edge.left{left:8px}
 /* top:82px = ตำแหน่ง reference (sites/workspace-frame) — ตอนนี้ stage เริ่มที่ y=0
@@ -103,7 +133,7 @@ const FRAME_CSS = `
 #dna-frame .content{flex:1;padding:32px 0;min-height:200px;display:flex;flex-direction:column}
 #dna-frame .content--fill{padding:0;min-height:0;overflow:hidden}
 #dna-frame .content--fill>div,#dna-frame .content--fill>section{flex:1 1 0%;min-height:0}
-#dna-frame .count{background:#c93232;color:#fff;min-width:18px;border-radius:10px;font-size:11px;padding:0 5px;margin-left:auto}
+#dna-frame .count{background:#a34a3a;color:#fff;min-width:20px;border-radius:10px;font-size:14px;padding:0 6px;margin-left:auto}
 /* ── WORKSPACE DISPLAY STANDARD V1 (docs/WORKSPACE_DISPLAY_STANDARD_V1.md) ──
    Q-Timeline: ข้อความจริงชิดซ้ายบนพื้น Workspace สี paper/ink เดิม · ไม่มี bubble
    ไม่มี border/box-shadow รอบข้อความ · หนึ่งคำถาม = หนึ่ง q-entry */
@@ -112,38 +142,98 @@ const FRAME_CSS = `
 #dna-frame .content--fill .q-timeline{flex:0 1 auto;max-height:42vh}
 #dna-frame .q-entry{width:100%;min-width:0;display:flex;flex-direction:column;align-items:stretch;background:transparent;border:0;border-radius:0;box-shadow:none}
 #dna-frame .q-heading{display:flex;align-items:flex-start;gap:12px;width:100%;min-width:0}
-#dna-frame .q-label{flex:0 0 auto;font-weight:700;font-size:14px}
+#dna-frame .q-label{flex:0 0 auto;font-weight:700;font-size:16px}
 #dna-frame .q-question{flex:1;min-width:0;font-size:16px;font-weight:600;line-height:1.65;overflow-wrap:anywhere}
 #dna-frame .q-content{width:100%;min-width:0;padding:12px 0 0 26px}
-#dna-frame .q-answer{width:100%;min-width:0;font-size:15px;font-weight:400;line-height:1.8;overflow-wrap:anywhere;background:transparent;border:0;border-radius:0;box-shadow:none}
+#dna-frame .q-answer{width:100%;min-width:0;font-size:16px;font-weight:400;line-height:1.8;overflow-wrap:anywhere;background:transparent;border:0;border-radius:0;box-shadow:none}
 #dna-frame .q-answer>div+div{margin-top:14px}
-#dna-frame .q-events{width:100%;min-width:0;font-size:13px;line-height:1.6}
+#dna-frame .q-events{width:100%;min-width:0;font-size:14px;line-height:1.6}
 #dna-frame .q-events>div+div{margin-top:4px}
-#dna-frame .q-error{width:100%;min-width:0;color:#b91c1c;background:transparent;border:0;border-radius:0;box-shadow:none}
+#dna-frame .q-error{width:100%;min-width:0;color:#a8342c;background:transparent;border:0;border-radius:0;box-shadow:none}
 #dna-frame .workspace-content-column{width:100%;max-width:1040px;min-width:0;margin-inline:auto;box-sizing:border-box;padding-inline:16px}
 #dna-frame button[disabled]{opacity:.5;cursor:not-allowed}
 #dna-frame button[disabled]:hover{background:transparent}
-#dna-frame .blank{text-align:center;padding:42px 0}
-#dna-frame .compose{border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:auto}
-#dna-frame textarea{width:100%;resize:vertical;min-height:54px;background:transparent;border:0;outline:none}
-#dna-frame .row .send{margin-left:auto}
-#dna-frame .note{font-size:12px;opacity:.75}
+/* หัวข้อเปิดจอ = 20px (อยู่ในช่วงหัวข้อ 18–20px ตาม WORKSPACE READABILITY STANDARD) */
+#dna-frame .blank{text-align:center;padding:42px 0;font-size:20px;font-weight:600}
+/* QAI COMPOSER — กล่องเดียว (owner 2026-10-18 ข้อ 01–04): กล่องเปล่า ~50px
+   · ปุ่ม (+) ซ้าย · ช่องพิมพ์กลาง · ไมค์ + ส่งขวา · ไอคอนขนาดเล็กสม่ำเสมอ
+   · พื้นหลังโปร่งแสงเล็กน้อย เส้นขอบบาง เงาอ่อน — ยังคมชัดเมื่อ hover/focus */
+#dna-frame .compose{border:1px solid var(--qai-compose-border);border-radius:var(--qai-radius);padding:5px 7px 5px 8px;margin-top:auto;background:var(--qai-compose-bg);backdrop-filter:blur(var(--qai-blur));-webkit-backdrop-filter:blur(var(--qai-blur));box-shadow:0 3px 14px rgba(45,38,30,.045);transition:opacity .16s ease,background-color .16s ease,border-color .16s ease,box-shadow .16s ease}
+#dna-frame .compose-main{display:flex;align-items:flex-end;gap:6px;min-height:38px}
+#dna-frame .compose-main button{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;min-height:0;padding:0;border:1px solid transparent;border-radius:9px;background:transparent;color:var(--ink)}
+#dna-frame .compose-main button:hover{background:var(--soft)}
+#dna-frame .compose-main button:disabled{opacity:.55;cursor:not-allowed;background:transparent}
+#dna-frame .compose-main button[aria-disabled=true]{opacity:.55;cursor:help;background:transparent}
+#dna-frame .compose-main button[aria-disabled=true]:hover{background:transparent}
+#dna-frame .compose-main svg{width:18px;height:18px}
+#dna-frame .compose-main .compose-mic{color:#8a8279}
+#dna-frame .compose-main .compose-send{background:#514b45;border-color:#514b45;color:#fff}
+#dna-frame .compose-main .compose-send:hover{background:#3e3934}
+/* เมนูเครื่องมือ (+) — แถวกระชับเหนือช่องพิมพ์ · เปิดเฉพาะเครื่องมือที่มีอยู่จริง */
+#dna-frame .compose-tray{display:flex;align-items:center;gap:6px;padding:0 2px 5px;flex-wrap:wrap}
+#dna-frame .compose-tray[hidden],#dna-frame .compose-menu[hidden]{display:none}
+#dna-frame .compose-menu{display:flex;align-items:center;gap:4px;flex:1 1 auto;min-width:0}
+#dna-frame .compose-menu>button{display:inline-flex;align-items:center;gap:5px;height:32px;min-height:0;padding:0 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px;color:#514b45;white-space:nowrap}
+#dna-frame .compose-menu>button:hover{background:var(--soft)}
+#dna-frame .compose-menu svg{width:15px;height:15px}
+#dna-frame .compose-menu .compose-menu-close{margin-left:auto;width:26px;padding:0;justify-content:center;border-color:transparent;background:transparent;color:#8a8279;font-size:15px}
+#dna-frame .compose-chip{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:#514b45;background:var(--soft);border-radius:999px;padding:3px 4px 3px 10px;white-space:nowrap}
+#dna-frame .compose-chip button{display:grid;place-items:center;width:20px;height:20px;min-height:0;padding:0;border:0;border-radius:50%;background:transparent;color:#8a8279}
+#dna-frame .compose-chip button:hover{background:#e9e3da}
+#dna-frame .compose-note{display:inline-flex;align-items:center;gap:6px;font-size:14px;line-height:1.4;color:#8a5738;background:#fdf8ef;border:1px solid #f0e3cd;border-radius:999px;padding:3px 4px 3px 10px}
+#dna-frame .compose-note button{display:grid;place-items:center;width:20px;height:20px;min-height:0;padding:0;border:0;border-radius:50%;background:transparent;color:#8a5738}
+#dna-frame .compose-note button:hover{background:#f6ead6}
+/* ONE AI COMPOSER — บริบทแท็บที่กำลังเปิดอยู่ (รับจาก shell ผ่าน postMessage เดิม) */
+#dna-frame .compose-context-row{display:flex;padding:0 2px 4px}
+#dna-frame .compose-context{display:inline-flex;align-items:center;gap:6px;max-width:100%;min-width:0;font-size:14px;color:var(--muted);background:var(--soft);border-radius:999px;padding:3px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dna-frame .compose-context strong{font-weight:600;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* Theme-aware composer internals — only when the shell's dark glass preset is on */
+#dna-frame[data-ws-theme=dark] .compose-main .compose-mic{color:var(--qai-muted,#b9b0a5)}
+#dna-frame[data-ws-theme=dark] .compose-main .compose-send{background:var(--ink);border-color:var(--ink);color:var(--qai-bg)}
+#dna-frame[data-ws-theme=dark] .compose-menu>button,
+#dna-frame[data-ws-theme=dark] .compose-chip,
+#dna-frame[data-ws-theme=dark] .compose-context{background:var(--qai-soft);border-color:var(--qai-line);color:var(--ink)}
+#dna-frame[data-ws-theme=dark] .compose-note{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.16);color:#e8c9a4}
+/* ADAPTIVE COMPOSER: โปร่งใสเล็กน้อยเมื่อไม่ใช้งาน · ชัดขึ้นเมื่อ hover/focus โดยไม่เพิ่มกรอบหนา */
+#dna-frame .compose:hover{background:var(--qai-compose-hover);border-color:var(--qai-compose-border-strong,var(--qai-compose-border));box-shadow:0 6px 20px rgba(53,51,48,.07);opacity:1}
+#dna-frame .compose:focus-within{background:var(--qai-compose-focus);border-color:var(--qai-compose-border-strong,var(--qai-compose-border));box-shadow:0 6px 20px rgba(53,51,48,.07);opacity:1}
+/* COMPACT MODE: เมื่อ shell ย่อกล่องนี้เป็น Compact Floating Composer (พื้นที่เตี้ย) —
+   ซ่อนเฉพาะส่วนที่ไม่จำเป็นต่อการพิมพ์ ให้กล่องพิมพ์กินพื้นที่ที่เหลือ · ไม่แตะข้อความที่พิมพ์ค้าง */
+@media(max-height:150px){
+  #dna-frame{border:0;border-radius:0;background:transparent}
+  #dna-frame .stage{padding:5px 7px}
+  #dna-frame .q-timeline,#dna-frame .blank,#dna-frame .corner,#dna-frame .edge,#dna-frame .q-events,#dna-frame .compose-context-row{display:none}
+  #dna-frame .compose{opacity:.82;background:var(--qai-compose-bg);border-radius:calc(var(--qai-radius) - 2px);padding:4px 6px;box-shadow:0 2px 10px rgba(53,51,48,.1)}
+  #dna-frame .compose:hover{opacity:1;background:var(--qai-compose-hover)}
+  #dna-frame .compose:focus-within{opacity:1;background:var(--qai-compose-focus)}
+}
+/* ประวัติการสื่อสารในแผงเดิม — ลิสต์จากบทสนทนาจริงของเซสชันนี้เท่านั้น */
+#dna-frame .history-list{margin:8px 0 0;padding-left:18px;font-size:14px}
+#dna-frame .history-list>li{margin-bottom:10px}
+#dna-frame .history-events{margin:4px 0 0;padding-left:16px;font-size:14px;color:var(--muted);list-style:disc}
+/* ช่องพิมพ์: 1 บรรทัด = 38px · ขยายเองตามบรรทัด (JS clamp 96px) แล้วเลื่อนภายใน */
+#dna-frame .compose-main textarea{flex:1 1 auto;width:auto;min-width:0;min-height:38px;max-height:96px;padding:8px 4px;line-height:20px;resize:none;overflow-y:auto;background:transparent;border:0;outline:none;display:block}
+#dna-frame .note{font-size:14px;color:var(--muted)}
 /* BUSINESS RESULT PRESENTATION — WORKSPACE DISPLAY STANDARD V1: ผลลัพธ์ทุกชนิด
    อ้างความกว้างจากคอลัมน์กลาง (.workspace-content-column) ไม่มี max-width bubble จำกัดซ้ำ */
 #dna-frame .result-block{width:100%;max-width:100%;display:flex;flex-direction:column;gap:8px;min-width:0}
 #dna-frame .document-result{width:100%;max-width:100%;min-width:0;overflow:hidden}
 #dna-frame .document-result img,#dna-frame .document-result canvas{display:block;width:100%;max-width:100%;height:auto;object-fit:contain}
 #dna-frame .document-result iframe{display:block;width:100%;height:min(80vh,1120px);border:0}
-#dna-frame .result-title{font-weight:600;font-size:13px}
-#dna-frame .result-notes{font-size:12px;color:#78716c}
+#dna-frame .result-title{font-weight:600;font-size:14px}
+#dna-frame .result-notes{font-size:14px;color:var(--muted)}
 #dna-frame .msg-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-#dna-frame .msg-actions button{min-height:36px;font-size:12px;padding:6px 12px}
+#dna-frame .msg-actions button{min-height:38px;font-size:14px;padding:6px 12px}
+/* ลำโพงอ่านข้อความใต้คำตอบ — ไอคอนเล็ก ไม่กินพื้นที่แชต (owner 2026-10-18 ข้อ 9) */
+#dna-frame .reply-tts{margin-top:2px}
+#dna-frame .reply-tts button{min-height:0;min-width:0;padding:2px 4px;border:0;background:transparent;opacity:.5}
+#dna-frame .reply-tts button:hover{opacity:.9;background:transparent}
 #dna-frame .msg-attachment{max-width:min(420px,90%)}
 #dna-frame .attachment-row{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 12px;flex-wrap:wrap}
-#dna-frame .attachment-link{font-size:12px;color:#0f766e;text-decoration:underline}
+#dna-frame .attachment-link{font-size:14px;color:#0f766e;text-decoration:underline}
 #dna-frame .result-timeline{max-width:100%}
 #dna-frame svg{width:18px;height:18px;vertical-align:middle}
-@media(max-width:500px){#dna-frame .stage{padding:72px 14px 16px}#dna-frame .blank{padding:24px 0}}
+@media(max-width:500px){  #dna-frame .stage{padding:52px 12px 8px}#dna-frame .blank{padding:24px 0}}
 `;
 
 export function WorkspaceFrame({
@@ -156,6 +246,7 @@ export function WorkspaceFrame({
   selfRoute,
   itemBadges,
   orgContext: _orgContextProp,
+  embedded,
 }: {
   /** canvas หลัก = entity context ที่เลือก — ไม่ส่ง = หน้าโล่งตาม reference */
   children?: ReactNode;
@@ -185,14 +276,31 @@ export function WorkspaceFrame({
   itemBadges?: Record<string, number>;
   /** องค์กรปัจจุบันของ workspace (STEP 3) — ผู้เรียกส่งมาเป็นค่าตั้งต้น; ค่าจริงมาจาก context */
   orgContext?: { organizationId: string; name: string } | null;
+  /**
+   * EMBEDDED CHROME (owner fix 2026-10-18): true = หน้านี้ถูกฝังใน desktop shell
+   * (material-workspace) ซึ่งมีแถบเครื่องมือของตัวเองอยู่แล้ว → ไม่วาดไอคอนที่ซ้ำกับ shell
+   *   · .gear (ตั้งค่า)          → shell มีปุ่มการเชื่อมต่อ/ตั้งค่าอยู่แล้ว
+   *   · .edge left (กล่องเครื่องมือ) → shell มีปุ่ม "เปิดเครื่องมือ" อยู่แล้ว
+   * เก็บ .edge right (คำสั่งของรายการ) + .corner (ประวัติการสื่อสาร) ไว้ เพราะ shell ไม่มีคู่ซ้ำ
+   * ไม่สร้าง navigation ใหม่ — ใช้ของเดิมทั้งสองชั้น
+   */
+  embedded?: boolean;
 }) {
   const { current: _ctxOrg } = useWorkspaceOrg();
   const orgContext = _ctxOrg ?? _orgContextProp ?? null;
   const router = useRouter();
   const [drawer, setDrawer] = useState<null | "apps" | "actions">(null);
+  /** บริบทของแท็บที่กำลังเปิดใน shell (รับผ่าน postMessage — ไม่ใช่ state ธุรกิจ) */
+  const [activeScreen, setActiveScreen] = useState<{ label: string; route: string; kind: string } | null>(null);
   const [draft, setDraft] = useState("");
   const [internalPanel, setInternalPanel] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  /** QAI COMPOSER tools (+) — เมนูเครื่องมือ/รายการที่เลือก/สถานะไมค์ (UI state เท่านั้น) */
+  const [toolOpen, setToolOpen] = useState(false);
+  const [selectedTool, setSelectedTool] = useState<ComposerToolId | null>(null);
+  const [toolNote, setToolNote] = useState<string | null>(null);
+  const [voiceReady] = useState(() => voiceInputAvailable());
+  const selectedToolInfo = COMPOSER_TOOLS.find((tool) => tool.id === selectedTool) ?? null;
   // ── WORKSPACE DISPLAY STANDARD V1 (§Composer Focus / §Scroll) ──
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const timelineRef = useRef<HTMLElement>(null);
@@ -208,8 +316,49 @@ export function WorkspaceFrame({
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 240)}px`;
+    // 38px = 1 บรรทัด · 96px = เพดานสูงสุด แล้วเลื่อนข้อความภายใน (owner ข้อ 01)
+    el.style.height = `${Math.min(Math.max(el.scrollHeight, 38), 96)}px`;
   };
+  /** ขนาดตามจำนวนบรรทัดจริง และกลับกะทัดรัดทันทีเมื่อส่ง/ล้างข้อความ */
+  useEffect(() => {
+    autoGrowComposer();
+  }, [draft]);
+  /** แจ้ง shell ว่ากล่องพิมพ์ถูกใช้งาน — ฟังระดับ document เพื่อไม่ให้สถานะค้าง
+      เมื่อโฟกัสย้ายออกจากปุ่มที่ถูกซ่อน/ถอด (เมนู +) */
+  useEffect(() => {
+    const sync = () => {
+      const el = document.activeElement;
+      postComposerActive(el instanceof Element && !!el.closest("form.compose"));
+    };
+    const syncNext = () => window.setTimeout(sync, 0);
+    document.addEventListener("focusin", sync);
+    document.addEventListener("focusout", syncNext);
+    document.addEventListener("mousedown", syncNext);
+    return () => {
+      document.removeEventListener("focusin", sync);
+      document.removeEventListener("focusout", syncNext);
+      document.removeEventListener("mousedown", syncNext);
+    };
+  }, []);
+  /** ปิดเมนู (+) ด้วย Esc หรือคลิกนอกเมนู (owner ข้อ 02) */
+  useEffect(() => {
+    if (!toolOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setToolOpen(false);
+    };
+    const onPointer = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest(".compose-tray, [data-compose-plus]")) return;
+      setToolOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onPointer);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onPointer);
+    };
+  }, [toolOpen]);
   /** §09 — auto-scroll เฉพาะตอนผู้ใช้อยู่ท้ายรายการ · ย้อนอ่าน = หยุดจนกว่าจะกลับลงท้าย */
   const stickToBottom = useRef(true);
   const onTimelineScroll = () => {
@@ -239,10 +388,8 @@ export function WorkspaceFrame({
   }[]>([]);
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
-  // เสียงตอบ (ยุบมาจากเลขาส่วนตัวเดิม) — voiceRef ใช้ใน realtime effect ที่ mount ครั้งเดียว
-  const [voiceOn, setVoiceOn] = useState(false);
-  const voiceRef = useRef(false);
-  voiceRef.current = voiceOn;
+  // เสียงอ่านข้อความ (TTS) — ใช้ความสามารถเดิม (speak) แต่ย้ายไปอยู่ใต้ข้อความตอบกลับ
+  // เป็นไอคอนเล็ก และ "ไม่อ่านอัตโนมัติ": พูดเมื่อผู้ใช้กดไอคอนนั้นเท่านั้น (owner 2026-10-18 ข้อ 9)
   const msgSeq = useRef(0);
   const pushMsg = (
     role: "user" | "ai" | "system",
@@ -257,6 +404,73 @@ export function WorkspaceFrame({
     msgSeq.current += 1;
     setMessages((m) => [...m, { id: msgSeq.current, role, text, ...extra }]);
   };
+
+  // ONE AI COMPOSER — บริบทแท็บ (owner 2026-10-18 ข้อ 5–7): shell แจ้งหน้าจอที่เปิดอยู่
+  // ผ่าน postMessage เดิมของ workspace (same-origin เท่านั้น) · ใช้เพื่อ "แสดง" บริบท
+  // ของกล่องกลางและส่งต่อให้ผู้ใช้เห็นว่าคำสั่งนี้ทำงานในหน้าไหน — ไม่ได้เปลี่ยน
+  // สัญญา /api/chat, ไม่เพิ่ม engine/gateway และไม่ reload หน้า (ข้อความค้างอยู่)
+  useEffect(() => {
+    const receive = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      const data = event.data as { type?: string; label?: string; route?: string; kind?: string } | null;
+      if (!data || data.type !== "dna-workspace-active-screen") return;
+      setActiveScreen({
+        label: typeof data.label === "string" ? data.label : "Workspace",
+        route: typeof data.route === "string" ? data.route : "",
+        kind: typeof data.kind === "string" ? data.kind : "chat",
+      });
+      // เปลี่ยนแท็บ = หุบเมนูเครื่องมือ (ไม่ให้ค้างข้ามหน้าจอ)
+      setToolOpen(false);
+    };
+    window.addEventListener("message", receive);
+    return () => window.removeEventListener("message", receive);
+  }, []);
+
+  // WORKSPACE THEME (owner 2026-10-18 ข้อ 03) — the shell's existing settings point
+  // sends the same CSS custom properties it applies to its own chrome. This is the
+  // SAME composer, not a second chat engine: it only colors the existing #dna-frame
+  // and keeps the draft/state untouched. No business/API/AI contract changes.
+  useEffect(() => {
+    const frame = document.getElementById("dna-frame");
+    if (!frame) return;
+    const receive = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      const data = event.data as {
+        type?: string;
+        theme?: { preset?: string };
+        vars?: Record<string, string>;
+        mode?: "light" | "dark" | "auto";
+      } | null;
+      if (!data || data.type !== "dna-workspace-theme") return;
+      if (data.vars && typeof data.vars === "object") {
+        // The frame's existing structure reads --paper/--ink/--line/--soft; map the
+        // shell tokens onto those same variables so every existing element follows
+        // the theme without restyling the component or duplicating tokens.
+        const aliases: Record<string, string> = {
+          "--qai-bg": "--paper",
+          "--qai-ink": "--ink",
+          "--qai-line": "--line",
+          "--qai-soft": "--soft",
+        };
+        for (const [name, value] of Object.entries(data.vars)) {
+          if (!name.startsWith("--") || typeof value !== "string") continue;
+          frame.style.setProperty(name, value);
+          if (aliases[name]) frame.style.setProperty(aliases[name], value);
+        }
+      }
+      // Auto resolves to Dark Glass when the OS is dark. The shell sends the
+      // already-resolved mode, so no second OS detector is created here.
+      const resolvedMode =
+        data.mode === "dark" || data.mode === "light"
+          ? data.mode
+          : data.theme?.preset === "dark"
+            ? "dark"
+            : "light";
+      frame.dataset.wsTheme = resolvedMode;
+    };
+    window.addEventListener("message", receive);
+    return () => window.removeEventListener("message", receive);
+  }, []);
 
   // reference: Escape ปิด drawer
   useEffect(() => {
@@ -325,9 +539,10 @@ export function WorkspaceFrame({
             row.reply_text ?? "รับคำสั่งจาก LINE แล้วครับ",
             blocks.length ? { result: { type: "sections", blocks } } : undefined,
           );
-          if (voiceRef.current && row.reply_text) speak(row.reply_text);
           if (row.navigate_url) {
-            setTimeout(() => router.push(row.navigate_url as string), 600);
+            setTimeout(() => {
+              if (!openWorkspaceRouteInShell(row.navigate_url as string)) router.push(row.navigate_url as string);
+            }, 600);
           }
         },
       )
@@ -349,7 +564,8 @@ export function WorkspaceFrame({
     if (!item.route) return;
     setDrawer(null);
     if (selfRoute && item.route === selfRoute) return;
-    router.push(item.route);
+    // เปิดในพื้นที่กลางของ shell เดิม (ถ้าถูกฝัง) — ไม่ navigate ตัวหน้าแชต ⇒ Composer/ข้อความคงอยู่
+    if (!openWorkspaceRouteInShell(item.route, item.label)) router.push(item.route);
   };
 
   // textarea → /api/chat จริง (route เดิม = runCognitivePipeline · เดียวกับที่
@@ -357,11 +573,19 @@ export function WorkspaceFrame({
   // memory แยกจาก relationship อื่น (อุบัติการณ์ singleton 2026-07-31 ที่
   // cognitive/memory/session.ts) · ไม่มี knownCustomerId — shell ไม่รู้ลูกค้า
   const sendDraft = async () => {
-    // ยังไม่เลือกองค์กร = ไม่มีบริบทธุรกิจให้ส่งงาน (gate ฝั่ง server จะปฏิเสธซ้ำ)
-    if (!orgContext) return;
     const text = draft.trim();
     if (!text || sending) return;
+    // ยังไม่เลือกองค์กร: พิมพ์ได้ปกติ (ไม่ disabled) แต่ยังไม่ยิง /api/chat —
+    // บอกเหตุผลด้วยข้อความจริงในแชท + เก็บ draft ค้างไว้ ไม่ให้ข้อความหาย
+    if (!orgContext) {
+      pushMsg("system", "ยังไม่ได้เลือกองค์กร — เลือกองค์กรจากมุมขวาบนก่อน แล้วส่งคำสั่งเดิมซ้ำได้ (ข้อความที่พิมพ์ยังคงอยู่)");
+      return;
+    }
     setDraft("");
+    // ส่งแล้วกลับสู่กล่องกะทัดรัด (autoGrow ทำงานตาม draft ที่ว่าง)
+    setToolOpen(false);
+    setSelectedTool(null);
+    setToolNote(null);
     setSending(true);
     pushMsg("user", text);
     // (E) มี entity + ช่องทาง LINE → communication action ใช้ LINE/send API เดิม
@@ -427,7 +651,6 @@ export function WorkspaceFrame({
             typeof data.screen_vision_goal === "string" ? data.screen_vision_goal : undefined,
           );
           pushMsg("ai", vision);
-          if (voiceOn) speak(vision);
           return;
         }
         if (data.open_app) {
@@ -445,7 +668,6 @@ export function WorkspaceFrame({
                 : {}),
               ...(blocks.length ? { result: { type: "sections", blocks } as ChatResult } : {}),
             });
-            if (voiceOn) speak(copilot.text);
           }
           return;
         }
@@ -467,11 +689,13 @@ export function WorkspaceFrame({
           ...(data.doc_html ? { docHtml: String(data.doc_html) } : {}),
           ...(data.flex_preview ? { flexPreview: data.flex_preview } : {}),
         });
-        // เสียงตอบ (voiceOn) — พูดข้อความตอบจริง ไม่พูด structured ที่ไม่มี text
-        if (voiceOn && typeof data.text === "string" && data.text) speak(String(data.text));
+        // เสียงอ่านข้อความ: ไม่พูดอัตโนมัติ — ผู้ใช้กดไอคอนลำโพงใต้ข้อความตอบกลับนั้นเอง
         // navigate_url = contract ของ pipeline ที่ตอบ "เปิดหน้าให้แล้วครับ"
         // — route ที่ server รู้จักเท่านั้น (ตัวเดียวกับ navigation intercept)
-        if (data.navigate_url) router.push(String(data.navigate_url));
+        if (data.navigate_url) {
+          const route = String(data.navigate_url);
+          if (!openWorkspaceRouteInShell(route)) router.push(route);
+        }
       } else {
         const message = `ส่งคำสั่งไม่สำเร็จ: ${data?.error ?? data?.text ?? `HTTP ${res.status}`}`;
         pushMsg("system", message, { result: { type: "error", message } });
@@ -522,6 +746,27 @@ export function WorkspaceFrame({
       }
     }
     if (fileRef.current) fileRef.current.value = "";
+    setSelectedTool(null);
+  };
+
+  /** เลือกเครื่องมือจากเมนู (+) → เปิด file picker เดิมด้วย accept ของชนิดนั้น */
+  const chooseComposerTool = (tool: (typeof COMPOSER_TOOLS)[number]) => {
+    setToolOpen(false);
+    setSelectedTool(tool.id);
+    setToolNote(null);
+    const input = fileRef.current;
+    if (!input) return;
+    input.value = "";
+    input.accept = tool.accept;
+    input.click();
+  };
+
+  /** ไมค์: ยังไม่มีระบบรับเสียงจริง → แสดงสถานะไม่พร้อมใช้งาน (ไม่เปิดอุปกรณ์/ไม่สร้าง engine) */
+  const announceVoiceStatus = () => {
+    if (voiceReady) return;
+    setToolOpen(false);
+    setSelectedTool(null);
+    setToolNote("ไมโครโฟนยังไม่พร้อมใช้งาน — ยังไม่มีระบบรับเสียงใน DNA OS");
   };
 
   // §09 — เลื่อนตามข้อความใหม่ก็ต่อเมื่อผู้ใช้อยู่ท้ายรายการ (ไม่แย่งตอนย้อนอ่าน)
@@ -568,26 +813,34 @@ export function WorkspaceFrame({
       {/* ONE SURFACE (B): permanent header "DNA OS · พื้นที่ทำงาน" + note ถูกถอด —
           หน้าเริ่มต้น = canvas โล่งตาม Owner reference · ปุ่มควบคุมทั้งหมดอยู่ที่ขอบจอ */}
 
-      {/* ONE SURFACE: ปุ่มมุมขวาบน = ทางเข้าแผง "ประวัติการสื่อสาร" (ถ้าหน้าส่ง
-          messagePanel มา) — หน้าที่ไม่มีแผงยังไป /admin/event-inbox เหมือนเดิม */}
-      <button
-        className="corner"
-        onClick={() => {
-          setDrawer(null);
-          if (messagePanel) setPanelOpen(!panelIsOpen);
-          else router.push("/admin/event-inbox");
-        }}
-        aria-expanded={messagePanel ? panelIsOpen : undefined}
-        aria-label="เปิดประวัติการสื่อสาร"
-      >
-        <MessageSquare />
-      </button>
-      <button className="gear" onClick={() => router.push("/admin/settings")} aria-label="Settings">
-        <Settings />
-      </button>
+      {/* ONE SURFACE: ปุ่มประวัติด้านบน (ตำแหน่งเดิม) = เปิดแผงรายการหัวข้อสนทนา + ลำดับเหตุการณ์
+          ที่มีข้อมูลรองรับจริง — บทสนทนาของเซสชันนี้ (state เดิม) หรือ messagePanel ที่หน้าอื่นส่งมา
+
+          NAVIGATION CLEANUP (owner 2026-10-18): ใน Workspace (embedded) ไม่มีปุ่มรูปข้อความมุมขวา
+          ของพื้นที่กลางอีก — Workspace ใช้กล่อง AI ด้านล่างชุดเดิมเท่านั้น
+          หน้าจออื่นที่ใช้ frame นี้ (เช่น /admin/relationships ที่ส่ง messagePanel มาเอง) ยังมีปุ่มเดิมครบ */}
+      {!embedded && (
+        <button
+          className="corner"
+          data-testid="history-button"
+          onClick={() => {
+            setDrawer(null);
+            setPanelOpen(!panelIsOpen);
+          }}
+          aria-expanded={panelIsOpen}
+          aria-label="เปิดประวัติการสื่อสาร"
+        >
+          <MessageSquare />
+        </button>
+      )}
+      {!embedded && (
+        <button className="gear" onClick={() => router.push("/admin/settings")} aria-label="Settings">
+          <Settings />
+        </button>
+      )}
 
       {/* แผง "ประวัติการสื่อสาร" — รูปแบบตาม reference .inbox: เปิดทับ canvas (stage ซ่อน) */}
-      {panelIsOpen && messagePanel && (
+      {panelIsOpen && (
         <aside className="msg-panel" aria-label="ประวัติการสื่อสาร">
           <div className="row">
             <strong>ประวัติการสื่อสาร</strong>
@@ -595,18 +848,60 @@ export function WorkspaceFrame({
               <X />
             </button>
           </div>
-          <div className="panel-body">{messagePanel}</div>
+          <div className="panel-body">
+            {messagePanel ?? (
+              <div data-testid="history-panel">
+                <strong>หัวข้อสนทนาและลำดับเหตุการณ์</strong>
+                {qEntries.length === 0 ? (
+                  <p className="note" data-testid="history-empty">
+                    ยังไม่มีหัวข้อสนทนาในเซสชันนี้ — ระบบไม่สร้างข้อมูลจำลอง และไม่บันทึกเป็น business
+                    event เพราะยังไม่มีเหตุการณ์ธุรกิจเกิดขึ้น
+                  </p>
+                ) : (
+                  <ol className="history-list">
+                    {qEntries.map((entry, idx) => (
+                      <li key={entry.key}>
+                        <strong>
+                          {idx + 1}. {entry.question ?? "(เหตุการณ์)"}
+                        </strong>
+                        {entry.events.length > 0 && (
+                          <ul className="history-events">
+                            {entry.events.map((m) => (
+                              <li key={m.id}>{m.text}</li>
+                            ))}
+                          </ul>
+                        )}
+                        {entry.answers.length > 0 && (
+                          <ul className="history-events">
+                            {entry.answers.map((m) => (
+                              <li key={m.id}>{m.text}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
+            )}
+          </div>
         </aside>
       )}
 
       {!panelIsOpen && (
       <section className={children ? "stage stage--bleed" : "stage"} data-screen="work">
-        <button className="edge left" data-drawer="apps" aria-expanded={drawer === "apps"} onClick={() => toggle("apps")} aria-label="เปิดกล่องเครื่องมือ">
-          <Grid2X2 />
-        </button>
-        <button className="edge right" data-drawer="actions" aria-expanded={drawer === "actions"} onClick={() => toggle("actions")} aria-label="เปิดคำสั่งของรายการ">
-          <Ellipsis />
-        </button>
+        {!embedded && (
+          <button className="edge left" data-drawer="apps" aria-expanded={drawer === "apps"} onClick={() => toggle("apps")} aria-label="เปิดกล่องเครื่องมือ">
+            <Grid2X2 />
+          </button>
+        )}
+        {/* ปุ่มจุดสามจุด (⋯) ของพื้นที่กลางย้ายขึ้น Tab Bar ของ shell แล้ว (owner 2026-10-18)
+            — ใน embedded ไม่มีปุ่มซ้ำ · หน้าจออื่นที่ใช้ frame นี้ยังคงปุ่มคำสั่งเดิม */}
+        {!embedded && (
+          <button className="edge right" data-drawer="actions" aria-expanded={drawer === "actions"} onClick={() => toggle("actions")} aria-label="เปิดคำสั่งของรายการ">
+            <Ellipsis />
+          </button>
+        )}
 
         {drawer && (
           <aside className="drawer">
@@ -691,6 +986,21 @@ export function WorkspaceFrame({
                                   </button>
                                 </div>
                               )}
+                              {/* ลำโพงอ่านข้อความ — ไอคอนเล็กใต้ข้อความตอบกลับ · ใช้ speak() เดิม
+                                  · ไม่อ่านอัตโนมัติ (พูดเมื่อกดเท่านั้น) · ไม่เปิดไมโครโฟน */}
+                              {m.text ? (
+                                <div className="row msg-actions reply-tts">
+                                  <button
+                                    type="button"
+                                    data-testid="reply-tts"
+                                    aria-label="อ่านข้อความตอบกลับนี้"
+                                    title="อ่านข้อความนี้"
+                                    onClick={() => speak(m.text)}
+                                  >
+                                    <Volume2 />
+                                  </button>
+                                </div>
+                              ) : null}
                               {m.flexPreview != null && (
                                 <div className="msg-attachment">
                                   <FlexPreview flex={m.flexPreview} />
@@ -740,55 +1050,126 @@ export function WorkspaceFrame({
         {/* ONE COMPOSER — ตำแหน่งเดิมด้านล่างเสมอ ทั้งตอนไม่มี entity และมี entity */}
         <form
           className="compose workspace-content-column"
+          data-active-screen={activeScreen?.route ?? "/workspace"}
           onClick={focusComposer}
           onSubmit={(e) => {
             e.preventDefault();
             void sendDraft();
           }}
         >
-          <textarea
-            ref={textareaRef}
-            aria-label="คำสั่ง"
-            placeholder={orgContext ? `ถาม ${orgContext.name}...` : "เลือกองค์กรก่อนเริ่มใช้งาน"}
-            data-org-context={orgContext ? orgContext.organizationId : ""}
-            value={draft}
-            onChange={(e) => {
-              setDraft(e.target.value);
-              autoGrowComposer();
-            }}
-            disabled={sending || !orgContext}
-          />
-          <div className="row compose-tools">
-            <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}>
-              <Paperclip /> แนบไฟล์
+          {/* แท็บที่เปิดอยู่ (จาก shell) — กล่องนี้คือกล่องกลางตัวเดียวที่ใช้ร่วมทุกแท็บ
+              แสดงเป็นแถวบางเหนือช่องพิมพ์ และซ่อนใน compact ของ shell (ไม่กินพื้นที่) */}
+          {activeScreen && activeScreen.kind !== "chat" && (
+            <div className="compose-context-row">
+              <span
+                className="compose-context"
+                data-testid="compose-context"
+                title={`แท็บที่กำลังเปิดอยู่: ${activeScreen.label}${activeScreen.route ? ` (${activeScreen.route})` : ""}`}
+              >
+                บริบท: <strong>{activeScreen.label}</strong>
+              </span>
+            </div>
+          )}
+          {/* (+) เมนูเครื่องมือ QAI — เฉพาะเครื่องมือที่ระบบมีจริง · เปิด/ปิดด้วย (+) · × · Esc · คลิกนอก */}
+          <div className="compose-tray" hidden={!toolOpen && !selectedTool && !toolNote}>
+            <div className="compose-menu" id="compose-tool-menu" role="menu" aria-label="เครื่องมือ QAI" hidden={!toolOpen}>
+              {COMPOSER_TOOLS.map((tool) => (
+                <button key={tool.id} type="button" role="menuitem" onClick={() => chooseComposerTool(tool)}>
+                  <tool.icon /> {tool.label}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="compose-menu-close"
+                aria-label="ปิดเมนูเครื่องมือ"
+                title="ปิดเมนู"
+                onClick={() => setToolOpen(false)}
+              >
+                ×
+              </button>
+            </div>
+            {!toolOpen && selectedToolInfo && (
+              <span className="compose-chip" data-testid="compose-selected-tool">
+                {selectedToolInfo.label}
+                <button
+                  type="button"
+                  aria-label="ยกเลิกเครื่องมือที่เลือก"
+                  title="ยกเลิก"
+                  onClick={() => setSelectedTool(null)}
+                >
+                  ×
+                </button>
+              </span>
+            )}
+            {toolNote && (
+              <span className="compose-note" role="status" data-testid="compose-voice-status">
+                {toolNote}
+                <button type="button" aria-label="ปิดสถานะ" title="ปิด" onClick={() => setToolNote(null)}>
+                  ×
+                </button>
+              </span>
+            )}
+          </div>
+          {/* ซ้าย (+) · กลางช่องพิมพ์ · ขวาไมค์ + ส่ง — ไอคอนเล็กสม่ำเสมอ */}
+          <div className="compose-main">
+            <button
+              type="button"
+              data-compose-plus
+              aria-label="เปิดเครื่องมือ QAI"
+              title="เครื่องมือ QAI"
+              aria-haspopup="menu"
+              aria-expanded={toolOpen}
+              aria-controls="compose-tool-menu"
+              onClick={() => setToolOpen((open) => !open)}
+              disabled={uploading}
+            >
+              <Plus />
             </button>
-            <input
-              ref={fileRef}
-              type="file"
-              hidden
-              multiple
+            <textarea
+              ref={textareaRef}
+              rows={1}
+              aria-label="คำสั่ง"
+              placeholder={orgContext ? `ถาม ${orgContext.name}...` : "พิมพ์คำสั่งได้ทันที — เลือกองค์กรก่อนจึงจะส่งได้"}
+              data-org-context={orgContext ? orgContext.organizationId : ""}
+              value={draft}
               onChange={(e) => {
-                void uploadFiles(e.target.files);
+                setDraft(e.target.value);
+                if (toolNote) setToolNote(null);
               }}
+              onKeyDown={(e) => {
+                // พิมพ์ภาษาไทย/IME ปกติทุกตัวอักษร · IME ยังแต่งคำ (isComposing) = ห้ามส่ง
+                if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
+                if (e.key !== "Enter") return;
+                if (e.shiftKey) return; // Shift+Enter = ขึ้นบรรทัดใหม่ตามค่า default ของ textarea
+                e.preventDefault(); // Enter = ส่งคำสั่ง (ไม่เพิ่มบรรทัดค้างในช่อง)
+                void sendDraft();
+              }}
+              disabled={sending}
             />
             <button
               type="button"
-              aria-pressed={voiceOn}
-              aria-label="เปิดหรือปิดเสียงตอบ"
-              title={voiceOn ? "ปิดเสียงพูด" : "เปิดให้พูดคำตอบ"}
-              onClick={() => {
-                const next = !voiceOn;
-                setVoiceOn(next);
-                voiceRef.current = next;
-                if (!next && typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
-              }}
+              className="compose-mic"
+              data-testid="compose-mic"
+              aria-label={voiceReady ? "สั่งงานด้วยเสียง" : "สั่งงานด้วยเสียง — ยังไม่พร้อมใช้งาน"}
+              title={voiceReady ? "สั่งงานด้วยเสียง" : "ยังไม่มีระบบรับเสียงที่ใช้งานได้ในระบบนี้"}
+              aria-disabled={!voiceReady}
+              onClick={announceVoiceStatus}
             >
-              {voiceOn ? "🔊 เสียง: เปิด" : "🔇 เสียง: ปิด"}
+              <Mic />
             </button>
-            <button className="send" type="submit" aria-label="ส่งคำสั่ง" disabled={sending}>
+            <button className="compose-send" type="submit" aria-label="ส่งคำสั่ง" disabled={sending}>
               <ArrowUp />
             </button>
           </div>
+          <input
+            ref={fileRef}
+            type="file"
+            hidden
+            multiple
+            onChange={(e) => {
+              void uploadFiles(e.target.files);
+            }}
+          />
         </form>
       </section>
       )}
@@ -807,6 +1188,36 @@ export function WorkspaceFrame({
 //    ทั้งหมดมาไว้ที่แชตบอร์ดหลักตัวเดียว") — central dispatcher
 //    (cognitive/pipeline classifyClientCommand) เป็นคนสั่งว่าใช้อันไหน
 //    หน้านี้แค่ execute ไม่มี matcher ซ้ำ
+
+/**
+ * เปิดเส้นทาง (เครื่องมือ/หน้าจอธุรกิจ) ใน "พื้นที่กลางเดิม" ของ shell ที่ฝังหน้านี้อยู่
+ * (shell มี #toolFrame + openToolRoute อยู่แล้ว) ⇒ หน้าแชตไม่ถูก navigate ทิ้ง
+ * ข้อความที่พิมพ์ค้างและ Composer ตัวเดิมจึงคงอยู่ (owner 2026-10-18 ข้อ 8)
+ * ถ้าไม่ได้ถูกฝัง (หน้าแชตเต็มจอ) → คืน false ให้ผู้เรียกใช้ router.push ตามเดิม
+ */
+function openWorkspaceRouteInShell(route: string, label?: string): boolean {
+  if (typeof window === "undefined" || window.parent === window) return false;
+  try {
+    window.parent.postMessage({ type: "dna-workspace-open-route", route, label }, window.location.origin);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * แจ้ง shell ที่ฝังหน้านี้อยู่ (public/material-workspace) ว่ากล่องพิมพ์กำลังถูกใช้งาน
+ * → shell คงความชัด/ขยายกล่องลอยเท่าที่จำเป็นต่อการพิมพ์ (owner 2026-10-18 ข้อ 5–6)
+ * ใช้ postMessage กลไกเดิมของ workspace (same-origin เท่านั้น) · ไม่มี state/ที่จัดเก็บใหม่
+ */
+function postComposerActive(active: boolean) {
+  if (typeof window === "undefined" || window.parent === window) return;
+  try {
+    window.parent.postMessage({ type: "dna-chat-composer-active", active }, window.location.origin);
+  } catch {
+    // เข้าถึง parent ไม่ได้ = หน้านี้ไม่ได้ถูกฝัง — ไม่มีอะไรต้องทำ
+  }
+}
 
 async function performWindowAction(action: "minimize" | "maximize" | "close") {
   if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) return;
