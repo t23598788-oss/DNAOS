@@ -1,0 +1,178 @@
+{
+  "version": "TENANT_COVERAGE_V1",
+  "generated": "2026-10-18",
+  "mission": "SOFTWARE PLATFORM - MULTI-TENANT COMPLETION (owner)",
+  "tenant_root": "organizations",
+  "ownership_rule": "companies เป็น business entity ภายในองค์กร (หนึ่งองค์กรหลาย companies) — company_id หาใช่ organization_id; ownership คำนวณผ่าน companies.organization_id ตามความหมายข้อมูลเดิมที่ตรวจแล้ว",
+  "rls_migration": "supabase/migrations/20261018000002_tenant_org_scope_v2.sql + 20261018000003_tenant_org_binding_v3.sql",
+  "database_coverage": [
+    {
+      "group": "Companies",
+      "tables": [
+        "companies"
+      ],
+      "ownership": "organization_id (direct)",
+      "policy": "companies_select_member_only (strict, V2)",
+      "status": "COVERED"
+    },
+    {
+      "group": "Tenant root",
+      "tables": [
+        "organizations",
+        "org_members"
+      ],
+      "ownership": "organization_id (direct)",
+      "policy": "organizations/org_members member policies (V1)",
+      "status": "COVERED"
+    },
+    {
+      "group": "Finance readings",
+      "tables": [
+        "invoices",
+        "debt_events",
+        "debt_snapshots",
+        "payment_allocations"
+      ],
+      "ownership": "customer_company_id / invoice_id / debt_event_id -> companies.organization_id",
+      "policy": "tenant_company_scope_select / tenant_scope_select",
+      "status": "COVERED"
+    },
+    {
+      "group": "Orders & deliveries",
+      "tables": [
+        "customer_orders",
+        "customer_sites",
+        "document_groups"
+      ],
+      "ownership": "customer_company_id -> companies.organization_id",
+      "policy": "tenant_company_scope_select",
+      "status": "COVERED"
+    },
+    {
+      "group": "Documents",
+      "tables": [
+        "document_versions",
+        "receipt_documents"
+      ],
+      "ownership": "invoice_id / line_user_id -> company -> org",
+      "policy": "tenant_scope_select / tenant_line_scope_select",
+      "status": "COVERED"
+    },
+    {
+      "group": "Partners payables",
+      "tables": [
+        "partner_payable_requests"
+      ],
+      "ownership": "partner_company_id -> companies.organization_id",
+      "policy": "tenant_company_scope_select",
+      "status": "COVERED"
+    },
+    {
+      "group": "Provider identities",
+      "tables": [
+        "connect_external_identities"
+      ],
+      "ownership": "company_id -> companies.organization_id",
+      "policy": "tenant_company_scope_select + explicit revoke for session (service-only)",
+      "status": "COVERED"
+    },
+    {
+      "group": "Conversations",
+      "tables": [
+        "conversation_states",
+        "line_customer_memory"
+      ],
+      "ownership": "line_user_id -> company_line_links -> companies.organization_id (SECURITY DEFINER helper)",
+      "policy": "tenant_line_scope_select",
+      "status": "COVERED"
+    },
+    {
+      "group": "Bank statements",
+      "tables": [
+        "bank_statement_transactions",
+        "bank_notifications"
+      ],
+      "ownership": "organization_id (direct, stamped at ingestion — migration V3)",
+      "policy": "tenant_org_binding_select (V3)",
+      "status": "COVERED"
+    },
+    {
+      "group": "Evidence",
+      "tables": [
+        "storage_evidence",
+        "file_snapshots"
+      ],
+      "ownership": "organization_id (direct, stamped at ingestion — migration V3)",
+      "policy": "tenant_org_binding_select (V3)",
+      "status": "COVERED"
+    },
+    {
+      "group": "Legacy LINE tables",
+      "tables": [
+        "line_profiles",
+        "company_line_links"
+      ],
+      "ownership": "read-only projection (guard trigger)",
+      "policy": "connect_identity_legacy_guard",
+      "status": "READ_ONLY_PROJECTION"
+    },
+    {
+      "group": "Partner ledger (live)",
+      "tables": [
+        "transactions",
+        "resource_transactions"
+      ],
+      "ownership": "organization_id (direct, stamped by caller/route after authority check — migration V3; ไม่เดาจาก partner/job)",
+      "policy": "tenant_org_binding_select (V3)",
+      "status": "COVERED"
+    }
+  ],
+  "api_coverage": [
+    {
+      "surface": "canonical writers",
+      "entry": "services/supabase/tenantAuthority.ts#assertWriteScope",
+      "writer_targets": [
+        "payment-write.confirmPayment",
+        "debt-write.appendDebtEvent",
+        "document-write.createDocument"
+      ],
+      "enforcement": "เมื่อ request แนบ TenantScope: Organization+Membership+Permission+ResourceOwnership ผ่าน resolveTenantDecision จุดเดียว; cross-org => RESOURCE_NOT_OWNED",
+      "status": "WIRED"
+    },
+    {
+      "surface": "canonical readers",
+      "entry": "RLS policies (V2)",
+      "enforcement": "session (authenticated) เห็นเฉพาะแถวที่ map เข้าองค์กรของตน",
+      "status": "WIRED"
+    },
+    {
+      "surface": "AI gateway / tools",
+      "entry": "orgScope decision (same core)",
+      "enforcement": "tool side-effect ผ่าน canonical writer ที่ต้องมี tenant scope; gate deny cross-org",
+      "status": "DECISION_LEVEL (route cutover pending)"
+    },
+    {
+      "surface": "workspace org context",
+      "entry": "app/api/workspace/org-context + core/auth/orgContext",
+      "enforcement": "ผู้ใช้เลือกองค์กรชัดเจน (cookie) — ไม่มี tenant เริ่มต้น, platform owner ไม่ได้สิทธิ์ธุรกิจอัตโนมัติ",
+      "status": "SERVER_WIRED (UI picker pending)"
+    },
+    {
+      "surface": "Connect / provider delivery",
+      "entry": "company_id + org mapping",
+      "enforcement": "credential/identity ผูก company ที่ map เข้าองค์กรเท่านั้น",
+      "status": "DB_LEVEL"
+    }
+  ],
+  "gaps": [
+    "route cutover: admin routes ยังไม่แนบ TenantScope ทุกตัว (writer hook ทำงานเมื่อแนบ — รายงาน REMAINING_GAPS)",
+    "workspace UI picker (DesktopWorkspaceShell) ยังไม่แสดง org switcher — server/API พร้อม",
+    "bank statements/evidence/transactions ยังไม่มี org binding column",
+    "HTTP-level (PostgREST) integration test ต้องใช้ Supabase stack (Docker) — เครื่องนี้ทดสอบ RLS ผ่าน Postgres+JWT claims แทน"
+  ],
+  "test_evidence": {
+    "script": "scripts/tenant-matrix-test.ts",
+    "command": "npm run tenant-matrix:test",
+    "result": "17/17 PASS (2026-10-18) — M1–M10 + S1-BANK/EVIDENCE/LEDGER/WRITE/SERVICE/CONCURRENT"
+  }
+}

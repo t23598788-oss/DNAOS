@@ -8,6 +8,8 @@ import {
   resolveSurface,
   surfaceForPagePath,
 } from "@/core/auth/surfacePolicy";
+import { ORG_CONTEXT_COOKIE, sanitizeOrgCookie } from "@/core/auth/orgContext";
+import { decideTenantApi, isBusinessApiPath } from "@/core/auth/tenantApiPolicy";
 
 // TASK-001 (SSO): coarse "must be authenticated" gate + Supabase session
 // refresh, for every Portal and every protected API route — not just
@@ -129,6 +131,42 @@ export async function middleware(req: NextRequest) {
           error: decision.reason,
         },
         { status: 403 },
+      );
+    }
+  }
+
+  // ── TENANT GATE (owner mission REMAINING GAPS · STEP 2) ───────────────────
+  // ทุก business API ต้องมี organization scope ที่ผู้ใช้เลือกเอง + membership จริง
+  // (single gate จุดเดียวใน middleware — ไม่มี auth/writer ใหม่; route เดิมยังตรวจ role
+  //  ต่อด้วย requireAuth ตามปกติ) · org อ่านจาก cookie ที่ /api/workspace/org-context
+  // ตั้งให้หลังตรวจ membership แล้วเท่านั้น — ไม่มี tenant เริ่มต้น/decode จาก request body
+  if (isProtectedApi && isBusinessApiPath(pathname)) {
+    const cookieOrgId = sanitizeOrgCookie(req.cookies.get(ORG_CONTEXT_COOKIE)?.value ?? null);
+    let memberships: { organizationId: string; role: string }[] | null = null;
+    if (user) {
+      try {
+        const { data, error } = await supabase
+          .from("org_members")
+          .select("organization_id, role")
+          .eq("user_id", user.id);
+        memberships = error
+          ? null
+          : (data ?? []).map((r) => ({ organizationId: String(r.organization_id), role: String(r.role) }));
+      } catch {
+        memberships = null;
+      }
+    }
+    const decision = decideTenantApi({
+      pathname,
+      method: req.method,
+      authenticated: Boolean(user),
+      cookieOrgId,
+      memberships,
+    });
+    if (!decision.allowed) {
+      return NextResponse.json(
+        { ok: false, code: decision.code, action: decision.action, error: decision.reason },
+        { status: decision.status },
       );
     }
   }

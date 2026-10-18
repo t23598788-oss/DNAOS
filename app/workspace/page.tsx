@@ -1,7 +1,8 @@
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getAuthedUser } from "@/core/auth/session";
 import { LOCAL_UI_REVIEW_HEADER } from "@/core/auth/devReviewAccess";
+import { ORG_CONTEXT_COOKIE, decideWorkspaceOrg } from "@/core/auth/orgContext";
 import { WorkspaceFrame } from "./WorkspaceFrame";
 
 // BUSINESS WORKSPACE — หน้าจอใช้งานจริงเพียงหน้าจอเดียวของ DNA OS (owner, 2026-09-22)
@@ -38,6 +39,16 @@ export default async function WorkspacePage() {
     redirect("/login?next=/workspace");
   }
 
-  console.log("[TRACE-WORKSPACE]", { role: user.role, shell: "workspace-frame" });
+  console.log("[TRACE-WORKSPACE]", { role: user.role, shell: "workspace-l-shaped" });
+  // ORG CONTEXT (MULTITENANT phase): resolve แบบชัดเจนจาก cookie ที่ผู้ใช้เลือกเอง —
+  // ไม่มี tenant เริ่มต้น (แม้องค์กรผู้พัฒนาซอฟต์แวร์ก็ห้าม hardcode) · deny codes ลง trace เท่านั้น
+  const orgCookie = (await cookies()).get(ORG_CONTEXT_COOKIE)?.value ?? null;
+  const [{ supabaseAdmin }, { fetchOrgMemberships }] = await Promise.all([
+    import("@/services/supabase/queries"),
+    import("@/services/supabase/tenantAuthority"),
+  ]);
+  const orgMemberships = await fetchOrgMemberships(supabaseAdmin(), user.id);
+  const orgContext = decideWorkspaceOrg(user, orgMemberships, orgCookie);
+  console.log("[TRACE-WORKSPACE] org-context", orgContext);
   return <WorkspaceFrame />;
 }
