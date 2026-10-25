@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "id": "01",
+      "label": "ธุรกิจ",
+      "labelEn": "Business",
+      "items": [
+        { "id": "pits", "label": "ศูนย์ควบคุมทรัพยากร", "detail": "แหล่ง · วัสดุ · ราคา", "icon": "stock", "route": "/admin/pits" },
+        { "id": "jobs", "label": "งาน", "detail": "งานขนส่งและสถานะงาน", "icon": "jobs", "route": "/admin/jobs" },
+        { "id": "partners", "label": "คู่ค้า", "detail": "บริษัทและรายชื่อ", "icon": "partners", "route": "/admin/partners" },
+        { "id": "finance", "label": "การเงิน", "detail": "รายรับ · รายจ่าย · เอกสาร", "icon": "finance", "route": "/admin/finance" },
+        { "id": "debt-tracking", "label": "ลูกหนี้", "detail": "ยอดค้างและกำหนดชำระ", "icon": "debt", "route": "/admin/debt-tracking" },
+        { "id": "documents", "label": "เอกสาร", "detail": "เปิด Document Viewer เดิม", "icon": "document", "route": "/admin/documents" }
+      ]
+    },
+    {
+      "id": "02",
+      "label": "LINE / Social",
+      "labelEn": "LINE / Social",
+      "items": [
+        { "id": "line-oa", "label": "LINE Official Account", "detail": "ลูกค้าและข้อความ LINE", "logo": "/brand/providers/line.svg", "providerIds": ["line_messaging_api", "line"], "route": "/admin/line-customers" },
+        { "id": "line-manager", "label": "LINE Manager", "detail": "เว็บผู้ให้บริการ LINE จริง", "logo": "/brand/providers/line.svg", "external": "https://manager.line.biz/" },
+        { "id": "facebook", "label": "Facebook", "detail": "กล่องข้อความ Facebook", "logo": "/brand/providers/facebook.svg", "providerIds": ["facebook", "meta"], "external": "https://business.facebook.com/latest/inbox" },
+        { "id": "messenger", "label": "Messenger", "detail": "ข้อความ Messenger", "logo": "/brand/providers/messenger.svg", "providerIds": ["messenger"], "external": "https://business.facebook.com/latest/inbox/messenger" },
+        { "id": "instagram", "label": "Instagram", "detail": "ข้อความ Instagram", "logo": "/brand/providers/instagram.png", "providerIds": ["instagram", "meta"], "external": "https://business.facebook.com/latest/inbox/instagram" },
+        { "id": "tiktok", "label": "TikTok", "detail": "TikTok Business", "logo": "/brand/providers/tiktok.svg", "providerIds": ["tiktok"], "external": "https://www.tiktok.com/business" }
+      ]
+    },
+    {
+      "id": "03",
+      "label": "Email",
+      "labelEn": "Email",
+      "items": [
+        { "id": "gmail", "label": "Gmail", "detail": "อีเมลธุรกิจ", "logo": "/brand/providers/gmail.svg", "providerIds": ["gmail", "google-gmail", "google"], "external": "https://mail.google.com/" },
+        { "id": "outlook", "label": "Outlook", "detail": "Microsoft 365 Mail", "logo": "/brand/providers/outlook.svg", "providerIds": ["outlook", "microsoft"], "external": "https://outlook.office.com/mail/" }
+      ]
+    },
+    {
+      "id": "04",
+      "label": "Documents",
+      "labelEn": "Documents",
+      "items": [
+        { "id": "pdf", "label": "PDF", "detail": "เปิดด้วย Document Viewer เดิม", "logo": "/brand/providers/pdf.svg", "providerIds": ["pdf"], "route": "/admin/documents" },
+        { "id": "google-drive", "label": "Google Drive", "detail": "ไฟล์ใน Drive", "logo": "/brand/providers/drive.svg", "providerIds": ["google_drive", "google-drive", "gdrive"], "external": "https://drive.google.com/" },
+        { "id": "google-docs", "label": "Google Docs", "detail": "เอกสาร Google", "logo": "/brand/providers/docs.svg", "providerIds": ["google_docs", "google-docs", "googledocs"], "external": "https://docs.google.com/" },
+        { "id": "google-sheets", "label": "Google Sheets", "detail": "ตาราง Google", "logo": "/brand/providers/sheets.svg", "providerIds": ["google_sheets", "google-sheets", "googlesheets"], "external": "https://sheets.google.com/" }
+      ]
+    },
+    {
+      "id": "05",
+      "label": "Banking",
+      "labelEn": "Banking",
+      "items": [
+        { "id": "kasikorn-bank", "label": "ธนาคารกสิกรไทย", "detail": "KBiz · สลิป / รายการเดินบัญชี", "logo": "/brand/providers/kbank.svg", "providerIds": ["kasikorn_bank", "kasikorn", "kbank"], "route": "/admin/receipts" }
+      ]
+    },
+    {
+      "id": "06",
+      "label": "Company Profile",
+      "labelEn": "Company Profile",
+      "items": [
+        { "id": "company-info", "label": "ข้อมูลบริษัท", "detail": "ข้อมูลบริษัทและการตั้งค่าที่มีอยู่", "icon": "company", "route": "/admin/settings" },
+        { "id": "company-settings", "label": "ตั้งค่า", "detail": "Connections & Credentials", "icon": "gear", "route": "/admin/settings#connections-credentials" },
+        { "id": "company-logo", "label": "เปลี่ยนโลโก้บริษัท", "detail": "อัปโหลดผ่าน Storage และสิทธิ์เดิม", "icon": "camera", "action": "pick-company-logo" }
+      ]
+    },
+    {
+      "id": "07",
+      "label": "เครื่องมือเชื่อมต่อภายนอก",
+      "labelEn": "External Tools",
+      "items": [
+        { "id": "google-maps", "label": "Google Maps", "detail": "เปิดเว็บแผนที่จริง · ยังไม่ได้เชื่อม API", "logo": "/brand/providers/google-maps.svg", "external": "https://www.google.com/maps" }
+      ]
+    }
+  ]
+}

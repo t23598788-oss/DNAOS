@@ -1,0 +1,121 @@
+{
+ "http_status_document": 200,
+ "final_url_path": "/#architecture",
+ "title": "DNA OS — Dead Board",
+ "section_architecture": {
+  "found": false
+ },
+ "console_error_count": 0,
+ "console_error_samples": [],
+ "api_calls": [
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/3d-1vk5hzu5rq.css",
+   "status": 200,
+   "contentType": "text/css"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/media/797e433ab948586e-s.p.0r6juujl39pe6.woff2",
+   "status": 200,
+   "contentType": "font/woff2"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2",
+   "status": 200,
+   "contentType": "font/woff2"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/2bfj27lz4233f.css",
+   "status": 200,
+   "contentType": "text/css"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/turbopack-3dbkz0rwd2pzn.js",
+   "status": 200,
+   "contentType": "application/javascript"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/11pct0h2m631_.js",
+   "status": 200,
+   "contentType": "application/javascript"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/06j3juy1u5a-6.js",
+   "status": 200,
+   "contentType": "application/javascript"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/3nc6x0_y5iwnk.js",
+   "status": 200,
+   "contentType": "application/javascript"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/09spvnisz51nw.js",
+   "status": 200,
+   "contentType": "application/javascript"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/0xqeffprgr84u.js",
+   "status": 200,
+   "contentType": "application/javascript"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/329j824l1odqw.js",
+   "status": 200,
+   "contentType": "application/javascript"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/0fbfbsvp1qfr9.js",
+   "status": 200,
+   "contentType": "application/javascript"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/33gxf9li5f0dp.js",
+   "status": 200,
+   "contentType": "application/javascript"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/1ntn7efqc-iiw.js",
+   "status": 200,
+   "contentType": "application/javascript"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/34j-aw8vr9b3h.js",
+   "status": 200,
+   "contentType": "application/javascript"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/2t24xkfzddj1y.js",
+   "status": 200,
+   "contentType": "application/javascript"
+  },
+  {
+   "method": "GET",
+   "path": "/api/admin/system-reality",
+   "status": 200,
+   "contentType": "application/json"
+  },
+  {
+   "method": "GET",
+   "path": "/_next/static/chunks/0k4-ojig21nwu.js",
+   "status": 200,
+   "contentType": "application/javascript"
+  }
+ ],
+ "cookie_count_sent": 1
+}

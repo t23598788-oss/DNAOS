@@ -1,0 +1,36 @@
+{
+  "uploads_for_overflow": 2,
+  "beforeRead": {
+    "scrollTop": 0,
+    "scrollHeight": 259,
+    "clientHeight": 136,
+    "nearBottom": false,
+    "overflow": true
+  },
+  "landedWhileReading": true,
+  "afterEvent": {
+    "scrollTop": 0,
+    "scrollHeight": 353,
+    "clientHeight": 136,
+    "nearBottom": false,
+    "overflow": true
+  },
+  "stoppedWhileReading": true,
+  "atBottomBefore": {
+    "scrollTop": 217,
+    "scrollHeight": 353,
+    "clientHeight": 136,
+    "nearBottom": true,
+    "overflow": true
+  },
+  "landedAtBottom": true,
+  "afterLastEvent": {
+    "scrollTop": 310,
+    "scrollHeight": 446,
+    "clientHeight": 136,
+    "nearBottom": true,
+    "overflow": true
+  },
+  "followAtBottom": true,
+  "bubbles": 0
+}

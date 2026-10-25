@@ -1,0 +1,435 @@
+
+> dna-os@0.2.0 dev
+> next dev
+
+▲ Next.js 16.2.9 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://100.69.250.31:3000
+- Environments: .env.local
+✓ Ready in 154ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+
+ POST /api/internal/ai/ollama/poll 404 in 102ms (next.js: 38ms, application-code: 64ms)
+ POST /api/internal/ai/ollama/poll 404 in 26ms (next.js: 3ms, application-code: 24ms)
+ GET /login 200 in 66ms (next.js: 23ms, application-code: 44ms)
+ GET /login 200 in 26ms (next.js: 3ms, application-code: 23ms)
+ POST /api/internal/ai/ollama/poll 404 in 26ms (next.js: 3ms, application-code: 23ms)
+ POST /api/internal/ai/ollama/poll 404 in 16ms (next.js: 2ms, application-code: 14ms)
+ GET /login 200 in 28ms (next.js: 4ms, application-code: 24ms)
+ GET /login 200 in 34ms (next.js: 3ms, application-code: 30ms)
+ GET /login 200 in 19ms (next.js: 1187µs, application-code: 18ms)
+ GET /login 200 in 14ms (next.js: 781µs, application-code: 14ms)
+ GET /login 200 in 13ms (next.js: 909µs, application-code: 12ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.5s (next.js: 430ms, application-code: 20.1s)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.5s (next.js: 437ms, application-code: 20.1s)
+ POST /api/internal/ai/ollama/poll 404 in 26ms (next.js: 3ms, application-code: 23ms)
+ GET /auth/confirm?token_hash=8fa7dcf03592b9185a8a4e010f5dcb4c0adc24be4ab940a35f3ee690&type=magiclink&next=%2Fadmin%2Ffinance 307 in 391ms (next.js: 36ms, application-code: 355ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+[TRACE-AUTH] requireAuthPage PASS { nextPath: '/admin', role: 'super_admin' }
+ GET /admin/finance 200 in 666ms (next.js: 42ms, proxy.ts: 203ms, application-code: 421ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/finance-summary 200 in 966ms (next.js: 22ms, proxy.ts: 130ms, application-code: 815ms)
+ POST /api/internal/ai/ollama/poll 404 in 16ms (next.js: 3ms, application-code: 13ms)
+ GET /login 200 in 30ms (next.js: 3ms, application-code: 28ms)
+ GET /login 200 in 21ms (next.js: 1355µs, application-code: 20ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+[clineWorker] attempt sessionKey=u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:dna-ai-relay-e2e msg="มีงานอะไรค้างอยู่ในระบบตอนนี้บ้าง" history=0
+ POST /api/internal/ai/ollama/poll 404 in 23ms (next.js: 4ms, application-code: 18ms)
+[clineWorker] no run_result {"ts":"2026-10-16T23:06:26.741Z","type":"error","message":"hook dispatch failed: session.hook requires a valid hook event payload"}
+{"ts":"2026-10-16T23:06:26.835Z","type":"error","message":"Insufficient balance. Your Cline Credits balance is $0.01"}
+
+ POST /api/internal/ai/ollama/poll 404 in 30ms (next.js: 4ms, application-code: 25ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 2ms, application-code: 20.1s)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 1316µs, application-code: 20.1s)
+ POST /api/internal/ai/ollama/poll 404 in 35ms (next.js: 4ms, application-code: 31ms)
+ POST /api/internal/ai/ollama/poll 404 in 30ms (next.js: 5ms, application-code: 26ms)
+[clineTaskQueue] task failed: INTERPRETER_OUTPUT_INVALID: non-JSON interpreter response
+ POST /api/internal/ai/ollama-relay/api/generate 403 in 52ms (next.js: 50ms, application-code: 2ms)
+ POST /api/chat 200 in 20.0s (next.js: 152ms, application-code: 19.9s)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+[clineWorker] attempt sessionKey=u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:dna-ai-relay-e2e msg="ขอดูยอดหนี้ของบริษัท ช.ทวัฒชัยการช่าง" history=0
+ POST /api/internal/ai/ollama/poll 404 in 23ms (next.js: 4ms, application-code: 19ms)
+[clineWorker] no run_result {"ts":"2026-10-16T23:06:47.597Z","type":"error","message":"hook dispatch failed: session.hook requires a valid hook event payload"}
+{"ts":"2026-10-16T23:06:47.675Z","type":"error","message":"Insufficient balance. Your Cline Credits balance is $0.01"}
+
+ GET /login 200 in 32ms (next.js: 5ms, application-code: 27ms)
+ GET /login 200 in 16ms (next.js: 1086µs, application-code: 15ms)
+ POST /api/internal/ai/ollama/poll 404 in 23ms (next.js: 3ms, application-code: 21ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 3ms, application-code: 20.1s)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 1484µs, application-code: 20.1s)
+ POST /api/internal/ai/ollama/poll 404 in 30ms (next.js: 4ms, application-code: 26ms)
+[clineTaskQueue] task failed: INTERPRETER_OUTPUT_INVALID: non-JSON interpreter response
+ POST /api/internal/ai/ollama-relay/api/generate 403 in 8ms (next.js: 3ms, application-code: 4ms)
+ POST /api/chat 200 in 13.3s (next.js: 2ms, application-code: 13.3s)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+[clineWorker] attempt sessionKey=u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:dna-ai-relay-e2e msg="ช่วยสั่งโอนเงินให้ลูกหนี้ 5,000 บาทเลย" history=0
+ POST /api/internal/ai/ollama/poll 404 in 31ms (next.js: 4ms, application-code: 26ms)
+[clineWorker] no run_result {"ts":"2026-10-16T23:07:00.870Z","type":"error","message":"hook dispatch failed: session.hook requires a valid hook event payload"}
+{"ts":"2026-10-16T23:07:00.955Z","type":"error","message":"Insufficient balance. Your Cline Credits balance is $0.01"}
+
+ POST /api/internal/ai/ollama/poll 404 in 24ms (next.js: 4ms, application-code: 19ms)
+ POST /api/internal/ai/ollama/poll 404 in 24ms (next.js: 4ms, application-code: 20ms)
+[clineTaskQueue] task failed: INTERPRETER_OUTPUT_INVALID: non-JSON interpreter response
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 2ms, application-code: 20.1s)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 1008µs, application-code: 20.1s)
+ GET /api/admin/finance-summary 200 in 1082ms (next.js: 6ms, proxy.ts: 148ms, application-code: 927ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/documents?type=invoice&perPage=100 200 in 1484ms (next.js: 59ms, proxy.ts: 138ms, application-code: 1287ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ POST /api/internal/ai/ollama/poll 404 in 28ms (next.js: 4ms, application-code: 24ms)
+ GET /api/admin/documents?type=receipt&perPage=100 200 in 1160ms (next.js: 4ms, proxy.ts: 137ms, application-code: 1019ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/documents?type=purchase_order&perPage=100 200 in 598ms (next.js: 3ms, proxy.ts: 133ms, application-code: 461ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/documents?type=delivery_order&perPage=100 200 in 1289ms (next.js: 3ms, proxy.ts: 140ms, application-code: 1146ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/documents?type=payment_voucher&perPage=100 200 in 620ms (next.js: 3ms, proxy.ts: 143ms, application-code: 474ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/documents?type=debt_notice&perPage=100 200 in 587ms (next.js: 4ms, proxy.ts: 143ms, application-code: 440ms)
+ POST /api/chat 200 in 21.8s (next.js: 3ms, application-code: 21.8s)
+ POST /api/internal/ai/ollama-relay/api/poll 401 in 2ms (next.js: 805µs, application-code: 1328µs)
+ POST /api/internal/ai/ollama-relay/api/generate 403 in 1682µs (next.js: 624µs, application-code: 1058µs)
+ GET /login 200 in 26ms (next.js: 1519µs, application-code: 24ms)
+ GET /login 200 in 14ms (next.js: 984µs, application-code: 13ms)
+ POST /api/internal/ai/ollama/poll 404 in 11ms (next.js: 1088µs, application-code: 10ms)
+ POST /api/internal/ai/ollama/poll 404 in 22ms (next.js: 2ms, application-code: 20ms)
+ POST /api/internal/ai/ollama/poll 404 in 22ms (next.js: 3ms, application-code: 19ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 1682µs, application-code: 20.1s)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 1427µs, application-code: 20.1s)
+ POST /api/internal/ai/ollama/poll 404 in 40ms (next.js: 21ms, application-code: 20ms)
+ POST /api/internal/ai/ollama/poll 404 in 22ms (next.js: 3ms, application-code: 20ms)
+ POST /api/internal/ai/ollama/poll 404 in 25ms (next.js: 3ms, application-code: 22ms)
+ GET /login 200 in 25ms (next.js: 2ms, application-code: 23ms)
+ GET /login 200 in 16ms (next.js: 1428µs, application-code: 15ms)
+ POST /api/internal/ai/ollama/poll 404 in 25ms (next.js: 3ms, application-code: 22ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 1793µs, application-code: 20.1s)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 986µs, application-code: 20.1s)
+ POST /api/internal/ai/ollama/poll 404 in 18ms (next.js: 1671µs, application-code: 16ms)
+ POST /api/internal/ai/ollama/poll 404 in 16ms (next.js: 1619µs, application-code: 15ms)
+[relay-debug] host= 127.0.0.1:3000 xff= ::ffff:127.0.0.1 real= null cf= null
+ POST /api/internal/ai/ollama-relay/api/generate 403 in 3ms (next.js: 1176µs, application-code: 1997µs)
+ POST /api/internal/ai/ollama/poll 404 in 19ms (next.js: 2ms, application-code: 17ms)
+ POST /api/internal/ai/ollama/poll 404 in 23ms (next.js: 3ms, application-code: 20ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 1677µs, application-code: 20.1s)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 1157µs, application-code: 20.1s)
+ POST /api/internal/ai/ollama/poll 404 in 24ms (next.js: 3ms, application-code: 21ms)
+ GET /login 200 in 18ms (next.js: 1687µs, application-code: 17ms)
+ GET /login 200 in 14ms (next.js: 1192µs, application-code: 13ms)
+ POST /api/internal/ai/ollama/poll 404 in 20ms (next.js: 2ms, application-code: 18ms)
+ POST /api/internal/ai/ollama/poll 404 in 26ms (next.js: 3ms, application-code: 22ms)
+ POST /api/internal/ai/ollama/poll 404 in 14ms (next.js: 1396µs, application-code: 13ms)
+ GET /auth/confirm?token_hash=550684ba321c18164537069d8f0f37480d31690a32d5c16ca6ab2924&type=magiclink&next=%2Fadmin%2Ffinance 307 in 323ms (next.js: 996µs, application-code: 322ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+[TRACE-AUTH] requireAuthPage PASS { nextPath: '/admin', role: 'super_admin' }
+ GET /admin/finance 200 in 535ms (next.js: 5ms, proxy.ts: 140ms, application-code: 389ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 2ms, application-code: 20.1s)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 1044µs, application-code: 20.1s)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/finance-summary 200 in 1153ms (next.js: 1499µs, proxy.ts: 137ms, application-code: 1014ms)
+ POST /api/internal/ai/ollama/poll 404 in 19ms (next.js: 2ms, application-code: 17ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+[clineWorker] attempt sessionKey=u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:dna-ai-relay-e2e msg="มีงานอะไรค้างอยู่ในระบบตอนนี้บ้าง" history=0
+[clineWorker] no run_result {"ts":"2026-10-16T23:08:39.942Z","type":"error","message":"hook dispatch failed: session.hook requires a valid hook event payload"}
+{"ts":"2026-10-16T23:08:40.006Z","type":"error","message":"Insufficient balance. Your Cline Credits balance is $0.01"}
+
+ POST /api/internal/ai/ollama/poll 404 in 22ms (next.js: 3ms, application-code: 19ms)
+ POST /api/internal/ai/ollama/poll 404 in 26ms (next.js: 4ms, application-code: 22ms)
+[clineTaskQueue] task failed: INTERPRETER_OUTPUT_INVALID: non-JSON interpreter response
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 15.7s (next.js: 1790µs, application-code: 15.7s)
+ POST /api/internal/ai/ollama/poll 404 in 386ms (next.js: 101ms, application-code: 285ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 599µs, application-code: 20.1s)
+ POST /api/internal/ai/ollama/poll 404 in 121ms (next.js: 32ms, application-code: 90ms)
+ GET /login 200 in 37ms (next.js: 10ms, application-code: 27ms)
+ GET /login 200 in 35ms (next.js: 1465µs, application-code: 34ms)
+ POST /api/internal/ai/ollama/poll 404 in 20ms (next.js: 3ms, application-code: 17ms)
+ POST /api/internal/ai/ollama/poll 404 in 30ms (next.js: 6ms, application-code: 24ms)
+ POST /api/internal/ai/ollama/poll 404 in 76ms (next.js: 12ms, application-code: 64ms)
+ POST /api/internal/ai/ollama-relay/api/result 200 in 722ms (next.js: 695ms, application-code: 27ms)
+ POST /api/internal/ai/ollama-relay/api/generate 200 in 25.6s (next.js: 4ms, application-code: 25.6s)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 9ms, application-code: 20.1s)
+ POST /api/chat 200 in 38.8s (next.js: 2ms, application-code: 38.8s)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+[clineWorker] attempt sessionKey=u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:dna-ai-relay-e2e msg="ขอดูยอดหนี้ของบริษัท ช.ทวัฒชัยการช่าง" history=0
+ POST /api/internal/ai/ollama/poll 404 in 25ms (next.js: 2ms, application-code: 22ms)
+ GET /login 200 in 42ms (next.js: 15ms, application-code: 27ms)
+ GET /login 200 in 23ms (next.js: 2ms, application-code: 21ms)
+[clineWorker] no run_result {"ts":"2026-10-16T23:09:21.322Z","type":"error","message":"hook dispatch failed: session.hook requires a valid hook event payload"}
+{"ts":"2026-10-16T23:09:21.756Z","type":"error","message":"Insufficient balance. Your Cline Credits balance is $0.01"}
+
+ POST /api/internal/ai/ollama/poll 404 in 20ms (next.js: 3ms, application-code: 17ms)
+ POST /api/internal/ai/ollama/poll 404 in 38ms (next.js: 5ms, application-code: 33ms)
+ POST /api/internal/ai/ollama/poll 404 in 33ms (next.js: 5ms, application-code: 28ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 3ms, application-code: 20.1s)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 5ms, application-code: 20.1s)
+[clineTaskQueue] task failed: INTERPRETER_OUTPUT_INVALID: non-JSON interpreter response
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 2.0s (next.js: 3ms, application-code: 2.0s)
+ POST /api/internal/ai/ollama/poll 404 in 28ms (next.js: 7ms, application-code: 20ms)
+ POST /api/internal/ai/ollama/poll 404 in 24ms (next.js: 4ms, application-code: 20ms)
+ POST /api/internal/ai/ollama-relay/api/result 200 in 5ms (next.js: 1948µs, application-code: 3ms)
+ POST /api/internal/ai/ollama-relay/api/generate 200 in 8.1s (next.js: 3ms, application-code: 8.1s)
+ POST /api/chat 200 in 29.3s (next.js: 4ms, application-code: 29.3s)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+[clineWorker] attempt sessionKey=u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:dna-ai-relay-e2e msg="ช่วยสั่งโอนเงินให้ลูกหนี้ 5,000 บาทเลย" history=0
+ POST /api/internal/ai/ollama/poll 404 in 61ms (next.js: 20ms, application-code: 41ms)
+ GET /login 200 in 75ms (next.js: 34ms, application-code: 41ms)
+ GET /login 200 in 20ms (next.js: 1849µs, application-code: 18ms)
+[clineWorker] no run_result {"ts":"2026-10-16T23:09:53.211Z","type":"error","message":"hook dispatch failed: session.hook requires a valid hook event payload"}
+{"ts":"2026-10-16T23:09:53.360Z","type":"error","message":"Insufficient balance. Your Cline Credits balance is $0.01"}
+
+ POST /api/internal/ai/ollama/poll 404 in 32ms (next.js: 4ms, application-code: 28ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 7ms, application-code: 20.1s)
+ POST /api/internal/ai/ollama/poll 404 in 221ms (next.js: 103ms, application-code: 118ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 965µs, application-code: 20.1s)
+ POST /api/internal/ai/ollama/poll 404 in 47ms (next.js: 9ms, application-code: 39ms)
+[clineTaskQueue] task failed: INTERPRETER_OUTPUT_INVALID: non-JSON interpreter response
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/finance-summary 200 in 1101ms (next.js: 5ms, proxy.ts: 148ms, application-code: 949ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/documents?type=invoice&perPage=100 200 in 1466ms (next.js: 5ms, proxy.ts: 140ms, application-code: 1321ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/documents?type=receipt&perPage=100 200 in 1208ms (next.js: 12ms, proxy.ts: 139ms, application-code: 1057ms)
+ POST /api/internal/ai/ollama/poll 404 in 28ms (next.js: 6ms, application-code: 22ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/documents?type=purchase_order&perPage=100 200 in 635ms (next.js: 5ms, proxy.ts: 131ms, application-code: 498ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/documents?type=delivery_order&perPage=100 200 in 1340ms (next.js: 4ms, proxy.ts: 128ms, application-code: 1208ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/documents?type=payment_voucher&perPage=100 200 in 638ms (next.js: 14ms, proxy.ts: 149ms, application-code: 474ms)
+[TRACE-AUTH] getAuthedUser {
+  userId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  userEmail: 'dnaos.tech@gmail.com',
+  profileFound: true,
+  profileId: 'c8cf2d52-f08a-4c71-8976-a5a8ea53641e',
+  profileRole: 'super_admin',
+  profileResolvedBy: 'id',
+  linkedProviders: [ 'email' ],
+  profileError: undefined
+}
+ GET /api/admin/documents?type=debt_notice&perPage=100 200 in 580ms (next.js: 4ms, proxy.ts: 131ms, application-code: 444ms)
+ POST /api/chat 200 in 27.5s (next.js: 3ms, application-code: 27.5s)
+ POST /api/internal/ai/ollama-relay/api/poll 401 in 4ms (next.js: 1893µs, application-code: 1859µs)
+ POST /api/internal/ai/ollama-relay/api/generate 400 in 4ms (next.js: 1532µs, application-code: 2ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.2s (next.js: 3ms, application-code: 20.2s)
+ POST /api/internal/ai/ollama/poll 404 in 36ms (next.js: 7ms, application-code: 30ms)
+ POST /api/internal/ai/ollama/poll 404 in 24ms (next.js: 4ms, application-code: 20ms)
+ GET /login 200 in 35ms (next.js: 7ms, application-code: 29ms)
+ GET /login 200 in 21ms (next.js: 1246µs, application-code: 20ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.2s (next.js: 24ms, application-code: 20.1s)
+ POST /api/internal/ai/ollama/poll 404 in 31ms (next.js: 5ms, application-code: 26ms)
+ POST /api/internal/ai/ollama/poll 404 in 49ms (next.js: 10ms, application-code: 40ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 5ms, application-code: 20.1s)
+ POST /api/internal/ai/ollama/poll 404 in 38ms (next.js: 6ms, application-code: 32ms)
+ POST /api/internal/ai/ollama/poll 404 in 44ms (next.js: 23ms, application-code: 21ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 20.1s (next.js: 4ms, application-code: 20.1s)
+ POST /api/internal/ai/ollama/poll 404 in 51ms (next.js: 7ms, application-code: 44ms)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 2.5s (next.js: 6ms, application-code: 2.5s)
+ POST /api/internal/ai/ollama-relay/api/poll 200 in 12.2s (next.js: 4ms, application-code: 12.2s)
+[?25h

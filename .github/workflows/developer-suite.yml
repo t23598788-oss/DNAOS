@@ -1,0 +1,102 @@
+name: DNA OS Developer Suite
+
+# Owner directive 2026-10-12 — ระบบพัฒนา (IDE/Worker/Code tools) มี workflow ของ
+# ตัวเอง: วิ่งเฉพาะไฟล์สาย developer (path filter) รันเฉพาะ developer suite —
+# ปัญหา test สายธุรกิจไม่มาขวางงาน IDE และปัญหา IDE ไม่ขวางสายธุรกิจ
+# (ดูคู่กัน: business-suite.yml)
+#
+# ขอบเขต: IDE/Code Generation · Developer Worker/Worker Selector · Source code
+# tools · Developer Automation tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "app/api/admin/ide/**"
+      - "app/admin/ide/**"
+      - "app/api/internal/ide/**"
+      - "local-runtime/**"
+      - "scripts/worker-*"
+      - "scripts/ide-*"
+      - "scripts/factory-*"
+      - "scripts/code-worker*"
+      - "scripts/cli-worker*"
+      - "scripts/local-worker*"
+      - "scripts/mcp-worker*"
+      - "scripts/edge-function-worker*"
+      - "scripts/context-planner*"
+      - "scripts/ai-context*"
+      - "scripts/execution-*"
+      - "scripts/command-surface*"
+      - "scripts/settings-real-wiring*"
+      - "scripts/autosave-runtime*"
+      - "scripts/native-factory-flow*"
+      - "scripts/vscode-exit*"
+      - "scripts/github-connector*"
+      - "scripts/railway-adapter*"
+      - "scripts/gap-loop*"
+      - "scripts/system-reality-*"
+      - "scripts/dead-end-sweep*"
+      - "scripts/architecture-summary*"
+      - "scripts/security-intelligence*"
+      - "scripts/external-attack-surface*"
+      - "scripts/impact-verdict*"
+      - "scripts/review-test*"
+      - "scripts/test-test*"
+      - "scripts/build-test*"
+      - "scripts/build-gate-test*"
+      - "scripts/release-test*"
+      - "scripts/package-test*"
+      - "scripts/readiness-test*"
+      - "scripts/compatibility-test*"
+      - "scripts/country-test*"
+      - "scripts/deployment-test*"
+      - "scripts/ui-inspection-test*"
+      - "scripts/ui-baseline-guard*"
+      - "scripts/artifact-test*"
+      - "scripts/cost-gate-test*"
+      - "scripts/switch-based-orchestrator*"
+      - "scripts/manager-question-queue*"
+      - "scripts/dispatcher-execution-mode*"
+      - "scripts/capability-resolver-test*"
+      - "registry/test-suites.json"
+      - "scripts/run-suite.ts"
+      - "scripts/release-gate.ts"
+      - "package.json"
+      - ".github/workflows/developer-suite.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "app/api/admin/ide/**"
+      - "app/admin/ide/**"
+      - "local-runtime/**"
+      - "scripts/worker-*"
+      - "scripts/*-test.ts"
+      - "registry/test-suites.json"
+      - ".github/workflows/developer-suite.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: developer-suite-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  developer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check (พื้นร่วม Monorepo)
+        run: npx tsc --noEmit
+
+      - name: Developer Release Gate (type-check + developer suite)
+        run: npx tsx scripts/release-gate.ts developer

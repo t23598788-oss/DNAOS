@@ -1,0 +1,18 @@
+{
+  "task_id": "eh-test-623da523-1072-41b1-be01-8b6f319c32a8",
+  "operation": "CREATE_FILE",
+  "scope": "eh-test-scope-4f265641-fd5e-47f3-be6c-ad2dcd307ad8",
+  "allowed_paths": [
+    "registry/execution-hand-sandbox/lock-lifecycle-589c04e6-4c88-481d-b7ac-c5c36d56de4d.txt"
+  ],
+  "forbidden_paths": [],
+  "tools_allowed": [
+    "CREATE_FILE"
+  ],
+  "dependencies": [],
+  "expected_output": "a real, disposable test artifact",
+  "acceptance_criteria": [],
+  "max_attempts": 1,
+  "target_path": "registry/execution-hand-sandbox/lock-lifecycle-589c04e6-4c88-481d-b7ac-c5c36d56de4d.txt",
+  "content": "lock lifecycle probe"
+}

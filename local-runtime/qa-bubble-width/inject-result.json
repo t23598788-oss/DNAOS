@@ -1,0 +1,29 @@
+{
+  "script": "measure7-inject",
+  "at": "2026-10-12T11:23:06.681Z",
+  "base": "http://localhost:3123",
+  "pass": true,
+  "viewport": {
+    "w": 1440
+  },
+  "bubble_short": {
+    "col": 860,
+    "content": 760
+  },
+  "bubble_long": {
+    "col": 860,
+    "content": 760
+  },
+  "result_short": {
+    "col": 860,
+    "content": 860
+  },
+  "result_long": {
+    "col": 860,
+    "content": 860
+  },
+  "checks": {
+    "bubble_equal": true,
+    "result_equal": true
+  }
+}

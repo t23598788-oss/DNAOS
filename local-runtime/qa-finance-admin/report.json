@@ -1,0 +1,114 @@
+{
+  "results": [
+    {
+      "id": "T1-login",
+      "ok": true,
+      "detail": "landed: https://dna-os-deadboard-production.up.railway.app/admin/finance"
+    },
+    {
+      "id": "T1-page",
+      "ok": true,
+      "detail": "h1=\"การเงิน\""
+    },
+    {
+      "id": "T2-tabs",
+      "ok": true,
+      "detail": "tab buttons found: 6"
+    },
+    {
+      "id": "T2-overview-api",
+      "ok": true,
+      "detail": "finance-summary in apiLog: 200 finance-summary"
+    },
+    {
+      "id": "T2-overview-ui",
+      "ok": true,
+      "detail": "revenue card rendered"
+    },
+    {
+      "id": "T3-income-form",
+      "ok": true,
+      "detail": "income submit button present (not clicked)"
+    },
+    {
+      "id": "T3-income-banner",
+      "ok": true,
+      "detail": "save≠confirm banner present"
+    },
+    {
+      "id": "T4-partners-api",
+      "ok": true,
+      "detail": "GET /api/admin/partners 200 → 86 companies from real DB"
+    },
+    {
+      "id": "T4-partners-options",
+      "ok": true,
+      "detail": "income company select shows 92 options"
+    },
+    {
+      "id": "T3-expense-form",
+      "ok": true,
+      "detail": "expense submit button present (not clicked)"
+    },
+    {
+      "id": "T3-payables-api",
+      "ok": true,
+      "detail": "GET /api/admin/payables 200"
+    },
+    {
+      "id": "T3-payables-ui",
+      "ok": true,
+      "detail": "payables panel rendered"
+    },
+    {
+      "id": "T5-unified-api",
+      "ok": true,
+      "detail": "GET finance/transactions 200 → 200 rows merged"
+    },
+    {
+      "id": "T5-unified-ui",
+      "ok": true,
+      "detail": "unified list filters rendered"
+    },
+    {
+      "id": "T5-docs-api",
+      "ok": true,
+      "detail": "GET /api/admin/documents 200 → 15 documents"
+    },
+    {
+      "id": "T5-docs-ui",
+      "ok": true,
+      "detail": "documents tab links rendered"
+    },
+    {
+      "id": "T5-audit-api",
+      "ok": true,
+      "detail": "GET finance/audit 200 → 54 audit rows"
+    },
+    {
+      "id": "T6-console-errors",
+      "ok": true,
+      "detail": "0 console errors"
+    },
+    {
+      "id": "T6-page-errors",
+      "ok": true,
+      "detail": "0 page errors"
+    },
+    {
+      "id": "T6-bad-responses",
+      "ok": true,
+      "detail": "0 >=400 responses"
+    },
+    {
+      "id": "T6-failed-requests",
+      "ok": true,
+      "detail": "0 failed requests"
+    }
+  ],
+  "consoleErrors": [],
+  "consoleWarnings": [],
+  "pageErrors": [],
+  "failedRequests": [],
+  "badResponses": []
+}

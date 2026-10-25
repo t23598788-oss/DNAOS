@@ -1,0 +1,127 @@
+{
+ "tag": "AFTER",
+ "report": [
+  {
+   "case": "1-สนทนา",
+   "input": "สวัสดีครับ",
+   "http": 200,
+   "req_id": null,
+   "ai_status": "AI_UNRESOLVED",
+   "command": null,
+   "sent_at": 1792259680280,
+   "resp_at": 1792259728865,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 48585,
+   "text_head": "สวัสดีครับ ยินดีต้อนรับครับ ช่วยเหลืออะไรได้ไหมครับ?",
+   "on_screen": true,
+   "win_start": 1792259680280,
+   "win_end": 1792259728865
+  },
+  {
+   "case": "2-ความสามารถ",
+   "input": "คุณทำอะไรได้บ้าง",
+   "http": 200,
+   "req_id": null,
+   "ai_status": "SKIPPED",
+   "command": null,
+   "sent_at": 1792259731474,
+   "resp_at": 1792259748187,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 16713,
+   "text_head": "เปิดหน้าลูกค้า 1 รายให้แล้วครับ ต้องการดูรายไหนเป็นพิเศษไหมครับ?",
+   "on_screen": false,
+   "win_start": 1792259731474,
+   "win_end": 1792259748187
+  },
+  {
+   "case": "3-อธิบายระบบ",
+   "input": "อธิบายระบบ DNA OS อย่างละเอียด",
+   "http": 200,
+   "req_id": null,
+   "ai_status": "AI_UNRESOLVED",
+   "command": null,
+   "sent_at": 1792259750775,
+   "resp_at": 1792259820106,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 69331,
+   "text_head": "ระบบ DNA OS เป็นระบบปฏิบัติการที่ออกแบบมาเพื่อช่วยเหลือเจ้าของธุรกิจวัสดุก่อสร้าง จ.ขอนแก่น ในการจัดการงานต่างๆ ผ่านการสั่งงานด้วยคำสั่งง่าย เช่น \"เปิด [ชื่อแอป",
+   "on_screen": true,
+   "win_start": 1792259750775,
+   "win_end": 1792259820106
+  },
+  {
+   "case": "4-อธิบายAI",
+   "input": "ช่วยอธิบายเรื่อง AI หน่อย",
+   "http": 200,
+   "req_id": null,
+   "ai_status": "SKIPPED",
+   "command": null,
+   "sent_at": 1792259822997,
+   "resp_at": 1792259847177,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 24180,
+   "text_head": "กำลังอ่านหน้าจอให้ครับ...",
+   "on_screen": true,
+   "win_start": 1792259822997,
+   "win_end": 1792259847177
+  },
+  {
+   "case": "5-ต่อเนื่อง",
+   "input": "อธิบายเรื่องเมื่อกี้ต่อ",
+   "http": 200,
+   "req_id": null,
+   "ai_status": "AI_UNRESOLVED",
+   "command": null,
+   "sent_at": 1792259849798,
+   "resp_at": 1792259899556,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 49758,
+   "text_head": "เมื่อกี้ต่อคือการอ้างอิงถึงการสนทนาครั้งล่าสุดก่อนหน้านี้ครับ ซึ่งคุณได้ถามเกี่ยวกับระบบ DNA OS อย่างละเอียดในครั้งนั้น ขณะนี้เป็นวันเสาร์ที่ 17 ตุลาคม 2569 เวล",
+   "on_screen": true,
+   "win_start": 1792259849798,
+   "win_end": 1792259899556
+  }
+ ],
+ "counts": [
+  {
+   "msg": "1-สนทนา",
+   "calls_audit": 0,
+   "detail": []
+  },
+  {
+   "msg": "2-ความสามารถ",
+   "calls_audit": 0,
+   "detail": []
+  },
+  {
+   "msg": "3-อธิบายระบบ",
+   "calls_audit": 0,
+   "detail": []
+  },
+  {
+   "msg": "4-อธิบายAI",
+   "calls_audit": 0,
+   "detail": []
+  },
+  {
+   "msg": "5-ต่อเนื่อง",
+   "calls_audit": 0,
+   "detail": []
+  }
+ ],
+ "ollama_log": {
+  "before": 70,
+  "after": 77,
+  "delta": 7
+ }
+}
