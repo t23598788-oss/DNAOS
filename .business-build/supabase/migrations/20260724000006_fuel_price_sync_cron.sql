@@ -1,0 +1,31 @@
+-- Runs supabase/functions/fuel-price-sync daily so app_configs['fuel-price']
+-- (read by engines/fuel.ts's calcFuel()) is always a real, sourced value —
+-- never a human-guessed number. Bangchak's price changes take effect at
+-- 05:00 the day after their announcement (confirmed live 2026-07-24), so
+-- 06:00 daily is timed to always pick up the new price on the same day it
+-- takes effect.
+--
+-- Same secret-per-function pattern as migration 20260724000003
+-- (receipt-reconcile-sweep) — a dedicated FUEL_PRICE_SYNC_CRON_SECRET, not
+-- a reused shared secret, for the same reason (Supabase secrets are
+-- write-only via the CLI; rotating a shared one would silently break other
+-- already-scheduled jobs whose stored net.http_post calls have the old
+-- value baked in — Rule 108, no silent config override).
+--
+-- pg_cron / pg_net already enabled by migration 20260711000003.
+
+-- Applied live with the real secret substituted in place of the placeholder below:
+-- select cron.schedule(
+--   'fuel-price-sync',
+--   '0 6 * * *',
+--   $$
+--   select net.http_post(
+--     url := 'https://xeytcavxejhyzxwevgto.supabase.co/functions/v1/fuel-price-sync',
+--     headers := jsonb_build_object(
+--       'Content-Type', 'application/json',
+--       'x-fuel-sync-secret', '<FUEL_PRICE_SYNC_CRON_SECRET value>'
+--     ),
+--     body := '{}'::jsonb
+--   );
+--   $$
+-- );

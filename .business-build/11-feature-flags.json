@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "policy": "Production โหลดเฉพาะ status=released — Studio โหลดได้ทุก status",
+  "description": "Feature Flag Registry — ทะเบียนฟีเจอร์ทุกตัวพร้อมสถานะ lifecycle",
+  "last_updated": "2026-07-05",
+
+  "features": {
+
+    "document_engine": {
+      "name": "Document Engine (Core)",
+      "description": "ระบบสร้างและจัดการเอกสารทุกประเภท — Invoice, DO, Receipt, PO, PV, Debt Notice",
+      "status": "released",
+      "version": "v1.0.0",
+      "key_files": [
+        "lib/documents/engine.ts",
+        "lib/documents/document-editor.ts",
+        "components/documents/DocumentBuilder.tsx",
+        "components/documents/DocumentPreview.tsx"
+      ]
+    },
+
+    "partner_timeline": {
+      "name": "Partner Business Timeline",
+      "description": "หน้า Timeline ต่อ partner — เห็นทุก event และเอกสารที่ผ่านมาในรูปแบบ timeline",
+      "status": "released",
+      "version": "v1.2.0",
+      "key_files": [
+        "app/admin/partners/[id]/page.tsx",
+        "app/api/admin/partners/[id]/timeline/route.ts"
+      ]
+    },
+
+    "transaction_state_machine": {
+      "name": "Transaction State Machine",
+      "description": "ระบบ workflow per tx_type — sale/purchase/contract/service/rental/transport แต่ละตัวมี lifecycle state ของตัวเอง",
+      "status": "released",
+      "version": "v2.0.0",
+      "released_date": "2026-07-05",
+      "key_files": [
+        "lib/transactions/workflows.ts",
+        "lib/transactions/state-machine.ts",
+        "app/api/admin/transactions/route.ts",
+        "app/api/admin/transactions/[id]/route.ts",
+        "app/api/admin/transactions/[id]/advance/route.ts"
+      ]
+    },
+
+    "document_transaction_linking": {
+      "name": "Document → Transaction Auto-Link",
+      "description": "เมื่อสร้างเอกสาร → ระบบหา transaction ที่เปิดอยู่ของ partner นั้น หรือสร้างใหม่อัตโนมัติ แล้ว advance state ตาม workflow",
+      "status": "released",
+      "version": "v2.0.0",
+      "released_date": "2026-07-05",
+      "key_files": [
+        "lib/transactions/document-link.ts",
+        "app/api/admin/documents/route.ts (autoLinkTransaction)"
+      ]
+    },
+
+    "document_connected_flow": {
+      "name": "Connected Document Flow",
+      "description": "กดชื่อ partner / กดเอกสาร → form สร้างเอกสารถัดไปถูก pre-fill อัตโนมัติ ไม่ต้องกรอกใหม่",
+      "status": "released",
+      "version": "v2.0.0",
+      "released_date": "2026-07-05",
+      "key_files": [
+        "lib/documents/draft-builders.ts",
+        "app/admin/create-document/page.tsx",
+        "app/admin/partners/page.tsx",
+        "app/admin/partners/[id]/page.tsx"
+      ]
+    },
+
+    "transaction_status_in_document_view": {
+      "name": "Transaction Status Bar in Document View",
+      "description": "เมื่อดูเอกสารที่ผูกกับ transaction → แสดง state progress + ปุ่ม advance action ใต้ header",
+      "status": "released",
+      "version": "v2.0.0",
+      "released_date": "2026-07-05",
+      "key_files": [
+        "components/documents/DocumentBuilder.tsx (selectedDocTx, advanceTx, transaction bar)"
+      ]
+    },
+
+    "multi_user_auth": {
+      "name": "Multi-User Authentication",
+      "description": "ระบบ login ด้วย Supabase Auth — หลาย email ใช้ร่วมกันได้ middleware guard /admin/*",
+      "status": "testing",
+      "version": "v2.0.0-dev",
+      "note": "ต้องทดสอบ cookie expiry และ token refresh ก่อน approve",
+      "key_files": [
+        "app/admin/login/page.tsx",
+        "middleware.ts",
+        "components/auth/LogoutButton.tsx"
+      ]
+    },
+
+    "transaction_panel_ui": {
+      "name": "Transaction Panel (Pending Dashboard)",
+      "description": "หน้า dashboard แสดง pending transactions พร้อม state progress และ advance buttons",
+      "status": "testing",
+      "version": "v2.0.0-dev",
+      "key_files": [
+        "components/transactions/TransactionPanel.tsx",
+        "app/admin/pending/page.tsx",
+        "app/admin/transactions/page.tsx"
+      ]
+    },
+
+    "studio_lab_mode": {
+      "name": "Studio / Lab Environment",
+      "description": "แยก Production กับ Studio ชัดเจน — Studio โหลด feature ทุก status, Production เฉพาะ released",
+      "status": "draft",
+      "version": "v2.1.0-planned",
+      "note": "ต้องออกแบบ env-aware feature loader ก่อน"
+    }
+  }
+}

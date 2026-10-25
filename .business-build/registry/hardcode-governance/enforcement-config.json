@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "note": "Central enforcement-mode config for hardcode-governance (HCG-P2). Read by engines/validation/dispatcher.ts, scripts/pre-commit-check.sh's new Guard, and .claude/settings.json's PreToolUse hook — one config, not duplicated per integration point.",
+  "modes": {
+    "REPORT_ONLY": "Classify and log/emit events. Never blocks.",
+    "BLOCK_CRITICAL": "Blocks only SECURITY_VIOLATION and ARCHITECTURE_VIOLATION verdicts (secrets/credentials/machine-paths/business-rule-in-route). Everything else (MOVE_TO_ENV, MOVE_TO_REGISTRY, BUSINESS_RULE, UNKNOWN, etc.) is reported, not blocked.",
+    "STRICT": "Blocks every verdict that is not ALLOWED or ALLOWED_WITH_REGISTRATION. Not enabled anywhere as of HCG-P2."
+  },
+  "critical_path_allowlist": [
+    "services/",
+    "gateway/",
+    "engines/validation/",
+    "engines/debt/",
+    "engines/documents/",
+    "core/executor/",
+    "app/api/admin/",
+    "supabase/functions/"
+  ],
+  "integration_points": {
+    "command_execution_layer": {
+      "file": "engines/validation/dispatcher.ts",
+      "mode": "REPORT_ONLY",
+      "status": "wired, HCG-P2",
+      "why_report_only": "First real wiring of the classifier into a live command path on a production system — start observational, escalate to BLOCK_CRITICAL only after reviewing real findings, per owner's own phased rollout instruction."
+    },
+    "software_development_pipeline": {
+      "file": "scripts/pre-commit-check.sh (Guard 11)",
+      "mode": "REPORT_ONLY (dry-run, does not exit 1)",
+      "status": "wired, HCG-P2, NOT yet blocking",
+      "why_report_only": "deploy-gate.ts already blocks builds on 4 pre-existing real failures; a new blocking guard could add unreviewed false positives to an already-red pipeline. Needs a separate confirmation after dry-run output is reviewed before flipping to BLOCK_CRITICAL."
+    },
+    "ai_code_generation": {
+      "file": ".claude/settings.json (PreToolUse hook) + scripts/hardcode-precommit-hook.ts",
+      "mode": "BLOCK_CRITICAL",
+      "status": "wired, HCG-P2",
+      "scope": "Only Write/Edit calls whose target file path matches critical_path_allowlist above. Denies only on SECURITY_VIOLATION/ARCHITECTURE_VIOLATION."
+    },
+    "registry_validation": { "mode": "not wired", "status": "deferred — registryWriter.ts itself not yet used by any real registry write path" },
+    "api_and_data_integration": { "mode": "not wired", "status": "deferred — no single LINE adapter to attach to yet" },
+    "business_engine_and_workflow": { "mode": "not wired", "status": "deferred — largely already DB-driven per HCG-P2 investigation" },
+    "hardware_iot_device_integration": { "mode": "not wired", "status": "deferred — no real hardware driver exists in this repo" }
+  }
+}

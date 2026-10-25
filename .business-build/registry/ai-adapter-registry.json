@@ -1,0 +1,317 @@
+{
+  "version": 1,
+  "kind": "ai_adapter_registry",
+  "note": "ONE AI ADAPTER REGISTRY (PHASE A4.1, owner 2026-09-23). Machine-readable declaration of every AI adapter DNA OS can select. This is the ONLY place where 'which provider/model sits behind which capability' is expressed; business callers name a capability only. It deliberately does NOT reuse registry/AI_REGISTRY.json, which declares AI agents/tools (claude-code, gemini-cli, …) with different semantics. Model identity lives in `configuration`, never in a capability id. A declared-but-not-executable provider is not an adapter: see `execution.status`. A8: adapters now declare capabilities_by_runtime — where each capability is really available — because the same adapter can serve a different set in each runtime (the device watcher's vision/text work vs the Next gateway's routing). Priority stays a single per-adapter value; no capability→provider map exists anywhere.",
+  "authority": {
+    "entry": "services/ai/gateway.ts#invokeAiGateway (unchanged public entry)",
+    "selection": "services/ai/resolver.ts (single logical selection authority, same contract in every runtime)"
+  },
+  "policy": {
+    "selection": "registry_order_then_adapter_priority",
+    "fallback": "none",
+    "fail_closed": true,
+    "tie_break": "priority ascending, then adapter id ascending (deterministic)"
+  },
+  "capabilities": {
+    "conversation.answer": "answer a customer/user conversation turn (proven caller: workerAdapters/localModelWorkerAdapter.ts)",
+    "intent.classify": "classify what the caller is asking for",
+    "screen.describe": "read a screen capture and say what is on it / what to click next",
+    "document.ocr": "read text out of an image/PDF document",
+    "document.event_extract": "extract structured business fields out of a document",
+    "document.crop": "locate or crop the document region inside an image",
+    "memory.draft": "draft durable customer memory notes",
+    "material.resolve": "resolve free-text material wording to a material",
+    "code.generate": "produce a code/proposal artifact for Owner approval",
+    "text.entity_extract": "A5.5 ADDED — extract structured business entities (material/quantity/contact/project/destination/vehicle) from free Thai text. Source evidence: supabase/functions/line-webhook-v2/helpers.ts#extractStructuredEntitiesWithGemini (named by the WORK, not by Gemini)",
+    "location.geocode": "A5.5 ADDED — turn a written address into latitude/longitude. Source evidence: supabase/functions/line-webhook-v2/helpers.ts#resolveAddressToCoordinates (named by the WORK, not by Gemini)"
+  },
+  "adapters": [
+    {
+      "id": "ollama",
+      "kind": "ai",
+      "provider": "ollama",
+      "runtimes": [
+        "next",
+        "device"
+      ],
+      "capabilities": [
+        "conversation.answer",
+        "document.crop",
+        "document.ocr",
+        "intent.classify",
+        "material.resolve",
+        "memory.draft",
+        "screen.describe",
+        "text.entity_extract"
+      ],
+      "enabled": true,
+      "priority": 10,
+      "authorization": {
+        "requirement": "none",
+        "note": "self-hosted runtime — reachability IS the configuration (AI_GATEWAY_OLLAMA_URL); no third-party credential"
+      },
+      "configuration": {
+        "required_any_env": [
+          "AI_GATEWAY_OLLAMA_URL"
+        ],
+        "endpoint_env": "AI_GATEWAY_OLLAMA_URL",
+        "model_env": "AI_GATEWAY_OLLAMA_MODEL",
+        "default_model": "thawatchai",
+        "capability_models": {
+          "screen.describe": "qwen2.5vl:7b",
+          "document.ocr": "qwen2.5vl:72b",
+          "text.entity_extract": "thawatchai",
+          "intent.classify": "qwen3:8b",
+          "conversation.answer": "qwen3:8b"
+        },
+        "unconfigured_error": "AI_GATEWAY_OLLAMA_NOT_CONFIGURED"
+      },
+      "execution": {
+        "status": "gateway-adapter",
+        "note": "moved out of gateway.ts's inline ollamaProvider() with behaviour unchanged (same URL, model env + default, 60s timeout, /api/generate body, AI_GATEWAY_EMPTY_PROVIDER_RESULT check)"
+      },
+      "declared_by": "services/ai/adapters.ts#ollamaAdapter",
+      "evidence": "A0–A3 census: services/ai/gateway.ts:160-183 (inline impl). The device vision-OCR path (local-runtime/ai-task-watcher.mjs) is a SEPARATE runtime path, reconciled in A6+, and does not route through this registry yet. A10: device set += document.crop because local-runtime/print-watcher.mjs really locates/crops the document region with the local vision model today. The next set is unchanged, so Next routing is unaffected.",
+      "capabilities_by_runtime": {
+        "next": [
+          "conversation.answer",
+          "intent.classify",
+          "screen.describe",
+          "document.crop",
+          "memory.draft",
+          "material.resolve"
+        ],
+        "device": [
+          "document.ocr",
+          "text.entity_extract",
+          "conversation.answer",
+          "memory.draft",
+          "material.resolve",
+          "document.crop"
+        ]
+      },
+      "display_name": "Ollama (Local/Cloud Runtime)"
+    },
+    {
+      "id": "anthropic",
+      "kind": "ai",
+      "provider": "anthropic",
+      "runtimes": [
+        "next",
+        "deno"
+      ],
+      "capabilities": [
+        "code.generate",
+        "conversation.answer",
+        "document.event_extract",
+        "document.ocr",
+        "intent.classify",
+        "memory.draft",
+        "text.entity_extract"
+      ],
+      "enabled": true,
+      "priority": 20,
+      "authorization": {
+        "requirement": "credential",
+        "note": "ANTHROPIC_API_KEY presence is the configuration check (same check the pre-A4 gateway made)"
+      },
+      "configuration": {
+        "required_any_env": [
+          "ANTHROPIC_API_KEY"
+        ],
+        "endpoint_env": null,
+        "model_env": null,
+        "default_model": "claude-haiku-4-5-20251001",
+        "unconfigured_error": "AI_GATEWAY_ANTHROPIC_NOT_CONFIGURED"
+      },
+      "execution": {
+        "status": "gateway-adapter",
+        "note": "moved out of gateway.ts's inline anthropicProvider(); the model literal is kept on purpose — A4.2 forbids model replacement in this phase"
+      },
+      "declared_by": "services/ai/adapters.ts#anthropicAdapter",
+      "evidence": "A0–A3 census: services/ai/gateway.ts:132-157 (inline impl) + the old CAPABILITY_PROVIDER map (document.ocr/document.event_extract/code.generate -> anthropic). A6: text.entity_extract added because anthropic is the provider that REALLY serves it in production today — engines/events/event-builder.ts:68-74 (claude-haiku-4-5-20251001, system prompt = synthesize a cluster of LINE messages into one structured business event), so the A6 cutover of that caller keeps its effective model instead of silently moving it to another provider. A7: runtimes += deno and capabilities += conversation.answer / memory.draft / intent.classify, because the Deno LINE engines already perform exactly these works with Anthropic today — claude-client.ts#callClaudeText (thoughtful-fallback reply, customer-memory notes) and #callClaudeTool (tool choice, currently unreferenced). Next-routing parity is unaffected: ollama keeps priority 10, so those three capabilities still resolve to it in the Next runtime.",
+      "capabilities_by_runtime": {
+        "next": [
+          "document.ocr",
+          "document.event_extract",
+          "code.generate",
+          "text.entity_extract",
+          "intent.classify",
+          "conversation.answer"
+        ],
+        "deno": [
+          "document.ocr",
+          "conversation.answer",
+          "memory.draft",
+          "intent.classify",
+          "text.entity_extract"
+        ]
+      },
+      "display_name": "Claude (Anthropic)",
+      "failover_note": "DNA-000224: next-runtime failover for intent.classify/conversation.answer when ollama URL absent or cline credits exhausted (A7 proven: deno engines already serve these with Anthropic in production)"
+    },
+    {
+      "id": "gemini",
+      "kind": "ai",
+      "provider": "google-gemini",
+      "runtimes": [
+        "deno",
+        "next"
+      ],
+      "capabilities": [
+        "location.geocode",
+        "text.entity_extract"
+      ],
+      "enabled": true,
+      "priority": 30,
+      "authorization": {
+        "requirement": "credential",
+        "note": "GEMINI_API_KEY presence is the configuration check"
+      },
+      "configuration": {
+        "required_any_env": [
+          "GEMINI_API_KEY"
+        ],
+        "endpoint_env": null,
+        "model_env": "AI_GATEWAY_GEMINI_MODEL",
+        "default_model": "gemini-2.5-flash-lite",
+        "unconfigured_error": "AI_GATEWAY_GEMINI_NOT_CONFIGURED"
+      },
+      "execution": {
+        "status": "gateway-adapter",
+        "note": "declared so these two capabilities have a real adapter; the Deno callers in line-webhook-v2/helpers.ts are NOT cut over in A5 (scope limit A5.7) and keep their current direct call"
+      },
+      "declared_by": "services/ai/adapters.ts#geminiAdapter",
+      "evidence": "A0–A3 census: supabase/functions/line-webhook-v2/helpers.ts:634,675 (real direct HTTP calls, gemini-2.5-flash-lite, key from Deno.env GEMINI_API_KEY) — the only real Gemini callers in the repo",
+      "capabilities_by_runtime": {
+        "next": [
+          "text.entity_extract",
+          "location.geocode"
+        ],
+        "deno": [
+          "text.entity_extract",
+          "location.geocode"
+        ]
+      },
+      "display_name": "Gemini (Google)"
+    },
+    {
+      "id": "digitalocean",
+      "kind": "ai",
+      "provider": "digitalocean-inference",
+      "runtimes": [
+        "next"
+      ],
+      "capabilities": [
+        "code.generate"
+      ],
+      "enabled": false,
+      "priority": 40,
+      "authorization": {
+        "requirement": "credential",
+        "note": "credential resolves through the connector (header_prefix/api_key), never a raw env read from a business caller"
+      },
+      "configuration": {
+        "required_any_env": [
+          "DIGITALOCEAN_INFERENCE_API_KEY"
+        ],
+        "endpoint_env": "DIGITALOCEAN_INFERENCE_API_URL",
+        "model_env": "DIGITALOCEAN_INFERENCE_MODEL",
+        "default_model": "llama3-8b-instruct",
+        "unconfigured_error": "AI_GATEWAY_DIGITALOCEAN_NOT_CONFIGURED"
+      },
+      "execution": {
+        "status": "worker-adapter-only",
+        "note": "its real execution path today is app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts (worker layer, connector-resolved credential) — NOT the AI gateway. Declared so it is discoverable; kept DISABLED so the resolver cannot silently change the effective routing of code.generate (A5.1 parity). Cutover belongs to A6+."
+      },
+      "declared_by": "(no gateway adapter implementation yet — deliberately absent)",
+      "evidence": "A0–A3 census: digitalOceanWorkerAdapter.ts:21,41,53,209,315 (DIGITALOCEAN_INFERENCE_MODEL/API_KEY handling + connector credential cache)",
+      "capabilities_by_runtime": {
+        "next": [
+          "code.generate"
+        ]
+      },
+      "display_name": "DigitalOcean Inference"
+    },
+    {
+      "id": "openai",
+      "kind": "ai",
+      "provider": "openai",
+      "runtimes": [
+        "next",
+        "deno"
+      ],
+      "capabilities": [
+        "conversation.answer",
+        "intent.classify",
+        "text.entity_extract"
+      ],
+      "enabled": false,
+      "priority": 30,
+      "authorization": {
+        "requirement": "credential",
+        "note": "OPENAI_API_KEY presence is the configuration check (key already provisioned on Railway by the owner)"
+      },
+      "configuration": {
+        "required_any_env": [
+          "OPENAI_API_KEY"
+        ],
+        "endpoint_env": "AI_GATEWAY_OPENAI_ENDPOINT",
+        "model_env": "AI_GATEWAY_OPENAI_MODEL",
+        "default_model": "gpt-4o-mini",
+        "unconfigured_error": "AI_GATEWAY_OPENAI_NOT_CONFIGURED"
+      },
+      "execution": {
+        "status": "gateway-adapter",
+        "note": "fetch-based chat/completions adapter in services/ai/adapters.ts (owner mission 2026-10-10 LINE BUSINESS AI)"
+      },
+      "display_name": "OpenAI (GPT)",
+      "disabled_reason": "Owner order 2026-07-25 (เอา ChatGPT ออกจากระบบให้ถาวร) + live incident 2026-10-11: key ค้างอยู่บน Railway ทำให้ resolver เลือก openai เป็น adapter ตัวสุดท้ายของ conversation.answer/intent.classify → AI_GATEWAY_OPENAI_HTTP_429 บน owner command — consumer audit: LINE entity_extract ยังมี gemini (priority เท่า id น้อยกว่า), IDE workers ใช้ local ollama adapter, owner chat fail-closed ไป deterministic paths ตามเดิม"
+    },
+    {
+      "id": "mlx",
+      "kind": "ai",
+      "provider": "mlx",
+      "runtimes": [
+        "next"
+      ],
+      "capabilities": [
+        "conversation.answer",
+        "intent.classify"
+      ],
+      "enabled": true,
+      "priority": 15,
+      "authorization": {
+        "requirement": "none",
+        "note": "self-hosted MLX runtime (mlx_lm.server 0.29.1 ในเครื่อง Mac) — reachability IS the configuration (AI_GATEWAY_MLX_URL ชี้ 127.0.0.1:8140) ไม่มี third-party credential"
+      },
+      "configuration": {
+        "required_any_env": [
+          "AI_GATEWAY_MLX_URL"
+        ],
+        "endpoint_env": "AI_GATEWAY_MLX_URL",
+        "model_env": "AI_GATEWAY_MLX_MODEL",
+        "default_model": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+        "capability_models": {
+          "conversation.answer": "mlx-community/Qwen3-4B-Instruct-2507-4bit",
+          "intent.classify": "mlx-community/Qwen3-4B-Instruct-2507-4bit"
+        },
+        "unconfigured_error": "AI_GATEWAY_MLX_NOT_CONFIGURED"
+      },
+      "execution": {
+        "status": "gateway-adapter",
+        "note": "Phase A (2026-10-18) + Phase C contract alignment: fetch-based /api/generate adapter ใน services/ai/adapters.ts#mlxAdapter — พูด Ollama /api/generate shape เดียวกับ ollamaAdapter ทุกฟิลด์ เพื่อให้ผ่าน relay generate route เดิมได้ (route docstring กำหนด shape นี้ไว้); การแปลเป็น OpenAI contract ของ mlx_lm.server อยู่ที่ Mac Worker runMlx — ไม่มี transport คู่ขนาน ไม่ต้องสร้าง Gateway/Relay ใหม่"
+      },
+      "declared_by": "services/ai/adapters.ts#mlxAdapter",
+      "evidence": "MLX readiness audit 2026-10-18: MODEL_LOAD PASS (2.16s), JSON_OUTPUT 5/5 PASS, BUSINESS_INTENT 5/5 PASS (debt_inquiry+KT+finance.read) จาก mlx_lm.load() ตรง; mlx_lm 0.29.1 server.py มี /v1/chat/completions + /health ในตัว — worker (Phase B runMlx) เรียก endpoint นี้หลังรับ job ผ่าน relay; adapter↔relay ใช้ Ollama /api/generate shape",
+      "capabilities_by_runtime": {
+        "next": [
+          "conversation.answer",
+          "intent.classify"
+        ]
+      },
+      "display_name": "MLX Qwen3-4B (Local Mac)",
+      "failover_note": "Phase A: priority=15 (สูงกว่า ollama=10) → resolver เลือก ollama ก่อนเสมอ production ไม่เปลี่ยนจนกว่า Owner จะสั่งสลับหลัก (Phase C)"
+    }
+  ]
+}

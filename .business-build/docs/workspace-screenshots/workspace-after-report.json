@@ -1,0 +1,48 @@
+{
+  "url": "http://localhost:3001/workspace?materialSurface=chat",
+  "background_authority": "rgb(253, 251, 248)",
+  "text_color_authority": "rgb(54, 51, 47)",
+  "q_timeline": {
+    "present": true,
+    "entries": 1,
+    "questions": 1,
+    "answers": 1,
+    "width": 1040,
+    "left": 200,
+    "gap": "32px",
+    "direction": "column",
+    "alignItems": "stretch"
+  },
+  "question_style": {
+    "bg": "rgba(0, 0, 0, 0)",
+    "border": "solid",
+    "shadow": "none",
+    "radius": "0px",
+    "weight": "600",
+    "color": "rgb(54, 51, 47)"
+  },
+  "answer_style": {
+    "bg": "rgba(0, 0, 0, 0)",
+    "border": "none",
+    "shadow": "none",
+    "radius": "0px",
+    "maxWidth": "none",
+    "color": "rgb(54, 51, 47)"
+  },
+  "bubbles_left": [],
+  "h_overflow": false,
+  "compose": {
+    "present": true,
+    "button_count": 3,
+    "textarea_multiline": "pre-wrap",
+    "form_box": {
+      "x": 200,
+      "w": 1040
+    }
+  },
+  "doc_result": null,
+  "text_sample": {
+    "fontSize": "15px",
+    "opacity": "1"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "domain": "transport",
+  "tables": [
+    {
+      "table": "jobs",
+      "primaryKey": "id",
+      "description": "งานจัดส่งวัสดุ — โปรเจกต์ ระยะทาง ปริมาณ สถานะ",
+      "columns": ["id", "project_name", "job_status", "contact_name", "distance_km", "required_quantity", "delivered_quantity", "created_at", "deleted_at"],
+      "softDelete": true
+    }
+  ],
+  "relations": [
+    { "table": "partners", "foreignKey": "contact_name", "type": "name_match" },
+    { "table": "vehicle_types", "foreignKey": "vehicle_type_id", "type": "foreign_key" },
+    { "table": "material_types", "foreignKey": "material_type_id", "type": "foreign_key" }
+  ],
+  "indexes": [
+    { "table": "jobs", "column": "job_status", "type": "btree" },
+    { "table": "jobs", "column": "contact_name", "type": "btree" }
+  ],
+  "permissions": {
+    "read": ["Cognitive Pipeline", "Review Board", "Pricing Engine"],
+    "write": ["V6 Executor"]
+  },
+  "commands": ["review_job", "create_job", "update_job_status"],
+  "events": ["job.created", "job.assigned", "job.in_progress", "job.delivered", "job.completed", "job.cancelled"],
+  "engines": [
+    { "name": "Pricing Engine", "file": "lib/v3-engines/pricing/engine.ts", "function": "calcTransportPrice" }
+  ],
+  "queries": [
+    { "name": "getJobs", "file": "lib/supabase/queries.ts", "action": "read" }
+  ],
+  "dependencies": ["customer", "vehicle", "material", "config"],
+  "validators": [
+    { "rule": "ต้องมี project_name", "field": "project_name", "type": "required" },
+    { "rule": "ต้องมี contact_name", "field": "contact_name", "type": "required" },
+    { "rule": "distance_km > 0", "field": "distance_km", "type": "positive" },
+    { "rule": "required_quantity > 0", "field": "required_quantity", "type": "positive" }
+  ],
+  "documents": ["delivery_order", "invoice"],
+  "api": [
+    { "endpoint": "/api/chat", "method": "POST", "action": "ดูงาน / สร้างงาน" }
+  ]
+}

@@ -1,0 +1,17 @@
+[stage] copying source tree → .business-build/ (source tree is never modified)
+[stage] copying node_modules into the staged tree (Turbopack rejects out-of-root symlinks)…
+[stage] node_modules copied into the staged tree
+[stage] staged tsconfig excludes scripts/ + local-runtime/ (ops tooling, not business runtime)
+[prune] 251 route files removed from the staged build input (of 466 route files)
+[build] next build (staged business tree) — this can take several minutes
+[build] next build FAILED — see artifacts/cutover/business-build.log
+[verify] built routes: 220 (manifest: .next/app-path-routes-manifest.json)
+[verify] NEW_DEVELOPER_ROUTES_IN_BUILD = 0
+[verify] NEW_DEVELOPER_CONTROL_APIS_IN_BUILD = 0
+[verify] MISSING_BUSINESS_SURFACES = 0
+[verify] developer tool residual modules = 95
+[verify] evidence → artifacts/cutover/business-build-evidence.json
+
+[FAIL] next build failed — see artifacts/cutover/business-build.log
+
+PIPELINE_EXIT=1

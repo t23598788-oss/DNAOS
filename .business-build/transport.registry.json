@@ -1,0 +1,21 @@
+{
+  "name": "transport",
+  "name_th": "ระบบจัดการงานขนส่ง",
+  "purpose": "Manages transportation jobs, including vehicle and driver assignments.",
+  "purpose_th": "เก็บและจัดการข้อมูลงานขนส่ง",
+  "description_th": "ใช้เก็บข้อมูลงานขนส่งแต่ละเที่ยว, การมอบหมายรถ, และคนขับ",
+  "used_by": [
+    "lib/documents/engine.ts"
+  ],
+  "used_by_th": [
+    "ไฟล์จัดการเอกสาร (สำหรับสร้างใบส่งของ)"
+  ],
+  "depends_on": [
+    "partners",
+    "documents"
+  ],
+  "depends_on_th": [
+    "ข้อมูลคู่ค้า",
+    "ระบบจัดการเอกสาร"
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "title": "DNA OS Execution Contract",
+  "added": "2026-07-07",
+  "note": "Sits between Constitution (the law) and Runtime (the enforcer). registry/CONSTITUTION.json defines what the rules ARE — this file defines HOW an agent complies with them, step by step. Moved out of CONSTITUTION.json's ai_execution_protocol section into its own file per the system owner's instruction to keep 'the law' and 'how to comply with the law' as separate layers.",
+  "layer_stack": {
+    "th": [
+      "Constitution ↓ กำหนดกฎหมาย (registry/CONSTITUTION.json)",
+      "Execution Contract ↓ กำหนดวิธีปฏิบัติตามกฎหมาย (this file)",
+      "Runtime ↓ บังคับใช้",
+      "Scheduler ↓ แจกงาน (registry/SCHEDULER.json + registry/LOCK_MANAGER.json)",
+      "Workers ↓ ลงมือทำ (registry/AI_REGISTRY.json + registry/AI_SESSIONS.json)"
+    ],
+    "implication": "เพราะ 'วิธีรัน' (Execution Contract + Runtime) แยกจาก 'กฎหมาย' (Constitution) — ถ้าวันหนึ่งเปลี่ยน Runtime จาก Node.js เป็น Rust/Go หรือกระจายหลายเครื่อง แทบไม่ต้องแตะ Constitution เลย เพราะสิ่งที่เปลี่ยนคือวิธีรัน ไม่ใช่กฎของระบบ",
+    "known_gaps": "Today 'Runtime' is not a literal separate running process — it is this document, followed manually by whichever AI agent is working (see registry/CONSTITUTION.json → runtime_contract.known_gaps for the same honesty note). The 'swap Node.js for Rust/Go/distributed' property is real in the sense that nothing here couples the law to an implementation language, but it describes a future architectural option, not a currently-running swappable system — don't overstate this as already built."
+  },
+  "communication_rules": [
+    "No AI communicates directly with another AI",
+    "Every AI communicates only through the DNA OS Registry",
+    "Never assume another AI's work — read the registry before doing anything"
+  ],
+  "execution_order": [
+    "Read registry/README.md",
+    "Read registry/CONSTITUTION.json",
+    "Read registry/CURRENT_STATE.json",
+    "Read registry/AI_SESSIONS.json — upsert own entry (agent_id, status: working)",
+    "Read registry/LOCK_MANAGER.json — never touch a file locked by a different agent",
+    "Read registry/TASK_QUEUE.json and registry/SCHEDULER.json",
+    "Choose free work (a path/task not currently locked), lock only the files you'll touch in LOCK_MANAGER.json, then execute (continue ONLY from CURRENT_STATE.next_step; if nothing is free, do nothing and wait)",
+    "Update registry/CURRENT_STATE.json",
+    "Append registry/CHANGELOG.json (see output_contract)",
+    "Release lock — remove own entry from registry/LOCK_MANAGER.json",
+    "Update registry/AI_SESSIONS.json — own status must be true (idle/blocked/token_exhausted/submitted), never left as working",
+    "Exit"
+  ],
+  "execution_rules": [
+    "Lock only the files you modify — never lock the whole project",
+    "Multiple agents may work simultaneously as long as they don't touch the same file",
+    "Never edit a file locked by a different agent",
+    "Never overwrite another agent's work",
+    "Never create duplicate architecture",
+    "Never create parallel implementations",
+    "Never rename existing registry files (except by the system owner's direct instruction — equivalent to amending the Constitution)",
+    "Never hardcode business data",
+    "Follow Constitution before writing code",
+    "Registry is the single source of truth",
+    "Before stopping, CURRENT_STATE.json must have: status (IN_PROGRESS|BLOCKED|DONE), current_file, next_step, handoff, open_questions",
+    "Leave the repository in a resumable state — the next AI must continue without asking the user; if a genuine human decision is required, status=BLOCKED with a precise open_question is itself the resumable state, never guess an answer to unblock",
+    "One Entry. One Architecture. One Registry. One Source of Truth.",
+    "Evidence-First Rule Creation Policy (owner directive 2026-07-14, DNA-000041, MISSION: Runtime Capability Evolution): Failure -> Knowledge -> Capability -> Automation -> Intelligence. Every real Runtime failure, error, or AI misinterpretation must be logged with root cause and a preventability assessment as Runtime Knowledge (registry/existence.json) FIRST. Only once the SAME failure pattern has recurred 2+ times with real evidence should a new Guard or Capability be considered — never build one from a single occurrence or a hypothetical. A new Constitution Rule (registry/CONSTITUTION.json iron_rules) is the LAST resort, not the default response to a mission statement — most of what missions ask for should resolve at the Guard/Capability/Automation layer, using real, already-observed evidence, not a new numbered law. Every new Capability must be able to answer: which real incident caused it, what work it reduces, what it prevents, and which other modules can reuse it. Do not build a Feature to solve a problem that has not actually happened. | Evidence Definition, redefined (owner directive 2026-07-14, DNA-000048): \"Evidence\" is NOT limited to git history/commits. Any Runtime layer that can prove a relationship counts as Evidence — Runtime State, Registry, Dependency Graph, Import Graph, Execution Graph, Event Graph, Workflow, Runtime Trace, Validation Result, Health Report, Module Relationship, Architecture Graph, Existing Knowledge (registry/existence.json), CHANGELOG, Owner Request, Task Queue, Runtime Report. Do not stop investigating just because git has no answer. Never say 'insufficient evidence' until every real Runtime layer has actually been checked. Every time evidence is declared insufficient, state explicitly: which layers were checked, which were not, which layers genuinely have no data for this question (and why, structurally), and which would require new tooling to check — before concluding evidence is insufficient. Real case that triggered this: DNA-000045 marked 3 root-cause items UNKNOWN after checking only git commit titles and git author identity; DNA-000048 re-checked full commit bodies, commit trailers, and 4 other registries (CHANGELOG.json, TASK_QUEUE.json, HANDOFF.json, AI_SESSIONS.json), resolving 2 of the 3 items with real evidence and confirming the 3rd is structurally absent (not merely unsearched) — see registry/existence.json known_mistakes.confirmed_duplicate_pairs KM-002-line.",
+    "Root Cause Engine Output Contract (owner directive 2026-07-15, DNA-000057, refines Rule 106's existing root-cause-analysis requirement — not a new substantive rule): whenever an AI reports a problem as solved/fixed, the response is incomplete until it can answer all 8 of: Symptom (what was observed) -> Evidence (what was actually captured/run to confirm it, not assumed) -> Root Cause (the real underlying mechanism, not the surface bug) -> Why it happened (the structural gap that allowed it) -> Fix Applied (what changed, real diff/command) -> Verification (real before/after evidence, not assumed to work) -> Knowledge Extracted (a structured registry/existence.json known_mistakes entry, not just prose in a chat reply) -> Preventive Rule Added (a Constitution rule id if the gap was structural, or an explicit note that none was needed and why). If any of these 8 cannot be answered, the analysis is not finished — say so explicitly rather than declaring 'problem solved'. Real example this session that fully satisfies the contract: DNA-000056/057's Audit Self Feedback Loop fix, recorded end to end as registry/existence.json known_mistakes#KM-005 (knowledge_id DNA-KB-000056)."
+  ],
+  "output_contract": {
+    "note": "Every completed task must append a CHANGELOG.json entry with exactly these fields",
+    "fields": [
+      "change_id",
+      "agent_id",
+      "provider",
+      "model",
+      "session_id",
+      "files_modified",
+      "started_at",
+      "finished_at",
+      "status",
+      "summary",
+      "next_task"
+    ]
+  },
+  "session_tracking": "registry/AI_SESSIONS.json — live roster of individual agent sessions (not just agent types). Every session must upsert its own entry on start and keep status honest — never guess another session's status.",
+  "lock_management": "registry/LOCK_MANAGER.json — per-file lock ledger, supports N agents locking N different files simultaneously; never locks the whole project.",
+  "work_scheduling": "registry/SCHEDULER.json — path-scoped feature work (task/assigned_to:'Any'/path/priority/status). Distinct from TASK_QUEUE.json's atomic backlog. assigned_to is always 'Any' by design so no work is pre-assigned to a vendor; an agent claims work by locking its path in LOCK_MANAGER.json."
+}

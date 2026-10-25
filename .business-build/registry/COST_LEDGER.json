@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "note": "Real, append-only actual-cost ledger for every PAID/UNKNOWN_COST Worker/Adapter execution that actually completed (owner, 2026-08-09, Constitution Rule 257 — Execution Plane Cost Gate, TASK-048/FCR-009). Written ONLY by app/api/admin/ide/_lib/costGateRuntime.ts#recordActualCost(), called from codeWorkerRuntime.ts immediately after a real Adapter.execute() call returns a real cost.kind==='ACTUAL' result. Starts empty in this build: the real, historical FCR-009 incident (~$0.29-0.58 USD, TASK-047, registry/worker01-sandbox/live-proof.txt) predates this ledger and remains documented only in registry/FACTORY_CENTRAL_REGISTRY.json/registry/CONSTITUTION.json Rule 257 — both explicitly off-limits to this build (TASK-048's own constraint) — never backfilled here with a re-derived or fabricated number.",
+  "schema_note": "entries[] is real and append-only — per Rule 257 clause 12 (no retroactive editing of past test/cost results), an entry is NEVER edited or removed after being written, only ever appended to. Each entry: entry_id (uuid), task_id, worker_id (real Adapter id, e.g. claude-cli), provider, model, estimated_cost (the real pre-call estimate that was gated), actual_cost (the real, post-call reported cost — null if the Adapter genuinely could not report one), currency, timestamp (ISO8601, when recorded), approval_reference (either a real costGateRuntime.ts decisionId for a zero-cost/budget-covered RELEASE, or a real budget_id string for a pre-approved-budget RELEASE — never fabricated).",
+  "entries": [
+    {
+      "entry_id": "b176be33-50e8-4bce-8e83-cd87f4f12d8b",
+      "task_id": "b4a263cf-13e2-46e4-bfce-37682e494d08:auto-step",
+      "worker_id": "claude-cli",
+      "provider": "anthropic-cli",
+      "model": null,
+      "estimated_cost": 0.29,
+      "actual_cost": 0,
+      "currency": "USD",
+      "timestamp": "2026-10-15T20:46:18.463Z",
+      "approval_reference": "2450b1c6-8210-4468-891c-3c195b956928"
+    }
+  ]
+}

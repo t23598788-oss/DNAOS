@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "policy": "ทุกตารางในฐานข้อมูลต้องลงทะเบียนและมีคำอธิบาย",
+  "tables": {
+    "documents": {
+      "purpose": "Stores all document types (quotations, invoices, receipts)",
+      "purpose_th": "เก็บข้อมูลเอกสารทุกประเภท (ใบเสนอราคา, ใบแจ้งหนี้, ใบเสร็จ)"
+    },
+    "partners": {
+      "purpose": "Stores all partner data (customers, vendors)",
+      "purpose_th": "เก็บข้อมูลคู่ค้าทั้งหมด (ลูกค้า, ผู้ขาย)"
+    },
+    "debt_trackings": {
+      "purpose": "Tracks the debt status for each customer",
+      "purpose_th": "ติดตามสถานะหนี้ของลูกค้าแต่ละราย"
+    },
+    "jobs": {
+      "purpose": "Stores data for each transportation job",
+      "purpose_th": "เก็บข้อมูลงานขนส่งแต่ละเที่ยว"
+    },
+    "app_configs": {
+      "purpose": "Stores all business configuration values (prices, tax rates, markups)",
+      "purpose_th": "เก็บค่าตั้งทางธุรกิจทั้งหมด (ราคา, อัตราภาษี, markup)"
+    },
+    "conversation_states": {
+      "purpose": "Stores the state of conversations with customers on LINE",
+      "purpose_th": "เก็บสถานะการสนทนากับลูกค้าใน LINE"
+    },
+    "pit_profiles": {
+      "purpose": "Stores information about material sources (pits, quarries)",
+      "purpose_th": "เก็บข้อมูลแหล่งวัสดุ (บ่อดิน, โรงโม่)"
+    }
+  }
+}

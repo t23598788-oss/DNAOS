@@ -1,0 +1,55 @@
+{
+  "generatedAt": "2026-08-07T23:54:48.692Z",
+  "reachedSubRuntimes": [
+    {
+      "id": "factoryCompletionRuntime",
+      "reached": true,
+      "evidence": "computeFactoryCompletion() returned 45 real system records"
+    },
+    {
+      "id": "releaseRuntime",
+      "reached": true,
+      "evidence": "packageCapabilities() returned 202 real capability packages"
+    },
+    {
+      "id": "deploymentRuntime",
+      "reached": true,
+      "evidence": "listDeploymentPlans() is a real, live accessor — invoked live for this reachability check (per-owner, so count is not globally meaningful here — reachability only)"
+    },
+    {
+      "id": "monitoringRuntime",
+      "reached": true,
+      "evidence": "real source file confirmed via Runtime Dependency Graph (status: REAL)"
+    },
+    {
+      "id": "incidentRuntime",
+      "reached": true,
+      "evidence": "real source file confirmed via Runtime Dependency Graph (status: REAL)"
+    },
+    {
+      "id": "recoveryRuntime",
+      "reached": true,
+      "evidence": "real source file confirmed via Runtime Dependency Graph (status: REAL)"
+    },
+    {
+      "id": "continuousOperationsRuntime",
+      "reached": true,
+      "evidence": "real source file confirmed via Runtime Dependency Graph (status: REAL)"
+    },
+    {
+      "id": "alertRuntime",
+      "reached": true,
+      "evidence": "real source file confirmed via Runtime Dependency Graph (status: REAL)"
+    },
+    {
+      "id": "backupRuntime",
+      "reached": true,
+      "evidence": "real source file confirmed via Runtime Dependency Graph (status: REAL)"
+    },
+    {
+      "id": "restoreTestRuntime",
+      "reached": true,
+      "evidence": "real source file confirmed via Runtime Dependency Graph (status: REAL)"
+    }
+  ]
+}

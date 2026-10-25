@@ -1,0 +1,570 @@
+{
+  "version": 1,
+  "protocol": "TASK-001 Permission Registry",
+  "note": "Single source of truth for role → access. core/auth/requireAuth.ts and core/auth/requireAuthPage.ts both read role_tiers from this file — no route file may hardcode its own role list. Any AI/human adding a new protected route registers it here, not inline in the route.",
+  "roles": [
+    {
+      "id": "super_admin",
+      "th": "ผู้ดูแลระบบสูงสุด",
+      "note": "ทุกสิทธิ์ รวมถึงจัดการ role ของคนอื่น (/api/admin/users) และ backup ทั้งระบบ"
+    },
+    {
+      "id": "admin",
+      "th": "ผู้ดูแลระบบ",
+      "note": "จัดการข้อมูลธุรกิจได้ทั้งหมด ยกเว้นสิ่งที่ล็อกไว้เฉพาะ super_admin"
+    },
+    {
+      "id": "employee",
+      "th": "พนักงาน",
+      "note": "ใช้งาน Admin Panel ระดับปฏิบัติการ (เอกสาร/ธุรกรรม/หนี้) แต่ไม่จัดการ role หรือ backup"
+    },
+    {
+      "id": "partner",
+      "th": "คู่ค้า",
+      "note": "เห็นเฉพาะ Business Portal ของตัวเอง"
+    },
+    {
+      "id": "customer",
+      "th": "ลูกค้า",
+      "note": "เห็นเฉพาะ User Portal ของตัวเอง — role เริ่มต้นของทุก signup ใหม่ (ยกเว้นคนแรกสุดของระบบ)"
+    },
+    {
+      "id": "ai_service",
+      "th": "บริการ AI ภายนอก",
+      "note": "ไม่ผ่าน Supabase Auth session — auth ผ่าน X-DNA-Token header แทน (services/supabase/api-tokens.ts), read-only ตาม api_tokens.scopes"
+    }
+  ],
+  "role_tiers": {
+    "admin_tier": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "super_admin_only": [
+      "super_admin"
+    ],
+    "platform_management": [
+      "super_admin",
+      "admin"
+    ],
+    "any_authenticated": [
+      "super_admin",
+      "admin",
+      "employee",
+      "partner",
+      "customer"
+    ]
+  },
+  "platform_operator_grants": {
+    "note": "PLATFORM MANAGEMENT PLANE (owner directive 2026-10-20): Developer Plane writes/reads (IDE, Dev Loop, Deploy, Release, Build, source fs, Worker Execute) require role_tiers.platform_management AND, for role 'admin' only, an explicit grant listed in admin_emails. super_admin is platform-level by role. An admin of a business (กิจการ) without a grant is DENIED. Empty list = no admin is a platform operator yet. Evaluated only by core/auth/platformOperator.ts.",
+    "admin_emails": []
+  },
+  "command_access": {
+    "note": "Command permission policy for /api/v1/query and /api/v1/spec (evaluated by core/auth/apiCommandAccess.ts). tier = minimum role_tiers entry the subject must hold; data = public (no tenant/internal data, external providers only) | internal (master data, no org scope) | tenant (business data, requires verified organization scope). Any command NOT listed here is DENIED by default. Evidence: engines/validation/dispatcher.ts QUERY_MAP + TENANT_SCOPED_COMMANDS.",
+    "read_commands": {
+      "weather.forecast": { "tier": "any_authenticated", "data": "public" },
+      "fuel.prices": { "tier": "any_authenticated", "data": "public" },
+      "transport.estimate": { "tier": "any_authenticated", "data": "public" },
+      "material.list": { "tier": "admin_tier", "data": "internal" },
+      "material.sources": { "tier": "admin_tier", "data": "internal" },
+      "pit.find": { "tier": "admin_tier", "data": "internal" },
+      "debt.current": { "tier": "admin_tier", "data": "tenant" },
+      "debt.list": { "tier": "admin_tier", "data": "tenant" },
+      "debt.all": { "tier": "admin_tier", "data": "tenant" },
+      "debt.trackings": { "tier": "admin_tier", "data": "tenant" },
+      "invoice.list": { "tier": "admin_tier", "data": "tenant" },
+      "invoice.latest": { "tier": "admin_tier", "data": "tenant" },
+      "invoice.items": { "tier": "admin_tier", "data": "tenant" },
+      "invoice.payments": { "tier": "admin_tier", "data": "tenant" },
+      "document.list": { "tier": "admin_tier", "data": "tenant" },
+      "document.boq": { "tier": "admin_tier", "data": "tenant" },
+      "document.po": { "tier": "admin_tier", "data": "tenant" },
+      "document.do": { "tier": "admin_tier", "data": "tenant" },
+      "document.receipt": { "tier": "admin_tier", "data": "tenant" },
+      "draft.list": { "tier": "admin_tier", "data": "tenant" },
+      "job.list": { "tier": "admin_tier", "data": "tenant" },
+      "job.active": { "tier": "admin_tier", "data": "tenant" },
+      "partner.list": { "tier": "admin_tier", "data": "tenant" },
+      "partner.find": { "tier": "admin_tier", "data": "tenant" },
+      "partner.profile": { "tier": "admin_tier", "data": "tenant" },
+      "partner.timeline": { "tier": "admin_tier", "data": "tenant" },
+      "material.quote": { "tier": "admin_tier", "data": "tenant" },
+      "expense.list": { "tier": "admin_tier", "data": "tenant" },
+      "receipt.list": { "tier": "admin_tier", "data": "tenant" },
+      "receipt.latest": { "tier": "admin_tier", "data": "tenant" },
+      "receipt.get": { "tier": "admin_tier", "data": "tenant" },
+      "purchase.history": { "tier": "admin_tier", "data": "tenant" },
+      "bank.statement": { "tier": "admin_tier", "data": "tenant" },
+      "business.calculate_tax": { "tier": "admin_tier", "data": "tenant" }
+    }
+  },
+  "route_access": [
+    {
+      "prefix": "/admin",
+      "roles": [
+        "super_admin",
+        "admin",
+        "employee"
+      ],
+      "except": [
+        "/admin/login"
+      ]
+    },
+    {
+      "prefix": "/workspace",
+      "roles": [
+        "super_admin",
+        "admin",
+        "employee"
+      ],
+      "note": "OPERATOR SURFACE (2026-10-19): the workspace shell and its admin launcher are admin tier, same as the business APIs they open. Partner/customer have their own portals (/partner, /user)."
+    },
+    {
+      "prefix": "/transporter",
+      "roles": [
+        "super_admin",
+        "admin",
+        "employee",
+        "partner"
+      ],
+      "note": "TRANSPORTER SURFACE (2026-10-19): no new AppRole. A partner (service_provider) links a driver_profiles row by user_id and sees only jobs assigned to that profile; admin tier may inspect. Data authority stays driver_profiles.user_id + jobs.assigned_person_id."
+    },
+    {
+      "prefix": "/business",
+      "roles": [
+        "super_admin",
+        "admin",
+        "employee",
+        "partner"
+      ]
+    },
+    {
+      "prefix": "/partner",
+      "roles": [
+        "super_admin",
+        "admin",
+        "partner"
+      ]
+    },
+    {
+      "prefix": "/user",
+      "roles": [
+        "super_admin",
+        "admin",
+        "customer"
+      ]
+    },
+    {
+      "prefix": "/developer",
+      "roles": [
+        "super_admin",
+        "admin",
+        "employee"
+      ],
+      "note": "DEVELOPER WORKSPACE (owner directive 2026-10-12 — แยก URL/Navigation จาก Business). หน้าเข้าระบบพัฒนา (IDE/Dev Loop/Deploy/UI Gallery) ใช้ role tier เดียวกับ /admin ไม่มีการเพิ่มสิทธิ์ใหม่ — ที่แยกคือ surface เดิม ไม่ใช่ role ใหม่"
+    }
+  ],
+  "api_access": [
+    {
+      "prefix": "/api/admin/workspace",
+      "roles": [
+        "super_admin",
+        "admin",
+        "employee"
+      ],
+      "reason": "lock/dependency/plan-create/list are admin-tier; approve_migration_plan and execute_migration are enforced super_admin-only inside the route itself (COMMAND_ROLES map), same pattern as storage-intelligence's move_safe_to_trash."
+    },
+    {
+      "prefix": "/api/admin/storage-intelligence",
+      "roles": [
+        "super_admin",
+        "admin",
+        "employee"
+      ],
+      "reason": "scan/classify/report/inspect_docker/verify_supabase/check_threshold are admin-tier; move_safe_to_trash is enforced super_admin-only inside the route itself (COMMAND_ROLES map), same pattern as /api/admin/users being tighter than the general /api/admin prefix below."
+    },
+    {
+      "prefix": "/api/admin/backup",
+      "roles": [
+        "super_admin"
+      ],
+      "reason": "full unauthenticated table dump if ever exposed again — kept to the tightest tier"
+    },
+    {
+      "prefix": "/api/admin/users",
+      "roles": [
+        "super_admin"
+      ],
+      "reason": "role assignment — must not be self-service by admin/employee"
+    },
+    {
+      "prefix": "/api/admin",
+      "roles": [
+        "super_admin",
+        "admin",
+        "employee"
+      ]
+    },
+    {
+      "prefix": "/api/document",
+      "roles": [
+        "super_admin",
+        "admin",
+        "employee"
+      ]
+    },
+    {
+      "prefix": "/api/action",
+      "roles": [
+        "super_admin",
+        "admin",
+        "employee"
+      ]
+    },
+    {
+      "prefix": "/api/explain",
+      "roles": [
+        "super_admin",
+        "admin",
+        "employee",
+        "partner",
+        "customer"
+      ]
+    },
+    {
+      "prefix": "/api/v1/query",
+      "roles": [
+        "ai_service"
+      ],
+      "mechanism": "X-DNA-Token header — see services/supabase/api-tokens.ts, not a Supabase Auth session"
+    }
+  ],
+  "capability_access": {
+    "documents": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "search": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "chat": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "connections": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "changes": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "problems": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "history": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "accounting": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "finance": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "jobs": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "people": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "vehicles": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "materials": [
+      "super_admin",
+      "admin",
+      "employee"
+    ],
+    "transfer": [
+      "super_admin",
+      "admin",
+      "employee"
+    ]
+  },
+  "capability_access_note": "Authority for each BUSINESS TOOL in the Application Workspace (/workspace). Read only by core/navigation/resolveCapabilityAccess.ts — no component may hardcode a role list (same rule as route_access/api_access above). DEFAULT IS DENY: a tool key that is not listed here is not shown. Every role set below mirrors the authority of the existing plane the tool's data/actions already come from, verified from source, not invented: /api/admin/* + /api/document + /api/chat all call requireAuth(ADMIN_TIER) and registry route_access '/admin' is the same three roles — so all 14 declared tools are admin-tier today. When a tool genuinely gains a wider plane (e.g. a partner-visible screen), update THIS registry, never the component. Roles here are a filter on presentation only; the server routes keep their own requireAuth() check — this registry never replaces an API guard.",
+  "capability_actions": {
+    "note": "CAPABILITY/ACTION AUTHORITY ของ control-surface สองใบ (owner directive 2026-10-12: ยุติแผนแยก Source Code แบบตัดความสัมพันธ์ทั้งหมด — คง shared capability ไว้ครบ แล้วแยกเฉพาะ CONTROL SURFACE). อ่านที่เดียวโดย core/auth/surfacePolicy.ts และบังคับที่ middleware.ts (API + Runtime จริง ไม่ใช่แค่ซ่อนปุ่ม). แยกสิทธิ์ตาม capability + action ไม่แยกตามชื่อ AI provider — ไม่มี role/สิทธิ์ใหม่ถูกสร้างขึ้น",
+    "authority": "Identity/Authority กลางเดิม = core/auth/session.ts (Supabase session) + requireAuth/requireAuthPage + route_access/api_access/capability_access ของไฟล์นี้ · อำนาจแก้ source ยังเป็น chain เดิม: requireAuth(ADMIN_TIER) → app/api/admin/ide/_lib/fsSecurity.ts → change-set/review → build → scripts/deploy-gate.ts · โมเดล surface อ้าง control/owner-surface-separation (STRICT_OPERATIONAL_DEVELOPMENT_SURFACE_SEPARATION_V1) ใน dna-os-step2",
+    "enforcement": "core/auth/surfacePolicy.ts#decideSurfaceAction (ตัวตัดสินใจ อ่านไฟล์นี้ไฟล์เดียว) + middleware.ts (เรียกทุกคำขอ /api/admin/* ก่อนถึง route) · ตรวจด้วย scripts/surface-policy-test.ts",
+    "default_surface": "operational",
+    "fail_closed": "ไม่มี cookie / ค่าผิด / อ่านไม่ได้ = operational (Business) = DENY ทุก developer-plane write",
+    "write_methods": [
+      "POST",
+      "PUT",
+      "PATCH",
+      "DELETE"
+    ],
+    "surfaces": {
+      "operational": {
+        "th": "Business Workspace — ใช้ระบบธุรกิจ, เรียก Shared Capabilities, จัดการข้อมูล Supabase, การเงิน/เอกสาร, LINE และ Connect",
+        "cookie_value": "operational",
+        "entry_urls": [
+          "/workspace"
+        ],
+        "allows": [
+          "business.read",
+          "business.write",
+          "document.generate",
+          "connector.execute"
+        ]
+      },
+      "development": {
+        "th": "Developer Workspace — แก้ไขไฟล์/Source, Worker Selector, Code Generation, GitHub และ Development Workflow",
+        "cookie_value": "development",
+        "entry_urls": [
+          "/developer"
+        ],
+        "entry_rule": "มีทางเข้าเดียวคือ /developer (หน้า Developer Workspace เท่านั้น) — หน้าเครื่องมือ dev ต่าง ๆ (/admin/ide, /admin/dev-loop, /admin/deploy, /admin/ui-gallery) และลิงก์จากหน้าธุรกิจ เช่น /admin/dbd → Deploy/API Explorer ไม่มีสิทธิ์สลับ surface (UI leak ถูกปิดด้วย policy ชุดเดิม ไม่มีระบบสิทธิ์ใหม่)",
+        "allows": [
+          "source.modify",
+          "git.push",
+          "deployment.execute",
+          "developer.worker.execute",
+          "developer.workflow.execute"
+        ]
+      }
+    },
+    "allow": {
+      "business.read": {
+        "th": "อ่านข้อมูล/ระบบได้ทั้งสอง surface — source READ ไม่ใช่ source WRITE (sourceReadIsNotWrite ของ authority เดิม)",
+        "prefixes": [
+          "/api/admin",
+          "/api/document",
+          "/api/action",
+          "/api/explain",
+          "/api/chat",
+          "/api/v1/query"
+        ],
+        "authority": "requireAuth(ADMIN_TIER) / X-DNA-Token scope เดิม ไม่เปลี่ยน"
+      },
+      "business.write": {
+        "th": "เขียนข้อมูลธุรกิจตามสิทธิ์เดิม (role เดิม ไม่มีสิทธิ์ใหม่)",
+        "prefixes": [
+          "/api/admin/partners",
+          "/api/admin/jobs",
+          "/api/admin/transactions",
+          "/api/admin/receipt-documents",
+          "/api/admin/invoices",
+          "/api/admin/debt-trackings",
+          "/api/admin/materials",
+          "/api/admin/pits",
+          "/api/admin/equipment",
+          "/api/admin/line-customers",
+          "/api/admin/upload"
+        ],
+        "authority": "requireAuth(ADMIN_TIER) + route_access/api_access เดิม"
+      },
+      "document.generate": {
+        "th": "สร้าง/ส่งเอกสารกลางตามเดิม — ห้ามแตะ canonical finance/document writer",
+        "prefixes": [
+          "/api/document",
+          "/api/admin/documents"
+        ],
+        "authority": "Canonical Job Contract + document authority เดิม"
+      },
+      "connector.execute": {
+        "th": "รัน connector/LINE/business dispatch ตามสิทธิ์เดิม",
+        "prefixes": [
+          "/api/admin/connectors",
+          "/api/admin/line-customers",
+          "/api/admin/line-profiles",
+          "/api/v1/mcp/business"
+        ],
+        "authority": "Connector Lifecycle + business dispatch เดิม"
+      }
+    },
+    "deny": {
+      "git.push": {
+        "th": "DENY git.push กับ Business surface",
+        "prefixes": [
+          "/api/admin/ide/git"
+        ],
+        "note": "ปัจจุบันไม่มี git write route (ทุก /api/admin/ide/git/* เป็น GET read) — ประกาศไว้เพื่อกัน route เขียน git ใหม่โดยอัตโนมัติที่ middleware",
+        "authority": "GitHub ยังเป็น source repository หลัก — ไม่มีการสร้าง repository ใหม่หรือย้าย authority"
+      },
+      "deployment.execute": {
+        "th": "DENY deployment.execute กับ Business surface",
+        "prefixes": [
+          "/api/admin/ide/deployment",
+          "/api/admin/ide/release",
+          "/api/admin/ide/build"
+        ],
+        "authority": "scripts/deploy-gate.ts + release gate เดิม (ไม่ deploy production เมื่อ gate ไม่ผ่าน)"
+      },
+      "developer.worker.execute": {
+        "th": "DENY developer.worker.execute กับ Business surface",
+        "prefixes": [
+          "/api/admin/ide/workers",
+          "/api/admin/ide/execution",
+          "/api/admin/ide/queue"
+        ],
+        "authority": "Worker Selector / code worker runtime เดิม — เรียกจาก Developer surface เท่านั้น"
+      },
+      "source.modify": {
+        "th": "DENY source.modify กับ Business surface (file write, fs create/rename/move/trash, command surface, factory proposal/execute)",
+        "prefixes": [
+          "/api/admin/ide"
+        ],
+        "authority": "requireAuth(ADMIN_TIER) → fsSecurity.ts → change-set/review → build gate → scripts/deploy-gate.ts (chain เดิม ไม่ถูกแทนที่)"
+      },
+      "developer.workflow.execute": {
+        "th": "DENY development workflow (Dev Loop approve/run) กับ Business surface",
+        "prefixes": [
+          "/api/admin/dev-loop"
+        ],
+        "authority": "Dev Loop evidence เดิม — เปลี่ยนได้จาก Developer Workspace เท่านั้น"
+      }
+    },
+    "chat": {
+      "authority": "owner directive 2026-10-18 (SURFACE: ADMIN_CHAT) — สายแชทผู้ดูแล ทางเข้า HTTP เดียว = /api/chat (workspace shell + SecretaryChat + ปุ่มถาม AI ของ relationships). ALLOW/CONDITIONAL/DENY ประกาศที่นี่ที่เดียว บังคับโดย core/auth/surfacePolicy.ts (decideChatDirective + enforceChatDirectivePolicy) เรียกที่ app/api/chat/route.ts ก่อนตอบทุกคำสั่ง — ไม่มี executor ไหนตัดสินใจเอง",
+      "fail_closed": true,
+      "deny_wins": true,
+      "th": "แชทอ่าน/แสดงผลข้อมูลของตัวเองได้ทุกอย่าง · เขียนเอกสาร/ส่งเงิน/ส่งข้อความต้องผ่าน flow ยืนยันเดิม (confirm token) เท่านั้น · ห้ามสั่งจอ/หน้าต่าง/เบราว์เซอร์/เดสก์ท็อป/ขับเคลื่อนหน้าจอทุกชนิด",
+      "surfaces": {
+        "ADMIN_CHAT": {
+          "allow": [
+            "capability.read",
+            "document.read",
+            "finance.read",
+            "analytics.read",
+            "result.render.inline"
+          ],
+          "conditional": [
+            "document.create",
+            "finance.write",
+            "message.send"
+          ],
+          "conditional_rule": "CONDITIONAL ผ่านได้เมื่อมี confirmation จริงจากเจ้าของเท่านั้น — flow ยืนยันเดิม (confirm_token/confirm_action) ของ pipeline ยังเป็นผู้ประตู ไม่มี gate ใหม่แทนที่",
+          "deny": [
+            "screen.navigate",
+            "window.switch",
+            "route.push",
+            "browser.open",
+            "desktop.control",
+            "jarvis.screen_control"
+          ],
+          "deny_map": {
+            "screen.navigate": [
+              "back"
+            ],
+            "route.push": [
+              "navigate_url"
+            ],
+            "window.switch": [
+              "window_action"
+            ],
+            "browser.open": [
+              "external_url"
+            ],
+            "desktop.control": [
+              "window_action",
+              "open_app"
+            ],
+            "jarvis.screen_control": [
+              "line_copilot"
+            ]
+          }
+        }
+      }
+    },
+    "shared_capabilities_unchanged": "CLI/File reader · File conversion · Document scanner · Deterministic processing · AI Gateway · Browser automation · Computer use · Failure bridge · Checkpoint/Evidence · Connector lifecycle · Desktop/Tauri — ยังเรียกจาก Business ได้ตามเดิม เพราะนโยบายนี้ปิดเฉพาะ developer-plane WRITE (GET/HEAD ไม่ถูกแตะ) และไม่มีไฟล์ capability เหล่านี้ถูกย้าย/ลบ/สร้างใหม่",
+    "sandbox": {
+      "authority": "AI SANDBOX ISOLATION — owner directive 2026-10-15 (แยก Owner AI / Sales AI เป็นสอง Runtime Boundary · จุดบังคับเดียว = engines/validation/dispatcher ผ่าน core/auth/surfacePolicy.decideSandboxCommand · fail-closed: ไม่ประกาศ = DENY)",
+      "fail_closed": true,
+      "sandboxes": {
+        "sales": {
+          "th": "SALES AI — LINE/Chatbot · Material Search · Price Search · Supplier Matching · Sales Conversation",
+          "allow_prefixes": [
+            "fuel.",
+            "material.",
+            "pit.",
+            "price.",
+            "transport.",
+            "weather."
+          ],
+          "deny_prefixes": [
+            "finance.",
+            "document.",
+            "invoice.",
+            "receipt.",
+            "payment.",
+            "debt.",
+            "expense.",
+            "bank.",
+            "partner.timeline",
+            "company.",
+            "cline.",
+            "admin.",
+            "registry.",
+            "factory.",
+            "deploy.",
+            "git.",
+            "connector.",
+            "legacy."
+          ]
+        }
+      }
+    }
+  },
+  "public_routes": [
+    "/",
+    "/login",
+    "/products",
+    "/solutions",
+    "/marketplace",
+    "/ai-services",
+    "/report",
+    "/start",
+    "/examples",
+    "/playground",
+    "/observer",
+    "/download",
+    "/install"
+  ],
+  "workspace_landing": {
+    "note": "Single source of truth for role -> post-login destination. Read only by core/auth/resolveDestination.ts — no route file may hardcode its own landing map (same rule as route_access above). super_admin/admin/employee land directly on /workspace (Business Workspace — หน้าจอใช้งานจริงเพียงหน้าจอเดียวของ DNA OS, owner 2026-09-22 / BOS login final routing fix 2026-10-17), so the login flow opens the BOS Workspace shell directly. partner/customer land on their own portals.",
+    "super_admin": "/workspace",
+    "admin": "/workspace",
+    "employee": "/workspace",
+    "partner": "/partner",
+    "customer": "/user"
+  },
+  "history": {
+    "2026-07-08": "Created for TASK-001 (Plan Lock 1/3). Replaces the old admin_session presence-only cookie check with real Supabase Auth + role checks, and formalizes the Role/Permission Registry required by TASK-001's Definition of Done.",
+    "2026-07-14": "Added workspace_landing (Enterprise Workspace Architecture, Phase 1) — role-to-destination is now data here, not code in app/login/page.tsx's old ROLE_HOME. /business intentionally has no entry: no role lands there today (see the Phase-1 architecture proposal's orphaned-workspace finding) and this phase does not invent one.",
+    "2026-09-23": "Added capability_access + capability_access_note (SLICE-1 of the locked Full System Upgrade Line, owner decision D1=A): the NEW Business Workspace (/workspace) now derives which business tools a role may see from this registry through core/navigation/resolveCapabilityAccess.ts instead of showing every tool to every authenticated user. Presentation filter only — no role moved, no route_access/api_access entry changed, and every server route keeps its own requireAuth() guard.",
+    "2026-10-19": "ROLE/SURFACE WIRING — added route_access /workspace (admin tier, operator surface) and /transporter (admin tier + partner, existing driver_profiles.user_id + jobs.assigned_person_id; no new AppRole). No capability/API authority was widened: seller uses /api/public/resources ownership gate, buyer uses public registry + add_demand, transporter sees only its own assigned jobs.",
+    "2026-10-18": "Added capability_actions.chat (SURFACE: ADMIN_CHAT — owner directive). ชุดนโยบายสิทธิ์สายแชทผู้ดูแล: ALLOW = capability.read/document.read/finance.read/analytics.read/result.render.inline · CONDITIONAL = document.create/finance.write/message.send (ผ่านการยืนยันเดิมเท่านั้น) · DENY = screen.navigate/window.switch/route.push/browser.open/desktop.control/jarvis.screen_control — บังคับจริงที่ app/api/chat/route.ts ผ่าน core/auth/surfacePolicy.ts (ตัด directive ฝั่ง client ก่อนตอบ ไม่แตะ dispatcher/confirm flow เดิม) ตรวจด้วย scripts/surface-policy-test.ts",
+    "2026-10-12": "Added route_access /developer + capability_actions (FINAL ARCHITECTURE ALIGNMENT — preserve shared capabilities, separate control surfaces). ไม่มี role ใหม่ ไม่มีสิทธิ์ใหม่: /developer ใช้ admin_tier ชุดเดียวกับ /admin, business.write/connector.execute/document.generate ยังเป็นสิทธิ์เดิมทุกบรรทัด สิ่งที่เพิ่มคือ (ก) ประกาศ DENY ของ developer-plane actions (source.modify / git.push / deployment.execute / developer.worker.execute / developer.workflow.execute) สำหรับ Business surface และ (ข) บังคับที่ middleware.ts บนทุกคำขอ API จริง อ่านผ่าน core/auth/surfacePolicy.ts ไฟล์เดียว fail-closed"
+  }
+}

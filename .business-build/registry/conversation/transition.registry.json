@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-05",
+  "transitions": [
+    { "id": "t1", "from": "IDLE", "to": "COLLECTING_MATERIAL", "trigger": "intent:PRICE_QUERY", "priority": 1 },
+    { "id": "t2", "from": "IDLE", "to": "MATCHING", "trigger": "intent:MATERIAL_ORDER", "priority": 1 },
+    { "id": "t3", "from": "IDLE", "to": "GENERATING_BOQ", "trigger": "intent:BOQ_REQUEST", "priority": 1 },
+    { "id": "t4", "from": "IDLE", "to": "CHECKING_STATUS", "trigger": "intent:ORDER_STATUS", "priority": 1 },
+    { "id": "t5", "from": "COLLECTING_MATERIAL", "to": "COLLECTING_LOCATION", "trigger": "entity:material_type_received", "priority": 1 },
+    { "id": "t6", "from": "COLLECTING_LOCATION", "to": "COLLECTING_QUANTITY", "trigger": "entity:delivery_location_received", "priority": 1 },
+    { "id": "t7", "from": "COLLECTING_QUANTITY", "to": "MATCHING", "trigger": "entity:quantity_m3_received", "priority": 1 },
+    { "id": "t8", "from": "MATCHING", "to": "PRESENTING_QUOTE", "trigger": "match_found", "priority": 1 },
+    { "id": "t9", "from": "MATCHING", "to": "ERROR", "trigger": "match_not_found", "priority": 1 },
+    { "id": "t10", "from": "PRESENTING_QUOTE", "to": "AWAITING_CONFIRMATION", "trigger": "quote_sent", "priority": 1 },
+    { "id": "t11", "from": "AWAITING_CONFIRMATION", "to": "CONFIRMED", "trigger": "intent:customer_confirmed", "priority": 1 },
+    { "id": "t12", "from": "AWAITING_CONFIRMATION", "to": "IDLE", "trigger": "intent:customer_cancelled", "priority": 1 },
+    { "id": "t13", "from": "LOCATION_SHARE", "to": "COLLECTING_QUANTITY", "trigger": "intent:LOCATION_SHARE", "condition": "has:material_type", "priority": 1 },
+    { "id": "t14", "from": "LOCATION_SHARE", "to": "COLLECTING_MATERIAL", "trigger": "intent:LOCATION_SHARE", "condition": "missing:material_type", "priority": 2 }
+  ]
+}

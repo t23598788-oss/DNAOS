@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-14",
+  "trace_schema": {
+    "trace_id_field": "trace_id",
+    "span_id_field": "span_id",
+    "timestamp_field": "created_at",
+    "node_field": "node",
+    "latency_field": "latency_ms",
+    "status_field": "status",
+    "error_field": "error_message",
+    "storage_table": "line_events",
+    "retention_days": 30,
+    "spans": {
+      "webhook_receive": {
+        "id": "webhook_receive",
+        "label": "รับ webhook",
+        "pipeline_step": "step_verify",
+        "storage_field": "event_type",
+        "status_field": "signature_valid"
+      },
+      "event_log": {
+        "id": "event_log",
+        "label": "บันทึก event",
+        "pipeline_step": "step_log",
+        "storage_field": "id",
+        "status_field": "logged"
+      },
+      "ai_extraction": {
+        "id": "ai_extraction",
+        "label": "Gemini สกัด entities",
+        "pipeline_step": "step_extract",
+        "storage_field": "extracted_entities",
+        "status_field": "extraction_status"
+      },
+      "workflow": {
+        "id": "workflow",
+        "label": "Workflow engine",
+        "pipeline_step": "step_workflow",
+        "storage_field": "workflow_result",
+        "status_field": "workflow_status"
+      },
+      "reply_send": {
+        "id": "reply_send",
+        "label": "ส่ง reply",
+        "pipeline_step": "step_reply",
+        "storage_field": "reply_token",
+        "status_field": "reply_status"
+      },
+      "error": {
+        "id": "error",
+        "label": "Error span",
+        "storage_field": "error_message",
+        "status_field": "status"
+      },
+      "validation_result": {
+        "id": "validation_result",
+        "label": "Validation run recorded",
+        "storage_field": "registry/VALIDATION_RESULTS.json",
+        "status_field": "result"
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+[E1068-ESM] search-params.js Error: 
+    at N (/Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck/.business-build/.next/server/chunks/ssr/node_modules_next_dist_1map00z._.js:8:80264)
+    at M (/Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck/.business-build/.next/server/chunks/ssr/node_modules_next_dist_1map00z._.js:8:80082)
+    at /Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck/.business-build/.next/server/chunks/ssr/node_modules_next_dist_1map00z._.js:13:29385
+    at lN (/Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:51:20844)
+    at async l1 (/Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:52:27586)
+    at async lH (/Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck/node_modules/next/dist/compiled/next-server/app-page-turbo.runtime.prod.js:51:27027)
+    at async exportAppPage (/Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck/node_modules/next/dist/export/routes/app-page.js:42:24)
+    at async Span.traceAsyncFn (/Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck/node_modules/next/dist/trace/trace.js:164:20)
+    at async exportPage (/Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck/node_modules/next/dist/export/worker.js:369:18)
+    at async exportPageWithRetry (/Users/tam/Desktop/ระบบธุรกิจ/dna-os-maincheck/node_modules/next/dist/export/worker.js:259:26)
+

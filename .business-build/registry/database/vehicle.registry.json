@@ -1,0 +1,33 @@
+{
+  "domain": "vehicle",
+  "tables": [
+    {
+      "table": "vehicle_types",
+      "primaryKey": "id",
+      "description": "ประเภทรถ — ขนาด น้ำหนักบรรทุก",
+      "columns": ["id", "name", "capacity", "created_at", "deleted_at"],
+      "softDelete": true
+    }
+  ],
+  "relations": [
+    { "table": "jobs", "foreignKey": "vehicle_type_id", "type": "foreign_key" }
+  ],
+  "indexes": [],
+  "permissions": {
+    "read": ["Cognitive Pipeline", "Pricing Engine", "Transport Engine"],
+    "write": ["V6 Executor"]
+  },
+  "commands": ["review_vehicle"],
+  "events": ["vehicle.created", "vehicle.updated"],
+  "engines": [
+    { "name": "Pricing Engine", "file": "lib/v3-engines/pricing/engine.ts", "function": "calcTransportPrice" }
+  ],
+  "queries": [],
+  "dependencies": [],
+  "validators": [
+    { "rule": "ต้องมี name", "field": "name", "type": "required" },
+    { "rule": "capacity > 0", "field": "capacity", "type": "positive" }
+  ],
+  "documents": [],
+  "api": []
+}

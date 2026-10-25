@@ -1,0 +1,50 @@
+{
+  "generated_at": "2026-10-18T04:52:58.471Z",
+  "total_nodes": 1887,
+  "total_edges": 5647,
+  "modules": 1476,
+  "layers": 9,
+  "commands": 111,
+  "events": 60,
+  "capabilities": 202,
+  "services": 13,
+  "drivers": 11,
+  "connector_stages": 5,
+  "module_health": {
+    "total": 1476,
+    "ok": 1476,
+    "broken": 0,
+    "unused": 0,
+    "unregistered": 0
+  },
+  "registry_completeness_pct": 0.92,
+  "circular_dependencies": {
+    "count": 0,
+    "cycles": []
+  },
+  "duplicate_registrations": 0,
+  "unknown_field_counts": {
+    "nodes_with_unknown_source_file": 82,
+    "nodes_with_unknown_status": 171,
+    "nodes_with_unknown_provider": 1863
+  },
+  "unknown_dimensions": [
+    "ai_model_registry",
+    "compute_provider_registry",
+    "server_pod_registry"
+  ],
+  "known_derivation_gaps": [
+    "data_tables field in architecture-book.json does not distinguish read vs write access — reads/writes edge type not emitted, would require re-instrumenting scripts/build-arch-book.ts's AST walk"
+  ],
+  "sources": [
+    "registry/architecture-book.json",
+    "registry/module-registry.json",
+    "registry/command-registry.json",
+    "registry/events.json",
+    "registry/capability-registry.json",
+    "registry/infrastructure.json",
+    "registry/drivers.json",
+    "registry/connector-lifecycle.json",
+    "registry/ARCHITECTURE_HEALTH_REPORT.json"
+  ]
+}

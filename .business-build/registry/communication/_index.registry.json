@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "last_updated": "2026-07-05",
+  "channels": {
+    "line":      { "file": "line.registry.json",      "channel_type": "line_messaging", "status": "ACTIVE",         "priority": 1 },
+    "email":     { "file": "email.registry.json",     "channel_type": "email",          "status": "NOT_CONFIGURED", "priority": 2 },
+    "sms":       { "file": "sms.registry.json",       "channel_type": "sms",            "status": "NOT_CONFIGURED", "priority": 3 },
+    "telegram":  { "file": "telegram.registry.json",  "channel_type": "telegram",       "status": "NOT_CONFIGURED", "priority": 4 },
+    "whatsapp":  { "file": "whatsapp.registry.json",  "channel_type": "whatsapp",       "status": "NOT_CONFIGURED", "priority": 5 },
+    "voice":     { "file": "voice.registry.json",     "channel_type": "voice_call",     "status": "NOT_CONFIGURED", "priority": 6 }
+  },
+  "active_channels": ["line"],
+  "default_channel": "line",
+  "primary_channel": "line",
+  "enabled_channels": ["line"],
+  "disabled_channels": ["email", "sms", "telegram", "whatsapp", "voice"],
+  "channel_priority": ["line", "email", "sms", "telegram", "whatsapp", "voice"],
+  "fallback_order": ["line"],
+  "routing_policy": {
+    "default_outbound": "line",
+    "fallback": null,
+    "note": "เมื่อมีช่องทางมากกว่า 1 เพิ่ม routing rule ที่นี่"
+  }
+}

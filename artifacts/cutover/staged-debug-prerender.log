@@ -1,0 +1,1154 @@
+⚠ Prerendering is running in debug mode with NODE_ENV='development'. This will affect performance and should not be used for production.
+▲ Next.js 16.2.9 (Turbopack)
+- Experiments (use with caution):
+  ✓ allowDevelopmentBuild (enabled by `--debug-prerender`)
+  ⨯ prerenderEarlyExit (disabled by `--debug-prerender`)
+  ⨯ serverSourceMaps
+  ✓ serverSourceMaps (enabled by `--debug-prerender`)
+  · staticGenerationMinPagesPerWorker: 1000
+  · staticGenerationRetryCount: 5
+  ⨯ turbopackMinify (disabled by `--debug-prerender`)
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+Turbopack build encountered 1 warnings:
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/connectors/_lib/connectRuntime.ts
+    ./app/api/admin/connectors/providers/route.ts
+
+
+✓ Compiled successfully in 8.0s
+  Running TypeScript ...
+  Finished TypeScript in 10.4s ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/155) ...
+Error occurred prerendering page "/_global-error". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /_global-error/page: /_global-error (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/_not-found". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /_not-found/page: /_not-found (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/account/change-password". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /account/change-password/page: /account/change-password (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/api-tokens". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/api-tokens/page: /admin/api-tokens (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/create-document". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/create-document/page: /admin/create-document (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/connectors". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/connectors/page: /admin/connectors (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/_global-error". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /_global-error/page: /_global-error (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/_not-found". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Error occurred prerendering page "/account/change-password". Read more: https://nextjs.org/docs/messages/prerender-error
+Failed to build /_not-found/page: /_not-found (attempt 2 of 5). Retrying again shortly.
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /account/change-password/page: /account/change-password (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/api-tokens". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/api-tokens/page: /admin/api-tokens (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/create-document". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/create-document/page: /admin/create-document (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/connectors". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/connectors/page: /admin/connectors (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/_global-error". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /_global-error/page: /_global-error (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/_not-found". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /_not-found/page: /_not-found (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/account/change-password". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /account/change-password/page: /account/change-password (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/create-document". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/create-document/page: /admin/create-document (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/api-tokens". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/api-tokens/page: /admin/api-tokens (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/connectors". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/connectors/page: /admin/connectors (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/_global-error". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /_global-error/page: /_global-error (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/account/change-password". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /account/change-password/page: /account/change-password (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/_not-found". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /_not-found/page: /_not-found (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/api-tokens". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/api-tokens/page: /admin/api-tokens (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/create-document". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/create-document/page: /admin/create-document (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/connectors". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/connectors/page: /admin/connectors (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/_global-error". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /_global-error/page: /_global-error after 5 attempts.
+Error occurred prerendering page "/account/change-password". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /account/change-password/page: /account/change-password after 5 attempts.
+Error occurred prerendering page "/_not-found". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /_not-found/page: /_not-found after 5 attempts.
+Error occurred prerendering page "/admin/api-tokens". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/api-tokens/page: /admin/api-tokens after 5 attempts.
+Error occurred prerendering page "/admin/create-document". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/create-document/page: /admin/create-document after 5 attempts.
+Error occurred prerendering page "/admin/connectors". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/connectors/page: /admin/connectors after 5 attempts.
+Error occurred prerendering page "/admin/debt-notice". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/debt-notice/page: /admin/debt-notice (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/documents". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/documents/page: /admin/documents (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/delivery-order". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/delivery-order/page: /admin/delivery-order (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/debt-tracking". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/debt-tracking/page: /admin/debt-tracking (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/devices". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/devices/page: /admin/devices (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/equipment". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/equipment/page: /admin/equipment (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/event-inbox". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/event-inbox/page: /admin/event-inbox (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/finance". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/finance/page: /admin/finance (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/debt-notice". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/debt-notice/page: /admin/debt-notice (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/documents". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/documents/page: /admin/documents (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/delivery-order". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/delivery-order/page: /admin/delivery-order (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/debt-tracking". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/debt-tracking/page: /admin/debt-tracking (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/devices". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/devices/page: /admin/devices (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/event-inbox". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/event-inbox/page: /admin/event-inbox (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/equipment". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/equipment/page: /admin/equipment (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/finance". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/finance/page: /admin/finance (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/debt-notice". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/debt-notice/page: /admin/debt-notice (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/documents". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/documents/page: /admin/documents (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/delivery-order". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/delivery-order/page: /admin/delivery-order (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/debt-tracking". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/debt-tracking/page: /admin/debt-tracking (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/devices". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/devices/page: /admin/devices (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/event-inbox". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/event-inbox/page: /admin/event-inbox (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/finance". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/finance/page: /admin/finance (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/equipment". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/equipment/page: /admin/equipment (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/debt-notice". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/debt-notice/page: /admin/debt-notice (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/documents". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/documents/page: /admin/documents (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/delivery-order". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/delivery-order/page: /admin/delivery-order (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/debt-tracking". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/debt-tracking/page: /admin/debt-tracking (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/devices". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/devices/page: /admin/devices (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/equipment". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/equipment/page: /admin/equipment (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/event-inbox". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/event-inbox/page: /admin/event-inbox (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/finance". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/finance/page: /admin/finance (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/debt-notice". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/debt-notice/page: /admin/debt-notice after 5 attempts.
+Error occurred prerendering page "/admin/delivery-order". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/delivery-order/page: /admin/delivery-order after 5 attempts.
+Error occurred prerendering page "/admin/devices". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/devices/page: /admin/devices after 5 attempts.
+Error occurred prerendering page "/admin/documents". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/documents/page: /admin/documents after 5 attempts.
+Error occurred prerendering page "/admin/equipment". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/equipment/page: /admin/equipment after 5 attempts.
+Error occurred prerendering page "/admin/debt-tracking". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/debt-tracking/page: /admin/debt-tracking after 5 attempts.
+Error occurred prerendering page "/admin/finance". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/finance/page: /admin/finance after 5 attempts.
+Error occurred prerendering page "/admin/event-inbox". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/event-inbox/page: /admin/event-inbox after 5 attempts.
+Error occurred prerendering page "/admin/jobs". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/jobs/page: /admin/jobs (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/jobs/create". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/jobs/create/page: /admin/jobs/create (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/invoice". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/invoice/page: /admin/invoice (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/line-profiles". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/line-profiles/page: /admin/line-profiles (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/login". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/login/page: /admin/login (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/materials". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/materials/page: /admin/materials (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/notifications". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/notifications/page: /admin/notifications (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/line-customers". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/line-customers/page: /admin/line-customers (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/jobs". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/jobs/page: /admin/jobs (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/jobs/create". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/jobs/create/page: /admin/jobs/create (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/invoice". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/invoice/page: /admin/invoice (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/line-profiles". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/line-profiles/page: /admin/line-profiles (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/login". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/login/page: /admin/login (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/notifications". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/notifications/page: /admin/notifications (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/line-customers". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/line-customers/page: /admin/line-customers (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/materials". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/materials/page: /admin/materials (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/jobs". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/jobs/page: /admin/jobs (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/jobs/create". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/jobs/create/page: /admin/jobs/create (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/invoice". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/invoice/page: /admin/invoice (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/line-profiles". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/line-profiles/page: /admin/line-profiles (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/notifications". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/notifications/page: /admin/notifications (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/login". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/login/page: /admin/login (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/line-customers". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/line-customers/page: /admin/line-customers (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/materials". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/materials/page: /admin/materials (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/line-profiles". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/line-profiles/page: /admin/line-profiles (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/jobs". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/jobs/page: /admin/jobs (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/notifications". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/notifications/page: /admin/notifications (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/jobs/create". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/jobs/create/page: /admin/jobs/create (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/invoice". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/invoice/page: /admin/invoice (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/login". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/login/page: /admin/login (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/materials". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/materials/page: /admin/materials (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/line-customers". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/line-customers/page: /admin/line-customers (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/line-profiles". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/line-profiles/page: /admin/line-profiles after 5 attempts.
+Error occurred prerendering page "/admin/notifications". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/notifications/page: /admin/notifications after 5 attempts.
+Error occurred prerendering page "/admin/jobs". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/jobs/page: /admin/jobs after 5 attempts.
+Error occurred prerendering page "/admin/jobs/create". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/jobs/create/page: /admin/jobs/create after 5 attempts.
+Error occurred prerendering page "/admin/login". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/login/page: /admin/login after 5 attempts.
+Error occurred prerendering page "/admin/invoice". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/invoice/page: /admin/invoice after 5 attempts.
+Error occurred prerendering page "/admin/line-customers". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/line-customers/page: /admin/line-customers after 5 attempts.
+Error occurred prerendering page "/admin/materials". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/materials/page: /admin/materials after 5 attempts.
+Error occurred prerendering page "/admin/payment-voucher". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/payment-voucher/page: /admin/payment-voucher (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/page: /admin (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/pending". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/pending/page: /admin/pending (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/purchase-order". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/purchase-order/page: /admin/purchase-order (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/quotation-queue". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/quotation-queue/page: /admin/quotation-queue (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/receipts". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/receipts/page: /admin/receipts (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/receipt". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/receipt/page: /admin/receipt (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/pits". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/pits/page: /admin/pits (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/payment-voucher". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/payment-voucher/page: /admin/payment-voucher (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/page: /admin (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/pending". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/pending/page: /admin/pending (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/purchase-order". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/purchase-order/page: /admin/purchase-order (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/quotation-queue". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/quotation-queue/page: /admin/quotation-queue (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/receipts". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/receipts/page: /admin/receipts (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/receipt". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/receipt/page: /admin/receipt (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/pits". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/pits/page: /admin/pits (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/payment-voucher". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/payment-voucher/page: /admin/payment-voucher (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/page: /admin (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/pending". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/pending/page: /admin/pending (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/purchase-order". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/purchase-order/page: /admin/purchase-order (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/quotation-queue". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/quotation-queue/page: /admin/quotation-queue (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/receipts". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/receipts/page: /admin/receipts (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/receipt". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/receipt/page: /admin/receipt (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/pits". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/pits/page: /admin/pits (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/page: /admin (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/payment-voucher". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/payment-voucher/page: /admin/payment-voucher (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/pending". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/pending/page: /admin/pending (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/receipts". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/receipts/page: /admin/receipts (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/quotation-queue". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/quotation-queue/page: /admin/quotation-queue (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/purchase-order". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/purchase-order/page: /admin/purchase-order (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/pits". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/pits/page: /admin/pits (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/receipt". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/receipt/page: /admin/receipt (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/payment-voucher". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/payment-voucher/page: /admin/payment-voucher after 5 attempts.
+Error occurred prerendering page "/admin/receipts". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/receipts/page: /admin/receipts after 5 attempts.
+Error occurred prerendering page "/admin". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/page: /admin after 5 attempts.
+Error occurred prerendering page "/admin/pending". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/pending/page: /admin/pending after 5 attempts.
+Error occurred prerendering page "/admin/quotation-queue". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/quotation-queue/page: /admin/quotation-queue after 5 attempts.
+Error occurred prerendering page "/admin/pits". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/pits/page: /admin/pits after 5 attempts.
+Error occurred prerendering page "/admin/purchase-order". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/purchase-order/page: /admin/purchase-order after 5 attempts.
+Error occurred prerendering page "/admin/receipt". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/receipt/page: /admin/receipt after 5 attempts.
+Error occurred prerendering page "/admin/transactions". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/transactions/page: /admin/transactions (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/users". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/users/page: /admin/users (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/settings". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/settings/page: /admin/settings (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/relationships". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/relationships/page: /admin/relationships (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/ai-services". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /ai-services/page: /ai-services (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/transactions". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/transactions/page: /admin/transactions (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/users". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/users/page: /admin/users (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/settings". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/settings/page: /admin/settings (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/relationships". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/relationships/page: /admin/relationships (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/ai-services". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /ai-services/page: /ai-services (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/transactions". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/transactions/page: /admin/transactions (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/users". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/users/page: /admin/users (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/settings". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/settings/page: /admin/settings (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/relationships". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/relationships/page: /admin/relationships (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/ai-services". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /ai-services/page: /ai-services (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/transactions". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/transactions/page: /admin/transactions (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/users". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/users/page: /admin/users (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/settings". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/settings/page: /admin/settings (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/ai-services". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /ai-services/page: /ai-services (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/relationships". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/relationships/page: /admin/relationships (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/admin/transactions". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/transactions/page: /admin/transactions after 5 attempts.
+Error occurred prerendering page "/ai-services". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /ai-services/page: /ai-services after 5 attempts.
+Error occurred prerendering page "/admin/settings". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/settings/page: /admin/settings after 5 attempts.
+Error occurred prerendering page "/admin/users". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/users/page: /admin/users after 5 attempts.
+Error occurred prerendering page "/admin/relationships". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /admin/relationships/page: /admin/relationships after 5 attempts.
+  Generating static pages using 9 workers (38/155) 
+  Generating static pages using 9 workers (77/155) 
+Error occurred prerendering page "/app". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /app/page: /app (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/biz". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /biz/page: /biz (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/business". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /business/page: /business (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/download". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /download/page: /download (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/app". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /app/page: /app (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/biz". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /biz/page: /biz (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/business". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /business/page: /business (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/download". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /download/page: /download (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/app". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /app/page: /app (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/biz". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /biz/page: /biz (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/business". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /business/page: /business (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/download". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /download/page: /download (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/app". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /app/page: /app (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/business". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /business/page: /business (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/biz". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /biz/page: /biz (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/download". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /download/page: /download (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/business". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /business/page: /business after 5 attempts.
+Error occurred prerendering page "/app". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /app/page: /app after 5 attempts.
+Error occurred prerendering page "/biz". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /biz/page: /biz after 5 attempts.
+Error occurred prerendering page "/download". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /download/page: /download after 5 attempts.
+Error occurred prerendering page "/marketplace". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /marketplace/page: /marketplace (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/install". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /install/page: /install (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/oauth/authorize". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /oauth/authorize/page: /oauth/authorize (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/login". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /login/page: /login (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/liff/add-friend". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /liff/add-friend/page: /liff/add-friend (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/marketplace". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /marketplace/page: /marketplace (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/install". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /install/page: /install (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/login". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /login/page: /login (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/oauth/authorize". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /oauth/authorize/page: /oauth/authorize (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/liff/add-friend". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /liff/add-friend/page: /liff/add-friend (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/marketplace". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /marketplace/page: /marketplace (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/install". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /install/page: /install (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/oauth/authorize". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /oauth/authorize/page: /oauth/authorize (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/liff/add-friend". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /liff/add-friend/page: /liff/add-friend (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/login". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /login/page: /login (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/marketplace". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /marketplace/page: /marketplace (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/liff/add-friend". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /liff/add-friend/page: /liff/add-friend (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/install". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /install/page: /install (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/oauth/authorize". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /oauth/authorize/page: /oauth/authorize (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/login". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /login/page: /login (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/marketplace". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /marketplace/page: /marketplace after 5 attempts.
+Error occurred prerendering page "/liff/add-friend". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /liff/add-friend/page: /liff/add-friend after 5 attempts.
+Error occurred prerendering page "/install". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /install/page: /install after 5 attempts.
+Error occurred prerendering page "/oauth/authorize". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /oauth/authorize/page: /oauth/authorize after 5 attempts.
+Error occurred prerendering page "/login". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /login/page: /login after 5 attempts.
+Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /page: / (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/partner". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /partner/page: /partner (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/products". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /products/page: /products (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/pub/register". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /pub/register/page: /pub/register (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/report". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /report/page: /report (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/solutions". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /solutions/page: /solutions (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /page: / (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/partner". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /partner/page: /partner (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/products". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /products/page: /products (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/pub/register". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /pub/register/page: /pub/register (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/report". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /report/page: /report (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/solutions". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /solutions/page: /solutions (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /page: / (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/partner". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /partner/page: /partner (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/products". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /products/page: /products (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/pub/register". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /pub/register/page: /pub/register (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/report". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /report/page: /report (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/solutions". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /solutions/page: /solutions (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /page: / (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/products". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /products/page: /products (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/partner". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /partner/page: /partner (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/report". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /report/page: /report (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/pub/register". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /pub/register/page: /pub/register (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/solutions". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /solutions/page: /solutions (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /page: / after 5 attempts.
+Error occurred prerendering page "/partner". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /partner/page: /partner after 5 attempts.
+Error occurred prerendering page "/products". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /products/page: /products after 5 attempts.
+Error occurred prerendering page "/report". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /report/page: /report after 5 attempts.
+Error occurred prerendering page "/solutions". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /solutions/page: /solutions after 5 attempts.
+Error occurred prerendering page "/pub/register". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /pub/register/page: /pub/register after 5 attempts.
+Error occurred prerendering page "/user". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /user/page: /user (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/transporter". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /transporter/page: /transporter (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/workspace". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /workspace/page: /workspace (attempt 1 of 5). Retrying again shortly.
+Error occurred prerendering page "/user". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /user/page: /user (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/transporter". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /transporter/page: /transporter (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/workspace". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /workspace/page: /workspace (attempt 2 of 5). Retrying again shortly.
+Error occurred prerendering page "/user". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /user/page: /user (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/transporter". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /transporter/page: /transporter (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/workspace". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /workspace/page: /workspace (attempt 3 of 5). Retrying again shortly.
+Error occurred prerendering page "/user". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /user/page: /user (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/transporter". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /transporter/page: /transporter (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/workspace". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /workspace/page: /workspace (attempt 4 of 5). Retrying again shortly.
+Error occurred prerendering page "/transporter". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /transporter/page: /transporter after 5 attempts.
+Error occurred prerendering page "/user". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /user/page: /user after 5 attempts.
+Error occurred prerendering page "/workspace". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Failed to build /workspace/page: /workspace after 5 attempts.
+
+> Export encountered errors on 53 paths:
+	/_global-error/page: /_global-error
+	/_not-found/page: /_not-found
+	/account/change-password/page: /account/change-password
+	/admin/api-tokens/page: /admin/api-tokens
+	/admin/connectors/page: /admin/connectors
+	/admin/create-document/page: /admin/create-document
+	/admin/debt-notice/page: /admin/debt-notice
+	/admin/debt-tracking/page: /admin/debt-tracking
+	/admin/delivery-order/page: /admin/delivery-order
+	/admin/devices/page: /admin/devices
+	/admin/documents/page: /admin/documents
+	/admin/equipment/page: /admin/equipment
+	/admin/event-inbox/page: /admin/event-inbox
+	/admin/finance/page: /admin/finance
+	/admin/invoice/page: /admin/invoice
+	/admin/jobs/create/page: /admin/jobs/create
+	/admin/jobs/page: /admin/jobs
+	/admin/line-customers/page: /admin/line-customers
+	/admin/line-profiles/page: /admin/line-profiles
+	/admin/login/page: /admin/login
+	/admin/materials/page: /admin/materials
+	/admin/notifications/page: /admin/notifications
+	/admin/page: /admin
+	/admin/payment-voucher/page: /admin/payment-voucher
+	/admin/pending/page: /admin/pending
+	/admin/pits/page: /admin/pits
+	/admin/purchase-order/page: /admin/purchase-order
+	/admin/quotation-queue/page: /admin/quotation-queue
+	/admin/receipt/page: /admin/receipt
+	/admin/receipts/page: /admin/receipts
+	/admin/relationships/page: /admin/relationships
+	/admin/settings/page: /admin/settings
+	/admin/transactions/page: /admin/transactions
+	/admin/users/page: /admin/users
+	/ai-services/page: /ai-services
+	/app/page: /app
+	/biz/page: /biz
+	/business/page: /business
+	/download/page: /download
+	/install/page: /install
+	/liff/add-friend/page: /liff/add-friend
+	/login/page: /login
+	/marketplace/page: /marketplace
+	/oauth/authorize/page: /oauth/authorize
+	/page: /
+	/partner/page: /partner
+	/products/page: /products
+	/pub/register/page: /pub/register
+	/report/page: /report
+	/solutions/page: /solutions
+	/transporter/page: /transporter
+	/user/page: /user
+	/workspace/page: /workspace

@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "policy": "Every Compatibility Layer / Transitional Layer in the codebase must have a real Exit Strategy recorded here before it ships (owner, 2026-08-05) — no iframe embed, shim, or bridge is allowed to exist without one. removal_condition_met stays false until the owner has actually verified the Removal Condition true (Runtime + Registry + End-to-End all real-checked, never inferred) — scripts/check-transitional-layers.ts only proposes removal for entries where this is already true; it never flips it itself. Different from registry/capability-roadmap.json (feature progress) — this is specifically the removal contract for temporary bridges.",
+  "status_values": ["TRANSITIONAL", "REMOVAL_PROPOSED", "REMOVED"],
+  "layers": [
+    {
+      "component": "app/admin/ide (internal mock IDE workspace shell)",
+      "owner_module": "components/ide-shell/IDEWorkspace.tsx",
+      "temporary_reason": "Corrected 2026-08-05 — this page was rebuilt as a UI-structure-only skeleton (owner directive, \"โครงหน้าห้องผลิตโค้ด\" pass): no iframe, no external embedded IDE. It renders entirely from mock fixture data (components/ide-shell/mockData.ts). AI, GitHub, Supabase, a real Terminal backend, and Deploy are explicitly not connected this round (scope limit set by the owner, not a blocked dependency).",
+      "replacement_target": "Real backend wiring per panel, named generically (AI Provider / Source Control Provider / Runtime Provider / Database Provider) — no specific vendor or route committed yet. Each panel currently reading components/ide-shell/mockData.ts needs its own real data source before it stops being mock.",
+      "removal_condition": "Every panel currently showing mock data or \"Not connected\" reads/writes through a real, named backend, and components/ide-shell/mockData.ts is no longer imported by IDEWorkspace.tsx.",
+      "removal_phase": "TBD",
+      "blocking_dependency": "No real backend wiring exists yet for the Source Control, AI, Runtime, or Database panels on this page — none built as of this entry.",
+      "estimated_removal": "TBD",
+      "removal_condition_met": false,
+      "status": "TRANSITIONAL"
+    }
+  ]
+}

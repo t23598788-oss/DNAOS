@@ -1,0 +1,13 @@
+{
+  "name": "bank-statement-sync",
+  "private": true,
+  "type": "module",
+  "description": "Local-only Mac script (owner, 2026-07-27): automates the K-Docportal statement download (password + real OTP read from Gmail) and parses the real ledger PDF into Supabase. Deliberately its own package.json — Playwright must never ship in the Vercel/Supabase deploy bundle.",
+  "scripts": {
+    "sync": "node index.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.47.0",
+    "@supabase/supabase-js": "^2.43.4"
+  }
+}

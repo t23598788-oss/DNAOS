@@ -1,0 +1,106 @@
+{
+  "version": 2,
+  "schema_version": "1.0.0",
+  "channel_type": "telegram",
+  "last_updated": "2026-07-05",
+  "compatibility": ["1.0.0"],
+  "deprecated_since": null,
+  "migration_required": false,
+
+  "authority": {
+    "source": "source_of_truth",
+    "managed_by": "DNA OS Registry",
+    "owner": "เฮีย (t23598788@gmail.com)",
+    "last_verified": null,
+    "policy_note": "แนะนำเป็น replacement สำหรับ LINE Notify เมื่อ LINE Notify ปิดบริการ"
+  },
+
+  "health": {
+    "status": "CONFIGURING",
+    "last_check": null,
+    "last_error": null,
+    "health_score": null
+  },
+
+  "depends_on": {
+    "required_services": [],
+    "required_env": ["TELEGRAM_BOT_TOKEN"],
+    "required_drivers": [],
+    "required_modules": []
+  },
+
+  "channel": {
+    "bot_token": null,
+    "bot_username": null,
+    "env_key_token": "TELEGRAM_BOT_TOKEN"
+  },
+
+  "lifecycle": {
+    "channel":  "NOT_CONFIGURED",
+    "bot":      "DISABLED",
+    "webhook":  "DISABLED",
+    "ai_reply": "DISABLED"
+  },
+
+  "policy": {
+    "allow_ai_reply":   false,
+    "allow_auto_reply": false,
+    "allow_broadcast":  false,
+    "allow_push":       false,
+    "allow_schedule":   false,
+    "allow_document":   false,
+    "allow_payment":    false
+  },
+
+  "security": {
+    "required_env":     ["TELEGRAM_BOT_TOKEN"],
+    "secret_keys":      ["TELEGRAM_BOT_TOKEN"],
+    "verify_signature": false,
+    "permission_scope": [],
+    "encryption":       null,
+    "token_rotation":   null
+  },
+
+  "capabilities": {
+    "receive_message": { "enabled": false, "status": "DISABLED" },
+    "send_message":    { "enabled": false, "status": "DISABLED" },
+    "reply":           { "enabled": false, "status": "DISABLED" },
+    "broadcast":       { "enabled": false, "status": "DISABLED" },
+    "attachment":      { "enabled": false, "status": "DISABLED" },
+    "location":        { "enabled": false, "status": "DISABLED" },
+    "rich_menu":       { "enabled": false, "status": "DISABLED" },
+    "webhook":         { "enabled": false, "status": "DISABLED" },
+    "voice_call":      { "enabled": false, "status": "DISABLED" },
+    "video_call":      { "enabled": false, "status": "DISABLED" },
+    "payment":         { "enabled": false, "status": "DISABLED" },
+    "notification":    { "enabled": true,  "status": "ACTIVE",   "note": "แนะนำเป็น replacement สำหรับ LINE Notify" }
+  },
+
+  "topology": {
+    "flow": [],
+    "nodes": {}
+  },
+
+  "pipeline": {},
+
+  "monitoring": {
+    "metrics": [],
+    "logging": { "level": "info", "table": null },
+    "trace": false,
+    "audit": false,
+    "last_check": null,
+    "last_error": null,
+    "health_score": null
+  },
+
+  "cleanup_required": [],
+
+  "metadata": {
+    "use_cases": [
+      "แจ้งเตือน CEO แทน LINE Notify (เมื่อ LINE Notify ปิดบริการ)",
+      "Internal alert สำหรับทีม",
+      "Group chat สำหรับ tracking งาน"
+    ],
+    "note": "ยังไม่ได้ configure — เหมาะสำหรับ replace LINE Notify เมื่อปิดบริการ"
+  }
+}

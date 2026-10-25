@@ -1,0 +1,5 @@
+{
+  "supabaseUrl": "",
+  "supabaseAnonKey": "",
+  "_note": "ใช้ env var NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY — ห้าม hardcode credentials (Rule 67, 69)"
+}

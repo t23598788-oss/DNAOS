@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "policy": "Production โหลดเฉพาะ Released features — ห้าม deploy feature ที่ยังไม่ผ่าน Approved",
+  "description": "Release Manager — ควบคุม lifecycle ของทุก feature ตั้งแต่ Draft จนถึง Production",
+
+  "current": {
+    "production": "v1.8.4",
+    "development": "v2.0.0-dev",
+    "next_release": "v2.0.0",
+    "last_production_release": "2026-06-01",
+    "phase": "Phase 1 Complete — Event-Centric ERP Architecture"
+  },
+
+  "lifecycle": {
+    "stages": ["draft", "testing", "approved", "released"],
+    "rules": {
+      "draft":    "Feature กำลังพัฒนา — ใช้ได้เฉพาะใน Studio เท่านั้น",
+      "testing":  "Feature พร้อม QA — ใช้ได้ใน Studio, ห้ามขึ้น Production",
+      "approved": "Feature ผ่าน QA และ Owner อนุมัติแล้ว — รอรวม Release",
+      "released": "Feature ขึ้น Production แล้ว — ทั้ง Studio และ Production ใช้ได้"
+    },
+    "promotion_criteria": {
+      "draft_to_testing":    ["Code ครบ", "ไม่มี TypeScript error", "ทดสอบใน Studio แล้ว"],
+      "testing_to_approved": ["Owner ทดสอบเองและพอใจ", "ไม่กระทบ feature อื่น", "Database migration พร้อม"],
+      "approved_to_released":["Deploy ไป Production เรียบร้อย", "ตรวจสอบ Production แล้ว 1 วัน"]
+    }
+  },
+
+  "shared_between_environments": [
+    "Registry files (*.json)",
+    "Business Engine (engines/)",
+    "Workflow Engine (engines/transactions/workflows.ts)",
+    "Document Engine (engines/documents/engine.ts, document-editor.ts)",
+    "Calculation Engine (engines/pricing/)",
+    "Supabase Schema (supabase/migrations/)"
+  ],
+
+  "not_shared": [
+    "UI Components (components/)",
+    "App Routes (app/)",
+    "Feature Flags state",
+    "Experimental features ที่ยัง draft"
+  ]
+}

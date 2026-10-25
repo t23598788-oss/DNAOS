@@ -1,0 +1,133 @@
+{
+  "version": 2,
+  "loaded_by_runtime": false,
+  "policy": "This file is NOT read by app/api/v1/spec, engines/validation/dispatcher.ts, or any runtime path. It exists solely to pin down the HTTP contract for planned MCP tools/resources before they are promoted into registry/command-registry.json or registry/mcp-resource-registry.json with status:active. No entry here is callable by any client.",
+  "tools": {
+    "contractor.task.claim": {
+      "reads_endpoint": "POST /api/v1/mcp/contractor/task-claim",
+      "reads_source_files": [
+        "app/api/admin/ide/_lib/workerContract.ts",
+        "app/api/admin/ide/_lib/workerTaskOrchestrator.ts"
+      ],
+      "new_route_required": true,
+      "route_implemented": true,
+      "implementation": "app/api/v1/mcp/contractor/task-claim/route.ts + dna-os-mcp-server/src/tools/contractorTaskClaim.ts",
+      "contract": "Universal Worker Contract (workerContract.ts) — WorkerRequest; task = a real JobContract created by workerTaskOrchestrator.createJobContract, never a second task store",
+      "writes": "queue job + job contract (existing runtimes only; no business table, no canonical writer)"
+    },
+    "contractor.evidence.submit": {
+      "reads_endpoint": "POST /api/v1/mcp/contractor/evidence-submit",
+      "reads_source_files": [
+        "app/api/admin/ide/_lib/workerContract.ts",
+        "app/api/admin/ide/_lib/changeSetRuntime.ts"
+      ],
+      "new_route_required": true,
+      "route_implemented": true,
+      "implementation": "app/api/v1/mcp/contractor/evidence-submit/route.ts + dna-os-mcp-server/src/tools/contractorEvidenceSubmit.ts",
+      "contract": "Universal Worker Contract (workerContract.ts) — WorkerResponse; evidence refs verified by changeSetRuntime.verifyEvidenceReference",
+      "writes": "queue job finalize + evidence reference verification only"
+    },
+    "contractor.status": {
+      "reads_endpoint": "GET /api/v1/mcp/contractor/status?ownerId=",
+      "reads_source_files": [
+        "app/api/admin/ide/_lib/queueRuntime.ts"
+      ],
+      "new_route_required": true,
+      "route_implemented": true,
+      "implementation": "app/api/v1/mcp/contractor/status/route.ts + dna-os-mcp-server/src/tools/contractorStatus.ts",
+      "contract": "queueRuntime.listJobs/getJob — the existing job lifecycle, no new status model",
+      "writes": "none (read-only)"
+    },
+    "architecture.system_summary": {
+      "reads_endpoint": "GET /api/v1/mcp/architecture/summary",
+      "reads_source_files": [
+        "registry/CONSTITUTION.json",
+        "registry/dependency-graph.json"
+      ],
+      "new_route_required": true,
+      "route_implemented": true,
+      "implementation": "dna-os-mcp-server/src/tools/architectureSystemSummary.ts",
+      "integration_tested": true,
+      "status": "active"
+    },
+    "registry.list_modules": {
+      "reads_endpoint": "GET /api/v1/modules",
+      "reads_source_files": [
+        "registry/module-registry.json"
+      ],
+      "new_route_required": false,
+      "reuses_existing_route": true,
+      "reuses_existing_command": true,
+      "existing_command_owner": "runtime/engine",
+      "command_registry_change_required": false,
+      "note": "registry.list_modules already exists as an active command in command-registry.json (owner: runtime/engine, output: string[]). MCP exposes the same capability under the same name via the existing GET /api/v1/modules route rather than creating a competing contract. No filter args in this first version because the existing command has none — any future filter must extend the existing command-registry entry, not diverge here.",
+      "implementation": "dna-os-mcp-server/src/tools/registryListModules.ts",
+      "integration_tested": true,
+      "status": "active"
+    },
+    "registry.list_commands": {
+      "reads_endpoint": "GET /api/v1/mcp/registry/commands",
+      "reads_source_files": [
+        "registry/command-registry.json"
+      ],
+      "new_route_required": true,
+      "route_implemented": true,
+      "note": "Distinct from the existing GET /api/v1/spec, which returns OpenAI/Claude tool-schema-shaped output for external LLM tool-use and already filters deprecated/requires_confirmation:true commands. This endpoint returns the raw registry listing shape for MCP clients instead.",
+      "implementation": "dna-os-mcp-server/src/tools/registryListCommands.ts",
+      "integration_tested": true,
+      "status": "active"
+    },
+    "architecture.get_dependency_graph": {
+      "reads_endpoint": "GET /api/v1/mcp/architecture/dependency-graph",
+      "reads_source_files": [
+        "registry/dependency-graph.json"
+      ],
+      "new_route_required": true,
+      "route_implemented": true,
+      "implementation": "dna-os-mcp-server/src/tools/architectureDependencyGraph.ts",
+      "integration_tested": true,
+      "status": "active"
+    },
+    "runtime.query": {
+      "reads_endpoint": "POST /api/v1/query",
+      "reads_source_files": [],
+      "new_route_required": false,
+      "note": "Pure passthrough. Confirmation-gating and Shadow Command rejection remain enforced entirely by the existing dispatcher — this tool adds no logic of its own.",
+      "implementation": "dna-os-mcp-server/src/tools/runtimeQuery.ts",
+      "integration_tested": "partial",
+      "integration_test_detail": "Verified live: no-token -> CONFIGURATION_ERROR, invalid-token -> UNAUTHORIZED. NOT yet verified: successful read command, confirmation-required command rejection — both need a real DNA_OS_API_TOKEN, none was available in this environment. Status stays planned until both are confirmed, per the owner's Phase 1B lifecycle rule (active requires implementation AND integration test passed).",
+      "status": "planned"
+    },
+    "business.dispatch": {
+      "reads_endpoint": "POST /api/v1/mcp/business/dispatch",
+      "reads_source_files": [
+        "engines/validation/dispatcher.ts",
+        "registry/command-registry.json",
+        "services/canonical/document-detail.ts"
+      ],
+      "new_route_required": false,
+      "reuses_existing_route": true,
+      "reuses_existing_command": true,
+      "existing_command_owner": "engines/validation/dispatcher",
+      "command_registry_change_required": false,
+      "note": "Owner Workspace AI integration (2026-10-11): AUTHORIZED WORKER->DISPATCHER BRIDGE — the missing connection found by inspection. External AI workers (Cline / AI Queen clients) carrying the OWNER session may execute WHITELISTED READ commands through the SAME Capability Dispatcher every other surface uses (registry gate + validation inside). Explicit read whitelist, fail-closed on anything else; document.preview reuses getDocumentDetail + the chat renderer's version-scoped artifact rule. No new reader, no writer, no command.",
+      "implementation": "app/api/v1/mcp/business/dispatch/route.ts",
+      "integration_tested": true,
+      "status": "active"
+    }
+  },
+  "resources": {
+    "constitution.get_rules": {
+      "reads_endpoint": "GET /api/v1/constitution",
+      "reads_source_files": [
+        "registry/CONSTITUTION.json"
+      ],
+      "new_route_required": false,
+      "reuses_existing_route": true,
+      "note": "GET /api/v1/constitution already exists (public, returns registry/CONSTITUTION.json verbatim). Reused instead of building a duplicate /api/v1/mcp/constitution route, per Rule 103.",
+      "implementation": "dna-os-mcp-server/src/resources/constitutionGetRules.ts",
+      "integration_tested": true,
+      "status": "active"
+    }
+  }
+}

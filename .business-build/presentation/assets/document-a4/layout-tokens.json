@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "reference": "IMG_3188.jpeg — position and hierarchy reference, not bank branding",
+  "page": {
+    "format": "A4",
+    "widthMm": 210,
+    "heightMm": 297,
+    "marginHorizontalMm": 13,
+    "marginTopMm": 22,
+    "footerBottomMm": 12
+  },
+  "typography": {
+    "thaiPreferred": "Thonburi",
+    "thaiEmbeddedFallback": "Noto Sans Thai",
+    "exactReferenceFontVerified": false,
+    "titlePt": 17,
+    "bodyPt": 9,
+    "labelPt": 8.2,
+    "amountPt": 10,
+    "referencePt": 9
+  },
+  "colors": {
+    "text": "#202321",
+    "label": "#777D79",
+    "rule": "#D5DAD6",
+    "brand": "#183E32",
+    "paper": "#FFFFFF"
+  },
+  "layout": {
+    "dateColumnMm": 47,
+    "metadataColumns": 4,
+    "metadataGapMm": 6,
+    "detailAmountColumnMm": 33,
+    "detailGapMm": 7,
+    "totalAmountColumnMm": 47,
+    "rulePt": 0.65
+  },
+  "layers": [
+    "white-paper",
+    "rules",
+    "labels",
+    "values"
+  ],
+  "quality": {
+    "text": "PDF embedded font glyphs; not a screenshot",
+    "background": "plain white; no building, watermark or bank branding",
+    "imageReferenceDpi": "not determinable from screenshot",
+    "bankSourcePdfInspected": false
+  },
+  "scope": "presentation template only; not yet production document engine; one sample item"
+}

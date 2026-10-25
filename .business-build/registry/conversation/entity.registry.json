@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-05",
+  "entities": {
+    "material_type": {
+      "id": "material_type", "label": "ประเภทวัสดุ",
+      "type": "enum",
+      "required": true,
+      "enum_values": ["ดิน", "หิน", "ทราย", "ดินลูกรัง", "หินคลุก", "ทรายหยาบ", "ทรายละเอียด"],
+      "examples_th": ["ดิน", "หิน", "ทราย", "ต้องการดิน", "ขอหินหน่อย"],
+      "extraction_model": "gemini_extractor",
+      "db_column": "material_type",
+      "status": "ACTIVE"
+    },
+    "quantity_m3": {
+      "id": "quantity_m3", "label": "ปริมาณ (คิว/ลูกบาศก์เมตร)",
+      "type": "number",
+      "required": true,
+      "examples_th": ["100 คิว", "50 ลบม", "200 คิว", "ร้อยคิว"],
+      "extraction_model": "gemini_extractor",
+      "db_column": "quantity_m3",
+      "status": "ACTIVE"
+    },
+    "delivery_location": {
+      "id": "delivery_location", "label": "พิกัดส่งของ",
+      "type": "location",
+      "required": true,
+      "examples_th": ["(LINE location share)", "14.0000, 100.0000"],
+      "extraction_model": "gemini_extractor",
+      "db_column": "delivery_lat, delivery_lng",
+      "status": "ACTIVE"
+    },
+    "delivery_date": {
+      "id": "delivery_date", "label": "วันที่ต้องการ",
+      "type": "date",
+      "required": false,
+      "examples_th": ["พรุ่งนี้", "วันที่ 10", "อีก 3 วัน", "เดือนหน้า"],
+      "extraction_model": "gemini_extractor",
+      "db_column": "delivery_date",
+      "status": "ACTIVE"
+    },
+    "pit_id": {
+      "id": "pit_id", "label": "รหัสบ่อวัสดุ",
+      "type": "string",
+      "required": false,
+      "examples_th": [],
+      "extraction_model": "supabase_db",
+      "db_column": "pit_id",
+      "status": "ACTIVE"
+    },
+    "price_thb": {
+      "id": "price_thb", "label": "ราคา (บาท)",
+      "type": "number",
+      "required": false,
+      "examples_th": [],
+      "extraction_model": "workflow_engine",
+      "db_column": "price_thb",
+      "status": "ACTIVE"
+    }
+  }
+}

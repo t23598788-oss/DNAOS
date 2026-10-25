@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "policy": "API ทุกตัวต้องลงทะเบียนและมีวัตถุประสงค์ชัดเจน",
+  "endpoints": {
+    "/api/command": {
+      "purpose": "รับคำสั่งจาก UI และส่งต่อไปยัง Cognitive Pipeline",
+      "purpose_th": "รับคำสั่งจากหน้าเว็บเพื่อส่งต่อให้ระบบคิดวิเคราะห์",
+      "method": "POST",
+      "auth_required": true
+    },
+    "/api/action": {
+      "purpose": "จัดการ Action ที่ต้องมีการยืนยัน (find/preview/execute)",
+      "purpose_th": "จัดการ Action ที่ต้องยืนยัน (ค้นหา/ดูตัวอย่าง/ทำงานจริง)",
+      "method": "POST",
+      "auth_required": true
+    },
+    "/api/document": {
+      "purpose": "สร้างเอกสารในรูปแบบ HTML เพื่อแสดงผล",
+      "purpose_th": "สร้างเอกสาร HTML สำหรับแสดงผลหรือพิมพ์",
+      "method": "POST",
+      "auth_required": true
+    },
+    "/api/audit/trace": {
+      "purpose": "รับ Request Trace เพื่อให้ AI ตรวจงานตรวจสอบ",
+      "purpose_th": "รับข้อมูลการทำงาน (Trace) เพื่อให้ Governance Engine ตรวจสอบ",
+      "method": "POST",
+      "auth_required": true
+    },
+    "/api/line-webhook": {
+      "purpose": "รับ Event จาก LINE Messaging API",
+      "purpose_th": "รับข้อความและเหตุการณ์จาก LINE API",
+      "method": "POST",
+      "auth_required": false
+    },
+    "/api/internal/openclaw/command": {
+      "purpose": "Internal bridge for the openclaw-webhook Supabase Edge Function to run text commands from the OpenClaw/Pinto mobile channel through the cognitive pipeline",
+      "purpose_th": "สะพานภายในให้ openclaw-webhook Edge Function ส่งคำสั่งข้อความจากมือถือ (OpenClaw/Pinto) เข้า Cognitive Pipeline (auth ผ่าน shared secret แทน session)",
+      "method": "POST",
+      "auth_required": true
+    }
+  }
+}

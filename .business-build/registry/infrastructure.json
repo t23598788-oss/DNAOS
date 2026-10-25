@@ -1,0 +1,604 @@
+{
+  "version": 2,
+  "policy": "ทุก service ที่ DNA OS พึ่งพาต้อง register — ไม่มี shadow dependency",
+  "services": {
+    "supabase": {
+      "name": "Supabase",
+      "organ": "heart",
+      "purpose": "Database + Auth + Realtime + Edge Functions",
+      "critical": "critical",
+      "status": "active",
+      "owner": "เฮีย (t23598788@gmail.com)",
+      "cost_monthly_thb": 0,
+      "plan": "Free",
+      "renew": "auto",
+      "expiration": null,
+      "quota_used_pct": null,
+      "if_down": "ทั้งระบบหยุด — ไม่มี DB, ไม่มี Auth, ไม่มี Edge Functions",
+      "if_removed_saves_thb": 0,
+      "if_removed_loses": "ทุกอย่าง",
+      "affected_workflows": [
+        "*"
+      ],
+      "dependency_graph": {
+        "modules": [
+          "middleware.ts",
+          "core/config/company-settings.ts",
+          "supabase/functions/line-webhook-v2/engines/response.ts",
+          "scripts/demo-full-pipeline.ts",
+          "scripts/demo-full-pipeline-part2.ts",
+          "scripts/backup.ts",
+          "services/supabase/api-tokens.ts",
+          "services/supabase/queries.ts",
+          "services/supabase/browser.ts",
+          "services/supabase/server.ts",
+          "engines/distance.selfDescription.ts"
+        ],
+        "api_routes": [
+          "app/api/auth/auto-login/route.ts"
+        ],
+        "edge_functions": [
+          "receipt-reconcile-sweep",
+          "system-health-check",
+          "bank-email-sync",
+          "back-to-back",
+          "bank-statement-reconcile",
+          "kis-webhook",
+          "line-webhook-v2",
+          "line-profile-reconcile",
+          "trigger-complete",
+          "quotation-queue-nudge",
+          "subscription-email-sync",
+          "debt-reminder-cron",
+          "fuel-price-sync",
+          "supabase-billing-sync",
+          "trigger-auto-build",
+          "scout-map",
+          "ai-callback"
+        ],
+        "scheduled_jobs": [
+          {
+            "active": true,
+            "jobname": "bank-email-sync",
+            "schedule": "*/5 * * * *"
+          },
+          {
+            "active": true,
+            "jobname": "debt-reminder-cron",
+            "schedule": "*/10 * * * *"
+          },
+          {
+            "active": true,
+            "jobname": "fuel-price-sync",
+            "schedule": "0 6 * * *"
+          },
+          {
+            "active": true,
+            "jobname": "line-profile-reconcile",
+            "schedule": "*/3 * * * *"
+          },
+          {
+            "active": true,
+            "jobname": "receipt-reconcile-sweep",
+            "schedule": "*/5 * * * *"
+          },
+          {
+            "active": true,
+            "jobname": "subscription-email-sync",
+            "schedule": "*/5 * * * *"
+          },
+          {
+            "active": true,
+            "jobname": "supabase-billing-sync",
+            "schedule": "*/30 * * * *"
+          }
+        ]
+      }
+    },
+    "vercel": {
+      "name": "Vercel",
+      "organ": "skin",
+      "purpose": "Frontend Hosting + Next.js Deployment",
+      "critical": "critical",
+      "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0,
+      "plan": "Hobby",
+      "renew": "auto",
+      "expiration": null,
+      "quota_used_pct": null,
+      "if_down": "Dashboard/UI ใช้ไม่ได้ แต่ Edge Functions ยังทำงาน",
+      "if_removed_saves_thb": 0,
+      "if_removed_loses": "Dashboard + Document Preview",
+      "affected_workflows": [
+        "doc.generate",
+        "doc.preview"
+      ],
+      "dependency_graph": {
+        "modules": [
+          "engines/domains/vercel-binding.ts"
+        ],
+        "api_routes": [],
+        "edge_functions": [],
+        "scheduled_jobs": []
+      }
+    },
+    "openai": {
+      "name": "OpenAI API",
+      "organ": "left_brain",
+      "purpose": "Front Office AI — Owner Command Team intake (conversation/voice/realtime/tool-calling), dispatches into DNA OS only through MANAGER-07. Forbidden: direct Core Business access, writing Business Logic, editing Database, acting on behalf of a Worker.",
+      "critical": "medium",
+      "status": "role_reassigned_not_implemented",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0,
+      "plan": null,
+      "renew": null,
+      "expiration": null,
+      "credit_remaining_thb": null,
+      "quota_used_pct": null,
+      "removed_at": "2026-07-25",
+      "removed_reason": "Owner instruction (DNA-000078): \"เขียน AI ที่กูเอามาผูกไว้ในระบบ (ChatGPT) ออกไปจากระบบให้ถาวรเลย\" — removed from its OLD role (Business Connector / AI Translation bridge-openai), replaced by anthropic below in every real call site. This removal still stands for that role — it is not reversed. Kept here (status was 'removed', not deleted) as a real decision record, per Rule 104.",
+      "role_reassigned_at": "2026-08-09",
+      "role_reassigned_reason": "Owner decision (DNA-000082/DNA-000083, via AskUserQuestion, verbatim): the old removal was correct \"in its original context\" (Business Connector) and stays correct; OpenAI is being re-registered under a DIFFERENT, new role — \"Front Office AI\" under Owner Command Team — not restored to its old Business Connector position. New architecture: OWNER -> Front Office AI (ChatGPT/OpenAI Realtime/Gemini/Claude/...) -> MANAGER-07 -> Workers 1-6 -> DNA OS Factory.",
+      "reports_to": "MANAGER-07 (Constitution Rules 250-252) — Front Office AI has no other dispatch path",
+      "implementation_status": "NOT_IMPLEMENTED — declared role only, no code written this turn. No Realtime/voice/tool-calling runtime exists in this repo yet (mirrors how Rule 251 was declared before TASK-042 built it). A connectors-table row for OpenAI was briefly created and deleted the same session (DNA-000082) before this role decision existed — it tested the OLD Business Connector shape (api_key against /v1/models) which is the wrong shape for this role and was removed, not repurposed.",
+      "credential_note": "The real OPENAI_API_KEY in .env.local was independently tested 2026-08-09 (DNA-000082) and is dead — https://api.openai.com/v1/models returns HTTP 401 (reproduced both through the app's connector tester and a direct curl). Whoever builds the real Front Office AI runtime needs the owner to supply a live key first.",
+      "if_down": "N/A — not implemented yet, nothing in the runtime depends on this role",
+      "if_removed_saves_thb": 0,
+      "if_removed_loses": "N/A — not implemented yet",
+      "affected_workflows": []
+    },
+    "anthropic": {
+      "name": "Anthropic Claude API",
+      "organ": "left_brain",
+      "purpose": "AI Translation + vision OCR classification (replaces bridge-openai/ocr-classify's OpenAI calls, owner instruction 2026-07-25)",
+      "critical": "medium",
+      "status": "pending_credential",
+      "owner": "เฮีย",
+      "cost_monthly_thb": null,
+      "plan": null,
+      "renew": "auto",
+      "expiration": null,
+      "credit_remaining_thb": null,
+      "quota_used_pct": null,
+      "note": "ANTHROPIC_API_KEY not yet set (neither .env.local nor Supabase secrets) — every real call site (bridge-claude.ts, event-builder.ts, cognitive/pipeline.ts, and the 3 Deno LINE-webhook engines via claude-client.ts) is real code but gates cleanly until the owner supplies a real key. cost_monthly_thb intentionally null, not guessed — no real billing data exists yet.",
+      "if_down": "AI translation/auto-clustering/OCR classification stop; deterministic engines still work",
+      "if_removed_saves_thb": null,
+      "if_removed_loses": "Document AI, Smart Translation, auto business-event clustering, receipt OCR classification",
+      "affected_workflows": [
+        "ai.translate",
+        "ai.analyze",
+        "ai.generate"
+      ],
+      "dependency_graph": {
+        "modules": [
+          "cognitive/pipeline.ts",
+          "supabase/functions/line-webhook-v2/engines/claude-client.ts",
+          "supabase/functions/line-webhook-v2/engines/process-classified-image.ts",
+          "supabase/functions/line-webhook-v2/engines/response.ts",
+          "supabase/functions/line-webhook-v2/engines/tool-router.ts",
+          "supabase/functions/line-webhook-v2/handlers/image.ts",
+          "supabase/functions/line-webhook-v2/handlers/text.ts",
+          "engines/events/event-builder.ts",
+          "services/ai/bridge-claude.ts"
+        ],
+        "api_routes": [],
+        "edge_functions": [
+          "ai-callback"
+        ],
+        "scheduled_jobs": []
+      }
+    },
+    "gemini": {
+      "name": "Google Gemini",
+      "organ": "right_brain",
+      "purpose": "LINE Webhook AI Processing",
+      "critical": "medium",
+      "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0,
+      "plan": "Free tier",
+      "renew": "auto",
+      "expiration": null,
+      "quota_used_pct": 35,
+      "if_down": "LINE bot ตอบไม่ได้ แต่ core system ยังทำงาน",
+      "if_removed_saves_thb": 0,
+      "if_removed_loses": "LINE AI ตอบราคาอัตโนมัติ",
+      "affected_workflows": [
+        "line.copilot"
+      ],
+      "dependency_graph": {
+        "modules": [
+          "supabase/functions/line-webhook-v2/helpers.ts",
+          "supabase/functions/line-webhook-v2/engines/response.ts"
+        ],
+        "api_routes": [],
+        "edge_functions": [],
+        "scheduled_jobs": []
+      }
+    },
+    "line_messaging": {
+      "name": "LINE Messaging API",
+      "organ": "ears",
+      "purpose": "ส่ง/รับข้อความ LINE",
+      "critical": "high",
+      "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0,
+      "plan": "Free (500 msg/mo)",
+      "renew": "auto",
+      "expiration": null,
+      "quota_used_pct": 72,
+      "quota_limit": 500,
+      "if_down": "ลูกค้าติดต่อทาง LINE ไม่ได้",
+      "if_removed_saves_thb": 0,
+      "if_removed_loses": "ช่องทางหลักติดต่อลูกค้า",
+      "affected_workflows": [
+        "line.send",
+        "chat.read",
+        "line.copilot"
+      ],
+      "dependency_graph": {
+        "modules": [
+          "supabase/functions/line-webhook-v2/engines/response.ts",
+          "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
+          "supabase/functions/line-webhook-v2/engines/profile.ts",
+          "supabase/functions/line-webhook-v2/engines/media.ts",
+          "engines/domains/vercel-binding.ts",
+          "engines/geocoding.ts",
+          "engines/equipment/relay-command.ts",
+          "registry/communication.ts",
+          "registry/line-richmenu.ts",
+          "services/ai/bridge-claude.ts"
+        ],
+        "api_routes": [
+          "app/api/admin/notifications/send/route.ts"
+        ],
+        "edge_functions": [
+          "back-to-back",
+          "line-profile-reconcile",
+          "trigger-complete",
+          "quotation-queue-nudge",
+          "debt-reminder-cron",
+          "line-webhook-v2"
+        ],
+        "scheduled_jobs": [
+          {
+            "active": true,
+            "jobname": "debt-reminder-cron",
+            "schedule": "*/10 * * * *"
+          },
+          {
+            "active": true,
+            "jobname": "line-profile-reconcile",
+            "schedule": "*/3 * * * *"
+          }
+        ]
+      }
+    },
+    "line_notify": {
+      "name": "LINE Notify",
+      "organ": "voice",
+      "purpose": "แจ้งเตือนเจ้าของ",
+      "critical": "medium",
+      "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0,
+      "plan": "Free",
+      "renew": "auto",
+      "expiration": null,
+      "quota_used_pct": null,
+      "if_down": "เจ้าของไม่ได้รับแจ้งเตือน",
+      "if_removed_saves_thb": 0,
+      "if_removed_loses": "Alert to CEO",
+      "affected_workflows": [
+        "scout-map",
+        "back-to-back"
+      ],
+      "dependency_graph": {
+        "modules": [
+          "supabase/functions/line-webhook-v2/engines/response.ts",
+          "supabase/functions/line-webhook-v2/engines/auto-confirm-payment.ts",
+          "supabase/functions/line-webhook-v2/engines/profile.ts",
+          "supabase/functions/line-webhook-v2/engines/media.ts",
+          "engines/domains/vercel-binding.ts",
+          "engines/geocoding.ts",
+          "engines/equipment/relay-command.ts",
+          "registry/communication.ts",
+          "registry/line-richmenu.ts",
+          "services/ai/bridge-claude.ts"
+        ],
+        "api_routes": [
+          "app/api/admin/notifications/send/route.ts"
+        ],
+        "edge_functions": [
+          "back-to-back",
+          "line-profile-reconcile",
+          "trigger-complete",
+          "quotation-queue-nudge",
+          "debt-reminder-cron"
+        ],
+        "scheduled_jobs": [
+          {
+            "active": true,
+            "jobname": "debt-reminder-cron",
+            "schedule": "*/10 * * * *"
+          },
+          {
+            "active": true,
+            "jobname": "line-profile-reconcile",
+            "schedule": "*/3 * * * *"
+          }
+        ]
+      }
+    },
+    "google_maps": {
+      "name": "Google Maps API",
+      "organ": "eyes",
+      "purpose": "คำนวณระยะทาง + ค้นหาคู่ค้า",
+      "critical": "medium",
+      "status": "active",
+      "status_verification_note": "CONFLICT found 2026-08-10 (Google Maps connection task, Factory Architecture Advisor) — this entry says status=active/quota_used_pct=18, but direct checks of both real secret stores (`.env.local` and `npx supabase secrets list --project-ref xeytcavxejhyzxwevgto`) found NO GOOGLE_MAPS_API_KEY anywhere as of this date. supabase/functions/scout-map/index.ts (the real consumer this entry's affected_workflows/dependency_graph point to) would hit its own 'GOOGLE_MAPS_API_KEY is not set' error path right now. Not silently corrected — status/quota_used_pct left as-is (Rule 104, never erase history; the 18% may have been real before a since-removed/rotated key) — flagging as unverified-as-of-now rather than assuming either the old 'active' value or a new 'broken' value without more history than this session has. See FACTORY_CAPABILITY_ONBOARDING task, scripts/register-google-maps-connector.ts.",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0,
+      "plan": "$200 free credit/mo",
+      "renew": "auto",
+      "expiration": null,
+      "quota_used_pct": 18,
+      "if_down": "Scout ค้นหาคู่ค้าใหม่ไม่ได้",
+      "if_removed_saves_thb": 0,
+      "if_removed_loses": "Scout + Google Places search",
+      "affected_workflows": [
+        "calc.distance",
+        "scout-map"
+      ],
+      "dependency_graph": {
+        "modules": [
+          "engines/geocoding.ts",
+          "engines/equipment/relay-command.ts",
+          "services/ai/bridge-claude.ts"
+        ],
+        "api_routes": [],
+        "edge_functions": [],
+        "scheduled_jobs": []
+      }
+    },
+    "gmail": {
+      "name": "Gmail API (read-only OAuth)",
+      "organ": "inbox",
+      "purpose": "Real evidence source for payment/subscription detection — reads the owner's own Gmail via gmail.readonly OAuth, never send/modify/delete",
+      "critical": "high",
+      "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0,
+      "plan": "Free (Google account, gmail.readonly scope)",
+      "renew": "auto",
+      "expiration": null,
+      "quota_used_pct": null,
+      "note": "Real, previously-untracked dependency found live 2026-08-04 while building the Infrastructure Dependency Graph — 3 real Edge Functions (bank-email-sync, supabase-billing-sync, subscription-email-sync) depend on this entirely and it was never registered here, violating this file's own policy line 3 (\"ไม่มี shadow dependency\"). Added, not silently fixed elsewhere.",
+      "if_down": "Bank Level-3 payment verification stops (falls back to human confirm), Supabase billing auto-detection stops, subscription cost observer stops — none of these are customer-facing, but all 3 go silently unverified without an explicit health check on this",
+      "if_removed_saves_thb": 0,
+      "if_removed_loses": "Payment Verification Level 3, automatic billing/subscription cost detection",
+      "affected_workflows": [
+        "payment.verify_level3",
+        "cost.observe"
+      ],
+      "dependency_graph": {
+        "modules": [
+          "supabase/functions/_shared/gmail-client.ts"
+        ],
+        "api_routes": [],
+        "edge_functions": [
+          "bank-email-sync",
+          "subscription-email-sync",
+          "supabase-billing-sync"
+        ],
+        "scheduled_jobs": [
+          {
+            "active": true,
+            "jobname": "bank-email-sync",
+            "schedule": "*/5 * * * *"
+          },
+          {
+            "active": true,
+            "jobname": "subscription-email-sync",
+            "schedule": "*/5 * * * *"
+          },
+          {
+            "active": true,
+            "jobname": "supabase-billing-sync",
+            "schedule": "*/30 * * * *"
+          }
+        ]
+      }
+    },
+    "github": {
+      "name": "GitHub",
+      "organ": "dna",
+      "purpose": "Source Code Repository",
+      "critical": "low",
+      "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 0,
+      "plan": "Free",
+      "renew": "auto",
+      "expiration": null,
+      "quota_used_pct": null,
+      "if_down": "deploy ใหม่ไม่ได้ แต่ระบบยังทำงาน",
+      "if_removed_saves_thb": 0,
+      "if_removed_loses": "Version Control + CI/CD",
+      "affected_workflows": [
+        "dev.deploy",
+        "dev.push"
+      ],
+      "dependency_graph": {
+        "modules": [],
+        "api_routes": [],
+        "edge_functions": [],
+        "scheduled_jobs": []
+      }
+    },
+    "domain": {
+      "name": "Domain (dnaos.co.th)",
+      "organ": "name",
+      "purpose": "ชื่อระบบบนอินเทอร์เน็ต",
+      "critical": "medium",
+      "status": "active",
+      "owner": "เฮีย",
+      "cost_monthly_thb": 50,
+      "plan": "Annual",
+      "renew": "manual",
+      "expiration": "2026-09-08",
+      "days_until_expiry": null,
+      "quota_used_pct": null,
+      "if_down": "เข้าเว็บด้วยชื่อไม่ได้ ต้องใช้ IP",
+      "if_removed_saves_thb": 50,
+      "if_removed_loses": "Custom domain",
+      "affected_workflows": [],
+      "dependency_graph": {
+        "modules": [],
+        "api_routes": [],
+        "edge_functions": [],
+        "scheduled_jobs": []
+      }
+    },
+    "node_runtime": {
+      "name": "Node.js",
+      "organ": "brain_stem",
+      "purpose": "Next.js Server Runtime",
+      "critical": "critical",
+      "status": "active",
+      "owner": "system",
+      "cost_monthly_thb": 0,
+      "plan": "Built-in",
+      "renew": "N/A",
+      "expiration": null,
+      "quota_used_pct": null,
+      "if_down": "Frontend + API routes หยุดทั้งหมด",
+      "if_removed_saves_thb": 0,
+      "if_removed_loses": "ทุกอย่างฝั่ง Web",
+      "affected_workflows": [
+        "*"
+      ],
+      "dependency_graph": {
+        "modules": [],
+        "api_routes": [],
+        "edge_functions": [],
+        "scheduled_jobs": []
+      }
+    },
+    "deno_runtime": {
+      "name": "Deno (Supabase Edge)",
+      "organ": "spine",
+      "purpose": "Edge Functions Runtime",
+      "critical": "high",
+      "status": "active",
+      "owner": "Supabase",
+      "cost_monthly_thb": 0,
+      "plan": "Included",
+      "renew": "N/A",
+      "expiration": null,
+      "quota_used_pct": null,
+      "if_down": "LINE webhooks + back-to-back + scout-map หยุด",
+      "if_removed_saves_thb": 0,
+      "if_removed_loses": "Edge Functions ทั้งหมด",
+      "affected_workflows": [
+        "line.copilot",
+        "scout-map",
+        "back-to-back"
+      ],
+      "dependency_graph": {
+        "modules": [],
+        "api_routes": [],
+        "edge_functions": [],
+        "scheduled_jobs": []
+      }
+    }
+  },
+  "backup": {
+    "local_backup": {
+      "status": "active",
+      "method": "npm run backup → backups/YYYY-MM-DD_HHmmss/",
+      "tables": 20,
+      "format": "JSON per table + _manifest.json",
+      "retention": "30 backups max (auto-cleanup)",
+      "restore": "npm run restore -- backups/<timestamp>",
+      "schedule": "manual (ควรรันก่อน deploy ทุกครั้ง)",
+      "risk_note": "backup อยู่บนเครื่อง local — ถ้าเครื่องพัง backup หายด้วย"
+    },
+    "cloud_backup": {
+      "status": "planned",
+      "cost_thb": 200,
+      "benefit": "Resilience 40% → 90% — เก็บ backup บน cloud storage แยกจาก Supabase"
+    }
+  },
+  "future_additions": [
+    {
+      "name": "Redis",
+      "cost_thb": 400,
+      "benefit": "Workflow เร็วขึ้น 32%",
+      "impact": "medium"
+    },
+    {
+      "name": "Twilio (Voice)",
+      "cost_thb": 800,
+      "benefit": "เปิด 4 workflows ใหม่ (โทรทวงหนี้, IVR, Voice Command, Call Center)",
+      "impact": "high"
+    },
+    {
+      "name": "Camera API (Android)",
+      "cost_thb": 0,
+      "benefit": "ตรวจสินค้า, OCR, QR, ตรวจหน้างาน — เพิ่ม capability 12%",
+      "impact": "medium"
+    },
+    {
+      "name": "PLC Gateway",
+      "cost_thb": 18000,
+      "benefit": "ควบคุมโรงงาน, อ่าน sensor, ดูสถานะเครื่องจักร real-time",
+      "impact": "high"
+    },
+    {
+      "name": "Cloud Backup (S3/R2)",
+      "cost_thb": 200,
+      "benefit": "Resilience → 90% — off-site backup + point-in-time recovery",
+      "impact": "critical"
+    },
+    {
+      "name": "cloud_gpu_dynamic_trigger",
+      "status": "planned",
+      "cost_thb": null,
+      "cost_range_thb": "500-2500/mo (แทนที่จะเป็น 9000-35000/mo แบบเปิดค้าง 24 ชม.)",
+      "impact": "high",
+      "note_owner": "2026-08-03: อนุมัติจ่าย Cloud GPU แล้วแต่ยังไม่ได้สมัครบัญชีจริง (ต้องใช้บัตรเครดิต/KYC ของเจ้าของเอง Claude สมัครแทนไม่ได้)",
+      "architecture": "Mac ตรวจ event (สลิป/งานเข้า) → เรียก API/SSH ปลุก Cloud GPU instance → รันโมเดล (32B/72B) → ส่งผลกลับ Mac/Supabase → Mac สั่ง pause/auto-sleep GPU ทันทีที่คิวว่าง — จ่ายเฉพาะวินาทีที่ AI กำลังคิดงานจริง ไม่ใช่เปิดทิ้งไว้ 24 ชม.",
+      "benefit": "ประหยัด 70-90% เทียบกับเปิด Cloud GPU ทิ้งไว้ตลอดเวลา",
+      "blocked_by": "รอเจ้าของสมัครบัญชี RunPod/Vast.ai เอง (ต้องชำระเงิน) — ยังไม่เริ่มเขียนโค้ด local-runtime/*.mjs ให้ชี้ไป remote Ollama URL"
+    }
+  ],
+  "cost_summary": {
+    "monthly_thb": 550,
+    "yearly_thb": 6600
+  },
+  "research_metrics": {
+    "policy": "Silicon Valley Lab Metrics — พารามิเตอร์ที่เจ้าของต้องการ (2026-08-03) สำหรับหน้าจอวิจัยต้นทุน/ความฉลาด/ฮาร์ดแวร์ ของ Cloud GPU ที่ยังไม่ได้สมัคร ทุกฟิลด์เป็น null โดยตั้งใจ — ห้ามใส่ตัวเลขสมมติ (Rule 100/C-009) จนกว่าจะมี telemetry จริงจาก Cloud GPU + local-runtime",
+    "financial": {
+      "realtime_spent_thb": null,
+      "cost_per_task_thb": null,
+      "always_on_projection_thb_per_month": null,
+      "dynamic_trigger_actual_thb_per_month": null,
+      "savings_pct": null
+    },
+    "intelligence": {
+      "accuracy_rate_pct_by_model": null,
+      "hallucination_refuse_rate_pct": null,
+      "latency_ms": null
+    },
+    "hardware": {
+      "vram_usage_mb": null,
+      "ram_usage_mb": null,
+      "tokens_per_second": null
+    },
+    "data_source_when_built": "local-runtime/ai-task-watcher.mjs ต้อง log ต่อ task: start_time/end_time/model/token_count/vram_used/result_correct(human-confirmed) ก่อนถึงจะคำนวณค่าจริงได้ — ยังไม่เริ่มสร้าง"
+  },
+  "dependency_graph_generated_at": "2026-08-03T17:38:12.776Z"
+}

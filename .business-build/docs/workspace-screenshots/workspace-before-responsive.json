@@ -1,0 +1,23 @@
+{
+  "desktop": {
+    "hOverflow": false,
+    "scrollW": 1440,
+    "clientW": 1440,
+    "qLeft": null,
+    "composeBottom": true
+  },
+  "tablet": {
+    "hOverflow": false,
+    "scrollW": 834,
+    "clientW": 834,
+    "qLeft": null,
+    "composeBottom": true
+  },
+  "mobile": {
+    "hOverflow": false,
+    "scrollW": 390,
+    "clientW": 390,
+    "qLeft": null,
+    "composeBottom": true
+  }
+}

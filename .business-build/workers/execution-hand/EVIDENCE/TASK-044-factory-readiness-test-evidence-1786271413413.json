@@ -1,0 +1,13 @@
+[
+  {
+    "kind": "REFUSAL",
+    "detail": "Cost Gate decision for RUN_COMMAND: LOCK — LOCKED — no real, pre-approved budget covers this real cost; escalated as financial_approval_required via Rule 251's real Owner Inquiry channel (submitWorkerQuestion), outcome status=PENDING_OWNER",
+    "path": null,
+    "before": null,
+    "after": null,
+    "stdout": null,
+    "stderr": null,
+    "exitCode": null,
+    "capturedAt": "2026-08-09T10:30:13.413Z"
+  }
+]

@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "protocol": "DNA OS Unified AI Runtime v1",
+  "note": "Path-based work assignment for active feature tracks — distinct from registry/TASK_QUEUE.json (a flat backlog of atomic fix-it items). SCHEDULER.json exists so multiple agents can self-select non-overlapping work by directory/path priority without talking to each other: read this + registry/LOCK_MANAGER.json, if the path is free lock only the files you touch, do the work, update CURRENT_STATE.json + CHANGELOG.json, then release the lock. assigned_to is always \"Any\" by design — work is claimed by whichever agent gets there first, never pre-assigned to a vendor.",
+  "workers": [
+    {
+      "task": "Landing Page",
+      "assigned_to": "Any",
+      "path": "app/page.tsx",
+      "priority": 1,
+      "status": "in_progress",
+      "status_note": "Expanded 2026-07-07 (DNA-000007) into a full Operational Platform landing page per system owner's same-day deadline spec: Hero, Platform Overview, Products, Solutions, Marketplace, AI Services, Business Modules sections, all sourced from architecture.json/business-coverage.json/connector-lifecycle.json/AI_REGISTRY.json/portals.json/architecture-book.json — zero hardcoded business content. npm run build passes clean (exit 0). Not marked done — no confirmation the marketing copy/section wording itself is final, and no real browser visual QA was possible in this environment (only curl/dev-server checks)."
+    },
+    {
+      "task": "Brain UI",
+      "assigned_to": "Any",
+      "path": "dna-brain-3d/",
+      "priority": 2,
+      "status": "unknown",
+      "status_note": "ห้ามเดา — not reviewed this session. Only evidence is an IDE file-open event for dna-brain-3d/gemini-code-1783239590082.ts (see registry/AI_SESSIONS.json). Whoever picks this up should assess real current state before assuming it's untouched or complete."
+    },
+    {
+      "task": "Business Portal",
+      "assigned_to": "Any",
+      "path": "app/business/",
+      "priority": 3,
+      "status": "blocked",
+      "status_note": "app/business/page.tsx was reconciled this session (real registry-data wiring, see CHANGELOG DNA-000001). The tsc/build error is now fixed (DNA-000007: added portals.business = [{Dashboard, /business}], the one real page that exists) so this no longer blocks deployment — but the underlying design question in registry/CURRENT_STATE.json open_questions[1] (what should the Business Portal's real multi-dashboard nav actually contain) is still unresolved and unaffected by the stopgap fix."
+    }
+  ]
+}

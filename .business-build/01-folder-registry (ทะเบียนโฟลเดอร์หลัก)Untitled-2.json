@@ -1,0 +1,35 @@
+{
+  "name_en": "Documents",
+  "name_th": "การจัดการเอกสาร",
+  "description": "จัดการเอกสารทางธุรกิจทุกประเภท เช่น ใบแจ้งหนี้, ใบสั่งซื้อ, ใบส่งของ, ใบเสร็จรับเงิน และเอกสารอื่นๆ",
+  "interfaces": [
+    "Web Dashboard (Deadboard)",
+    "LINE Bot (via line_draft_documents)"
+  ],
+  "related_modules": [
+    "Debts",
+    "Partners",
+    "Jobs",
+    "Integrations"
+  ],
+  "api": {
+    "getDocuments": "ดึงข้อมูลเอกสารตามประเภท",
+    "getDocumentTypeCounts": "นับจำนวนเอกสารแต่ละประเภท",
+    "getLatestInvoice": "ดึงข้อมูลใบแจ้งหนี้ล่าสุด",
+    "getFirstInvoiceForPartner": "ดึงข้อมูลใบแจ้งหนี้ใบแรกของคู่ค้า",
+    "getReceipts": "ดึงข้อมูลใบเสร็จรับเงินทั้งหมด",
+    "createDocument": "สร้างเอกสารใหม่ (จาก Deadboard)",
+    "document.create": "สร้างเอกสารผ่าน Cognitive Executor (draft)",
+    "document.present": "จัดรูปแบบข้อมูลเอกสารสำหรับแสดงผล",
+    "pdf.export": "ส่งออกเอกสารเป็นไฟล์ PDF"
+  },
+  "database_tables": [
+    "documents",
+    "line_draft_documents"
+  ],
+  "events": {
+    "document_created": "เมื่อมีการสร้างเอกสารใหม่",
+    "document_status_changed": "เมื่อสถานะเอกสารเปลี่ยนแปลง (เช่น draft -> saved, paid)",
+    "document_exported": "เมื่อเอกสารถูกส่งออกเป็น PDF"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "generated_at": "2026-08-08T01:39:28.739Z",
+  "source": "registry/architecture-book.json + registry/module-registry.json (via scripts/build-arch-book.ts)",
+  "total_modules": 1082,
+  "missing_metadata": {
+    "data_tables": 900,
+    "business_capabilities": 988,
+    "domain_owner": 0,
+    "lifecycle_status": 0,
+    "note": "Counts of modules where the field could not be proven from source and was honestly marked UNKNOWN, not fabricated."
+  },
+  "duplicate_registrations": {
+    "count": 0,
+    "entries": []
+  },
+  "orphan_modules": {
+    "count": 6,
+    "entries": [
+      "module:engine.ts",
+      "module:local-runtime/workspace-root-verifier-acceptance-test.ts",
+      "module:local-runtime/storage-threshold-watcher.ts",
+      "module:local-runtime/storage-smoke-test.ts",
+      "module:local-runtime/runtime-registration-test.ts",
+      "module:dna-os-mcp-server/src/index-governance-http.ts"
+    ]
+  },
+  "dead_modules": {
+    "count": 6,
+    "entries": [
+      "module:engine.ts",
+      "module:local-runtime/workspace-root-verifier-acceptance-test.ts",
+      "module:local-runtime/storage-threshold-watcher.ts",
+      "module:local-runtime/storage-smoke-test.ts",
+      "module:local-runtime/runtime-registration-test.ts",
+      "module:dna-os-mcp-server/src/index-governance-http.ts"
+    ]
+  },
+  "unregistered_modules": {
+    "count": 0,
+    "entries": []
+  },
+  "circular_dependencies": {
+    "count": 0,
+    "cycles": []
+  },
+  "registry_completeness_pct": 0.92,
+  "permanently_unknown_fields": [
+    "related_workflows",
+    "related_business_events",
+    "related_documents",
+    "related_commands",
+    "related_services"
+  ],
+  "permanently_unknown_reason": "No reliable mechanical link exists in this codebase today (registry/execution's domain-registry loaders have zero real importers per DNA-000024's own audit) — excluded from the completeness score rather than counted against every module or fabricated."
+}

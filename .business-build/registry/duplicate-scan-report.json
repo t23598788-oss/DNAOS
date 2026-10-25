@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-10-12T13:25:56.941Z",
+  "policy": "Report only — this script NEVER deletes or moves anything. safeToRemove is a conservative suggestion (untracked + unreferenced + a real original exists), not an action. A human must set ownerConfirmation before any removal happens, and removal itself is a separate, manual step not performed by this script.",
+  "total_found": 1,
+  "suggested_safe_count": 0,
+  "entries": [
+    {
+      "duplicate": "scripts/_ide_regression_fixtures/dup-scan/sample 2.txt",
+      "original": "scripts/_ide_regression_fixtures/dup-scan/sample.txt",
+      "originalExists": true,
+      "gitTracked": false,
+      "referencedElsewhere": true,
+      "lastModified": "2026-10-12T13:25:56.449Z",
+      "safeToRemove": false,
+      "ownerConfirmation": null
+    }
+  ]
+}

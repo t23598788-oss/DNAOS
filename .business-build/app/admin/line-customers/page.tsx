@@ -1,0 +1,1060 @@
+'use client'
+
+import { useState, useEffect, useCallback, useRef } from "react"
+import Link from "next/link"
+import {
+  FileText,
+  MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip,
+} from "lucide-react"
+import { formatMoney } from "@/engines/documents/document-editor"
+import AppShell from "@/presentation/shell/AppShell";
+import { ConnectionsCredentialsBoard } from "@/components/admin/ConnectionsCredentialsBoard";
+import ActionBar, { type ActionBarItem } from "@/presentation/panels/ActionBar";
+import MapView from "@/presentation/viewer/MapView";
+import type { ListColumnItem } from "@/presentation/shell/navigation/ListColumn";
+
+interface Contact {
+  line_user_id: string
+  line_name: string | null
+  line_picture: string | null
+  message_count: number
+  first_message_at: string
+  last_message_at: string
+  last_message: string
+  matched_company: { id: string; name: string; tax_id: string | null; phone: string | null } | null
+  debt: { total_outstanding: number; collection_state: string; days_overdue: number } | null
+  has_pending_draft: boolean
+}
+
+interface Draft {
+  id: string
+  reason: string
+  proposed_text: string
+  status: string
+  created_at: string
+}
+
+const REASON_LABEL: Record<string, string> = {
+  debt_inquiry: "ตอบคำถามยอดหนี้",
+}
+
+interface Message {
+  id: string
+  raw_type: string
+  raw_text: string | null
+  direction: "in" | "out"
+  extracted: { latitude?: number; longitude?: number; address?: string; document_id?: string; document_no?: string; document_kind?: string; table?: string } | null
+  created_at: string
+  line_name?: string | null
+  // Delivery status (owner mission 2026-10-10, TEST F): provider message id
+  // captured by engines/response.ts#logOutboundToDb on accepted sends; status
+  // is line_events' own row status (out rows = 'processed' when LINE accepted).
+  line_message_id?: string | null
+  status?: string | null
+  // Attachment rendering (mission 2026-10-10 §2 item 4): fresh 5-min signed
+  // URL minted by the detail API from line_events.media_path (same private
+  // 'attachments' bucket pattern as the relationships feed).
+  media_url?: string | null
+}
+
+// DOCUMENT IMAGE & PREVIEW (owner mission 2026-10-10) — meta ของ
+// /document-preview?format=json (PREVIEW_ONLY, ไม่มีการส่ง LINE ในรอบนี้)
+interface PreviewMeta {
+  mode: string
+  sent: boolean
+  document: {
+    id: string
+    table: string
+    document_no: string
+    type: string
+    label: { th: string; en: string }
+    date: string
+    status: string
+    subtotal: number
+    vat: number
+    total: number
+    items_count: number
+    notes: string | null
+  }
+  recipient: { line_user_id: string; company_id: string }
+  delivery: { sent: boolean; line_message_id?: string | null; at?: string; status?: string }
+  original: {
+    status: string
+    origin?: string
+    folder?: string
+    created_at?: string
+    png_url?: string | null
+    pdf_url?: string | null
+    png_bytes?: number | null
+    pdf_bytes?: number | null
+    reason?: string
+    artifact?: {
+      artifact_id: string
+      sha256: string
+      size_bytes: number
+      produced_by: string
+      created_at: string
+      version_no: number | null
+    } | null
+  }
+  preview: { source: string; png_bytes: number; pdf_bytes: number; pdf_pages: number; image_scope: string; file_name: string }
+  line_presentation: { send_ready: boolean; note?: string; reason?: string; messages: unknown[] | null }
+}
+
+interface ActionLogEntry {
+  id: string
+  role: "user" | "system"
+  text: string
+  confirmToken?: string
+  confirmAction?: string
+  confirmResolved?: "confirmed" | "cancelled"
+}
+
+let actionLogSeq = 0
+function nextActionLogId() {
+  actionLogSeq += 1
+  return `a${Date.now()}-${actionLogSeq}`
+}
+
+interface DocRow {
+  id: string
+  invoice_no?: string
+  document_no?: string
+  invoice_status?: string
+  document_type?: string
+  total_amount: number
+  invoice_date?: string
+  document_date?: string
+  table: "invoices" | "standalone_documents"
+}
+
+interface BizEvent {
+  id: string
+  event_code: string
+  event_type: string | null
+  material_text: string | null
+  quantity: number | null
+  quantity_unit: string | null
+  destination: string | null
+  schedule_text: string | null
+  status: string
+  confidence: number
+  created_at: string
+}
+
+// ONE NAVIGATION (owner 2026-10-18): หน้านี้ถูกเปิดเป็นแท็บใน Workspace ซึ่งมี Sidebar หลัก
+// ชุดเดียวอยู่แล้ว — แถบไอคอนแนวตั้งด้านใน (LINE/งาน/คู่ค้า/เอกสาร/คลังเอกสาร/การเงิน/
+// ศูนย์ควบคุมทรัพยากร) เป็น navigation ซ้ำ จึงถูกถอดออกจาก UI นี้
+// ไม่ได้ลบเครื่องมือ/route ใด ๆ: ทุกทางเข้ายังอยู่ที่ Sidebar หลักของ Workspace (tools.json) เดิม
+
+// P5 display split (owner display-first directive, 2026-09-24): แยกโซนปุ่มเป็น
+// "งานธุรกิจ" (เอกสาร/ข้อมูล/พิกัด — ข้อมูลที่อ่าน/สร้างฝั่งธุรกิจ) กับ
+// "การสื่อสาร" (แนบไฟล์ — เส้นทางไปถึงลูกค้าผ่านผู้ให้บริการ LINE)
+// จัดกลุ่มเพื่อแสดงผลเท่านั้น — ไม่มีการย้าย fetch, เปลี่ยน route, หรือแตะ
+// backend เส้นเดิม (Owner: "เส้นเดิมทางข้อความ รูป แชต การส่งข้อมูลอย่างเดิม")
+const BUSINESS_ACTION_KEYS = new Set(["gps", "quotation", "invoice", "delivery", "receipt", "call", "boq", "billing"])
+
+function fmtTime(d: string) {
+  return new Date(d).toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" })
+}
+
+export default function LineCustomersPage() {
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [loading, setLoading] = useState(true)
+  // Owner request 2026-07-11: badge on "บ่อวัสดุ" so it's visible right here
+  // on the chat screen when the pricing engine couldn't answer a customer
+  // (event stuck at ready_to_quote — see event-followup.ts's ok/text fix) —
+  // reuses the existing quotation-queue instead of a new alerts table.
+  const [pendingQuotesCount, setPendingQuotesCount] = useState(0)
+  const [activeId, setActiveId] = useState<string | null>(null)
+  // PROVIDER CONTROL tab on this page: chat (default) vs the SAME Connections
+  // & Credentials board/data source /admin/settings renders — one settings
+  // system, never two (Connections & Credentials, 2026-09-24).
+  const [rightTab, setRightTab] = useState<"chat" | "credentials">("chat")
+  const [detail, setDetail] = useState<{ messages: Message[]; documents: DocRow[]; events: BizEvent[]; unlinkedCount: number; drafts: Draft[] } | null>(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [building, setBuilding] = useState(false)
+  const [buildError, setBuildError] = useState<string | null>(null)
+  const [draftEdits, setDraftEdits] = useState<Record<string, string>>({})
+  const [draftBusyId, setDraftBusyId] = useState<string | null>(null)
+  const [draftError, setDraftError] = useState<string | null>(null)
+  const [actionLog, setActionLog] = useState<ActionLogEntry[]>([])
+  const [actionSending, setActionSending] = useState(false)
+  const [gpsOpen, setGpsOpen] = useState(false)
+  const [replyText, setReplyText] = useState("")
+  const [replySending, setReplySending] = useState(false)
+  const [replyError, setReplyError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // DOCUMENT IMAGE & PREVIEW (owner mission 2026-10-10 §3) — preview ในหน้าจอ
+  // เดิม: เลือกเอกสารในบทสนทนา/รายการเอกสาร → modal ภาพเอกสารจริง + ขยายเต็มจอ
+  // + เปิดต้นฉบับ + ดาวน์โหลด ทั้งหมดอ่านจาก route document-preview (read-only)
+  const [preview, setPreview] = useState<{ table: string; id: string; label: string } | null>(null)
+  const [previewMeta, setPreviewMeta] = useState<PreviewMeta | null>(null)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewFull, setPreviewFull] = useState(false)
+
+  const openPreview = (table: string, id: string, label: string) => {
+    setPreviewFull(false)
+    setPreview({ table, id, label })
+  }
+  const previewUrl = (fmt: "json" | "png" | "pdf", source: "preview" | "original", download = false) =>
+    preview && activeId
+      ? `/api/admin/line-customers/${activeId}/document-preview?table=${encodeURIComponent(preview.table)}&id=${encodeURIComponent(preview.id)}&format=${fmt}&source=${source}${download ? "&download=1" : ""}`
+      : "#"
+
+
+  useEffect(() => {
+    fetch("/api/admin/line-customers")
+      .then((r) => r.json())
+      .then((d) => setContacts(d.contacts ?? []))
+      .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    function poll() {
+      fetch("/api/admin/quotation-queue")
+        .then((r) => r.json())
+        .then((d) => {
+          if (cancelled) return
+          // "ready_to_quote" ที่ยังค้างอยู่ = ระบบคำนวณราคาให้ไม่ได้จริงๆ
+          // (ข้อมูลครบแล้วแต่บ่อไม่มีราคาผูกไว้) — ต่างจาก awaiting_info ที่
+          // แค่รอข้อมูลลูกค้าเพิ่ม
+          const count = (d.queue ?? []).filter((e: { status: string }) => e.status === "ready_to_quote").length
+          setPendingQuotesCount(count)
+        })
+        .catch(() => {})
+    }
+    poll()
+    const id = setInterval(poll, 30000)
+    return () => { cancelled = true; clearInterval(id) }
+  }, [])
+
+  const loadDetail = useCallback(async (lineUserId: string) => {
+    const res = await fetch(`/api/admin/line-customers/${lineUserId}`)
+    const d = await res.json()
+    setDetail({ messages: d.messages ?? [], documents: d.documents ?? [], events: d.events ?? [], unlinkedCount: d.unlinkedCount ?? 0, drafts: d.drafts ?? [] })
+  }, [])
+
+  const selectContact = useCallback(async (lineUserId: string) => {
+    setActiveId(lineUserId)
+    setDetail(null)
+    setBuildError(null)
+    setActionLog([])
+    setGpsOpen(false)
+    setReplyText("")
+    setReplyError(null)
+    setDetailLoading(true)
+    try {
+      await loadDetail(lineUserId)
+    } finally {
+      setDetailLoading(false)
+    }
+  }, [loadDetail])
+
+  // Realtime conversation updates (owner mission 2026-10-10 item 10): while a
+  // thread is open, keep refreshing it from the SAME read API every 5s — the
+  // polling pattern this page already uses for the contact list (30s) and the
+  // quotation badge. Real rows only, no mock data, no second data path.
+  useEffect(() => {
+    if (!activeId) return
+    const id = setInterval(() => {
+      loadDetail(activeId).catch(() => {})
+    }, 5000)
+    return () => clearInterval(id)
+  }, [activeId, loadDetail])
+
+  // meta ของ document preview (ดึงเมื่อเปิด modal — อ่านอย่างเดียว ไม่มี side effect)
+  useEffect(() => {
+    if (!preview || !activeId) {
+      setPreviewMeta(null)
+      return
+    }
+    let cancelled = false
+    setPreviewLoading(true)
+    fetch(previewUrl("json", "preview"))
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!cancelled) setPreviewMeta(d && d.document ? (d as PreviewMeta) : null)
+      })
+      .catch(() => {
+        if (!cancelled) setPreviewMeta(null)
+      })
+      .finally(() => {
+        if (!cancelled) setPreviewLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preview, activeId])
+
+  // Esc: ออกจากโหมดเต็มจอ ก่อน แล้วค่อยปิด preview
+  useEffect(() => {
+    if (!preview) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (previewFull) setPreviewFull(false)
+        else setPreview(null)
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [preview, previewFull])
+
+  const sendDraft = useCallback(async (draftId: string, lineUserId: string) => {
+    setDraftBusyId(draftId)
+    setDraftError(null)
+    try {
+      const text = draftEdits[draftId]
+      const res = await fetch(`/api/admin/outbound-drafts/${draftId}/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(text ? { text } : {}),
+      })
+      const d = await res.json()
+      if (!res.ok) { setDraftError(d.error ?? "ส่งไม่สำเร็จ"); return }
+      await loadDetail(lineUserId)
+      setContacts((prev) => prev.map((c) => c.line_user_id === lineUserId ? { ...c, has_pending_draft: false } : c))
+    } finally {
+      setDraftBusyId(null)
+    }
+  }, [draftEdits, loadDetail])
+
+  const rejectDraft = useCallback(async (draftId: string, lineUserId: string) => {
+    setDraftBusyId(draftId)
+    setDraftError(null)
+    try {
+      const res = await fetch(`/api/admin/outbound-drafts/${draftId}/reject`, { method: "POST" })
+      if (!res.ok) { const d = await res.json(); setDraftError(d.error ?? "ยกเลิกไม่สำเร็จ"); return }
+      await loadDetail(lineUserId)
+      setContacts((prev) => prev.map((c) => c.line_user_id === lineUserId ? { ...c, has_pending_draft: false } : c))
+    } finally {
+      setDraftBusyId(null)
+    }
+  }, [loadDetail])
+
+  const buildEvent = useCallback(async (lineUserId: string) => {
+    setBuilding(true)
+    setBuildError(null)
+    try {
+      const res = await fetch(`/api/admin/line-customers/${lineUserId}/build-event`, { method: "POST" })
+      const d = await res.json()
+      if (!res.ok) {
+        setBuildError(d.error ?? "สร้าง Event ไม่สำเร็จ")
+        return
+      }
+      await loadDetail(lineUserId)
+    } finally {
+      setBuilding(false)
+    }
+  }, [loadDetail])
+
+  // Owner-reported gap 2026-07-11: this page had no way to type a real reply
+  // straight to the customer — only a draft-approval banner (only appears
+  // when the bot queued a draft) and an internal-only "ask AI" box. This
+  // pushes a real LINE message and refreshes the real thread.
+  const sendReply = useCallback(async (lineUserId: string) => {
+    const text = replyText.trim()
+    if (!text) return
+    setReplySending(true)
+    setReplyError(null)
+    try {
+      const res = await fetch(`/api/admin/line-customers/${lineUserId}/reply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text }),
+      })
+      const d = await res.json()
+      if (!res.ok) { setReplyError(d.error ?? "ส่งไม่สำเร็จ"); return }
+      setReplyText("")
+      await loadDetail(lineUserId)
+    } finally {
+      setReplySending(false)
+    }
+  }, [replyText, loadDetail])
+
+  // Action Bar → cognitive pipeline (owner request 2026-07-11: ปุ่มสร้างเอกสาร
+  // ไม่เรียก backend ใหม่ — ยิงข้อความไทยสำเร็จรูปเข้า /api/chat เหมือนพิมพ์เอง
+  // เพื่อใช้ Rule-72 preview/confirm flow เดิมที่ทำไว้แล้วสำหรับ SecretaryChat)
+  const runCommand = useCallback(async (text: string) => {
+    setActionSending(true)
+    setActionLog((log) => [...log, { id: nextActionLogId(), role: "user", text }])
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      })
+      const data = await res.json()
+      setActionLog((log) => [...log, {
+        id: nextActionLogId(),
+        role: "system",
+        text: data.text ?? "รับทราบครับ",
+        confirmToken: data.confirm_token,
+        confirmAction: data.confirm_action,
+      }])
+    } catch {
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: "เชื่อมต่อไม่สำเร็จ ลองใหม่อีกครั้งครับ" }])
+    } finally {
+      setActionSending(false)
+    }
+  }, [])
+
+  const confirmActionEntry = useCallback(async (entry: ActionLogEntry) => {
+    if (!entry.confirmToken || !entry.confirmAction) return
+    setActionLog((log) => log.map((x) => x.id === entry.id ? { ...x, confirmResolved: "confirmed" } : x))
+    try {
+      const res = await fetch("/api/chat/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: entry.confirmAction, preview_token: entry.confirmToken, lineUserId: activeId }),
+      })
+      const data = await res.json()
+      const text = !data.ok
+        ? `ยืนยันไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}`
+        : data.line_send_error
+        ? `✅ บันทึกเรียบร้อยครับ แต่${data.line_send_error}`
+        : "✅ บันทึกและส่งให้ลูกค้าทาง LINE เรียบร้อยครับ"
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text }])
+      if (data.ok && activeId) await loadDetail(activeId)
+    } catch {
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: "ยืนยันไม่สำเร็จ ลองใหม่อีกครั้งครับ" }])
+    }
+  }, [activeId, loadDetail])
+
+  const cancelActionEntry = useCallback((entry: ActionLogEntry) => {
+    setActionLog((log) => log.map((x) => x.id === entry.id ? { ...x, confirmResolved: "cancelled" } : x))
+  }, [])
+
+  const handleFileUpload = useCallback(async (file: File, lineUserId: string) => {
+    setActionLog((log) => [...log, { id: nextActionLogId(), role: "user", text: `📎 แนบไฟล์ ${file.name}` }])
+    const formData = new FormData()
+    formData.append("file", file)
+    formData.append("documentId", lineUserId)
+    try {
+      const res = await fetch("/api/admin/upload", { method: "POST", body: formData })
+      const data = await res.json()
+      setActionLog((log) => [...log, {
+        id: nextActionLogId(), role: "system",
+        text: res.ok ? `📎 แนบไฟล์ ${data.name} แล้ว` : `แนบไฟล์ไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}`,
+      }])
+    } catch {
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: "แนบไฟล์ไม่สำเร็จ ลองใหม่อีกครั้งครับ" }])
+    }
+  }, [])
+
+  // Owner request 2026-07-11: the debt figure and existing documents shown
+  // in this page were passive display only — these actually push a real
+  // LINE Flex card to the customer, right from this one screen.
+  const sendDebt = useCallback(async (lineUserId: string) => {
+    setActionSending(true)
+    setActionLog((log) => [...log, { id: nextActionLogId(), role: "user", text: "💰 ส่งแจ้งยอดค้างชำระ" }])
+    try {
+      const res = await fetch(`/api/admin/line-customers/${lineUserId}/send-debt`, { method: "POST" })
+      const data = await res.json()
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: data.ok ? "✅ ส่งแจ้งยอดค้างชำระให้ลูกค้าแล้ว" : `ส่งไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}` }])
+    } catch {
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: "ส่งไม่สำเร็จ ลองใหม่อีกครั้งครับ" }])
+    } finally {
+      setActionSending(false)
+    }
+  }, [])
+
+  // Owner request 2026-07-18: invoices go through the real, canonical
+  // SendInvoiceToLINE pipe (gateway/actions.ts::sendInvoiceToLine, exposed
+  // as the Retry Send endpoint) instead of the old /send-document route —
+  // same fix as app/admin/relationships/workspace.tsx. This page's Cockpit
+  // is a separate, simpler implementation (local ActionLogEntry type, no
+  // workflowStatus/flexPreview-bubble fields) that never received the
+  // status-ladder/chat-timeline redesign — kept to its existing plain-text
+  // pattern here rather than expanding scope into porting that UI to a
+  // second page; only the pipe changes, not the rendering.
+  const sendDocument = useCallback(async (lineUserId: string, doc: DocRow) => {
+    const label = doc.invoice_no ?? doc.document_no ?? ""
+    setActionSending(true)
+    setActionLog((log) => [...log, { id: nextActionLogId(), role: "user", text: `📄 ส่งเอกสาร ${label}` }])
+    try {
+      const res = doc.table === "invoices"
+        ? await fetch(`/api/admin/invoices/${doc.id}/send`, { method: "POST" })
+        : await fetch(`/api/admin/line-customers/${lineUserId}/send-document`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ table: doc.table, documentId: doc.id }),
+          })
+      const data = await res.json()
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: data.ok ? `✅ ส่ง ${label} ให้ลูกค้าแล้ว` : `ส่งไม่สำเร็จ: ${data.error ?? "ไม่ทราบสาเหตุ"}` }])
+    } catch {
+      setActionLog((log) => [...log, { id: nextActionLogId(), role: "system", text: "ส่งไม่สำเร็จ ลองใหม่อีกครั้งครับ" }])
+    } finally {
+      setActionSending(false)
+    }
+  }, [])
+
+  const listItems: ListColumnItem[] = contacts.map((c) => ({
+    id: c.line_user_id,
+    title: c.line_name ?? "ไม่ทราบชื่อ",
+    subtitle: c.last_message,
+    timestamp: fmtTime(c.last_message_at),
+    avatarUrl: c.line_picture ?? undefined,
+    highlighted: c.has_pending_draft,
+  }))
+
+  const activeContact = contacts.find((c) => c.line_user_id === activeId) ?? null
+  const pendingDrafts = detail?.drafts.filter((d) => d.status === "pending_review") ?? []
+
+  const companyName = activeContact?.matched_company?.name ?? null
+  const lastLocation = [...(detail?.messages ?? [])].reverse().find((m) => m.raw_type === "location" && m.extracted?.latitude != null)
+
+  const actionBarItems: ActionBarItem[] = activeContact ? [
+    {
+      key: "gps", label: "GPS", icon: MapPin,
+      onClick: () => setGpsOpen((v) => !v),
+      disabled: !lastLocation,
+      tooltip: lastLocation ? undefined : "ยังไม่มีพิกัดที่ลูกค้าส่งมา",
+    },
+    {
+      key: "quotation", label: "ใบเสนอราคา", icon: FileSignature,
+      onClick: () => runCommand(`เสนอราคาให้คุณ${companyName}`),
+      disabled: !companyName || actionSending,
+      tooltip: companyName ? undefined : "ยังไม่จับคู่บริษัท",
+    },
+    {
+      key: "invoice", label: "Invoice", icon: Receipt,
+      onClick: () => runCommand(`ออกบิลให้คุณ${companyName}`),
+      disabled: !companyName || actionSending,
+      tooltip: companyName ? undefined : "ยังไม่จับคู่บริษัท",
+    },
+    {
+      key: "delivery", label: "ส่งของ", icon: Truck,
+      onClick: () => runCommand(`ออกใบส่งสินค้าให้คุณ${companyName}`),
+      disabled: !companyName || actionSending,
+      tooltip: companyName ? undefined : "ยังไม่จับคู่บริษัท",
+    },
+    {
+      key: "receipt", label: "รับเงิน", icon: Banknote,
+      onClick: () => runCommand(`ออกใบเสร็จให้คุณ${companyName}`),
+      disabled: !companyName || actionSending,
+      tooltip: companyName ? undefined : "ยังไม่จับคู่บริษัท",
+    },
+    {
+      key: "call", label: "โทรหา", icon: Phone,
+      onClick: () => { if (activeContact.matched_company?.phone) window.location.href = `tel:${activeContact.matched_company.phone}` },
+      disabled: !activeContact.matched_company?.phone,
+      tooltip: activeContact.matched_company?.phone ? undefined : "ไม่มีเบอร์โทรในระบบ",
+    },
+    {
+      key: "attach", label: "ไฟล์", icon: Paperclip,
+      onClick: () => fileInputRef.current?.click(),
+    },
+    /* ONE AI COMPOSER (owner 2026-10-18): ปุ่ม "ถาม AI" + ช่องถามเฉพาะหน้านี้ถูกถอด
+       เพราะซ้ำกับกล่อง AI กลางของ Workspace — การรับส่งข้อความ LINE จริง (ช่องตอบลูกค้า/
+       ส่งเอกสาร/แนบไฟล์) ยังอยู่ครบเหมือนเดิม */
+  ] : []
+
+  const overflowActions: ActionBarItem[] = activeContact ? [
+    {
+      key: "boq", label: "สร้าง BOQ", icon: FileText,
+      onClick: () => runCommand(`สร้าง boq ให้คุณ${companyName}`),
+      disabled: !companyName,
+    },
+    {
+      key: "billing", label: "ใบวางบิล", icon: FileText,
+      onClick: () => runCommand(`ออกใบกำกับภาษีให้คุณ${companyName}`),
+      disabled: !companyName,
+    },
+  ] : []
+
+  // P5 display split — แยกปุ่มเป็น 2 โซน (display-only: ปุ่ม/onClick/route เดิมทุกตัว)
+  // · งานธุรกิจ = เอกสาร/ข้อมูล/พิกัด (รวม overflow BOQ/ใบวางบิล)
+  // · การสื่อสาร = เส้นทางถึงลูกค้าผ่านผู้ให้บริการ LINE (แนบไฟล์)
+  const businessActionItems = actionBarItems.filter((a) => BUSINESS_ACTION_KEYS.has(a.key))
+  const communicationActionItems = actionBarItems.filter((a) => !BUSINESS_ACTION_KEYS.has(a.key))
+
+  return (
+    <AppShell
+      listItems={listItems}
+      activeListId={activeId}
+      onSelectList={selectContact}
+      listSearchPlaceholder="ค้นหาชื่อหรือข้อความ..."
+      listEmptyMessage={loading ? "กำลังโหลด..." : "ยังไม่มีผู้ติดต่อ"}
+    >
+      {/* PROVIDER CONTROL — Tab: API & Credentials Management. Renders the SAME
+          shared board as /admin/settings → Connections & Credentials (one
+          component, one GET /api/admin/provider-settings, no second settings). */}
+      <div className="flex shrink-0 items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-1.5">
+        <div className="flex gap-1">
+          <button
+            type="button"
+            onClick={() => setRightTab("chat")}
+            className={`rounded-md px-2.5 py-1 text-[11px] ${
+              rightTab === "chat" ? "bg-white font-medium text-stone-800 shadow-sm" : "text-stone-500 hover:text-stone-700"
+            }`}
+          >
+            บทสนทนา
+          </button>
+          <button
+            type="button"
+            onClick={() => setRightTab("credentials")}
+            className={`rounded-md px-2.5 py-1 text-[11px] ${
+              rightTab === "credentials" ? "bg-white font-medium text-stone-800 shadow-sm" : "text-stone-500 hover:text-stone-700"
+            }`}
+          >
+            API &amp; Credentials Management
+          </button>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Badge เดิมเคยอยู่บนไอคอน rail (บ่อวัสดุ) ซึ่งถูกถอดตาม ONE NAVIGATION —
+              ตัวเลขจาก /api/admin/quotation-queue ชุดเดิมยังแสดงที่นี่ (ไม่ตัด business logic) */}
+          {pendingQuotesCount > 0 && (
+            <span
+              title="งานที่ระบบคำนวณราคาให้ไม่ได้ (ready_to_quote) จาก quotation-queue เดิม"
+              className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700"
+            >
+              รอใบเสนอราคา {pendingQuotesCount}
+            </span>
+          )}
+          <span className="text-[9px] font-semibold uppercase tracking-wider text-stone-400">Provider Control</span>
+        </div>
+      </div>
+      {rightTab === "credentials" ? (
+        <div className="min-h-0 flex-1 overflow-y-auto bg-stone-50 p-4">
+          <ConnectionsCredentialsBoard />
+        </div>
+      ) : !activeContact ? (
+        <div className="flex items-center justify-center h-full text-sm text-stone-400">
+          เลือกผู้ติดต่อทางซ้ายเพื่อดูบทสนทนา
+        </div>
+      ) : (
+        <div className="flex flex-col h-full">
+          {/* Header */}
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-200 flex-shrink-0 bg-white">
+            {activeContact.line_picture ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={activeContact.line_picture} alt="" className="w-9 h-9 rounded-full object-cover bg-stone-100" referrerPolicy="no-referrer" />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-stone-200" />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold text-stone-800 truncate">{activeContact.line_name ?? "ไม่ทราบชื่อ"}</p>
+              {activeContact.matched_company ? (
+                <Link href={`/admin/partners/${activeContact.matched_company.id}`} className="text-[11px] text-emerald-600 hover:underline">
+                  {activeContact.matched_company.name} →
+                </Link>
+              ) : (
+                <p className="text-[11px] text-stone-400">ยังไม่จับคู่กับบริษัทในระบบ</p>
+              )}
+            </div>
+            {activeContact.debt && (
+              <div className="text-right flex-shrink-0 flex items-center gap-2">
+                <div>
+                  <p className="text-xs font-semibold text-rose-600">{formatMoney(activeContact.debt.total_outstanding)} บาท</p>
+                  <p className="text-[10px] text-stone-400">ผิดนัด {activeContact.debt.days_overdue} วัน</p>
+                </div>
+                <button
+                  onClick={() => sendDebt(activeContact.line_user_id)}
+                  disabled={actionSending}
+                  className="text-[11px] font-medium px-2.5 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 disabled:opacity-40 transition"
+                >
+                  ส่ง
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Pending drafts — Rule 72 approval banner */}
+          {pendingDrafts.length > 0 && (
+            <div className="px-4 py-3 bg-rose-50 border-b border-rose-100 flex-shrink-0 space-y-2">
+              <div className="text-xs font-bold text-rose-600">📤 ข้อความรอเฮียอนุมัติก่อนส่ง ({pendingDrafts.length}) · เส้นทาง LINE</div>
+              {draftError && <div className="text-xs text-rose-600 bg-white border border-rose-200 rounded-lg px-3 py-2">{draftError}</div>}
+              {pendingDrafts.map((d) => (
+                <div key={d.id} className="bg-white border border-rose-200 rounded-lg p-3">
+                  <div className="text-[11px] text-rose-500 font-medium mb-1.5">{REASON_LABEL[d.reason] ?? d.reason}</div>
+                  <textarea
+                    className="w-full text-sm border border-stone-200 rounded-lg px-3 py-2 mb-2 min-h-[60px] focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    defaultValue={d.proposed_text}
+                    onChange={(e) => setDraftEdits((prev) => ({ ...prev, [d.id]: e.target.value }))}
+                  />
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => rejectDraft(d.id, activeContact.line_user_id)}
+                      disabled={draftBusyId === d.id}
+                      className="text-xs font-medium px-3 py-1.5 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 disabled:opacity-40"
+                    >
+                      ยกเลิก
+                    </button>
+                    <button
+                      onClick={() => sendDraft(d.id, activeContact.line_user_id)}
+                      disabled={draftBusyId === d.id}
+                      className="text-xs font-medium px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40"
+                    >
+                      {draftBusyId === d.id ? "กำลังส่ง..." : "ส่งให้ลูกค้า"}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Chat thread — LINE-style bubbles, both sides + ephemeral Action Bar log */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-[#e5ece5]">
+            {detailLoading && <div className="text-xs text-stone-400 text-center py-8 animate-pulse">กำลังโหลด...</div>}
+            {!detailLoading && detail?.messages.map((m) => (
+              <div key={m.id} className={"flex " + (m.direction === "out" ? "justify-end" : "justify-start")}>
+                <div className={"max-w-[70%] rounded-lg px-3 py-2 shadow-sm " + (m.direction === "out" ? "bg-[#a8e2a0]" : "bg-white border border-stone-200")}>
+                  <p className="text-[9px] text-stone-500 mb-0.5">{m.direction === "out" ? "ระบบ" : (m.line_name ?? "ลูกค้า")}</p>
+                  {m.media_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={m.media_url}
+                      alt={m.raw_type === "image" ? "รูปภาพจาก LINE" : "ไฟล์แนบจาก LINE"}
+                      className="mt-1 mb-1 max-h-48 w-auto rounded-md object-cover border border-stone-200 bg-white"
+                    />
+                  )}
+                  <p className="text-xs text-stone-800 whitespace-pre-line">{m.raw_text ?? `[${m.raw_type}]`}</p>
+                  {m.extracted?.document_id && (
+                    <button
+                      onClick={() =>
+                        openPreview(
+                          m.extracted!.table ?? (m.extracted!.document_kind === "invoice" ? "invoices" : "standalone_documents"),
+                          m.extracted!.document_id!,
+                          m.extracted!.document_no ?? "เอกสาร",
+                        )
+                      }
+                      title="เปิดภาพเอกสารตัวอย่าง (Preview — ไม่ส่งออก)"
+                      className="mt-1 inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border border-stone-300 bg-white/80 text-stone-600 hover:bg-white"
+                    >
+                      📄 เปิดเอกสาร {m.extracted.document_no ?? ""}
+                    </button>
+                  )}
+                  <p className="text-[9px] text-stone-500 mt-1 text-right">
+                    {fmtTime(m.created_at)}
+                    {m.direction === "out" && (
+                      m.status === "error" ? " · ส่งไม่สำเร็จ ✗"
+                        : (m.line_message_id || m.status === "processed") ? " · ส่งแล้ว ✓"
+                        : " · รอส่ง..."
+                    )}
+                  </p>
+                </div>
+              </div>
+            ))}
+
+            {/* Action Bar feedback — ephemeral, this session only (real results are
+                always persisted as real documents, see the collapsed section below) */}
+            {actionLog.map((entry) => (
+              <div key={entry.id} className={"flex " + (entry.role === "user" ? "justify-end" : "justify-start")}>
+                <div className={"max-w-[75%] rounded-lg px-3 py-2 shadow-sm " + (entry.role === "user" ? "bg-stone-800 text-white" : "bg-amber-50 border border-amber-200")}>
+                  <p className={"text-xs whitespace-pre-line " + (entry.role === "user" ? "text-white" : "text-stone-800")}>{entry.text}</p>
+                  {entry.confirmToken && !entry.confirmResolved && (
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        onClick={() => confirmActionEntry(entry)}
+                        className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[11px] font-semibold hover:bg-emerald-700 transition"
+                      >
+                        ยืนยัน
+                      </button>
+                      <button
+                        onClick={() => cancelActionEntry(entry)}
+                        className="px-2.5 py-1 rounded-lg border border-stone-300 text-stone-500 text-[11px] hover:bg-stone-50 transition"
+                      >
+                        ยกเลิก
+                      </button>
+                    </div>
+                  )}
+                  {entry.confirmResolved === "cancelled" && (
+                    <p className="mt-1 text-[10px] text-stone-400">ยกเลิกแล้ว ยังไม่บันทึกอะไร</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* พิมพ์ตอบลูกค้าโดยตรง — ข้อความจริงส่งเข้า LINE จริง ไม่ใช่ ephemeral */}
+          <div className="border-t border-stone-200 bg-white flex-shrink-0 p-2.5">
+            {/* P5 display: ป้ายโซนบอกว่านี่คือ provider control — เส้นส่งเดิมไม่เคยเปลี่ยน */}
+            <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-1.5">
+              ส่งข้อความถึงลูกค้า · LINE
+            </div>
+            {replyError && <div className="text-[11px] text-rose-600 bg-rose-50 border border-rose-200 rounded-lg px-2.5 py-1.5 mb-2">{replyError}</div>}
+            <div className="flex items-center gap-2">
+              <input
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendReply(activeContact.line_user_id) } }}
+                placeholder="พิมพ์ตอบลูกค้า..."
+                className="flex-1 text-xs border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-500"
+              />
+              <button
+                onClick={() => sendReply(activeContact.line_user_id)}
+                disabled={replySending || !replyText.trim()}
+                className="px-3 py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold disabled:opacity-40 hover:bg-emerald-700 transition"
+              >
+                {replySending ? "..." : "ส่ง"}
+              </button>
+            </div>
+          </div>
+
+          {/* GPS popover — real coordinates only, never guessed */}
+          {gpsOpen && lastLocation?.extracted?.latitude != null && lastLocation.extracted.longitude != null && (
+            <div className="border-t border-stone-200 bg-white flex-shrink-0 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-stone-600">{lastLocation.extracted.address ?? "พิกัดล่าสุดที่ส่งมา"}</span>
+                <button onClick={() => setGpsOpen(false)} className="text-[11px] text-stone-400 hover:text-stone-700">ปิด</button>
+              </div>
+              <MapView
+                title="พิกัดล่าสุด"
+                onClose={() => setGpsOpen(false)}
+                markers={[{ id: "loc", label: lastLocation.extracted.address ?? "จุดส่ง", x: 50, y: 50, tone: "success" }]}
+              />
+            </div>
+          )}
+
+          {/* Action Bar — P5 display split: 2 โซน label ชัดเจน · ปุ่ม/ป backend เดิมทุกตัว
+              โซน 1 = งานธุรกิจ (เอกสาร/ข้อมูล) · โซน 2 = การสื่อสารถึงลูกค้าผ่าน LINE */}
+          {businessActionItems.length > 0 && (
+            <>
+              <div className="px-3 pt-2 text-[10px] font-bold text-stone-400 uppercase tracking-wide bg-white flex-shrink-0">
+                งานธุรกิจ · เอกสารและข้อมูล
+              </div>
+              <ActionBar actions={businessActionItems} overflowActions={overflowActions} />
+            </>
+          )}
+          {communicationActionItems.length > 0 && (
+            <>
+              <div className="px-3 pt-2 text-[10px] font-bold text-stone-400 uppercase tracking-wide bg-white flex-shrink-0 border-t border-stone-100">
+                การสื่อสารกับลูกค้า · ผ่าน LINE
+              </div>
+              <ActionBar actions={communicationActionItems} />
+            </>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (file && activeContact) handleFileUpload(file, activeContact.line_user_id)
+              e.target.value = ""
+            }}
+          />
+
+          {/* Business events + documents — collapsed detail, not part of the chat scroll */}
+          {!detailLoading && detail && (
+            <details className="border-t border-stone-200 bg-white flex-shrink-0 max-h-64 overflow-y-auto">
+              <summary className="px-4 py-2 text-xs font-semibold text-stone-500 cursor-pointer select-none hover:text-stone-800">
+                รายละเอียดเพิ่มเติม (Business Events {detail.events.length} · เอกสาร {detail.documents.length})
+              </summary>
+              <div className="px-4 pb-4 space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wide">Business Events</div>
+                    <button
+                      onClick={() => buildEvent(activeContact.line_user_id)}
+                      disabled={building || detail.unlinkedCount === 0}
+                      className="text-[11px] font-medium px-2.5 py-1 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    >
+                      {building ? "กำลังสร้าง..." : detail.unlinkedCount === 0 ? "ไม่มีข้อความใหม่" : `สร้าง Event จาก ${detail.unlinkedCount} ข้อความใหม่`}
+                    </button>
+                  </div>
+                  {buildError && <div className="text-xs text-rose-600 bg-rose-50 border border-rose-100 rounded-lg px-3 py-2 mb-2">{buildError}</div>}
+                  {detail.events.length === 0 ? (
+                    <div className="text-xs text-stone-400">ยังไม่มี Event ที่สร้างจากข้อความกลุ่มนี้</div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {detail.events.map((ev) => (
+                        <div key={ev.id} className="bg-stone-50 border border-stone-200 rounded-lg px-3 py-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-mono font-semibold text-emerald-700">{ev.event_code}</span>
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">{ev.status}</span>
+                          </div>
+                          <div className="mt-1 text-xs text-stone-700">
+                            {ev.material_text ?? "—"} {ev.quantity ? `${ev.quantity} ${ev.quantity_unit ?? ""}` : ""} {ev.destination ? `→ ${ev.destination}` : ""}
+                          </div>
+                          {ev.schedule_text && <div className="text-[11px] text-stone-500 mt-0.5">กำหนด: {ev.schedule_text}</div>}
+                          <div className="text-[11px] text-stone-400 mt-0.5">ความมั่นใจ: {Math.round(ev.confidence * 100)}%</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wide mb-2">เอกสาร</div>
+                  {detail.documents.length === 0 ? (
+                    <div className="text-xs text-stone-400">ไม่มีเอกสารที่จับคู่ได้</div>
+                  ) : (
+                    <div className="space-y-1">
+                      {detail.documents.map((d) => (
+                        <div key={d.id} className="flex items-center justify-between text-xs bg-stone-50 border border-stone-200 rounded-lg px-3 py-1.5 gap-2">
+                          <span className="text-stone-700">{d.invoice_no ?? d.document_no} <span className="text-stone-400">({d.invoice_status ?? d.document_type})</span></span>
+                          <span className="font-medium text-stone-800 tabular-nums">{formatMoney(d.total_amount)}</span>
+                          <span className="flex gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => openPreview(d.table, d.id, d.invoice_no ?? d.document_no ?? "เอกสาร")}
+                            disabled={actionSending}
+                            title="ดูภาพเอกสารตัวอย่าง (Preview — ไม่ส่งออก)"
+                            className="text-[10px] font-medium px-2 py-1 rounded-lg border border-stone-300 text-stone-700 hover:bg-stone-100 disabled:opacity-40 transition"
+                          >
+                            ดู
+                          </button>
+                          <button
+                            onClick={() => sendDocument(activeContact.line_user_id, d)}
+                            disabled={actionSending}
+                            className="text-[10px] font-medium px-2 py-1 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 disabled:opacity-40 transition"
+                          >
+                            ส่ง
+                          </button>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </details>
+          )}
+        </div>
+      )}
+    {/* DOCUMENT IMAGE & PREVIEW modal (owner mission 2026-10-10 §3) — อยู่ในหน้าจอ
+        เดิม: ภาพเอกสารจริงจาก renderer เดิม + ขยายเต็มจอ + เปิดต้นฉบับ + ดาวน์โหลด
+        + รายละเอียด/ผู้รับ/สถานะส่ง ทั้งหมดอ่านจาก document-preview (PREVIEW ONLY) */}
+    {preview && activeId && (
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+        onClick={() => {
+          setPreviewFull(false)
+          setPreview(null)
+        }}
+      >
+        <div
+          className={`bg-white shadow-2xl flex flex-col overflow-hidden ${previewFull ? "fixed inset-0 rounded-none" : "w-full max-w-3xl max-h-[90vh] rounded-xl"}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between border-b border-stone-200 bg-stone-50 px-4 py-2.5 flex-shrink-0">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-stone-800 truncate">
+                {previewMeta?.document.label.th ?? "เอกสาร"} {preview.label}
+                {previewMeta && (
+                  <span className="ml-2 text-[10px] font-normal text-stone-400">{previewMeta.document.status}</span>
+                )}
+              </div>
+              <div className="text-[10px] text-stone-500 truncate">
+                {previewMeta
+                  ? previewMeta.original.status === "ORIGINAL"
+                    ? `ไฟล์จริงใน Storage · ${previewMeta.original.origin === "RECONSTRUCTED" ? "RECONSTRUCTED (กู้จาก canonical record)" : previewMeta.original.origin === "STORED_ARTIFACT" ? "ไฟล์ตอนส่ง" : "ไม่มี metadata"} · ${previewMeta.original.folder ?? ""} · สร้าง ${String(previewMeta.original.created_at ?? "").slice(0, 19)}`
+                    : "ยังไม่มีไฟล์ต้นฉบับ (MISSING_SOURCE) — ภาพนี้ render จาก canonical record"
+                  : "กำลังโหลด..."}
+              </div>
+            </div>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                onClick={() => setPreviewFull((v) => !v)}
+                title={previewFull ? "ย่อลง" : "ขยายเต็มจอ"}
+                className="text-xs px-2 py-1 rounded border border-stone-300 hover:bg-stone-100"
+              >
+                {previewFull ? "ย่อ" : "⛶ เต็มจอ"}
+              </button>
+              <button onClick={() => setPreview(null)} title="ปิด (Esc)" className="text-xs px-2 py-1 rounded border border-stone-300 hover:bg-stone-100">
+                ✕ ปิด
+              </button>
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-auto bg-stone-100 p-3 flex items-start justify-center">
+            {previewLoading ? (
+              <div className="text-xs text-stone-400 py-16 animate-pulse">กำลัง render เอกสาร...</div>
+            ) : previewMeta && previewMeta.document.id ? (
+              <img
+                src={previewUrl("png", "preview")}
+                alt={`ภาพเอกสาร ${previewMeta.document.document_no}`}
+                className="max-w-full bg-white shadow border border-stone-200"
+                style={previewFull ? { width: "auto", maxHeight: "none" } : { maxHeight: "60vh", width: "auto" }}
+              />
+            ) : (
+              <div className="text-xs text-rose-500 py-16">เปิด preview ไม่สำเร็จ — ดูรายละเอียดด้านล่าง</div>
+            )}
+          </div>
+          {previewMeta && (
+            <div className="border-t border-stone-200 bg-white px-4 py-2.5 text-[11px] text-stone-600 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-1 flex-shrink-0">
+              <div><span className="text-stone-400">วันที่</span> {previewMeta.document.date || "-"}</div>
+              <div><span className="text-stone-400">ผู้รับ</span> {previewMeta.recipient.line_user_id.slice(0, 12)}…</div>
+              <div><span className="text-stone-400">ยอดสุทธิ</span> {formatMoney(previewMeta.document.total)}</div>
+              <div><span className="text-stone-400">รายการ</span> {previewMeta.document.items_count} รายการ</div>
+              <div>
+                <span className="text-stone-400">สถานะส่ง</span>{" "}
+                {previewMeta.delivery.sent ? (
+                  <span className="text-emerald-600">ส่งแล้ว ✓{previewMeta.delivery.line_message_id ? ` (${String(previewMeta.delivery.line_message_id).slice(0, 10)}…)` : ""}</span>
+                ) : (
+                  <span className="text-stone-500">ยังไม่ได้ส่ง</span>
+                )}
+              </div>
+              <div>
+                <span className="text-stone-400">ต้นฉบับ</span>{" "}
+                {previewMeta.original.status === "ORIGINAL" ? (
+                  <span className="text-emerald-600">
+                    {previewMeta.original.origin === "RECONSTRUCTED" ? "มีไฟล์จริง (กู้คืน)" : previewMeta.original.origin === "STORED_ARTIFACT" ? "มีไฟล์จริง" : "มีไฟล์ (ไม่มี metadata)"}
+                  </span>
+                ) : (
+                  <span className="text-amber-600">MISSING_SOURCE</span>
+                )}
+              </div>
+              <div>
+                <span className="text-stone-400">Artifact</span>{" "}
+                {previewMeta.original.artifact ? (
+                  <span className="tabular-nums" title={`sha256: ${previewMeta.original.artifact.sha256}`}>
+                    sha {previewMeta.original.artifact.sha256.slice(0, 8)}… · v{previewMeta.original.artifact.version_no ?? "?"}
+                  </span>
+                ) : (
+                  <span className="text-stone-400">—</span>
+                )}
+              </div>
+              <div><span className="text-stone-400">PDF</span> {previewMeta.preview.pdf_pages} หน้า</div>
+              <div>
+                <span className="text-stone-400">รูปแบบ LINE</span>{" "}
+                {previewMeta.line_presentation.send_ready ? (
+                  <span className="text-emerald-600">พร้อมส่งเป็นรูป (ยังไม่ส่ง)</span>
+                ) : (
+                  <span className="text-stone-400">ยังไม่พร้อม (ไม่มีต้นฉบับ)</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="border-t border-stone-200 bg-stone-50 px-4 py-2.5 flex flex-wrap items-center gap-2 flex-shrink-0">
+            <a href={previewUrl("png", "preview", true)} download className="text-xs px-2.5 py-1.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-100">
+              ⬇ ดาวน์โหลด PNG
+            </a>
+            <a
+              href={previewUrl("pdf", previewMeta?.original.status === "ORIGINAL" ? "original" : "preview", true)}
+              download
+              className="text-xs px-2.5 py-1.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-100"
+            >
+              ⬇ ดาวน์โหลด PDF {previewMeta?.original.status === "ORIGINAL" ? "(ต้นฉบับ)" : "(render ใหม่)"}
+            </a>
+            <a
+              href={previewUrl("pdf", previewMeta?.original.status === "ORIGINAL" ? "original" : "preview")}
+              target="_blank"
+              rel="noreferrer"
+              className="text-xs px-2.5 py-1.5 rounded-lg border border-stone-300 bg-white hover:bg-stone-100"
+            >
+              เปิดดูทุกหน้า (PDF)
+            </a>
+            {previewMeta?.original.status === "ORIGINAL" && previewMeta.original.png_url && (
+              <a
+                href={previewMeta.original.png_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs px-2.5 py-1.5 rounded-lg border border-emerald-300 text-emerald-700 bg-emerald-50 hover:bg-emerald-100"
+              >
+                เปิดไฟล์ต้นฉบับจริง
+              </a>
+            )}
+            <span className="ml-auto text-[10px] text-stone-400">PREVIEW ONLY — ไม่มีการส่งข้อความใด ๆ ออก LINE</span>
+          </div>
+        </div>
+      </div>
+    )}
+    </AppShell>
+  )
+}

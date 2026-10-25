@@ -1,0 +1,55 @@
+{
+  "generatedAt": "2026-08-07T23:54:48.696Z",
+  "domains": [
+    {
+      "domain": "Factory",
+      "status": "OPERATIONAL",
+      "evidence": "registry/factory-summary.json real: coverage_percent=98.3"
+    },
+    {
+      "domain": "Workspace",
+      "status": "OPERATIONAL",
+      "evidence": "real, single WORKSPACE_ROOT confirmed: /Users/tam/Desktop/DNA OS-ต้นฉบับ /dna-os-deadboard (no second workspace exists in this repo)"
+    },
+    {
+      "domain": "Capability",
+      "status": "PARTIAL",
+      "evidence": "202 real capabilities, resolverExists=true — Foundation is real and structurally sound (frozen, checksum-locked, 202 capabilities each with real contracts). As of Step 13, a real, deterministic Capability Resolver (capabilityResolverRuntime.ts) exists — real multi-factor scoring (domain/dependency/evidence/lifecycle), never a name-only match, never auto-creates a new Capability. It is wired to real routes (resolve-capabilities, capabilities/search) and to factoryWorkspaceRuntime.ts's real Workspace Session flow."
+    },
+    {
+      "domain": "Package",
+      "status": "OPERATIONAL",
+      "evidence": "releaseRuntime.ts#packageCapabilities() returned 202 real Capability Packages"
+    },
+    {
+      "domain": "Deployment",
+      "status": "NOT_IMPLEMENTED",
+      "evidence": "Deployment Orchestration Runtime (Step 11) real and read-only; real deploy execution forbidden by mission — factory DEPLOYMENT_READY gate: NOT_IMPLEMENTED"
+    },
+    {
+      "domain": "Monitoring",
+      "status": "PARTIAL",
+      "evidence": "real, observe-only Monitoring Runtime exists (Step 12, 18 real Signal Types) — on-demand only, no scheduled loop or alerting; factory MONITORING_READY gate: PARTIAL"
+    },
+    {
+      "domain": "Incident",
+      "status": "PARTIAL",
+      "evidence": "real Incident Runtime exists (Step 12, opens/correlates from real Monitoring findings, never auto-closed) — on-demand only, no automatic trigger; factory INCIDENT_RECOVERY_READY gate: PARTIAL"
+    },
+    {
+      "domain": "Recovery",
+      "status": "PARTIAL",
+      "evidence": "real Recovery Runtime exists (Step 12, real Plan + evidence-based Verification) — every real, mutating action is PLAN_ONLY/NOT_IMPLEMENTED by mission mandate; scripts/backup.ts is real but has no verified automated restore-test cycle (Phase 12 audit)."
+    },
+    {
+      "domain": "Backup",
+      "status": "PARTIAL",
+      "evidence": "real Backup & Restore Test Runtime exists (Step 12.5) — real backup discovery, real deterministic integrity verification (backupRuntime.ts), real dry-run Restore Test (restoreTestRuntime.ts, always PLAN_ONLY — no isolated database target exists); factory BACKUP_READY gate: PARTIAL"
+    },
+    {
+      "domain": "Alerting",
+      "status": "PARTIAL",
+      "evidence": "real Alert Runtime exists (Step 12.5) — real, deterministic dispatch from real Incidents via the real, single LINE gateway (registry/communication.ts#sendLineMessage); LINE channel is real but PARTIAL in this environment (LINE_CHANNEL_ACCESS_TOKEN not configured); DISPATCHED never implies DELIVERED."
+    }
+  ]
+}

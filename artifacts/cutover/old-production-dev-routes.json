@@ -1,0 +1,1287 @@
+[
+  {
+    "route": "/admin/api-explorer",
+    "category": "api_explorer",
+    "type": "page"
+  },
+  {
+    "route": "/admin/backup",
+    "category": "infrastructure_control",
+    "type": "page"
+  },
+  {
+    "route": "/admin/dbd",
+    "category": "dbd_console",
+    "type": "page"
+  },
+  {
+    "route": "/admin/deploy",
+    "category": "build_deploy_control",
+    "type": "page"
+  },
+  {
+    "route": "/admin/dev-loop",
+    "category": "dev_loop",
+    "type": "page"
+  },
+  {
+    "route": "/admin/dna",
+    "category": "system_introspection",
+    "type": "page"
+  },
+  {
+    "route": "/admin/engine-explorer",
+    "category": "engine_explorer",
+    "type": "page"
+  },
+  {
+    "route": "/admin/ide",
+    "category": "ide",
+    "type": "page"
+  },
+  {
+    "route": "/admin/infrastructure",
+    "category": "infrastructure_settings",
+    "type": "page"
+  },
+  {
+    "route": "/admin/links",
+    "category": "infrastructure_settings",
+    "type": "page"
+  },
+  {
+    "route": "/admin/reader",
+    "category": "source_browser",
+    "type": "page"
+  },
+  {
+    "route": "/admin/schema-audit",
+    "category": "sql_console",
+    "type": "page"
+  },
+  {
+    "route": "/admin/storage",
+    "category": "infrastructure_control",
+    "type": "page"
+  },
+  {
+    "route": "/admin/system-config",
+    "category": "infrastructure_settings",
+    "type": "page"
+  },
+  {
+    "route": "/admin/traces",
+    "category": "runtime_introspection",
+    "type": "page"
+  },
+  {
+    "route": "/admin/ui-gallery",
+    "category": "ui_gallery",
+    "type": "page"
+  },
+  {
+    "route": "/admin/ui-gallery/assistants",
+    "category": "ui_gallery",
+    "type": "page"
+  },
+  {
+    "route": "/admin/ui-gallery/business-display",
+    "category": "ui_gallery",
+    "type": "page"
+  },
+  {
+    "route": "/admin/ui-gallery/compare",
+    "category": "ui_gallery",
+    "type": "page"
+  },
+  {
+    "route": "/admin/ui-gallery/lab",
+    "category": "ui_gallery",
+    "type": "page"
+  },
+  {
+    "route": "/admin/ui-gallery/preview",
+    "category": "ui_gallery",
+    "type": "page"
+  },
+  {
+    "route": "/admin/ui-gallery/visual-review",
+    "category": "ui_gallery",
+    "type": "page"
+  },
+  {
+    "route": "/admin/workspace",
+    "category": "developer_workspace_admin",
+    "type": "page"
+  },
+  {
+    "route": "/api/admin/architecture/control-graph",
+    "category": "architecture",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/backup",
+    "category": "infrastructure_control",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/capability-boxes",
+    "category": "developer_workspace_admin",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/capability-boxes/run",
+    "category": "developer_workspace_admin",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/dev-loop/approve",
+    "category": "dev_loop",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/dev-loop/problem-report",
+    "category": "dev_loop",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/domains/availability",
+    "category": "infrastructure_control",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/domains/register",
+    "category": "infrastructure_control",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/domains/suggestions",
+    "category": "infrastructure_control",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/domains/whois",
+    "category": "infrastructure_control",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/artifact/[artifactId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/artifact/[artifactId]/children",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/artifact/[artifactId]/evidence",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/artifact/[artifactId]/lineage",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/artifact/[artifactId]/parents",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/artifact/[artifactId]/regenerate",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/artifact/events",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/artifact/integrity",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/artifact/list",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/build/environment-profiles",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/build/registry",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/build/runs",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/build/runs/[buildRunId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/build/runs/[buildRunId]/artifacts",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/build/runs/[buildRunId]/cancel",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/build/runs/[buildRunId]/compare",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/build/runs/[buildRunId]/evidence",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/build/runs/[buildRunId]/findings",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/build/runs/[buildRunId]/manifest",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/build/runs/[buildRunId]/outputs",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/build/runs/[buildRunId]/rerun",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/classification",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/command",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/decisions",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/deployment/plans",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/deployment/plans/[deploymentPlanId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/execution-context",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/execution-context/approve",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/execution-context/gate",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/execution/cancel/[id]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/execution/commands",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/execution/run",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/execution/run/[id]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/execution/runs",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/execution/stream/[id]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-completion",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-readiness",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/capabilities/search",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/approve-context",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/approve-plan",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/approve-proposal",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/approve-review",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/build",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/create-plan",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/decide",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/execute",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/generate-proposal",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/intent",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/prepare-context",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/release",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/resolve-capabilities",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/result",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/sessions/[id]/vscode-dependency",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/factory-workspace/workers",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/file",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/fs/create",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/fs/move",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/fs/rename",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/fs/restore",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/fs/trash",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/git/blame",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/git/branches",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/git/conflicts",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/git/diff",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/git/history",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/git/merge-status",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/git/status",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/git/tags",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/global-factory",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/governance/events",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/governance/factories",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/governance/rules",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/governance/rules/[ruleId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/governance/summary",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/governance/verify",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/inspection/[inspectionId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/inspection/[inspectionId]/cancel",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/inspection/job/[jobId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/inspection/list",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/inspection/run",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/alerts",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/alerts/[id]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/alerts/[id]/acknowledge",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/backups",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/backups/[id]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/backups/[id]/verify",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/events",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/incidents",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/incidents/[incidentId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/incidents/[incidentId]/status",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/loop/run",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/loop/runs",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/loop/runs/[id]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/monitoring/collect",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/monitoring/signals",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/monitoring/signals/[signalId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/monitoring/summary",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/readiness",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/recovery/plans",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/recovery/plans/[planId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/recovery/plans/[planId]/approve",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/recovery/plans/[planId]/verify",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/restore-tests",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/restore-tests/[id]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/restore-tests/[id]/verify",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/operations/status",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/owner-command",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/owner-command/approve",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/problems",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/queue/cancel/[id]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/queue/clear",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/queue/job/[id]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/queue/jobs",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/queue/retry/[id]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/queue/types",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/release/packages",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/release/registry",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/release/runs",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/release/runs/[releaseRunId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/release/runs/[releaseRunId]/rerun",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/review/change-sets",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/review/change-sets/[changeSetId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/review/change-sets/[changeSetId]/artifacts",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/review/change-sets/[changeSetId]/decision",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/review/change-sets/[changeSetId]/diff",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/review/change-sets/[changeSetId]/evidence",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/review/change-sets/[changeSetId]/findings",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/review/change-sets/[changeSetId]/impact",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/review/change-sets/[changeSetId]/refresh",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/review/change-sets/[changeSetId]/review",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/search",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/security/capabilities",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/security/defense",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/security/execution-gate",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/security/external-surface/discover",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/security/external-surface/domains",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/security/external-surface/domains/[id]/verify",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/security/forensics/[artifactId]/timeline",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/security/knowledge",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/settings",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/standards",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/test/runs",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/test/runs/[testRunId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/test/runs/[testRunId]/rerun",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/tree",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/ui-inspection/[inspectionId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/ui-inspection/[inspectionId]/artifacts",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/ui-inspection/[inspectionId]/cancel",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/ui-inspection/[inspectionId]/findings",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/ui-inspection/[inspectionId]/rerun",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/ui-inspection/[inspectionId]/snapshot/[artifactId]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/ui-inspection/[inspectionId]/viewports",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/ui-inspection/capability",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/ui-inspection/list",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/ui-inspection/run",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/workers",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/workers/[id]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/workers/[id]/health",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/workers/budget",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/workers/execute",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/workers/executions",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/workers/executions/[id]",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/workers/select",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/ide/workers/settings",
+    "category": "ide",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/infrastructure",
+    "category": "infrastructure_settings",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/runtime/document-engine",
+    "category": "runtime_introspection",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/schema-audit",
+    "category": "sql_console",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/storage-intelligence",
+    "category": "infrastructure_control",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/system-config",
+    "category": "infrastructure_settings",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/system-reality",
+    "category": "system_introspection",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/workspace",
+    "category": "developer_workspace_admin",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/workspace/ai-agents",
+    "category": "developer_workspace_admin",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/workspace/automation",
+    "category": "developer_workspace_admin",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/workspace/database",
+    "category": "developer_workspace_admin",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/workspace/file",
+    "category": "developer_workspace_admin",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/workspace/status",
+    "category": "developer_workspace_admin",
+    "type": "api"
+  },
+  {
+    "route": "/api/admin/workspace/tree",
+    "category": "developer_workspace_admin",
+    "type": "api"
+  },
+  {
+    "route": "/api/build",
+    "category": "build_deploy_control",
+    "type": "api"
+  },
+  {
+    "route": "/api/dbd",
+    "category": "dbd_console",
+    "type": "api"
+  },
+  {
+    "route": "/api/deploy",
+    "category": "build_deploy_control",
+    "type": "api"
+  },
+  {
+    "route": "/api/governance",
+    "category": "architecture",
+    "type": "api"
+  },
+  {
+    "route": "/api/manual-doc",
+    "category": "stub",
+    "type": "api"
+  },
+  {
+    "route": "/api/reader",
+    "category": "source_browser",
+    "type": "api"
+  },
+  {
+    "route": "/api/routes",
+    "category": "api_explorer",
+    "type": "api"
+  },
+  {
+    "route": "/api/self-description",
+    "category": "system_introspection",
+    "type": "api"
+  },
+  {
+    "route": "/api/traces",
+    "category": "runtime_introspection",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/constitution",
+    "category": "system_introspection",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/drivers",
+    "category": "system_introspection",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/mcp/architecture/dependency-graph",
+    "category": "architecture",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/mcp/architecture/summary",
+    "category": "architecture",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/mcp/contractor/evidence-submit",
+    "category": "developer_worker_contract",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/mcp/contractor/status",
+    "category": "developer_worker_contract",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/mcp/contractor/task-claim",
+    "category": "developer_worker_contract",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/mcp/governance/deploy-approval-status",
+    "category": "dev_loop",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/mcp/governance/impact/[evidenceEventId]",
+    "category": "dev_loop",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/mcp/governance/registry-proposals",
+    "category": "dev_loop",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/mcp/governance/session-proposals",
+    "category": "dev_loop",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/mcp/governance/status",
+    "category": "dev_loop",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/modules",
+    "category": "system_introspection",
+    "type": "api"
+  },
+  {
+    "route": "/api/v1/workflows",
+    "category": "system_introspection",
+    "type": "api"
+  },
+  {
+    "route": "/business-workspace-template",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/business-workspace-template/documents",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/business-workspace-template/login",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/business-workspace-template/overview",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/business-workspace-template/tasks",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/business-workspace-template/workspace",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/developer",
+    "category": "developer_workspace",
+    "type": "page"
+  },
+  {
+    "route": "/examples",
+    "category": "api_examples",
+    "type": "page"
+  },
+  {
+    "route": "/observer",
+    "category": "system_introspection",
+    "type": "page"
+  },
+  {
+    "route": "/observer.json",
+    "category": "system_introspection",
+    "type": "page"
+  },
+  {
+    "route": "/playground",
+    "category": "api_playground",
+    "type": "page"
+  },
+  {
+    "route": "/start",
+    "category": "engineering_workspace",
+    "type": "page"
+  },
+  {
+    "route": "/workspace-preview",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/workspace-preview/apps/[appId]",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/workspace-preview/debt-widget",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/workspace-preview/document",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/workspace-preview/invoice",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/workspace-preview/material",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/workspace-preview/order",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/workspace-preview/partner",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/workspace-preview/transport",
+    "category": "preview_template",
+    "type": "page"
+  },
+  {
+    "route": "/workspace-preview/workflow",
+    "category": "preview_template",
+    "type": "page"
+  }
+]

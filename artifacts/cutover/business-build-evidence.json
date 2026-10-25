@@ -1,0 +1,1873 @@
+{
+  "generated_at": "2026-10-20T08:18:24.443Z",
+  "directive": "DNA OS — STRICT BUSINESS-ONLY PRODUCTION CUTOVER (owner directive 2026-10-20)",
+  "authority_registry": "registry/business-production-surface.json",
+  "stage_dir": ".business-build",
+  "build": {
+    "ran": true,
+    "ok": false,
+    "log_tail": "▲ Next.js 16.2.9 (Turbopack)\n- Experiments (use with caution):\n  ⨯ serverSourceMaps\n\n  Creating an optimized production build ...\n✓ Compiled successfully in 8.0s\n  Running TypeScript ...\n  Finished TypeScript in 10.1s ...\n  Collecting page data using 9 workers ...\n  Generating static pages using 9 workers (0/155) ...\n  Generating static pages using 9 workers (38/155) \r\n\n⚠ The \"middleware\" file convention is deprecated. Please use \"proxy\" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy\nTurbopack build encountered 1 warnings:\n./next.config.ts\nEncountered unexpected file in NFT list\nA file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:\n- filesystem operations (like path.join, path.resolve or fs.readFile), or\n- very dynamic requires (like require('./' + foo)).\nTo resolve this, you can\n- remove them if possible, or\n- only use them in development, or\n- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or\n- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)\n\nImport trace:\n  App Route:\n    ./next.config.ts\n    ./app/api/admin/connectors/_lib/connectRuntime.ts\n    ./app/api/admin/connectors/providers/route.ts\n\n\nError occurred prerendering page \"/admin/notifications\". Read more: https://nextjs.org/docs/messages/prerender-error\nError [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.\n    at ignore-listed frames\nExport encountered an error on /admin/notifications/page: /admin/notifications, exiting the build.\n⨯ Next.js build worker exited with code: 1 and signal: null\n"
+  },
+  "pruning": {
+    "route_files_before": 466,
+    "route_files_removed": 251,
+    "route_files_after": 215,
+    "unmatched_registry_prefixes": [],
+    "removed": [
+      {
+        "route": "/developer",
+        "kind": "page",
+        "file": "app/developer/page.tsx",
+        "category": "developer_workspace"
+      },
+      {
+        "route": "/admin/ide",
+        "kind": "page",
+        "file": "app/admin/ide/page.tsx",
+        "category": "ide"
+      },
+      {
+        "route": "/admin/dev-loop",
+        "kind": "page",
+        "file": "app/admin/dev-loop/page.tsx",
+        "category": "dev_loop"
+      },
+      {
+        "route": "/admin/deploy",
+        "kind": "page",
+        "file": "app/admin/deploy/page.tsx",
+        "category": "build_deploy_control"
+      },
+      {
+        "route": "/admin/ui-gallery/assistants",
+        "kind": "page",
+        "file": "app/admin/ui-gallery/assistants/page.tsx",
+        "category": "ui_gallery"
+      },
+      {
+        "route": "/admin/ui-gallery/business-display",
+        "kind": "page",
+        "file": "app/admin/ui-gallery/business-display/page.tsx",
+        "category": "ui_gallery"
+      },
+      {
+        "route": "/admin/ui-gallery/compare",
+        "kind": "page",
+        "file": "app/admin/ui-gallery/compare/page.tsx",
+        "category": "ui_gallery"
+      },
+      {
+        "route": "/admin/ui-gallery/lab",
+        "kind": "page",
+        "file": "app/admin/ui-gallery/lab/page.tsx",
+        "category": "ui_gallery"
+      },
+      {
+        "route": "/admin/ui-gallery",
+        "kind": "page",
+        "file": "app/admin/ui-gallery/page.tsx",
+        "category": "ui_gallery"
+      },
+      {
+        "route": "/admin/ui-gallery/preview",
+        "kind": "page",
+        "file": "app/admin/ui-gallery/preview/page.tsx",
+        "category": "ui_gallery"
+      },
+      {
+        "route": "/admin/ui-gallery/visual-review",
+        "kind": "page",
+        "file": "app/admin/ui-gallery/visual-review/page.tsx",
+        "category": "ui_gallery"
+      },
+      {
+        "route": "/admin/api-explorer",
+        "kind": "page",
+        "file": "app/admin/api-explorer/page.tsx",
+        "category": "api_explorer"
+      },
+      {
+        "route": "/admin/engine-explorer",
+        "kind": "page",
+        "file": "app/admin/engine-explorer/page.tsx",
+        "category": "engine_explorer"
+      },
+      {
+        "route": "/admin/dbd",
+        "kind": "page",
+        "file": "app/admin/dbd/page.tsx",
+        "category": "dbd_console"
+      },
+      {
+        "route": "/admin/infrastructure",
+        "kind": "page",
+        "file": "app/admin/infrastructure/page.tsx",
+        "category": "infrastructure_settings"
+      },
+      {
+        "route": "/admin/backup",
+        "kind": "page",
+        "file": "app/admin/backup/page.tsx",
+        "category": "infrastructure_control"
+      },
+      {
+        "route": "/admin/schema-audit",
+        "kind": "page",
+        "file": "app/admin/schema-audit/page.tsx",
+        "category": "sql_console"
+      },
+      {
+        "route": "/admin/storage",
+        "kind": "page",
+        "file": "app/admin/storage/page.tsx",
+        "category": "infrastructure_control"
+      },
+      {
+        "route": "/admin/system-config",
+        "kind": "page",
+        "file": "app/admin/system-config/page.tsx",
+        "category": "infrastructure_settings"
+      },
+      {
+        "route": "/admin/traces",
+        "kind": "page",
+        "file": "app/admin/traces/page.tsx",
+        "category": "runtime_introspection"
+      },
+      {
+        "route": "/admin/links",
+        "kind": "page",
+        "file": "app/admin/links/page.tsx",
+        "category": "infrastructure_settings"
+      },
+      {
+        "route": "/admin/workspace",
+        "kind": "page",
+        "file": "app/admin/workspace/page.tsx",
+        "category": "developer_workspace_admin"
+      },
+      {
+        "route": "/admin/reader",
+        "kind": "page",
+        "file": "app/admin/reader/page.tsx",
+        "category": "source_browser"
+      },
+      {
+        "route": "/admin/dna",
+        "kind": "page",
+        "file": "app/admin/dna/page.tsx",
+        "category": "system_introspection"
+      },
+      {
+        "route": "/workspace-preview/apps/[appId]",
+        "kind": "page",
+        "file": "app/workspace-preview/apps/[appId]/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/workspace-preview/debt-widget",
+        "kind": "page",
+        "file": "app/workspace-preview/debt-widget/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/workspace-preview/document",
+        "kind": "page",
+        "file": "app/workspace-preview/document/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/workspace-preview/invoice",
+        "kind": "page",
+        "file": "app/workspace-preview/invoice/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/workspace-preview/material",
+        "kind": "page",
+        "file": "app/workspace-preview/material/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/workspace-preview/order",
+        "kind": "page",
+        "file": "app/workspace-preview/order/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/workspace-preview",
+        "kind": "page",
+        "file": "app/workspace-preview/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/workspace-preview/partner",
+        "kind": "page",
+        "file": "app/workspace-preview/partner/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/workspace-preview/transport",
+        "kind": "page",
+        "file": "app/workspace-preview/transport/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/workspace-preview/workflow",
+        "kind": "page",
+        "file": "app/workspace-preview/workflow/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/business-workspace-template/documents",
+        "kind": "page",
+        "file": "app/business-workspace-template/documents/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/business-workspace-template/login",
+        "kind": "page",
+        "file": "app/business-workspace-template/login/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/business-workspace-template/overview",
+        "kind": "page",
+        "file": "app/business-workspace-template/overview/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/business-workspace-template",
+        "kind": "page",
+        "file": "app/business-workspace-template/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/business-workspace-template/tasks",
+        "kind": "page",
+        "file": "app/business-workspace-template/tasks/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/business-workspace-template/workspace",
+        "kind": "page",
+        "file": "app/business-workspace-template/workspace/page.tsx",
+        "category": "preview_template"
+      },
+      {
+        "route": "/observer",
+        "kind": "page",
+        "file": "app/observer/page.tsx",
+        "category": "system_introspection"
+      },
+      {
+        "route": "/observer.json",
+        "kind": "route",
+        "file": "app/observer.json/route.ts",
+        "category": "system_introspection"
+      },
+      {
+        "route": "/playground",
+        "kind": "page",
+        "file": "app/playground/page.tsx",
+        "category": "api_playground"
+      },
+      {
+        "route": "/examples",
+        "kind": "page",
+        "file": "app/examples/page.tsx",
+        "category": "api_examples"
+      },
+      {
+        "route": "/start",
+        "kind": "page",
+        "file": "app/start/page.tsx",
+        "category": "engineering_workspace"
+      },
+      {
+        "route": "/api/admin/ide/artifact/[artifactId]/children",
+        "kind": "route",
+        "file": "app/api/admin/ide/artifact/[artifactId]/children/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/artifact/[artifactId]/evidence",
+        "kind": "route",
+        "file": "app/api/admin/ide/artifact/[artifactId]/evidence/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/artifact/[artifactId]/lineage",
+        "kind": "route",
+        "file": "app/api/admin/ide/artifact/[artifactId]/lineage/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/artifact/[artifactId]/parents",
+        "kind": "route",
+        "file": "app/api/admin/ide/artifact/[artifactId]/parents/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/artifact/[artifactId]/regenerate",
+        "kind": "route",
+        "file": "app/api/admin/ide/artifact/[artifactId]/regenerate/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/artifact/[artifactId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/artifact/[artifactId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/artifact/events",
+        "kind": "route",
+        "file": "app/api/admin/ide/artifact/events/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/artifact/integrity",
+        "kind": "route",
+        "file": "app/api/admin/ide/artifact/integrity/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/artifact/list",
+        "kind": "route",
+        "file": "app/api/admin/ide/artifact/list/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/build/environment-profiles",
+        "kind": "route",
+        "file": "app/api/admin/ide/build/environment-profiles/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/build/registry",
+        "kind": "route",
+        "file": "app/api/admin/ide/build/registry/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/build/runs/[buildRunId]/cancel",
+        "kind": "route",
+        "file": "app/api/admin/ide/build/runs/[buildRunId]/cancel/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/build/runs/[buildRunId]/compare",
+        "kind": "route",
+        "file": "app/api/admin/ide/build/runs/[buildRunId]/compare/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/build/runs/[buildRunId]/evidence",
+        "kind": "route",
+        "file": "app/api/admin/ide/build/runs/[buildRunId]/evidence/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/build/runs/[buildRunId]/findings",
+        "kind": "route",
+        "file": "app/api/admin/ide/build/runs/[buildRunId]/findings/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/build/runs/[buildRunId]/manifest",
+        "kind": "route",
+        "file": "app/api/admin/ide/build/runs/[buildRunId]/manifest/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/build/runs/[buildRunId]/outputs",
+        "kind": "route",
+        "file": "app/api/admin/ide/build/runs/[buildRunId]/outputs/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/build/runs/[buildRunId]/rerun",
+        "kind": "route",
+        "file": "app/api/admin/ide/build/runs/[buildRunId]/rerun/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/build/runs/[buildRunId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/build/runs/[buildRunId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/build/runs",
+        "kind": "route",
+        "file": "app/api/admin/ide/build/runs/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/classification",
+        "kind": "route",
+        "file": "app/api/admin/ide/classification/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/command",
+        "kind": "route",
+        "file": "app/api/admin/ide/command/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/decisions",
+        "kind": "route",
+        "file": "app/api/admin/ide/decisions/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/deployment/plans/[deploymentPlanId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/deployment/plans/[deploymentPlanId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/deployment/plans",
+        "kind": "route",
+        "file": "app/api/admin/ide/deployment/plans/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/execution/cancel/[id]",
+        "kind": "route",
+        "file": "app/api/admin/ide/execution/cancel/[id]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/execution/commands",
+        "kind": "route",
+        "file": "app/api/admin/ide/execution/commands/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/execution/run/[id]",
+        "kind": "route",
+        "file": "app/api/admin/ide/execution/run/[id]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/execution/run",
+        "kind": "route",
+        "file": "app/api/admin/ide/execution/run/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/execution/runs",
+        "kind": "route",
+        "file": "app/api/admin/ide/execution/runs/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/execution/stream/[id]",
+        "kind": "route",
+        "file": "app/api/admin/ide/execution/stream/[id]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/execution-context/approve",
+        "kind": "route",
+        "file": "app/api/admin/ide/execution-context/approve/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/execution-context/gate",
+        "kind": "route",
+        "file": "app/api/admin/ide/execution-context/gate/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/execution-context",
+        "kind": "route",
+        "file": "app/api/admin/ide/execution-context/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-completion",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-completion/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-readiness",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-readiness/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/capabilities/search",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/capabilities/search/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/approve-context",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/approve-context/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/approve-plan",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/approve-plan/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/approve-proposal",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/approve-proposal/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/approve-review",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/approve-review/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/build",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/build/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/create-plan",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/create-plan/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/decide",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/decide/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/execute",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/execute/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/generate-proposal",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/generate-proposal/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/intent",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/intent/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/prepare-context",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/prepare-context/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/release",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/release/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/resolve-capabilities",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/resolve-capabilities/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/result",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/result/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions/[id]/vscode-dependency",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/[id]/vscode-dependency/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/sessions",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/sessions/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/factory-workspace/workers",
+        "kind": "route",
+        "file": "app/api/admin/ide/factory-workspace/workers/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/file",
+        "kind": "route",
+        "file": "app/api/admin/ide/file/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/fs/create",
+        "kind": "route",
+        "file": "app/api/admin/ide/fs/create/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/fs/move",
+        "kind": "route",
+        "file": "app/api/admin/ide/fs/move/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/fs/rename",
+        "kind": "route",
+        "file": "app/api/admin/ide/fs/rename/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/fs/restore",
+        "kind": "route",
+        "file": "app/api/admin/ide/fs/restore/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/fs/trash",
+        "kind": "route",
+        "file": "app/api/admin/ide/fs/trash/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/git/blame",
+        "kind": "route",
+        "file": "app/api/admin/ide/git/blame/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/git/branches",
+        "kind": "route",
+        "file": "app/api/admin/ide/git/branches/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/git/conflicts",
+        "kind": "route",
+        "file": "app/api/admin/ide/git/conflicts/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/git/diff",
+        "kind": "route",
+        "file": "app/api/admin/ide/git/diff/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/git/history",
+        "kind": "route",
+        "file": "app/api/admin/ide/git/history/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/git/merge-status",
+        "kind": "route",
+        "file": "app/api/admin/ide/git/merge-status/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/git/status",
+        "kind": "route",
+        "file": "app/api/admin/ide/git/status/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/git/tags",
+        "kind": "route",
+        "file": "app/api/admin/ide/git/tags/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/global-factory",
+        "kind": "route",
+        "file": "app/api/admin/ide/global-factory/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/governance/events",
+        "kind": "route",
+        "file": "app/api/admin/ide/governance/events/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/governance/factories",
+        "kind": "route",
+        "file": "app/api/admin/ide/governance/factories/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/governance/rules/[ruleId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/governance/rules/[ruleId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/governance/rules",
+        "kind": "route",
+        "file": "app/api/admin/ide/governance/rules/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/governance/summary",
+        "kind": "route",
+        "file": "app/api/admin/ide/governance/summary/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/governance/verify",
+        "kind": "route",
+        "file": "app/api/admin/ide/governance/verify/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/inspection/[inspectionId]/cancel",
+        "kind": "route",
+        "file": "app/api/admin/ide/inspection/[inspectionId]/cancel/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/inspection/[inspectionId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/inspection/[inspectionId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/inspection/job/[jobId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/inspection/job/[jobId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/inspection/list",
+        "kind": "route",
+        "file": "app/api/admin/ide/inspection/list/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/inspection/run",
+        "kind": "route",
+        "file": "app/api/admin/ide/inspection/run/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/alerts/[id]/acknowledge",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/alerts/[id]/acknowledge/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/alerts/[id]",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/alerts/[id]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/alerts",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/alerts/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/events",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/events/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/incidents/[incidentId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/incidents/[incidentId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/incidents/[incidentId]/status",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/incidents/[incidentId]/status/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/incidents",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/incidents/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/loop/run",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/loop/run/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/loop/runs/[id]",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/loop/runs/[id]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/loop/runs",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/loop/runs/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/monitoring/collect",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/monitoring/collect/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/monitoring/signals/[signalId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/monitoring/signals/[signalId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/monitoring/signals",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/monitoring/signals/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/monitoring/summary",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/monitoring/summary/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/readiness",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/readiness/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/recovery/plans/[planId]/approve",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/recovery/plans/[planId]/approve/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/recovery/plans/[planId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/recovery/plans/[planId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/recovery/plans/[planId]/verify",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/recovery/plans/[planId]/verify/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/recovery/plans",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/recovery/plans/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/restore-tests/[id]",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/restore-tests/[id]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/restore-tests/[id]/verify",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/restore-tests/[id]/verify/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/restore-tests",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/restore-tests/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/operations/status",
+        "kind": "route",
+        "file": "app/api/admin/ide/operations/status/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/owner-command/approve",
+        "kind": "route",
+        "file": "app/api/admin/ide/owner-command/approve/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/owner-command",
+        "kind": "route",
+        "file": "app/api/admin/ide/owner-command/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/problems",
+        "kind": "route",
+        "file": "app/api/admin/ide/problems/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/queue/cancel/[id]",
+        "kind": "route",
+        "file": "app/api/admin/ide/queue/cancel/[id]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/queue/clear",
+        "kind": "route",
+        "file": "app/api/admin/ide/queue/clear/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/queue/job/[id]",
+        "kind": "route",
+        "file": "app/api/admin/ide/queue/job/[id]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/queue/jobs",
+        "kind": "route",
+        "file": "app/api/admin/ide/queue/jobs/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/queue/retry/[id]",
+        "kind": "route",
+        "file": "app/api/admin/ide/queue/retry/[id]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/queue/types",
+        "kind": "route",
+        "file": "app/api/admin/ide/queue/types/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/release/packages",
+        "kind": "route",
+        "file": "app/api/admin/ide/release/packages/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/release/registry",
+        "kind": "route",
+        "file": "app/api/admin/ide/release/registry/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/release/runs/[releaseRunId]/rerun",
+        "kind": "route",
+        "file": "app/api/admin/ide/release/runs/[releaseRunId]/rerun/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/release/runs/[releaseRunId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/release/runs/[releaseRunId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/release/runs",
+        "kind": "route",
+        "file": "app/api/admin/ide/release/runs/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/review/change-sets/[changeSetId]/decision",
+        "kind": "route",
+        "file": "app/api/admin/ide/review/change-sets/[changeSetId]/decision/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/review/change-sets/[changeSetId]/diff",
+        "kind": "route",
+        "file": "app/api/admin/ide/review/change-sets/[changeSetId]/diff/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/review/change-sets/[changeSetId]/evidence",
+        "kind": "route",
+        "file": "app/api/admin/ide/review/change-sets/[changeSetId]/evidence/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/review/change-sets/[changeSetId]/findings",
+        "kind": "route",
+        "file": "app/api/admin/ide/review/change-sets/[changeSetId]/findings/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/review/change-sets/[changeSetId]/impact",
+        "kind": "route",
+        "file": "app/api/admin/ide/review/change-sets/[changeSetId]/impact/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/review/change-sets/[changeSetId]/refresh",
+        "kind": "route",
+        "file": "app/api/admin/ide/review/change-sets/[changeSetId]/refresh/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/review/change-sets/[changeSetId]/review",
+        "kind": "route",
+        "file": "app/api/admin/ide/review/change-sets/[changeSetId]/review/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/review/change-sets/[changeSetId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/review/change-sets/[changeSetId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/review/change-sets",
+        "kind": "route",
+        "file": "app/api/admin/ide/review/change-sets/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/search",
+        "kind": "route",
+        "file": "app/api/admin/ide/search/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/security/capabilities",
+        "kind": "route",
+        "file": "app/api/admin/ide/security/capabilities/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/security/defense",
+        "kind": "route",
+        "file": "app/api/admin/ide/security/defense/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/security/execution-gate",
+        "kind": "route",
+        "file": "app/api/admin/ide/security/execution-gate/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/security/external-surface/discover",
+        "kind": "route",
+        "file": "app/api/admin/ide/security/external-surface/discover/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/security/external-surface/domains/[id]/verify",
+        "kind": "route",
+        "file": "app/api/admin/ide/security/external-surface/domains/[id]/verify/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/security/external-surface/domains",
+        "kind": "route",
+        "file": "app/api/admin/ide/security/external-surface/domains/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/security/forensics/[artifactId]/timeline",
+        "kind": "route",
+        "file": "app/api/admin/ide/security/forensics/[artifactId]/timeline/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/security/knowledge",
+        "kind": "route",
+        "file": "app/api/admin/ide/security/knowledge/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/settings",
+        "kind": "route",
+        "file": "app/api/admin/ide/settings/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/standards",
+        "kind": "route",
+        "file": "app/api/admin/ide/standards/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/test/runs/[testRunId]/rerun",
+        "kind": "route",
+        "file": "app/api/admin/ide/test/runs/[testRunId]/rerun/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/test/runs/[testRunId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/test/runs/[testRunId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/test/runs",
+        "kind": "route",
+        "file": "app/api/admin/ide/test/runs/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/tree",
+        "kind": "route",
+        "file": "app/api/admin/ide/tree/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/ui-inspection/[inspectionId]/cancel",
+        "kind": "route",
+        "file": "app/api/admin/ide/ui-inspection/[inspectionId]/cancel/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/ui-inspection/[inspectionId]/findings",
+        "kind": "route",
+        "file": "app/api/admin/ide/ui-inspection/[inspectionId]/findings/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/ui-inspection/[inspectionId]/rerun",
+        "kind": "route",
+        "file": "app/api/admin/ide/ui-inspection/[inspectionId]/rerun/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/ui-inspection/[inspectionId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/ui-inspection/[inspectionId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/ui-inspection/[inspectionId]/snapshot/[artifactId]",
+        "kind": "route",
+        "file": "app/api/admin/ide/ui-inspection/[inspectionId]/snapshot/[artifactId]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/ui-inspection/[inspectionId]/viewports",
+        "kind": "route",
+        "file": "app/api/admin/ide/ui-inspection/[inspectionId]/viewports/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/ui-inspection/capability",
+        "kind": "route",
+        "file": "app/api/admin/ide/ui-inspection/capability/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/ui-inspection/list",
+        "kind": "route",
+        "file": "app/api/admin/ide/ui-inspection/list/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/ui-inspection/run",
+        "kind": "route",
+        "file": "app/api/admin/ide/ui-inspection/run/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/workers/[id]/health",
+        "kind": "route",
+        "file": "app/api/admin/ide/workers/[id]/health/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/workers/[id]",
+        "kind": "route",
+        "file": "app/api/admin/ide/workers/[id]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/workers/budget",
+        "kind": "route",
+        "file": "app/api/admin/ide/workers/budget/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/workers/execute",
+        "kind": "route",
+        "file": "app/api/admin/ide/workers/execute/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/workers/executions/[id]",
+        "kind": "route",
+        "file": "app/api/admin/ide/workers/executions/[id]/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/workers/executions",
+        "kind": "route",
+        "file": "app/api/admin/ide/workers/executions/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/workers",
+        "kind": "route",
+        "file": "app/api/admin/ide/workers/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/workers/select",
+        "kind": "route",
+        "file": "app/api/admin/ide/workers/select/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/ide/workers/settings",
+        "kind": "route",
+        "file": "app/api/admin/ide/workers/settings/route.ts",
+        "category": "ide"
+      },
+      {
+        "route": "/api/admin/dev-loop/approve",
+        "kind": "route",
+        "file": "app/api/admin/dev-loop/approve/route.ts",
+        "category": "dev_loop"
+      },
+      {
+        "route": "/api/admin/dev-loop/problem-report",
+        "kind": "route",
+        "file": "app/api/admin/dev-loop/problem-report/route.ts",
+        "category": "dev_loop"
+      },
+      {
+        "route": "/api/admin/architecture/control-graph",
+        "kind": "route",
+        "file": "app/api/admin/architecture/control-graph/route.ts",
+        "category": "architecture"
+      },
+      {
+        "route": "/api/admin/backup",
+        "kind": "route",
+        "file": "app/api/admin/backup/route.ts",
+        "category": "infrastructure_control"
+      },
+      {
+        "route": "/api/admin/capability-boxes",
+        "kind": "route",
+        "file": "app/api/admin/capability-boxes/route.ts",
+        "category": "developer_workspace_admin"
+      },
+      {
+        "route": "/api/admin/capability-boxes/run",
+        "kind": "route",
+        "file": "app/api/admin/capability-boxes/run/route.ts",
+        "category": "developer_workspace_admin"
+      },
+      {
+        "route": "/api/admin/domains/availability",
+        "kind": "route",
+        "file": "app/api/admin/domains/availability/route.ts",
+        "category": "infrastructure_control"
+      },
+      {
+        "route": "/api/admin/domains/register",
+        "kind": "route",
+        "file": "app/api/admin/domains/register/route.ts",
+        "category": "infrastructure_control"
+      },
+      {
+        "route": "/api/admin/domains/suggestions",
+        "kind": "route",
+        "file": "app/api/admin/domains/suggestions/route.ts",
+        "category": "infrastructure_control"
+      },
+      {
+        "route": "/api/admin/domains/whois",
+        "kind": "route",
+        "file": "app/api/admin/domains/whois/route.ts",
+        "category": "infrastructure_control"
+      },
+      {
+        "route": "/api/admin/infrastructure",
+        "kind": "route",
+        "file": "app/api/admin/infrastructure/route.ts",
+        "category": "infrastructure_settings"
+      },
+      {
+        "route": "/api/admin/runtime/document-engine",
+        "kind": "route",
+        "file": "app/api/admin/runtime/document-engine/route.ts",
+        "category": "runtime_introspection"
+      },
+      {
+        "route": "/api/admin/schema-audit",
+        "kind": "route",
+        "file": "app/api/admin/schema-audit/route.ts",
+        "category": "sql_console"
+      },
+      {
+        "route": "/api/admin/storage-intelligence",
+        "kind": "route",
+        "file": "app/api/admin/storage-intelligence/route.ts",
+        "category": "infrastructure_control"
+      },
+      {
+        "route": "/api/admin/system-config",
+        "kind": "route",
+        "file": "app/api/admin/system-config/route.ts",
+        "category": "infrastructure_settings"
+      },
+      {
+        "route": "/api/admin/system-reality",
+        "kind": "route",
+        "file": "app/api/admin/system-reality/route.ts",
+        "category": "system_introspection"
+      },
+      {
+        "route": "/api/admin/workspace/ai-agents",
+        "kind": "route",
+        "file": "app/api/admin/workspace/ai-agents/route.ts",
+        "category": "developer_workspace_admin"
+      },
+      {
+        "route": "/api/admin/workspace/automation",
+        "kind": "route",
+        "file": "app/api/admin/workspace/automation/route.ts",
+        "category": "developer_workspace_admin"
+      },
+      {
+        "route": "/api/admin/workspace/database",
+        "kind": "route",
+        "file": "app/api/admin/workspace/database/route.ts",
+        "category": "developer_workspace_admin"
+      },
+      {
+        "route": "/api/admin/workspace/file",
+        "kind": "route",
+        "file": "app/api/admin/workspace/file/route.ts",
+        "category": "developer_workspace_admin"
+      },
+      {
+        "route": "/api/admin/workspace",
+        "kind": "route",
+        "file": "app/api/admin/workspace/route.ts",
+        "category": "developer_workspace_admin"
+      },
+      {
+        "route": "/api/admin/workspace/status",
+        "kind": "route",
+        "file": "app/api/admin/workspace/status/route.ts",
+        "category": "developer_workspace_admin"
+      },
+      {
+        "route": "/api/admin/workspace/tree",
+        "kind": "route",
+        "file": "app/api/admin/workspace/tree/route.ts",
+        "category": "developer_workspace_admin"
+      },
+      {
+        "route": "/api/build",
+        "kind": "route",
+        "file": "app/api/build/route.ts",
+        "category": "build_deploy_control"
+      },
+      {
+        "route": "/api/dbd",
+        "kind": "route",
+        "file": "app/api/dbd/route.ts",
+        "category": "dbd_console"
+      },
+      {
+        "route": "/api/deploy",
+        "kind": "route",
+        "file": "app/api/deploy/route.ts",
+        "category": "build_deploy_control"
+      },
+      {
+        "route": "/api/governance",
+        "kind": "route",
+        "file": "app/api/governance/route.ts",
+        "category": "architecture"
+      },
+      {
+        "route": "/api/manual-doc",
+        "kind": "route",
+        "file": "app/api/manual-doc/route.ts",
+        "category": "stub"
+      },
+      {
+        "route": "/api/reader",
+        "kind": "route",
+        "file": "app/api/reader/route.ts",
+        "category": "source_browser"
+      },
+      {
+        "route": "/api/routes",
+        "kind": "route",
+        "file": "app/api/routes/route.ts",
+        "category": "api_explorer"
+      },
+      {
+        "route": "/api/self-description",
+        "kind": "route",
+        "file": "app/api/self-description/route.ts",
+        "category": "system_introspection"
+      },
+      {
+        "route": "/api/traces",
+        "kind": "route",
+        "file": "app/api/traces/route.ts",
+        "category": "runtime_introspection"
+      },
+      {
+        "route": "/api/v1/mcp/architecture/dependency-graph",
+        "kind": "route",
+        "file": "app/api/v1/mcp/architecture/dependency-graph/route.ts",
+        "category": "architecture"
+      },
+      {
+        "route": "/api/v1/mcp/architecture/summary",
+        "kind": "route",
+        "file": "app/api/v1/mcp/architecture/summary/route.ts",
+        "category": "architecture"
+      },
+      {
+        "route": "/api/v1/mcp/governance/deploy-approval-status",
+        "kind": "route",
+        "file": "app/api/v1/mcp/governance/deploy-approval-status/route.ts",
+        "category": "dev_loop"
+      },
+      {
+        "route": "/api/v1/mcp/governance/impact/[evidenceEventId]",
+        "kind": "route",
+        "file": "app/api/v1/mcp/governance/impact/[evidenceEventId]/route.ts",
+        "category": "dev_loop"
+      },
+      {
+        "route": "/api/v1/mcp/governance/registry-proposals",
+        "kind": "route",
+        "file": "app/api/v1/mcp/governance/registry-proposals/route.ts",
+        "category": "dev_loop"
+      },
+      {
+        "route": "/api/v1/mcp/governance/session-proposals",
+        "kind": "route",
+        "file": "app/api/v1/mcp/governance/session-proposals/route.ts",
+        "category": "dev_loop"
+      },
+      {
+        "route": "/api/v1/mcp/governance/status",
+        "kind": "route",
+        "file": "app/api/v1/mcp/governance/status/route.ts",
+        "category": "dev_loop"
+      },
+      {
+        "route": "/api/v1/mcp/contractor/evidence-submit",
+        "kind": "route",
+        "file": "app/api/v1/mcp/contractor/evidence-submit/route.ts",
+        "category": "developer_worker_contract"
+      },
+      {
+        "route": "/api/v1/mcp/contractor/status",
+        "kind": "route",
+        "file": "app/api/v1/mcp/contractor/status/route.ts",
+        "category": "developer_worker_contract"
+      },
+      {
+        "route": "/api/v1/mcp/contractor/task-claim",
+        "kind": "route",
+        "file": "app/api/v1/mcp/contractor/task-claim/route.ts",
+        "category": "developer_worker_contract"
+      },
+      {
+        "route": "/api/v1/constitution",
+        "kind": "route",
+        "file": "app/api/v1/constitution/route.ts",
+        "category": "system_introspection"
+      },
+      {
+        "route": "/api/v1/drivers",
+        "kind": "route",
+        "file": "app/api/v1/drivers/route.ts",
+        "category": "system_introspection"
+      },
+      {
+        "route": "/api/v1/modules",
+        "kind": "route",
+        "file": "app/api/v1/modules/route.ts",
+        "category": "system_introspection"
+      },
+      {
+        "route": "/api/v1/workflows",
+        "kind": "route",
+        "file": "app/api/v1/workflows/route.ts",
+        "category": "system_introspection"
+      }
+    ]
+  },
+  "evidence_gates": {
+    "NEW_DEVELOPER_ROUTES_IN_BUILD": 0,
+    "NEW_DEVELOPER_CONTROL_APIS_IN_BUILD": 0,
+    "NEW_DEVELOPER_ROUTES_IN_BUILD_DETAIL": [],
+    "SOURCE_TREE_DEVELOPER_ROUTES": 0,
+    "MISSING_BUSINESS_SURFACES": []
+  },
+  "build_manifest": {
+    "source": ".next/app-path-routes-manifest.json",
+    "total_routes": 220,
+    "routes": [
+      "/.well-known/oauth-authorization-server/route",
+      "/.well-known/oauth-protected-resource/route",
+      "/_global-error/page",
+      "/_not-found/page",
+      "/account/change-password/page",
+      "/admin/api-tokens/page",
+      "/admin/connectors/page",
+      "/admin/create-document/page",
+      "/admin/debt-notice/page",
+      "/admin/debt-tracking/page",
+      "/admin/delivery-order/page",
+      "/admin/devices/page",
+      "/admin/documents/page",
+      "/admin/equipment/page",
+      "/admin/event-inbox/page",
+      "/admin/finance/page",
+      "/admin/invoice/page",
+      "/admin/jobs/[id]/page",
+      "/admin/jobs/create/page",
+      "/admin/jobs/page",
+      "/admin/line-customers/page",
+      "/admin/line-profiles/page",
+      "/admin/login/page",
+      "/admin/materials/page",
+      "/admin/notifications/page",
+      "/admin/page",
+      "/admin/partners/[id]/page",
+      "/admin/partners/page",
+      "/admin/payment-voucher/page",
+      "/admin/pending/page",
+      "/admin/pits/page",
+      "/admin/purchase-order/page",
+      "/admin/quotation-queue/page",
+      "/admin/receipt/page",
+      "/admin/receipts/page",
+      "/admin/relationships/[relationshipId]/page",
+      "/admin/relationships/page",
+      "/admin/settings/page",
+      "/admin/transactions/page",
+      "/admin/users/page",
+      "/ai-services/page",
+      "/api/admin/api-tokens/[id]/route",
+      "/api/admin/api-tokens/route",
+      "/api/admin/authorizations/[id]/decide/route",
+      "/api/admin/authorizations/route",
+      "/api/admin/company-expenses/route",
+      "/api/admin/connectors/[id]/enable/route",
+      "/api/admin/connectors/[id]/route",
+      "/api/admin/connectors/[id]/test/route",
+      "/api/admin/connectors/catalog/route",
+      "/api/admin/connectors/discover/[slug]/route",
+      "/api/admin/connectors/providers/[providerId]/approval-request/route",
+      "/api/admin/connectors/providers/[providerId]/prepare/route",
+      "/api/admin/connectors/providers/route",
+      "/api/admin/connectors/route",
+      "/api/admin/debt-trackings/[id]/draft/route",
+      "/api/admin/debt-trackings/[id]/events/route",
+      "/api/admin/debt-trackings/[id]/route",
+      "/api/admin/debt-trackings/route",
+      "/api/admin/devices/[id]/probe/route",
+      "/api/admin/devices/[id]/route",
+      "/api/admin/devices/commands/[cmdId]/route",
+      "/api/admin/devices/commands/route",
+      "/api/admin/devices/compute-relay/route",
+      "/api/admin/devices/grants/route",
+      "/api/admin/devices/route",
+      "/api/admin/documents/[id]/artifact-recover/route",
+      "/api/admin/documents/[id]/confirm/route",
+      "/api/admin/documents/[id]/file/route",
+      "/api/admin/documents/[id]/route",
+      "/api/admin/documents/route",
+      "/api/admin/equipment/maintenance-tickets/[id]/close/route",
+      "/api/admin/equipment/maintenance-tickets/route",
+      "/api/admin/equipment/route",
+      "/api/admin/equipment/toggle-permission/route",
+      "/api/admin/equipment/trigger-start/route",
+      "/api/admin/event-inbox/route",
+      "/api/admin/finance-alerts/route",
+      "/api/admin/finance-summary/route",
+      "/api/admin/finance/audit/route",
+      "/api/admin/finance/transactions/route",
+      "/api/admin/invoices/[invoiceId]/send/route",
+      "/api/admin/jobs/[id]/assign/route",
+      "/api/admin/line-customers/[lineUserId]/ask/route",
+      "/api/admin/line-customers/[lineUserId]/build-event/route",
+      "/api/admin/line-customers/[lineUserId]/document-preview/route",
+      "/api/admin/line-customers/[lineUserId]/reply/route",
+      "/api/admin/line-customers/[lineUserId]/route",
+      "/api/admin/line-customers/[lineUserId]/send-debt/route",
+      "/api/admin/line-customers/[lineUserId]/send-document/route",
+      "/api/admin/line-customers/route",
+      "/api/admin/line-profiles/[lineUserId]/route",
+      "/api/admin/line-profiles/route",
+      "/api/admin/material-quote/route",
+      "/api/admin/materials/route",
+      "/api/admin/notifications/send/route",
+      "/api/admin/outbound-drafts/[id]/reject/route",
+      "/api/admin/outbound-drafts/[id]/send/route",
+      "/api/admin/outbound-drafts/route",
+      "/api/admin/partners/[id]/chain/route",
+      "/api/admin/partners/[id]/credit/route",
+      "/api/admin/partners/[id]/line-messages/route",
+      "/api/admin/partners/[id]/timeline/route",
+      "/api/admin/partners/route",
+      "/api/admin/payables/route",
+      "/api/admin/pits/[pitId]/materials/route",
+      "/api/admin/pits/[pitId]/request-quote/route",
+      "/api/admin/pits/[pitId]/route",
+      "/api/admin/pits/route",
+      "/api/admin/provider-settings/[providerId]/request-approval/route",
+      "/api/admin/provider-settings/[providerId]/rotate/route",
+      "/api/admin/provider-settings/[providerId]/route",
+      "/api/admin/provider-settings/route",
+      "/api/admin/pulse/route",
+      "/api/admin/quotation-queue/route",
+      "/api/admin/receipt-documents/[id]/acknowledge/route",
+      "/api/admin/receipt-documents/[id]/company/route",
+      "/api/admin/receipt-documents/[id]/confirm/route",
+      "/api/admin/receipt-documents/[id]/reject/route",
+      "/api/admin/receipt-documents/route",
+      "/api/admin/relationships/[relationshipId]/match/route",
+      "/api/admin/relationships/[relationshipId]/route",
+      "/api/admin/relationships/route",
+      "/api/admin/screen-vision/route",
+      "/api/admin/settings/route",
+      "/api/admin/sites/route",
+      "/api/admin/subscriptions/route",
+      "/api/admin/transactions/[id]/advance/route",
+      "/api/admin/transactions/[id]/route",
+      "/api/admin/transactions/route",
+      "/api/admin/upload/route",
+      "/api/admin/users/[id]/role/route",
+      "/api/admin/users/route",
+      "/api/auth/auto-login/route",
+      "/api/auth/logout/route",
+      "/api/auth/providers/route",
+      "/api/chat/confirm/route",
+      "/api/chat/route",
+      "/api/command/route",
+      "/api/connectors/oauth/authorize/[slug]/route",
+      "/api/connectors/oauth/callback/[slug]/route",
+      "/api/connectors/webhook/[slug]/route",
+      "/api/cron/operations-loop/route",
+      "/api/cron/supabase-project-status/route",
+      "/api/document/route",
+      "/api/explain/route",
+      "/api/gateway/observe/github/route",
+      "/api/gateway/observe/line/route",
+      "/api/gateway/observe/meta/route",
+      "/api/gateway/observe/railway/route",
+      "/api/gateway/observe/vercel/route",
+      "/api/gateway/proposals/[id]/decide/route",
+      "/api/gateway/proposals/route",
+      "/api/internal/ai/gateway/route",
+      "/api/internal/ai/ollama-relay/api/generate/route",
+      "/api/internal/ai/ollama-relay/api/poll/route",
+      "/api/internal/ai/ollama-relay/api/result/route",
+      "/api/internal/canonical/jobs/route",
+      "/api/internal/connect/erp-import/route",
+      "/api/internal/connect/event/route",
+      "/api/internal/connect/expense/route",
+      "/api/internal/connect/inbound-source/route",
+      "/api/internal/connect/payment-confirm/route",
+      "/api/internal/connect/receipt-company/route",
+      "/api/internal/connect/resource-transaction/route",
+      "/api/internal/device/commands/[cmdId]/route",
+      "/api/internal/device/commands/route",
+      "/api/internal/device/health/route",
+      "/api/internal/device/pair/route",
+      "/api/internal/equipment/lock-command/route",
+      "/api/internal/equipment/telemetry/route",
+      "/api/internal/gmail/token/route",
+      "/api/internal/line/command/route",
+      "/api/internal/line/document-artifact/route",
+      "/api/internal/line/token/route",
+      "/api/internal/openclaw/command/route",
+      "/api/oauth/authorize/route",
+      "/api/public/assets/route",
+      "/api/public/company/route",
+      "/api/public/interview/route",
+      "/api/public/register/route",
+      "/api/public/resources/route",
+      "/api/public/transporter/route",
+      "/api/v1/capabilities/route",
+      "/api/v1/mcp/business/dispatch/route",
+      "/api/v1/mcp/manifest/route",
+      "/api/v1/mcp/registry/commands/route",
+      "/api/v1/query/route",
+      "/api/v1/spec/route",
+      "/api/workspace/embed-check/route",
+      "/api/workspace/org-context/route",
+      "/api/workspace/ui-preferences/route",
+      "/app/page",
+      "/auth/confirm/route",
+      "/auth/verify/route",
+      "/biz/[section]/page",
+      "/biz/page",
+      "/business/page",
+      "/download/page",
+      "/favicon.ico/route",
+      "/install/page",
+      "/liff/add-friend/page",
+      "/login/page",
+      "/marketplace/page",
+      "/oauth/authorize/page",
+      "/oauth/register/route",
+      "/oauth/token/route",
+      "/page",
+      "/partner/page",
+      "/products/page",
+      "/pub/page",
+      "/pub/register/page",
+      "/report/page",
+      "/robots.txt/route",
+      "/sitemap.xml/route",
+      "/solutions/page",
+      "/transporter/page",
+      "/user/page",
+      "/workspace/capability/page",
+      "/workspace/page"
+    ]
+  },
+  "developer_tool_residual": {
+    "note": "Developer tool IMPLEMENTATION modules still reachable from business routes. Surface (routes/APIs) is cut; these shared libraries are the residual that still must be removed before a cutover can be declared READY.",
+    "modules_by_category": {
+      "filesystem_source_access": [
+        "app/api/admin/ide/_lib/classification.ts",
+        "app/api/admin/ide/_lib/fsSecurity.ts"
+      ],
+      "git_control": [
+        "app/api/admin/ide/_lib/gitReadOnly.ts"
+      ],
+      "build_release_deploy": [
+        "app/api/admin/ide/_lib/buildRegistry.ts",
+        "app/api/admin/ide/_lib/buildRuntime.ts",
+        "app/api/admin/ide/_lib/deploymentRegistry.ts",
+        "app/api/admin/ide/_lib/deploymentRuntime.ts",
+        "app/api/admin/ide/_lib/releaseRuntime.ts"
+      ],
+      "test_execution": [
+        "app/api/admin/ide/_lib/testRegistry.ts",
+        "app/api/admin/ide/_lib/testRuntime.ts"
+      ],
+      "worker_execution": [
+        "app/api/admin/ide/_lib/executionContextRuntime.ts",
+        "app/api/admin/ide/_lib/executionRegistry.ts",
+        "app/api/admin/ide/_lib/executionRuntime.ts",
+        "app/api/admin/ide/_lib/workerAdapter.ts",
+        "app/api/admin/ide/_lib/workerAdapterRegistry.ts",
+        "app/api/admin/ide/_lib/workerContract.ts",
+        "app/api/admin/ide/_lib/workerRegistry.ts"
+      ],
+      "inspection_governance": [
+        "app/api/admin/ide/_lib/browserInspectionRuntime.ts",
+        "app/api/admin/ide/_lib/changeSetRuntime.ts",
+        "app/api/admin/ide/_lib/governanceRuntime.ts",
+        "app/api/admin/ide/_lib/inspectionRegistry.ts",
+        "app/api/admin/ide/_lib/inspectionRuntime.ts",
+        "app/api/admin/ide/_lib/reviewRegistry.ts"
+      ],
+      "developer_plane_route": [
+        "app/api/admin/ide/_lib/acceptanceContractRuntime.ts",
+        "app/api/admin/ide/_lib/alertRegistry.ts",
+        "app/api/admin/ide/_lib/alertRuntime.ts",
+        "app/api/admin/ide/_lib/artifactRegistry.ts",
+        "app/api/admin/ide/_lib/artifactRuntime.ts",
+        "app/api/admin/ide/_lib/backupRegistry.ts",
+        "app/api/admin/ide/_lib/backupRuntime.ts",
+        "app/api/admin/ide/_lib/browserInspectionRuntime.ts",
+        "app/api/admin/ide/_lib/buildRegistry.ts",
+        "app/api/admin/ide/_lib/buildRuntime.ts",
+        "app/api/admin/ide/_lib/businessAcceptanceRuntime.ts",
+        "app/api/admin/ide/_lib/businessFailureBridge.ts",
+        "app/api/admin/ide/_lib/businessJobProgressRuntime.ts",
+        "app/api/admin/ide/_lib/canonicalJobTransportRuntime.ts",
+        "app/api/admin/ide/_lib/capabilityResolverRuntime.ts",
+        "app/api/admin/ide/_lib/changeSetRuntime.ts",
+        "app/api/admin/ide/_lib/classification.ts",
+        "app/api/admin/ide/_lib/contextPlannerRuntime.ts",
+        "app/api/admin/ide/_lib/continuousOperationsRegistry.ts",
+        "app/api/admin/ide/_lib/continuousOperationsRuntime.ts",
+        "app/api/admin/ide/_lib/costGateRuntime.ts",
+        "app/api/admin/ide/_lib/costLedgerViewRuntime.ts",
+        "app/api/admin/ide/_lib/decisions.ts",
+        "app/api/admin/ide/_lib/deploymentRegistry.ts",
+        "app/api/admin/ide/_lib/deploymentRuntime.ts",
+        "app/api/admin/ide/_lib/executionContextRuntime.ts",
+        "app/api/admin/ide/_lib/executionRegistry.ts",
+        "app/api/admin/ide/_lib/executionRuntime.ts",
+        "app/api/admin/ide/_lib/factoryCompletionRegistry.ts",
+        "app/api/admin/ide/_lib/factoryCompletionRuntime.ts",
+        "app/api/admin/ide/_lib/fsSecurity.ts",
+        "app/api/admin/ide/_lib/gapLoopRuntime.ts",
+        "app/api/admin/ide/_lib/gitReadOnly.ts",
+        "app/api/admin/ide/_lib/governanceRuntime.ts",
+        "app/api/admin/ide/_lib/incidentRegistry.ts",
+        "app/api/admin/ide/_lib/incidentRuntime.ts",
+        "app/api/admin/ide/_lib/inspectionRegistry.ts",
+        "app/api/admin/ide/_lib/inspectionRuntime.ts",
+        "app/api/admin/ide/_lib/intentRuntime.ts",
+        "app/api/admin/ide/_lib/managerQuestionRuntime.ts",
+        "app/api/admin/ide/_lib/monitoringRegistry.ts",
+        "app/api/admin/ide/_lib/monitoringRuntime.ts",
+        "app/api/admin/ide/_lib/monitoringSignals.ts",
+        "app/api/admin/ide/_lib/problems.ts",
+        "app/api/admin/ide/_lib/providerHealthCollectors.ts",
+        "app/api/admin/ide/_lib/providerRegistryRuntime.ts",
+        "app/api/admin/ide/_lib/queueRegistry.ts",
+        "app/api/admin/ide/_lib/queueRuntime.ts",
+        "app/api/admin/ide/_lib/recoveryPlans.ts",
+        "app/api/admin/ide/_lib/recoveryRegistry.ts",
+        "app/api/admin/ide/_lib/releaseRuntime.ts",
+        "app/api/admin/ide/_lib/restrictedCapabilityRegistry.ts",
+        "app/api/admin/ide/_lib/reviewRegistry.ts",
+        "app/api/admin/ide/_lib/runtimeDependencyGraph.ts",
+        "app/api/admin/ide/_lib/switchBasedOrchestratorRuntime.ts",
+        "app/api/admin/ide/_lib/systemRealityRuntime.ts",
+        "app/api/admin/ide/_lib/targetPolicy.ts",
+        "app/api/admin/ide/_lib/testRegistry.ts",
+        "app/api/admin/ide/_lib/testRuntime.ts",
+        "app/api/admin/ide/_lib/usageMeterRuntime.ts",
+        "app/api/admin/ide/_lib/viewportRegistry.ts",
+        "app/api/admin/ide/_lib/workerAdapter.ts",
+        "app/api/admin/ide/_lib/workerAdapterRegistry.ts",
+        "app/api/admin/ide/_lib/workerAdapters/apiWorkerAdapter.ts",
+        "app/api/admin/ide/_lib/workerAdapters/cliWorkerAdapter.ts",
+        "app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts",
+        "app/api/admin/ide/_lib/workerAdapters/humanWorkerAdapter.ts",
+        "app/api/admin/ide/_lib/workerAdapters/localModelWorkerAdapter.ts",
+        "app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter.ts",
+        "app/api/admin/ide/_lib/workerAdapters/mcpWorkerAdapter.ts",
+        "app/api/admin/ide/_lib/workerContract.ts",
+        "app/api/admin/ide/_lib/workerRegistry.ts"
+      ]
+    },
+    "total_modules": 95
+  }
+}

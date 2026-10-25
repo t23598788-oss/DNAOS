@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "note": "Real Owner-approved spend authorizations for PAID/UNKNOWN_COST/ESTIMATED_COST Worker/Adapter dispatch (owner, 2026-08-09, Constitution Rule 257 — Execution Plane Cost Gate, TASK-048/FCR-009). Distinct, real, honestly-scoped concept from app/api/admin/ide/_lib/executionBudgetRuntime.ts's ExecutionBudget: that file is a real, hardcoded, per-Workspace-Session/Execution-Step SAFETY CEILING (maxEstimatedCost defaults to 1.0 for every job, never Owner-specific, never a real authorization) — this file is a real, explicit, per-task-or-capability Owner AUTHORIZATION ledger (a real dollar amount the Owner actually granted, for a specific real reason), checked by app/api/admin/ide/_lib/costGateRuntime.ts before any PAID/UNKNOWN_COST dispatch. Checked first (Constitution Rule 101/103) — no equivalent Owner-authorization concept existed anywhere in this repo before this file.",
+  "schema_note": "budgets[] entries are matched most-specific-first by costGateRuntime.ts#findMatchingBudget(): scope=TASK (exact task_id) > scope=CAPABILITY (operation string, e.g. code.generate) > scope=PROVIDER (adapter provider string, e.g. anthropic-cli). A budget only RELEASEs a real COST_GATE check when status=ACTIVE, currency matches, and (max_cost - spent) >= the real estimated_cost being checked. spent is real, live bookkeeping mutated in place by costGateRuntime.ts#checkCostGate() on every real RELEASE-via-budget outcome (never by any Worker/Adapter directly) — status flips to EXHAUSTED automatically once spent reaches max_cost. Entries are added/removed only via costGateRuntime.ts's real grantCostBudget()/revokeCostBudget() functions, the same, single real mechanism this file's own acceptance test (scripts/cost-gate-test.ts) exercises — never hand-edited concurrently while a real Owner-granted budget is in use, per registry/LOCK_MANAGER.json discipline.",
+  "budgets": [
+    {
+      "budget_id": "7b5a2044-593b-4f5d-bd5e-861dec3582cf",
+      "scope": "TASK",
+      "task_id": "b4a263cf-13e2-46e4-bfce-37682e494d08:auto-step",
+      "capability": null,
+      "provider": null,
+      "currency": "USD",
+      "max_cost": 0.3,
+      "spent": 0.29,
+      "approved_by": "Owner (explicit chat approval 2026-10-15)",
+      "approved_at": "2026-10-15T20:46:16.844Z",
+      "reason": "พิสูจน์เส้น Owner Command -> AI (claude-cli, repository note: read-only Q&A) — ~$0.29 floor ตามที่ adapter อ้าง",
+      "status": "ACTIVE"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-05",
+  "memory_configs": {
+    "session_memory": {
+      "scope": "session",
+      "storage_table": "conversation_states",
+      "ttl_seconds": 86400,
+      "fields": ["material_type", "quantity_m3", "delivery_location", "delivery_date", "pit_id"],
+      "note": "เก็บ entity ที่ collect ได้ระหว่าง conversation — reset เมื่อ CONFIRMED หรือหมดเวลา"
+    },
+    "persistent_memory": {
+      "scope": "persistent",
+      "storage_table": "entity_registry",
+      "ttl_seconds": null,
+      "fields": ["material_type", "delivery_location", "price_thb", "pit_id"],
+      "note": "เก็บประวัติการสั่งของลูกค้า — ใช้ recommend บ่อเดิมในครั้งถัดไป"
+    }
+  }
+}

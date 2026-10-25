@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "note": "Regex/keyword patterns that always trigger SECURITY_VIOLATION or ARCHITECTURE_VIOLATION when matched literally in source (not in a .env.example, test fixture with obviously-fake value, or this registry itself).",
+  "entries": [
+    {
+      "id": "FHP-API-KEY-LITERAL",
+      "category": "ENVIRONMENT_SECRET",
+      "pattern": "(?i)(api[_-]?key|secret[_-]?key|access[_-]?token|refresh[_-]?token|auth[_-]?token|bearer[_-]?token|client[_-]?secret|private[_-]?key|encryption[_-]?key)\\s*[:=]\\s*['\"][A-Za-z0-9_\\-]{16,}['\"]",
+      "verdict": "SECURITY_VIOLATION",
+      "rationale": "Literal-looking credential assigned directly in source.",
+      "owner": "platform",
+      "version": "1.0",
+      "review_required": true,
+      "last_verified_at": "2026-08-04"
+    },
+    {
+      "id": "FHP-PASSWORD-LITERAL",
+      "category": "ENVIRONMENT_SECRET",
+      "pattern": "(?i)(password|passwd|pwd|passphrase)\\s*[:=]\\s*['\"][^'\"]{6,}['\"]",
+      "verdict": "SECURITY_VIOLATION",
+      "rationale": "Literal password/passphrase assigned directly in source. Found missing during HCG Phase 2.5 stabilization testing — the owner's own required test case ('password' field with a hardcoded value) fell through to UNKNOWN, undetected, before this entry was added; FHP-API-KEY-LITERAL's keyword group never covered password-shaped fields at all.",
+      "owner": "platform",
+      "version": "1.0",
+      "review_required": true,
+      "last_verified_at": "2026-08-04"
+    },
+    {
+      "id": "FHP-BEARER-TOKEN-EMBEDDED",
+      "category": "ENVIRONMENT_SECRET",
+      "pattern": "(?i)bearer\\s+[A-Za-z0-9_\\-.]{16,}",
+      "verdict": "SECURITY_VIOLATION",
+      "rationale": "'Bearer <token>' with a real-looking token embedded directly in the literal — found live during HCG Phase 2.8 extractor coverage probing: an Authorization header object property (`Authorization: \"Bearer sk_live_...\"`) and a no-interpolation template literal with the same value both fell through to UI_LITERAL/ALLOWED, because FHP-API-KEY-LITERAL only matches when the SECRET KEYWORD (api_key/token/etc) is the assignment's left-hand identifier — it never anchors on the 'Bearer' prefix inside the VALUE itself, which is exactly how Authorization headers are written. This pattern matches on value content regardless of the surrounding identifier name, closing that gap.",
+      "owner": "platform",
+      "version": "1.0",
+      "review_required": true,
+      "last_verified_at": "2026-08-04"
+    },
+    {
+      "id": "FHP-SUPABASE-SERVICE-ROLE-KEY",
+      "category": "ENVIRONMENT_SECRET",
+      "pattern": "(?i)supabase.*service_role.*['\"]ey[J]",
+      "verdict": "SECURITY_VIOLATION",
+      "rationale": "Supabase service-role JWTs bypass RLS; must only ever come from env/secret provider.",
+      "owner": "platform",
+      "version": "1.0",
+      "review_required": true,
+      "last_verified_at": "2026-08-04"
+    },
+    {
+      "id": "FHP-DB-CONNECTION-STRING",
+      "category": "FORBIDDEN_HARDCODE",
+      "pattern": "(?i)(postgres(ql)?|mysql|mongodb)://[^\\s'\"]+:[^\\s'\"]+@",
+      "verdict": "SECURITY_VIOLATION",
+      "rationale": "Connection string with embedded credentials.",
+      "owner": "platform",
+      "version": "1.0",
+      "review_required": true,
+      "last_verified_at": "2026-08-04"
+    },
+    {
+      "id": "FHP-HARDCODED-PRICE-IN-ROUTE",
+      "category": "BUSINESS_RULE",
+      "pattern": "app/api/**/route.ts contains a numeric literal used as a price/threshold, not imported from a pricing/policy module",
+      "verdict": "ARCHITECTURE_VIOLATION",
+      "rationale": "Business rule (Rule: UI/Route must not originate constants — Route is Request→Validation→Runtime→Response only).",
+      "owner": "platform",
+      "version": "1.0",
+      "review_required": true,
+      "last_verified_at": "2026-08-04"
+    },
+    {
+      "id": "FHP-MACHINE-SPECIFIC-PATH",
+      "category": "FORBIDDEN_HARDCODE",
+      "pattern": "/Users/[A-Za-z0-9_\\-]+/|C:\\\\\\\\Users\\\\\\\\",
+      "verdict": "ARCHITECTURE_VIOLATION",
+      "rationale": "Absolute machine-specific path baked into source breaks portability across dev machines/CI/prod.",
+      "owner": "platform",
+      "version": "1.0",
+      "review_required": true,
+      "last_verified_at": "2026-08-04"
+    }
+  ]
+}

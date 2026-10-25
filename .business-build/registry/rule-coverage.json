@@ -1,0 +1,1582 @@
+{
+  "version": 1,
+  "policy": "ทุก Constitution Rule ต้องมี code บังคับใช้ — ไม่ใช่แค่เขียนไว้",
+  "rules": {
+    "1": {
+      "title": "ห้าม Hardcode ข้อมูลธุรกิจ",
+      "enforced_by": [
+        "scripts/pre-commit-check.sh",
+        "core/config-loader.ts"
+      ],
+      "type": "build-time"
+    },
+    "2": {
+      "title": "ห้าม Mock/Fake/Sample/Demo",
+      "enforced_by": [
+        "scripts/pre-commit-check.sh#guard2",
+        "scripts/check-drift.sh"
+      ],
+      "type": "build-time"
+    },
+    "3": {
+      "title": "ห้าม Default Customer/Invoice",
+      "enforced_by": [
+        "core/config-loader.ts"
+      ],
+      "type": "runtime"
+    },
+    "6": {
+      "title": "ทุก Entity ต้องมี UUID",
+      "enforced_by": [
+        "lib/runtime/engine.ts#uuid"
+      ],
+      "type": "runtime"
+    },
+    "11": {
+      "title": "ทุก Layer มีหน้าที่เดียว",
+      "enforced_by": [
+        "eslint.config.mjs",
+        "scripts/check-imports.sh"
+      ],
+      "type": "build-time"
+    },
+    "12": {
+      "title": "Layer สื่อสารผ่าน Command/Event",
+      "enforced_by": [
+        "eslint.config.mjs#ui-v1-rule",
+        "scripts/check-imports.sh"
+      ],
+      "type": "build-time"
+    },
+    "14": {
+      "title": "ห้าม Layer เรียก Layer อื่นโดยตรง",
+      "enforced_by": [
+        "registry/dependency-graph.json",
+        "scripts/check-imports.sh"
+      ],
+      "type": "build-time"
+    },
+    "19": {
+      "title": "UI Render อย่างเดียว ไม่มี Business Logic",
+      "enforced_by": [
+        "eslint.config.mjs#ui-v1-rule"
+      ],
+      "type": "build-time"
+    },
+    "31": {
+      "title": "ทุก Module ต้อง Register",
+      "enforced_by": [
+        "registry/module-registry.json",
+        "scripts/check-registry.sh"
+      ],
+      "type": "build-time"
+    },
+    "39": {
+      "title": "ทุก Command ลงทะเบียนใน Registry",
+      "enforced_by": [
+        "registry/command-registry.json",
+        "scripts/check-commands.sh"
+      ],
+      "type": "build-time"
+    },
+    "40": {
+      "title": "ห้าม hard-coded routing",
+      "enforced_by": [
+        "registry/dependency-graph.json"
+      ],
+      "type": "build-time"
+    },
+    "45": {
+      "title": "Document Engine มี Template เดียว",
+      "enforced_by": [
+        "engines/documents/engine.ts"
+      ],
+      "type": "runtime"
+    },
+    "46": {
+      "title": "ทุก Document Render จาก Data",
+      "enforced_by": [
+        "engines/documents/engine.ts",
+        "services/middleware/sanitize.ts"
+      ],
+      "type": "runtime"
+    },
+    "67": {
+      "title": "Environment variable ห้ามอยู่ใน source",
+      "enforced_by": [
+        "scripts/pre-commit-check.sh#guard1"
+      ],
+      "type": "build-time"
+    },
+    "69": {
+      "title": "Credential file ห้าม commit",
+      "enforced_by": [
+        "scripts/pre-commit-check.sh#guard1",
+        "scripts/check-drift.sh#jwt"
+      ],
+      "type": "build-time"
+    },
+    "71": {
+      "title": "ทุก Execute ต้องผ่าน Execution Layer",
+      "enforced_by": [
+        "eslint.config.mjs#supabase-rule",
+        "gateway/index.ts"
+      ],
+      "type": "build-time+runtime"
+    },
+    "72": {
+      "title": "ทุก Write ต้องมี confirmed จากมนุษย์",
+      "enforced_by": [
+        "gateway/actions.ts#consumeToken",
+        "gateway/index.ts",
+        "gateway/actions.ts"
+      ],
+      "type": "runtime"
+    },
+    "73": {
+      "title": "AI ห้ามเปลี่ยนสถานะทางการเงิน",
+      "enforced_by": [
+        "lib/v4-ai/bridge-openai.ts#force-preview"
+      ],
+      "type": "runtime"
+    },
+    "74": {
+      "title": "AI ห้ามสร้าง/แก้/ลบข้อมูลธุรกิจ",
+      "enforced_by": [
+        "lib/v4-ai/bridge-openai.ts#force-preview",
+        "eslint.config.mjs#v4-runtime-rule"
+      ],
+      "type": "build-time+runtime"
+    },
+    "79": {
+      "title": "Business policy อยู่ใน Database",
+      "enforced_by": [
+        "core/config-loader.ts#fail-loud"
+      ],
+      "type": "runtime"
+    },
+    "80": {
+      "title": "Business rule อยู่ใน Rule/Engine Layer เท่านั้น",
+      "enforced_by": [
+        "eslint.config.mjs",
+        "scripts/check-imports.sh"
+      ],
+      "type": "build-time"
+    },
+    "81": {
+      "title": "AI แปล วิเคราะห์ สรุป — ห้ามสร้างข้อมูล",
+      "enforced_by": [
+        "lib/v4-ai/bridge-openai.ts#force-preview"
+      ],
+      "type": "runtime"
+    },
+    "89": {
+      "title": "State Machine เปลี่ยนจาก Event ไม่ใช่ AI",
+      "enforced_by": [
+        "engines/debt/transition.ts",
+        "engines/debt/status.ts"
+      ],
+      "type": "runtime"
+    },
+    "94": {
+      "title": "Production Only — ห้าม mock ใน source",
+      "enforced_by": [
+        "scripts/pre-commit-check.sh#guard2",
+        "scripts/check-drift.sh"
+      ],
+      "type": "build-time"
+    },
+    "98": {
+      "title": "Dead code ต้องลบ",
+      "enforced_by": [
+        "knip.json",
+        "scripts/check-ghosts.sh"
+      ],
+      "type": "build-time"
+    },
+    "100": {
+      "title": "Core Learning Policy — ทุก Bug/Duplicate/Drift ที่พบต้องบันทึกเป็นบทเรียนใน registry/existence.json known_mistakes ก่อนถือว่าจบงาน ห้ามเก็บไว้เฉพาะ AI conversation (CONST-100, DNA-000026)",
+      "enforced_by": [
+        "registry/existence.json#known_mistakes",
+        "scripts/pre-commit-check.sh#Guard9"
+      ],
+      "type": "build-time",
+      "detection": "mixed — KM-002-class findings (duplicate module/basename) mechanically WARNed by Guard 9; other classes (e.g. KM-001, duplicated parsing logic) documented with cross-reference comments, no mechanical check exists yet — see registry/existence.json known_mistakes[].detection for the honest per-entry status",
+      "canonical_id": "C-006 (Every resolved incident must become reusable knowledge)"
+    },
+    "101": {
+      "title": "Connect before Create, Compose before Expand — ก่อนสร้าง capability/registry/runtime/explanation-engine ใหม่ ต้องตรวจสอบก่อนว่ามีของเดิมที่ทำหน้าที่นี้อยู่แล้วหรือไม่ ห้ามสร้างซ้ำ (CONST-101, DNA-000030)",
+      "enforced_by": [
+        "registry/existence.json#known_mistakes.confirmed_duplicate_pairs",
+        "scripts/pre-commit-check.sh#Guard9",
+        "scripts/check-imports.sh",
+        "scripts/build-arch-book.ts"
+      ],
+      "type": "build-time + procedural",
+      "detection": "mixed, stated honestly — the module/file-basename layer of 'no duplicate' is mechanically enforced (same Guard 9 / KM-002 / confirmed_duplicate_pairs infrastructure Rule 100 built, DNA-000027). The broader instruction ('search for an existing capability/registry/runtime/explanation-engine before building a new one') has no mechanical gate — nothing scans intent or purpose, only file names and import edges. Compliance today depends on whoever is building (human or AI) actually running discovery first (e.g. npm run hello, a registry read) — same as SDRN-P1/P2 did in practice before this rule was written down. Not claiming automated enforcement that doesn't exist."
+    },
+    "102": {
+      "title": "Self Publishing Runtime Protocol (SPRP) — ทุก Runtime Component ต้องรับผิดชอบการประกาศการมีอยู่ของตัวเอง (identity/capability/state/health/dependency/resource/owner/execution-status/improvement-request) เชิงรุก ห้ามให้ AI ค้นพบด้วยการไล่อ่าน source code (CONST-102, DNA-000031)",
+      "enforced_by": [
+        "engines/documents/selfDescription.ts",
+        "scripts/hello.ts",
+        "core/shared/types.ts (RuntimeContract 19-field type, NegotiationFlowState, computeNegotiationStage — SDRN-P6, DNA-000060)",
+        "engines/documents/selfDescription.ts (getDocumentEngineRuntimeContract — full 19-field real implementation)",
+        "plugins/drivers/line.selfDescription.ts (getLineDriverRuntimeContract — full 19-field real implementation, 2nd real module)",
+        "core/shared/types.ts (ContextBudget, DeltaContext, WorkOrder, ExecutionReadiness, VerificationContract, MeasurementReport + real derivation functions — SDRN-P7, DNA-000061)",
+        "scripts/hello.ts --contract-coverage (real, live-verified Contract Coverage scan)",
+        "core/runtime/contextBroker.ts (SDRN-P8, DNA-000062 — real compute-once/cache/reuse broker, real read counter)",
+        "scripts/hello.ts --broker-report (real, live-verified before/after measurement)",
+        "core/shared/types.ts (ExecutionPlan + deriveExecutionPlan — SDRN-P9, DNA-000063)",
+        "core/runtime/contextBroker.ts (ExecutionReport + generateExecutionReport — real aggregation, no new computation)",
+        "core/shared/types.ts (computeBriefing — SDRN-P10, DNA-000064)",
+        "core/runtime/contextBroker.ts (ArchitectureInfo/computeArchitecture, cached alongside the contract)"
+      ],
+      "type": "declarative — infrastructure not yet built",
+      "detection": "NOT mechanical. Recorded honestly as a declared engineering target, not an enforced rule. Real coverage today: engines/documents/selfDescription.ts implements the 'describe on demand' half of this (SelfDescribe(), SDRN-P1) for exactly 1 of 466 modules; scripts/hello.ts is the one real place anything gets composed/published, and only on manual invocation (npm run hello), not proactively/continuously. The Publish*() interface family (PublishState/PublishHealth/PublishNeed/PublishDependency/PublishCapability/PublishKnowledge/PublishWarning/PublishProposal), inter-component negotiation, and continuous self-reporting do not exist anywhere in this codebase. The closest existing prior art — per Rule 101, checked before writing this entry rather than assumed — is core/workspace/runtimeRegistry.ts (register/unregister/getStatus/list/subscribe, a real pub/sub-shaped primitive already built for the Visual Workspace canvas), but register() is called nowhere in the app (confirmed multiple times this session) and it only covers state, not the other 8 Publish* categories. Building SPRP for real would mean extending that existing primitive, not creating a second one — and is Feature-scale work requiring its own Plan Lock exception and phased scope, same as SDRN-P1/P2, not something this rule entry itself performs. UPDATE (DNA-000059): the real implementation (engines/documents/selfDescription.ts) now covers all 9 C-011 fields — added `constraints` and `verificationProcedure` (previously absent from core/shared/types.ts's SelfDescription interface entirely) plus `missingKnowledge` (distinct from the pre-existing `missing`), verified live via a direct tsx invocation returning real, non-fabricated values for all 3. Still true: only 1 of ~470 registered modules has any SelfDescription implementation at all — this closes a field-completeness gap for that one module, it does not extend coverage to more modules. UPDATE (DNA-000060, SDRN-P6): the full 19-field RuntimeContract (Identity/Purpose/Responsibilities/Capabilities/Dependencies/Constraints/Health/Current State/Known Problems/Missing Knowledge/Missing Capabilities/Missing Dependencies/Resources Needed/Requested Actions/Execution Scope/Forbidden Scope/Verification Procedure/Success Criteria/Confidence/Last Validation) plus a real, pure computeNegotiationStage() function now exist as real types/code — verified live via direct tsx invocation for 2 real modules (Document Engine, LINE driver), both returning genuinely computed (not fabricated) values, including a correctly-computed 'knowledge_gap' negotiation stage for both (Document Engine: unwired Capability Orchestrator chain + no versioning scheme; LINE driver: no automated functional test for the AppleScript automation). Still true: only 2 of ~470 registered modules have any RuntimeContract implementation — this was an explicit, scoped Plan Lock exception (SDRN-P6), not a repo-wide rollout, and the owner's stated end-goal (contract-first replacing repository-first discovery for all future AI sessions) remains a declared target, not something now mechanically enforced for AI behavior in general. UPDATE (DNA-000061, SDRN-P7): real Contract Coverage measured live — 2 of 473 registered modules (0.42%). The other 6 named metrics (Repository Read Count, Context Size, Context Reuse Ratio, Delta Context Ratio, Repository Scan Avoidance, Execution Preparation Time) are real TYPES with honest null values and a stated unmeasurableReason — this repository has no access to AI session token/read/timing data, which lives in the Claude Code harness outside this repo. Per the owner's own explicit instruction, no numeric reduction is claimed. ExecutionReadiness/ContextBudget/DeltaContext/WorkOrder are real, computed, and verified live for the same 2 modules — explicitly advisory only, nothing mechanically gates AI execution on these values. UPDATE (DNA-000062, SDRN-P8): real before/after measurement now exists and was run live — 55 real repository reads (independent recomputation) vs 11 real repository reads (broker, cached) for the same 2-module repeated-access workload, an 80% real, computed reduction (not estimated). Precisely scoped: this measures the broker's own internal behavior only, not an AI session's overall token/read behavior, which remains outside this repository's observability. UPDATE (DNA-000063, SDRN-P9): after auditing a 10-item 'Runtime Knowledge Platform' directive against real state (3 items already built, 1 overlapping knip/jscpd, several not achievable — mechanical repository-access gating and AI-reasoning caching are not data this repo can observe or store), the owner confirmed a narrowed scope. ExecutionPlan/ExecutionReport built and verified live for both real modules across a real cache-miss and cache-hit — repositoryReads correctly stayed flat and executionTimeMs correctly dropped to 0 on the cache hit, confirming real, not fabricated, behavior. UPDATE (DNA-000064, SDRN-P10): RuntimePacket now includes briefing (real synthesis) and architecture (real module-registry.json/dependency-graph.json lookup). A real bug was caught and fixed live in this same pass — architecture's first implementation added real file reads even on a cache hit, contradicting the already-verified 0-additional-reads claim; fixed by caching it alongside the contract, re-verified (8 reads unchanged across a cache-hit access).",
+      "canonical_id": "C-011 (Every module must be self-describing; no AI may inspect implementation before reading self-description)"
+    },
+    "103": {
+      "title": "Reuse Before Build — ก่อนสร้าง module/registry/runtime/database/API/workflow/event bus/cache/service/interface/storage ใหม่ใด ๆ ต้องค้นหาก่อนว่ามี implementation เดิมอยู่แล้วหรือไม่ ทุก request ต้องได้ข้อสรุปเป็นหนึ่งใน 3: EXISTING (ใช้ของเดิม) / EXTEND (ต่อยอดของเดิม) / NEW (สร้างใหม่ เฉพาะเมื่อพิสูจน์แล้วว่าไม่มีของเดิมที่ใช้ได้) ทุกบรรทัดโค้ดใหม่ต้องอธิบายได้ว่าทำไมโค้ดเดิมแก้ปัญหานี้ไม่ได้ (CONST-103, DNA-000036)",
+      "enforced_by": [
+        "registry/existence.json#known_mistakes.confirmed_duplicate_pairs",
+        "scripts/pre-commit-check.sh#Guard9",
+        "scripts/check-imports.sh",
+        "scripts/build-arch-book.ts"
+      ],
+      "type": "mostly procedural, generalizes Rule 101",
+      "detection": "Mechanical only at the same narrow layer Rule 101 already covers — module/file-basename duplication (Guard 9, confirmed_duplicate_pairs). The EXISTING/EXTEND/NEW decision framework itself has no mechanical check — nothing in this codebase can algorithmically determine whether a proposed capability semantically overlaps 80%+ with an existing one; that judgment is currently made by whoever is building (human or AI) actually searching first. Real, lived evidence this rule already describes existing practice rather than inventing new behavior: every SDRN-P1 through P5 phase this session applied exactly this EXISTING/EXTEND/NEW test before writing code (e.g. SDRN-P3 found core/workspace/runtimeRegistry.ts already existed and extended it instead of building a second registry; SDRN-P5 built on engines/documents/selfDescription.ts instead of a new interface file; the persistence-model decision was deferred rather than building a new event bus without evidence one was needed). Not claiming this makes the discipline automatic — it documents that it has been followed manually, consistently, and gives it a rule number so future sessions (human or AI) are held to the same standard explicitly rather than by accumulated precedent alone."
+    },
+    "104": {
+      "title": "Nothing Is Wasted — ก่อนลบ source code ใด ๆ ต้อง extract ความรู้ก่อนเสมอ (purpose/owner/dependencies/failure reason/replacement/migration path/lessons learned) ทุก implementation ที่ retire แล้วต้องกลายเป็น Runtime Knowledge (registry/existence.json) และห้ามสร้าง implementation ใหม่ที่ recreate mistake ที่เคย archive ไว้ — ทุกการ REJECT ต้องอ้างอิง knowledge จริงที่เป็นเหตุผล ไม่ใช่แค่ชี้ไปที่ไฟล์เฉย ๆ (CONST-104, DNA-000037/038/039/040)",
+      "enforced_by": [
+        "registry/existence.json#archived_knowledge",
+        "registry/module-registry.json#archival_status",
+        "scripts/build-arch-book.ts",
+        "scripts/pre-commit-check.sh#Guard10",
+        "scripts/hello.ts"
+      ],
+      "type": "declarative + real mechanical enforcement for 2 of 4 known cases",
+      "detection": "Mechanical for 3 real things: (1) build-arch-book.ts only excuses a module from UNUSED via archival_status:\"ARCHIVED\" if archived_knowledge_ref resolves to a real entry — verified by testing a fake ref, confirmed BROKEN, restored (DNA-000038). (2) Guard 10 (pre-commit-check.sh) hard-REJECTs if a new file recreates the basename of an already-archived module, AND its rejection message resolves and prints the real matched archived_knowledge entry's id/failure_reason/replacement_successor directly — not just a generic pointer at the file (DNA-000040, verified by copying an archived file to a new path and confirming the printed AK-001 id, real failure_reason text, and real replacement_successor path). Deliberately excludes conventional/repeated-by-design basenames (index.ts, engine.ts, etc., same list Guard 9 already excludes) — 2 of the 4 currently-archived files (engines/impact/engine.ts, core/auth/index.ts) have exactly this basename-genericity problem and were excluded after a dry run proved they'd otherwise hard-reject the repo's own real, unrelated files (10+ real engine.ts, 30+ real index.ts). Those 2 remain fully documented and searchable, just not eligible for the recreation-check specifically. (3) npm run hello -- --archive <query> makes archived_knowledge searchable by keyword. STILL NOT mechanical: nothing intercepts a real `rm` before knowledge extraction happens (no pre-write/pre-delete hook exists in this toolchain, stated honestly since DNA-000037) — Rule 104's item 9 (\"reject permanent deletion until knowledge extraction succeeds\") is real only in the sense that build-arch-book.ts would flag a deleted-but-never-archived module as UNUSED/BROKEN after the fact, not that deletion itself is blocked."
+    },
+    "105": {
+      "title": "Autonomous Architecture Maintenance Authorization — Runtime/AI may modify without re-asking approval when all 4 conditions hold (existing-rules-compliant, no business-logic change, scope limited to maintenance/sync/repair/metadata/dependency-correction/docs/validation/tooling, passes all validators before+after); every autonomous change must record executor/timestamp/affected modules-files-functions/reason/root cause/validation before-after/rollback into CHANGELOG.json + VALIDATION_RESULTS.json + CURRENT_STATE.json; exceeding Constitution scope means stop and create an Owner Task instead (CONST-105, DNA-000052)",
+      "enforced_by": [
+        "registry/CHANGELOG.json (autonomous_execution audit block on each qualifying entry)",
+        "registry/VALIDATION_RESULTS.json (before/after validation records)",
+        "registry/CURRENT_STATE.json (autonomous_maintenance pointer)"
+      ],
+      "type": "declarative + real audit-trail mechanism, no scope-eligibility guard",
+      "detection": "Mechanical for the AUDIT TRAIL itself once a change is underway: scripts/record-validation.ts already writes real before/after PASS/FAIL records (reused, not duplicated); CHANGELOG.json entries can carry a real autonomous_execution object (first real instance: DNA-000052 itself, the governance.sh jscpd --exitCode->--exit-code fix). NOT mechanical: whether a proposed change actually qualifies under the 4 conditions (especially condition 2, \"does not change Business Logic\") is judged by the executing AI itself — no guard inspects a diff and rejects it for being out of the autonomous-maintenance scope before it happens. This is a real, stated gap, same honesty pattern as Rules 101-104."
+    },
+    "106": {
+      "title": "Runtime Self-Evolving Knowledge Layer — repair must never end at the file edit; every fix requires real root-cause analysis, a check for existing Detection capability, new Detection/Diagnostic/Explanation/Validation/Dependency/Architecture capability if missing (connected to existing systems, never a parallel one), a re-test that the same incident is now caught automatically, a Deploy Gate blocking on real Runtime Validation PASS with a human-readable explanation on FAIL, immediate Knowledge/Root-Cause/Validation Engine recording, and Capability-building (not another point fix) on a 3rd recurrence of the same incident (CONST-106, DNA-000053)",
+      "enforced_by": [
+        "scripts/deploy-gate.ts (DNA-000053, step 5 — real, tested, blocks with a human-readable explanation)",
+        "package.json prebuild hook (DNA-000055 — actually wired into npm run build, not just built)",
+        "registry/VALIDATION_RESULTS.json + scripts/record-validation.ts (DNA-000050/051 — real Validation Engine recording)",
+        "registry/existence.json known_mistakes (Knowledge/Root-Cause Engine recording, e.g. KM-004, KM-005)"
+      ],
+      "type": "declarative + real mechanical enforcement for step 5 (Deploy Gate) only",
+      "detection": "Mechanical only for step 5 (deploy blocked on real Validation FAIL, verified live multiple times this session). Steps 1-4, 6 are the discipline this session has actually followed manually each time (root-cause analysis, detection-gap checking, capability-building, re-testing, knowledge recording) but have no mechanical check that an AI actually DID all of them before declaring a fix complete — the Root Cause Engine Output Contract (registry/EXECUTION_CONTRACT.json, DNA-000057) is the closest thing to enforcement, and it too is a stated requirement, not a mechanical gate. Step 7 (3rd-occurrence escalation) is still a manual discipline (KM-001's 3 recurrences leading to Guard 11 is the one real precedent), no automatic recurrence counter exists. UPDATE (DNA-000065): the owner's 18-dimension Operational Intelligence Objective (8 reduce / 10 increase) was mapped against real, current coverage, not assumed. Real finding: 4 of the 8 'reduce' dimensions and effectively 0 of the 'increase' dimensions beyond what's already listed above have NO real mechanical tracking today — structural ambiguity, business ambiguity, duplicate workflow, and duplicate data access have zero real checks anywhere in this repository (confirmed directly: scripts/check-workflow-coverage.sh checks completeness, not duplication; no duplicate-data-access checker exists). The rest of the 18 dimensions have real, evidence-based partial-to-full coverage already built across Rules 100/101/103/104/105/107/108/109/110 and SDRN-P6 through P10 — see the Rule 106 amendment text for the full per-dimension mapping.",
+      "canonical_id": "C-006 (Every resolved incident must become reusable knowledge)"
+    },
+    "107": {
+      "title": "Evidence Isolation — audit tools must never scan ledger/report/log/validation files as if they were source; runtime-generated evidence must never re-enter the same or next audit cycle as input (CONST-107, DNA-000056/057)",
+      "enforced_by": [
+        "scripts/pre-commit-check.sh#Guard1 (excludes VALIDATION_RESULTS.json by basename)",
+        "scripts/governance.sh (jscpd invocations explicitly scoped to typescript/tsx, ignoring **/*.json)",
+        "scripts/dashboard.sh (same jscpd fix)"
+      ],
+      "type": "declarative + real mechanical fix for the 2 known real violators",
+      "detection": "Mechanical only for the specific tools already fixed (Guard 1's grep, jscpd in governance.sh/dashboard.sh) — verified live by resetting the ledger and re-running a real subprocess, confirming zero VALIDATION_RESULTS.json matches and a stable clone count across two consecutive runs. NOT mechanical: no general-purpose check scans every audit tool invocation across scripts/*.sh and verifies it excludes the known Evidence Zone (VALIDATION_RESULTS.json, CHANGELOG.json, DNA_OS_HEALTH.json) — a new tool added later could reintroduce this exact failure mode undetected.",
+      "canonical_id": "C-001, C-002, C-003 (Evidence is never Source; generated files never re-enter the pipeline; audit boundaries must be explicit)"
+    },
+    "108": {
+      "title": "Tool Invocation & Configuration Precedence Contract — CLI > Environment > Config File; every real CLI override of a config file must be logged at the override site, not silent (CONST-108, DNA-000056/057)",
+      "enforced_by": [
+        "scripts/governance.sh (jscpd line carries an inline comment documenting the override)",
+        "scripts/dashboard.sh (same)"
+      ],
+      "type": "declarative + documented, not mechanically detected",
+      "detection": "NOT mechanical — the only 2 known real overrides (jscpd CLI args silently beating .jscpd.json) were found by manual evidence inspection during a live audit, then fixed and commented. No tool compares a script's actual CLI invocation against its target's config file to flag divergence automatically; a future CLI change could silently override config again without detection.",
+      "canonical_id": "C-003, C-004, C-008 (explicit audit boundary; deterministic tool invocation; no silent governance override)"
+    },
+    "109": {
+      "title": "Environment Verification Before Audit — must confirm grep/sed/awk/tail/tr resolve to real binaries, not shell wrappers, before trusting audit results; interactive-shell test results are not proof of real subprocess behavior (CONST-109, DNA-000056/057)",
+      "enforced_by": [
+        "scripts/verify-environment.sh (DNA-000057)"
+      ],
+      "type": "real mechanical check, run manually — not yet auto-invoked",
+      "detection": "Mechanical: scripts/verify-environment.sh checks `type grep/sed/awk/tail/tr` for each and WARNs if any resolves to anything other than a plain file path. NOT yet wired into governance.sh/pre-commit-check.sh/deploy-gate.ts's automatic run — must be invoked manually (npm run verify-env) until wired in, so it does not yet prevent this failure mode from recurring silently in a fresh environment.",
+      "canonical_id": "C-005 (Environment must be verified before execution)"
+    },
+    "110": {
+      "title": "Encoding Contract — no raw byte-offset truncation (tail -c N) feeding into a UTF-8-validating command (tr) without multi-byte protection; use LC_ALL=C or equivalent (CONST-110, DNA-000056/057)",
+      "enforced_by": [
+        "scripts/governance.sh (LC_ALL=C tr fix, the one known real instance)"
+      ],
+      "type": "real fix for the 1 known real violator, no general check",
+      "detection": "Mechanical only for the one specific line fixed — verified live (bash governance.sh as a real subprocess, zero 'Illegal byte sequence' occurrences, confirmed by grep -c on the real output). NOT mechanical: no check scans scripts/*.sh for the `tail -c ... | tr` pattern generally; a new script reintroducing this exact pattern would not be caught automatically."
+    },
+    "111": {
+      "title": "Extend Capability, Never Duplicate Pipeline — owner commands by outcome (\"เพิ่ม X\"); AI must treat this as Extension of the existing system by default, never Replacement, unless owner explicitly signals a core change (CONST-111, 2026-07-17)",
+      "enforced_by": [
+        "registry/intent-dictionary.json (Phase 0 — records known intents, known_implementations, and invariant_compliance per implementation; human/AI-read reference, not yet a mechanical gate)"
+      ],
+      "type": "process/behavioral rule — no mechanical enforcement exists yet",
+      "detection": "NOT mechanical. No pre-commit guard or script scans for a new file/route that duplicates an existing registered intent — compliance today depends entirely on whoever is building (human or AI) reading registry/intent-dictionary.json first. This is the same honest limitation already documented under Rule 101/103 (\"nothing scans intent or purpose, only file names and import edges\"); Rule 111 names the failure mode explicitly, it does not yet close the gap. A real Intent Guard (Phase 3 of the Execution Registry initiative) is planned but not built."
+    },
+    "112": {
+      "title": "AI Memory Is Not Source of Truth — an AI's own working memory (CLAUDE.md/MEMORY.md/feedback_*.md or equivalent) may explain and remember, but rules must always derive from registry/CONSTITUTION.json, never originate in AI memory (CONST-112, 2026-07-17)",
+      "enforced_by": [],
+      "type": "process/behavioral rule — no mechanical enforcement",
+      "detection": "NOT mechanical. Nothing in this codebase verifies that an AI memory file's stated rules trace back to a real Constitution rule number — compliance depends on the AI itself (or a human reviewer) checking. Stated honestly as a discipline, not a claim of automated enforcement, matching this file's existing convention for process rules (e.g. Rule 101/103's own coverage notes)."
+    },
+    "113": {
+      "title": "Document Immutability — sent invoices are fixed once issued; corrections happen via Void + reissue (new number), never in-place edit. Debt Reminder is a snapshot, not a tax document; Receipt only on confirmed real payment; Tax Invoice only on a real taxable transaction (CONST-113, 2026-07-18)",
+      "enforced_by": [],
+      "type": "process/behavioral rule — no mechanical enforcement",
+      "detection": "NOT mechanical. app/api/admin/documents/[id]/route.ts's PATCH handler currently allows editing an invoice's subtotal/vat_rate/total_amount regardless of invoice_status (sent invoices are NOT currently protected from in-place edits at the code level) — this rule is a declared discipline, not yet a guard. Stated honestly per this file's existing convention for process rules."
+    },
+    "114": {
+      "title": "Documents Are Derived From Business Events, Not Button Clicks — a document is created only from a real business event (sale/payment/cancellation); if an active, not-yet-superseded document already exists for the same partner+debt, reuse/resend it instead of creating a new one (CONST-114, 2026-07-18)",
+      "enforced_by": [],
+      "type": "process/behavioral rule — no mechanical enforcement",
+      "detection": "NOT mechanical. engines/documents/draft-builders.ts's buildDraftFromPartner() and app/api/admin/documents' POST handler currently have no check for an existing active invoice before creating a new one — confirmed by a real incident (INV-20260717-352 void -> INV-20260718-649, same underlying debt, one day apart). Stated honestly as a declared discipline pending a real idempotency check, not a claim of automated enforcement."
+    },
+    "115": {
+      "title": "Payment Verification Priority Levels — payment_verified only becomes true once every currently-real verification level (LINE claim, OCR slip, and eventually bank email/statement) agrees; human confirmation stands in for the still-unbuilt Level 3/4 (CONST-115, 2026-07-18)",
+      "enforced_by": [
+        "supabase/functions/line-webhook-v2/engines/payment-claim.ts (sets verification_level=1 on a text-only claim)",
+        "supabase/functions/line-webhook-v2/handlers/image.ts (sets verification_level=2 on an OCR-read slip)",
+        "app/api/admin/receipt-documents/[id]/confirm/route.ts (sets payment_verified=true only on real human confirmation)"
+      ],
+      "type": "runtime (partial) — the level-1/level-2 tagging and the human-confirmation gate are real code; Level 3/4 themselves do not exist",
+      "detection": "Real for what exists today: verification_level is set mechanically by the code paths listed, and payment_verified cannot become true without a human hitting the confirm endpoint. NOT mechanical for the full 4-source cross-check the rule describes — bank email and bank statement/API integrations are confirmed absent from this codebase (see registry/CHANGELOG.json's Payment Verification Engine Phase 1 entries), so Level 3/4 are declared, not built. Stated honestly per this file's convention."
+    },
+    "116": {
+      "title": "Workspace Lock Manager & Dependency-Gated Migration — every registry/type edit should go through Lock Manager + Dependency Registry before commit; every resource move must be blocked the instant a real dependent is found (CONST-116, 2026-08-04)",
+      "enforced_by": [
+        "supabase/migrations/20260804000005_workspace_lock_manager.sql (workspace_locks_active_resource_idx — real Postgres partial unique index, atomic)",
+        "engines/workspace/lockManager.ts (acquireLock/withLock — real DB-backed acquire, proven live: concurrent acquires for the same path only ever have one winner)",
+        "engines/storage/engine.ts's moveSafeToTrash() (calls createMigrationPlan() as a hard pre-check — real dependents force state BLOCKED, no override path)"
+      ],
+      "type": "runtime (partial) — lock atomicity and the storage-intelligence move pre-check are real, verified code. The 'no direct file writes' half of the rule is discipline-based, not mechanical.",
+      "detection": "Real for what exists today: two concurrent workspace_locks INSERTs for the same resource_path can only have one succeed (Postgres-enforced), and engines/storage/engine.ts cannot move a file with a real dependent found in registry/architecture-book.json or registry/infra-dependency-graph.json. NOT mechanical: nothing in this repository can intercept a different AI session's or a human's direct Edit/Write tool call, or a plain text editor, bypassing engines/workspace/registryWriter.ts entirely — this is the same honest boundary Rule 105/108 already document. Stated per this file's convention, not overclaimed."
+    },
+    "117": {
+      "title": "Development Machine Policy — no Production AI Runtime or model on the dev Mac; real drift check every 6h, alerts the owner via LINE when found (CONST-117, 2026-08-04)",
+      "enforced_by": [
+        "engines/workspace/architectureDriftDetector.ts (real lsof/ps process check, real fs.existsSync for ~/.ollama and .gguf/.safetensors files, real grep of local-runtime scripts for live localhost:11434 fetch() calls)",
+        "local-runtime/storage-threshold-watcher.ts (calls detectArchitectureDrift() every 6h via the existing LaunchAgent, writes architecture_drift_events, posts to architecture-drift-alert when not clean)",
+        "supabase/functions/architecture-drift-alert (real LINE push to the owner)"
+      ],
+      "type": "runtime (partial) — the 4 known drift signals (local process, ~/.ollama, model weight files, live script references) are mechanically checked and alerted; broader Local AI Runtime shapes are not.",
+      "detection": "Real for what's checked: verified live both directions via local-runtime/architecture-drift-acceptance-test.ts (clean machine reports clean; a synthetic violation with a real fetch() call to localhost:11434 is caught and classified). NOT mechanical for local AI runtimes outside the known pattern set (different port, different tool, no localhost:11434 literal) — stated honestly, not claimed as universal coverage."
+    },
+    "118": {
+      "title": "No Guess, Evidence-Backed Decisions & External Standards — classification/warnings/decisions must be evidence-based (UNKNOWN when no evidence, never guessed), real decisions must carry a reconstructable evidence chain, and external standards live in their own registry with honestly-empty rule lists until something real checks them (CONST-118, 2026-08-06)",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/classification.ts (classifyPath()/classifyFile() — category/riskLevel fall back to UNKNOWN, never guessed from file extension or any other weak signal, whenever no real registry/path/Constitution evidence matches)",
+        "app/api/admin/ide/_lib/standards.ts (citeStandard() — returns null for any id not actually declared in registry/standards.json; never fabricates a citation)",
+        "app/api/admin/ide/file/route.ts (PUT handler — builds and returns a real, request-scoped evidence_chain array: Classification → Risk → [Required Checks] → [Execution Runtime] → Result, every stage built from data already computed that request)"
+      ],
+      "type": "runtime (scoped) — real and enforced for everything /admin/ide's Semantic Classification + Save flow already covers today. The rule's broader claim (ALL AI/Runtime/Registry/Governance decisions, and future Deploy/Monitoring/Incident evidence chains) is a declared principle for future work, not yet mechanically enforced outside this scope.",
+      "detection": "Real for what exists: scripts/ide-regression-test.ts's classification suite proves a registered .ts file in an unrecognized directory stays UNKNOWN (never guessed from its extension); citeStandard() is proven to return null for an unregistered id; file/route.ts's evidence_chain construction is verified present and correctly ordered via source-position regression checks. NOT mechanical yet: nothing currently prevents a FUTURE module from adding a new classification/warning path that guesses instead of returning UNKNOWN — this rule is the documented mandate that any such future code must be evidence-based, checked at review time, not by an automated Constitution-wide linter."
+    },
+    "119": {
+      "title": "UI Inspection Must Use Structural Browser Evidence",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/browserInspectionRuntime.ts#evaluateUiRule"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: every UI rule function (ruleOverflow/ruleOverlap/ruleTextClipped/ruleColorContrast/ruleSmallTarget/ruleAccessibility/ruleResourceFailure/ruleOutsideViewport/ruleDomStructure) computes its finding from real captured DOM/layout/style/accessibility/network data — verified live: no AI/vision model call exists anywhere in browserInspectionRuntime.ts (grep-checked)."
+    },
+    "120": {
+      "title": "Screenshot Alone Cannot Produce a Blocking Finding",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/browserInspectionRuntime.ts#ruleColorContrast"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical for the one real case this phase has (image/gradient background): ruleColorContrast() returns severity:\"INFO\", blocking:false whenever the real backgroundImage != \"none\" (unresolvable to one real RGB value) — verified live in the smoke test against a real page."
+    },
+    "121": {
+      "title": "UI Inspection Is Read-Only",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/browserInspectionRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical by absence: no call in browserInspectionRuntime.ts ever writes to the real page's DOM/CSS or to a real source file — verified by source scan (no fs.writeFile/page.setContent/DOM-mutating page.evaluate calls) and by the real regression test asserting source-file bytes are unchanged before/after a real scan."
+    },
+    "122": {
+      "title": "UI Auto-Fix Is Forbidden This Phase",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/browserInspectionRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical by absence: no Auto-Fix/CSS-rewrite/component-rewrite function exists anywhere in this codebase's UI Inspection code — verified by source scan."
+    },
+    "123": {
+      "title": "Every UI Finding Must Reference a Real Snapshot Node",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/browserInspectionRuntime.ts#evaluateUiRule"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: every RuleFinding's nodeId/selector is copied directly from a real captured DomNode returned by captureDom() — no rule function constructs a nodeId/selector from anything other than a real node it already holds a reference to."
+    },
+    "124": {
+      "title": "Unknown Source Mapping Must Remain UNKNOWN",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/browserInspectionRuntime.ts#sourceHint"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: sourceHint() returns INFERRED only when a real data-testid/data-component/data-cy attribute is present, UNKNOWN in every other case — no code path in this phase ever returns EXACT (no real source map integration is wired), verified by source scan."
+    },
+    "125": {
+      "title": "Unsupported Browser Evidence Must Not Be Fabricated",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/inspectionRegistry.ts",
+        "app/api/admin/ide/_lib/inspectionRuntime.ts#runNotImplementedCheck"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: UI_LAYER_CHECK and UI_PERFORMANCE_CHECK are registered status:\"NOT_IMPLEMENTED\" in inspectionRegistry.ts; createInspection()'s dispatcher routes any NOT_IMPLEMENTED type through runNotImplementedCheck(), which always finalizes status NOT_IMPLEMENTED, never PASSED — verified by the real regression test asserting this."
+    },
+    "133": {
+      "title": "Approval Requires a Stable Working-Tree Fingerprint",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/changeSetRuntime.ts#recordDecision"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: recordDecision() recomputes computeWorkingTreeFingerprint() and compares it to cs.workingTreeFingerprint before any decision; on mismatch it sets cs.status=\"STALE\", emits CHANGE_SET_STALE, and throws ChangeSetError(\"CHANGE_SET_STALE\") — verified by the real regression test mutating a file between review and decision."
+    },
+    "134": {
+      "title": "Blocking Findings Prohibit Approval",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/changeSetRuntime.ts#recordDecision"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: recordDecision() computes unresolvedBlockingFindings = cs.findings.filter(f => f.blocking && f.status===\"OPEN\") and throws ChangeSetError(\"BLOCKING_FINDINGS_PRESENT\") when action===\"APPROVE\" and that list is non-empty — verified live against the real working tree (10 real blocking findings correctly rejected APPROVE)."
+    },
+    "135": {
+      "title": "Stale Change Sets Cannot Be Approved",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/changeSetRuntime.ts#recordDecision",
+        "app/api/admin/ide/_lib/changeSetRuntime.ts#refreshChangeSet"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: recordDecision() re-checks fingerprint freshness before every action (same code path as Rule 133) and refuses to proceed on a STALE Change Set; refreshChangeSet() is the only real path back to a decidable state, and it fully rebuilds the Change Set from current git state rather than patching stale data."
+    },
+    "136": {
+      "title": "Code Review Cannot Mutate Git State",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/changeSetRuntime.ts",
+        "app/api/admin/ide/_lib/gitReadOnly.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical by allowlist: every git invocation in changeSetRuntime.ts goes through runGitRaw() (git status/diff/rev-parse/show only) or gitReadOnly.ts's getGitStatus()/getFileDiff() — verified by source scan: no git add/commit/push/pull/branch/merge/rebase/checkout/reset/stash string appears anywhere in either file."
+    },
+    "137": {
+      "title": "AI Cannot Approve a Change Set",
+      "enforced_by": [
+        "app/api/admin/ide/review/change-sets/[changeSetId]/decision/route.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: the decision route calls requireAuth(ADMIN_TIER) and always passes the authenticated human session's auth.email as actor into recordDecision() — no code path accepts an AI-session-originated actor or bypasses requireAuth for this route."
+    },
+    "138": {
+      "title": "Every Review Decision Requires a Real Reason",
+      "enforced_by": [
+        "app/api/admin/ide/review/change-sets/[changeSetId]/decision/route.ts",
+        "app/api/admin/ide/_lib/changeSetRuntime.ts#recordDecision"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: decision/route.ts returns 400 INVALID_DECISION when reason is not a non-empty string before recordDecision() is ever called; recordDecision() persists reason and a real evidenceSnapshot into every ReviewDecisionRecord — verified by the real regression test asserting an empty-reason request is rejected."
+    },
+    "139": {
+      "title": "Unknown Impact Must Remain UNKNOWN",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/changeSetRuntime.ts#computeFileImpact"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: computeFileImpact() looks up the real architecture-book.json node for the file; when absent it sets unknownRelationships:true and factoryOwner/module to \"UNKNOWN\" — no fallback path infers ownership or dependents from the filename or path pattern."
+    },
+    "140": {
+      "title": "Test Pipeline Never Runs a Real Build",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/testRegistry.ts",
+        "app/api/admin/ide/_lib/testRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical by absence: no TestTypeDefinition's commandId resolves to the \"build\" CommandDefinition (fixedArgs [\"run\",\"build\"]) — verified by source scan of testRegistry.ts's TEST_TYPE_REGISTRY."
+    },
+    "141": {
+      "title": "Test Pipeline Never Mutates Git State",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/testRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical by absence: testRuntime.ts never imports child_process/execFile directly and never calls gitReadOnly.ts's write-capable functions (none exist) — its only git-adjacent call is the real read-only getChangeSet() cross-reference."
+    },
+    "142": {
+      "title": "NOT_IMPLEMENTED Test Types Must Never Report PASS",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/testRuntime.ts#runOneTestType"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: runOneTestType() checks def.status===\"NOT_IMPLEMENTED\" first and returns a TestResult with status \"NOT_IMPLEMENTED\" before any command/scan logic runs — verified live (UNIT_TEST/INTEGRATION_TEST/API_TEST/PERFORMANCE_SMOKE_TEST/CUSTOM_TEST all report NOT_IMPLEMENTED in the real smoke test)."
+    },
+    "143": {
+      "title": "Blocking Test Failures Force a BLOCKED Test Run Status",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/testRuntime.ts#createTestRun"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: createTestRun() computes blockingFailures = results.filter(r => r.status===\"FAILED\" && r.blocking) and sets status=\"BLOCKED\" whenever that list is non-empty, before falling back to FAILED/PASSED — verified live (a real GOVERNANCE_TEST rejection produced a BLOCKED Test Run in the smoke test)."
+    },
+    "144": {
+      "title": "Every Test Result Carries Real, Verifiable Evidence",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/testRuntime.ts",
+        "app/api/admin/ide/_lib/artifactRuntime.ts#createTestArtifact"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: every TestResult object constructed in testRuntime.ts sets a real evidence string and checksum, and createTestRun() creates a real TEST_EVIDENCE artifact per result via createTestArtifact() — verified by source scan (no TestResult literal omits evidence/checksum)."
+    },
+    "145": {
+      "title": "AI Cannot Set Test PASS/FAIL or Fabricate a Test Result",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/testRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical by absence: no import of an AI/LLM provider exists anywhere in testRuntime.ts or testRegistry.ts (grep-verified) — every TestResultStatus is derived from a real Execution Runtime exit code/stdout parse or a real static fs scan."
+    },
+    "146": {
+      "title": "Route Auth Test Scans Real requireAuth() Calls, Never Guessed",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/testRuntime.ts#runRouteAuthTest"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: runRouteAuthTest() reads each real app/api/admin/ide/**/route.ts file's current disk content via fs.readFileSync and checks for the literal substring \"requireAuth(\" — no naming-pattern or path-based inference exists in the function."
+    },
+    "147": {
+      "title": "Build Requires a Non-Stale Change Set",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/buildRuntime.ts#evaluatePreconditions"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: evaluatePreconditions() calls the real refreshChangeSet() and rejects with a real reason when changeSet.stale is true — verified live (a real BLOCKED Build Run was produced against this repo's actual working tree)."
+    },
+    "148": {
+      "title": "Build Requires an Eligible Review State",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/buildRuntime.ts#evaluatePreconditions"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: evaluatePreconditions() checks changeSet.status !== \"APPROVED\" and changeSet.findings.filter(blocking && OPEN) and adds a real, specific reason for each — verified live against this repo's actual 10 real blocking Review findings."
+    },
+    "149": {
+      "title": "Blocking Test Failures Prohibit Build",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/buildRuntime.ts#evaluatePreconditions"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: evaluatePreconditions() checks testRun.status === \"BLOCKED\" (the real Step 8 Blocking Policy status) and rejects with the real blockingReasons text — verified live."
+    },
+    "150": {
+      "title": "Build Cannot Mutate Source Files",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/buildRuntime.ts#executeBuildRun",
+        "app/api/admin/ide/_lib/buildRuntime.ts#classifyMutation"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: executeBuildRun() diffs real getGitStatus() before/after the real build process, classifies every new path via classifyPath(), and sets status=\"INVALID\" (never auto-reverting, always creating real BUILD_LOG/BUILD_FAILURE_REPORT artifacts) whenever any path classifies as SOURCE or UNKNOWN."
+    },
+    "151": {
+      "title": "Build Output Must Have Checksums",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/buildRuntime.ts#buildOutputInventory"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: buildOutputInventory() computes a real sha256Hex() of every real output file's bytes except those flagged OVERSIZED (which are explicitly, honestly excluded rather than fabricated) — verified by source scan."
+    },
+    "152": {
+      "title": "Build Artifacts Are Immutable",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/buildRuntime.ts",
+        "app/api/admin/ide/_lib/artifactRuntime.ts#createBuildArtifact"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: every real Build artifact is created via createBuildArtifact(), which routes through the SAME real createArtifactInternal() every other Step's artifacts use — no new Map/store exists in buildRuntime.ts (grep-verified)."
+    },
+    "153": {
+      "title": "Reproducibility Cannot Be Claimed From One Run",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/buildRuntime.ts#executeBuildRun",
+        "app/api/admin/ide/_lib/buildRuntime.ts#compareBuildRuns"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: executeBuildRun() always sets reproducibilityStatus=\"NOT_VERIFIED\" for a single real Build Run; only compareBuildRuns(), which requires two real buildRunId arguments with real matching sourceFingerprint/environmentProfileId/dependencyLockHash, can ever return VERIFIED."
+    },
+    "154": {
+      "title": "Missing Evidence Cannot Be Treated as PASS",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/buildRegistry.ts",
+        "app/api/admin/ide/_lib/buildRuntime.ts#evaluatePreconditions"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: CUSTOM_BUILD is registered status:\"NOT_IMPLEMENTED\" in buildRegistry.ts; evaluatePreconditions() adds a real blocking reason (not a silent skip) when registry/architecture-book.json's summary is null/unreadable."
+    },
+    "155": {
+      "title": "Build Cannot Mutate Git State",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/buildRuntime.ts#runGitRaw"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: every real runGitRaw() call site in buildRuntime.ts passes only [\"status\",...] or [\"rev-parse\",\"HEAD\"] as argv — verified by source scan; no git add/commit/push/checkout/reset/stash string appears anywhere in the file."
+    },
+    "156": {
+      "title": "AI Cannot Alter Build Status",
+      "enforced_by": [
+        "app/api/admin/ide/build/runs/route.ts",
+        "app/api/admin/ide/_lib/buildRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical by absence: no AI/LLM provider import exists anywhere in buildRuntime.ts (grep-verified); every Build API route calls requireAuth(ADMIN_TIER) and always passes the authenticated human session's auth.email as actor."
+    },
+    "157": {
+      "title": "Capability First",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/releaseRuntime.ts#checkPackageIntegrity",
+        "app/api/admin/ide/_lib/openCapabilityArchitecture.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: checkPackageIntegrity() computes duplicateCapabilityIds from the real, frozen registry/capability-registry.json on every real Release Run; FACTORY_ACCEPTANCE_RULES declares the same real rule for future Capability proposals."
+    },
+    "158": {
+      "title": "Factory Owns Knowledge",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/releaseRuntime.ts#packageCapabilities"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: packageCapabilities() sets owner exclusively from the real registry/factory-mapping.json lookup — no field references an AI provider or external service as owner, verified by source scan."
+    },
+    "159": {
+      "title": "Provider Independence",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/openCapabilityArchitecture.ts"
+      ],
+      "type": "declared",
+      "detection": "Declared: FACTORY_ACCEPTANCE_RULES lists the real \"Provider Independence\" rule for future Capability proposals — no real enforcement runner exists yet (honestly NOT_IMPLEMENTED on the rule record itself)."
+    },
+    "160": {
+      "title": "Country Package Architecture",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/countryPackageRegistry.ts"
+      ],
+      "type": "declared",
+      "detection": "Declared: countryPackageRegistry.ts defines the real TypeScript contracts (Legal/Tax/Document/BusinessRules/Localization/CapabilityExtension) and a real, empty COUNTRY_PACKAGE_REGISTRY — verified by source scan that no country is hardcoded into any Core module."
+    },
+    "161": {
+      "title": "Document Lifecycle",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/documentLifecycleConstitution.ts"
+      ],
+      "type": "declared",
+      "detection": "Declared: DOCUMENT_LIFECYCLE_CONSTITUTION declares real, typed policies for all 8 real dimensions, each with a real, honest status (DECLARED_NOT_ENFORCED or NOT_IMPLEMENTED) — verified by source scan that no status is fabricated as ENFORCED."
+    },
+    "162": {
+      "title": "Community Capability",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/openCapabilityArchitecture.ts"
+      ],
+      "type": "declared",
+      "detection": "Declared: every CommunityCapabilityContract/CountryCapabilityContract requires requiresReview:true (TypeScript literal type, cannot be false); REVIEW_PROCESS declares the real 4-step process — no real submission path bypasses it because none exists yet."
+    },
+    "163": {
+      "title": "Release Cannot Deploy or Write Git",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/releaseRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical by absence: no execFile/startRun(\"deploy\"...)/git-write command string (add/commit/push/checkout/reset/stash) appears anywhere in releaseRuntime.ts — verified by source scan."
+    },
+    "164": {
+      "title": "Every Release Decision Must Be Deterministic",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/releaseRuntime.ts#explainReleaseDecision"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: explainReleaseDecision() is a pure function of its real validation.reasons/integrity.findings arguments only — no Math.random()/Date.now()-influenced branching, verified by source scan and by the real release-test.ts determinism assertion."
+    },
+    "165": {
+      "title": "Operational Readiness Cannot Fake VERIFIED",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/releaseRuntime.ts#readinessLegal",
+        "app/api/admin/ide/_lib/releaseRuntime.ts#computeOperationalReadiness"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: readinessLegal() always returns NOT_IMPLEMENTED (no real Legal/Country Package exists); computeOperationalReadiness()'s Deployment Readiness dimension always returns NOT_IMPLEMENTED (no real Step 11 Deployment Pipeline exists) — verified live in the real smoke test."
+    },
+    "166": {
+      "title": "Release Artifacts Are Immutable",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/releaseRuntime.ts",
+        "app/api/admin/ide/_lib/artifactRuntime.ts#createReleaseArtifact"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: every real Release artifact is created via createReleaseArtifact(), which routes through the SAME real createArtifactInternal() every other Step's artifacts use — no new Map/store exists in releaseRuntime.ts (grep-verified)."
+    },
+    "167": {
+      "title": "Factory Completion Cannot Be Declared From UI Presence",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryCompletionRuntime.ts#computeFactoryCompletion"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: completionPercent is a weighted average of 6 independent real fs/registry checks (source/route/registry/test existence + non-triviality) — never a UI-presence flag."
+    },
+    "168": {
+      "title": "Documentation Does Not Equal Enforcement",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryCompletionRuntime.ts#computeNativeDNAEnforcement"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: Document Lifecycle policies (8 real policies) are asserted DECLARED_NOT_ENFORCED/NOT_IMPLEMENTED by scripts/document-lifecycle-test.ts — never fabricated ENFORCED."
+    },
+    "169": {
+      "title": "Critical DNA Principles Require Code/Runtime Enforcement",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/fsSecurity.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: scripts/factory-completion-test.ts asserts Workspace isolation is RUNTIME_ENFORCED or ARCHITECTURE_ISOLATED and cites a real, existing fsSecurity.ts."
+    },
+    "170": {
+      "title": "User Data Cannot Enter Shared Capability Storage",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryCompletionRuntime.ts#computeDataBoundaryAudit"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: structural check of registry/capability-registry.json's real CapabilityId/InputContract/OutputContract shape — no user-identifying field present."
+    },
+    "171": {
+      "title": "AI Context Must Be Workspace-Scoped",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryCompletionRuntime.ts#computeNativeDNAEnforcement"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: scripts/factory-completion-test.ts asserts 'AI context scoping' level === MISSING (no AI Context Runtime exists in this repo)."
+    },
+    "172": {
+      "title": "Capability Reuse Must Be Checked Before New Creation",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryCompletionRuntime.ts#computeCapabilityReuseAudit"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: computeCapabilityReuseAudit() reads registry/capability-registry.json live and reports resolverExists=false honestly — no Resolver may be built this Step."
+    },
+    "173": {
+      "title": "Owner Exit From VS Code Requires Full Native Pipeline Evidence",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryCompletionRuntime.ts#computeVSCodeDependencyAudit"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: VS_CODE_EXIT_READY gate in computeCompletionGates() is BLOCKED whenever any dependency has blockingOwnerMigration=true — verified live: Claude Code itself is currently blocking=true."
+    },
+    "174": {
+      "title": "Factory Completion Cannot Be 100% With Critical UNKNOWN",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryCompletionRuntime.ts#buildFactoryCompletionReport"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: criticalBlockers array is populated whenever a blocking gate is unhealthy — scripts/factory-completion-test.ts asserts this live (6 real critical blockers found: CORE_RUNTIME_READY, DATA_ISOLATION_READY, VS_CODE_EXIT_READY, DEPLOYMENT_READY, MONITORING_READY, INCIDENT_RECOVERY_READY)."
+    },
+    "175": {
+      "title": "External Provider Cannot Own DNA OS System State",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/executionRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep across all 9 core pipeline Runtime files confirms 0 imports of @supabase/* — verified live during Step 10.5 Phase 6 audit."
+    },
+    "176": {
+      "title": "Deployment Plan Never Triggers A Real Deploy",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/deploymentRuntime.ts#createDeploymentPlan"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: createDeploymentPlan()'s terminal `plan.status = \"BLOCKED\"` is unconditional (grep-verified: no branch sets status to READY/DEPLOYED); deploymentRuntime.ts contains zero fetch()/axios/exec calls to any external provider."
+    },
+    "177": {
+      "title": "Deployment Gate Reuses The Real Factory Completion Gate, Never A Second Readiness Computation",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/deploymentRuntime.ts#computeDeploymentGate"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: computeDeploymentGate() calls computeCompletionGates() from factoryCompletionRuntime.ts and reads the real DEPLOYMENT_READY entry — grep-verified, no second gate registry exists in deploymentRuntime.ts."
+    },
+    "178": {
+      "title": "Runtime Dependency Graph Must Be Mechanically Computed",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/globalFactoryRuntime.ts#computeRuntimeDependencyGraph"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: computeRuntimeDependencyGraph() regex-scans each real Runtime file's own `from \"./X\"` import statements at call time — no static edge array exists in source."
+    },
+    "179": {
+      "title": "Monitoring And Incident Runtimes Must Report NOT_IMPLEMENTED Honestly",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/globalFactoryRuntime.ts#computeGlobalFactoryReport"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: Monitoring/Incident domain entries are hardcoded status: \"NOT_IMPLEMENTED\" in computeGlobalFactoryReport(), consistent with computeRuntimeDependencyGraph()'s real finding that monitoringRuntime/incidentRuntime nodes have file: null."
+    },
+    "180": {
+      "title": "Rollback Plan Execution Is Honestly NOT_IMPLEMENTED",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/deploymentRuntime.ts#buildRollbackPlan"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: buildRollbackPlan() returns a literal `executionStatus: \"NOT_IMPLEMENTED\"` — the RollbackPlan type only allows this one literal value, never a variable."
+    },
+    "181": {
+      "title": "Deployment And Global Factory Artifacts Route Through The Same Real Artifact Store",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/artifactRuntime.ts#createDeploymentArtifact"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: createDeploymentArtifact() and createGlobalFactoryArtifact() both call createArtifactInternal()/wrapRegistryFile() — the SAME real functions Steps 5-10.5 already use; grep confirms no second `const ... = new Map()` artifact store exists in deploymentRuntime.ts or globalFactoryRuntime.ts."
+    },
+    "182": {
+      "title": "Deployment Plan Requires An Already-READY Release Run",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/deploymentRuntime.ts#computeDeploymentGate"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: computeDeploymentGate()'s first gate \"ReleaseReady\" checks release.status === \"READY\" and reports BLOCKED otherwise — grep-verified, unconditional check."
+    },
+    "183": {
+      "title": "Missing Signal Is Not Healthy",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/monitoringRuntime.ts#collectQueueHealth"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: every real collector function (collectQueueHealth/collectExecutionHealth/collectBuildHealth/collectReleaseHealth/collectDeploymentPlanHealth) returns status UNKNOWN when its real record list is empty — grep-verified, no collector defaults to HEALTHY on empty data."
+    },
+    "184": {
+      "title": "Stale Signal Is Not Healthy",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/monitoringRuntime.ts#collectDatabaseHealth"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: collectDatabaseHealth()/collectBackupHealth()/collectDataFreshness() each compute ageMs against the real SIGNAL_TYPE_REGISTRY[...].staleAfterMs and return STALE when exceeded — verified live in scripts/monitoring-test.ts against the real, 33-day-old backups/2026-07-05_0502."
+    },
+    "185": {
+      "title": "Incident Cannot Close Without Verification Evidence",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/incidentRuntime.ts#changeIncidentStatus"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: changeIncidentStatus() throws IncidentError('INVALID_REQUEST') when nextStatus==='RESOLVED' and no real verificationEvidenceArtifactId is supplied — grep-verified, unconditional check before status is ever mutated."
+    },
+    "186": {
+      "title": "Recovery Cannot Be Marked Successful Without Deterministic Verification",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/recoveryRuntime.ts#verifyRecovery"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: the real ExecutionStatus type union has no SUCCEEDED literal at all — only NOT_EXECUTED/BLOCKED/AWAITING_OWNER/EXTERNALLY_EXECUTED_UNVERIFIED/VERIFIED_FROM_EVIDENCE/UNKNOWN; verifyRecovery() only ever sets VERIFIED_FROM_EVIDENCE when every real check PASSES."
+    },
+    "187": {
+      "title": "Provider Registry Entry Does Not Prove Provider Health",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/monitoringRuntime.ts#collectExternalProviderHealth"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: collectExternalProviderHealth()/collectConnectorHealth() only ever derive status from a real, live-read system_health_status row — never from DEPLOYMENT_TARGET_REGISTRY/registry declarations; a provider with no real row is honestly UNKNOWN."
+    },
+    "188": {
+      "title": "Backup Existence Does Not Prove Recoverability",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/recoveryRegistry.ts#RECOVERY_TYPE_REGISTRY"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: RESTORE_FROM_BACKUP is registered status:'PLAN_ONLY' (never IMPLEMENTED) — scripts/recovery-test.ts asserts this literal value directly against the real registry object."
+    },
+    "189": {
+      "title": "AI Cannot Determine Operational Truth",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/monitoringRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep across monitoringRuntime.ts/incidentRuntime.ts/recoveryRuntime.ts confirms zero imports of @anthropic-ai/sdk or any LLM client — every status is a real, deterministic if/threshold comparison."
+    },
+    "190": {
+      "title": "Monitoring Is Read-Only",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/monitoringRuntime.ts#readHealthRows"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep across monitoringRuntime.ts confirms the only real Supabase call is `.select(\"*\")` — zero `.insert(`/`.update(`/`.delete(`/`.upsert(` calls anywhere in the file."
+    },
+    "191": {
+      "title": "Incident Correlation Cannot Invent Root Cause",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/incidentRuntime.ts#openIncidentFromSignal"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: IncidentRecord.observedCause is always set verbatim from signal.reason (a real Monitoring finding); inferredCause is either null or a string literally prefixed \"INFERENCE:\" computed only from computeDependencyImpact()'s real Runtime Dependency Graph edges — grep-verified, no other inferredCause assignment exists."
+    },
+    "192": {
+      "title": "Recovery Mutation Requires Explicit Owner Approval, And Approval Alone Never Executes",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/recoveryRuntime.ts#approveRecoveryPlan"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: every real entry in RECOVERY_TYPE_REGISTRY has ownerApprovalRequired:true (grep-verified, 12/12); approveRecoveryPlan()'s real code path never sets executionStatus to any value implying execution — it only ever sets BLOCKED (on reject) or leaves it unchanged (on approve)."
+    },
+    "193": {
+      "title": "Continuous Readiness Requires Scheduled Execution Evidence",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryCompletionRuntime.ts#computeCompletionGates"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: MONITORING_READY gate never returns PASSED in current source — status is computed purely from real Runtime existence checks, capped at PARTIAL; scripts/operations-readiness-test.ts asserts this live."
+    },
+    "194": {
+      "title": "Manual Monitoring Is Not Continuous Monitoring",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/continuousOperationsRuntime.ts#runOperationsLoop"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: OperationsLoopRun.trigger is a real, recorded literal (\"MANUAL\"|\"CRON\") on every real run — never omitted or overridden; getSchedulerContractStatus().loop is hardcoded \"MANUAL_TRIGGER_ONLY\" this Step, never \"CONTINUOUS\"."
+    },
+    "195": {
+      "title": "Alerts Must Originate From Deterministic Findings",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/alertRuntime.ts#dispatchAlert"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: dispatchAlert()'s only real parameter type is IncidentRecord (from incidentRuntime.ts) — grep-verified, no string-message overload exists anywhere in alertRuntime.ts."
+    },
+    "196": {
+      "title": "Alert Delivery Requires Receipt Evidence — Dispatched Never Implies Delivered",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/alertRuntime.ts#dispatchAlert"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep across alertRuntime.ts confirms the literal string \"DELIVERED\" is never assigned to AlertRecord.status anywhere in real code — only CREATED/QUEUED/DISPATCHED/FAILED/SUPPRESSED/ACKNOWLEDGED are ever set."
+    },
+    "197": {
+      "title": "Backup Integrity Requires Manifest And Checksum, Never File Presence Alone",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/backupRuntime.ts#verifyBackupIntegrity"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: verifyBackupIntegrity() computes status through a real, ordered chain (corrupt > stale > scope-incomplete > verified) — every real branch requires the manifest parse, real per-file checksum, and real staleness check to have run first; scripts/backup-integrity-test.ts proves the real, current (STALE) backup never reports VERIFIED."
+    },
+    "198": {
+      "title": "Restore Readiness Requires Isolated Restore Evidence",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/restoreTestRuntime.ts#runRestoreTest"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: the real RestoreTestOverallStatus type union contains only \"PLAN_ONLY\"|\"PARTIAL\"|\"FAILED\" — no VERIFIED_RESTORE literal exists anywhere in the type system to even assign."
+    },
+    "199": {
+      "title": "Production Restore Is Prohibited Without Explicit Owner Approval",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/restoreTestRuntime.ts#assertNeverProductionTarget"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: assertNeverProductionTarget() throws PRODUCTION_TARGET_REJECTED for any target string that is not the literal \"DRY_RUN_NO_TARGET\" — grep-verified, called unconditionally at the top of runRestoreTest()."
+    },
+    "200": {
+      "title": "Backup Age Must Affect Readiness",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/backupRuntime.ts#verifyBackupIntegrity"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: STALE_AFTER_MS = 30 * DAY_MS is a real, fixed threshold; the real 2026-07-05 backup (33+ real days old at Step 12.5 investigation time) verifies as STALE live — proven in scripts/backup-integrity-test.ts."
+    },
+    "201": {
+      "title": "Recovery Cannot Be Marked Verified From Backup Presence",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/recoveryRuntime.ts#verifyRecovery"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: executionStatus only transitions to VERIFIED_FROM_EVIDENCE inside verifyRecovery(), which re-collects the real, live triggering signal — never set from createRecoveryPlan() or approveRecoveryPlan() alone."
+    },
+    "202": {
+      "title": "Operations Readiness Cannot Be Inferred By AI",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryCompletionRuntime.ts#computeCompletionGates"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep across factoryCompletionRuntime.ts/continuousOperationsRuntime.ts confirms zero imports of @anthropic-ai/sdk or any LLM client."
+    },
+    "203": {
+      "title": "Cross-Workspace Backup Contamination Is Prohibited",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/backupRuntime.ts#verifyBackupIntegrity"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: verifyBackupIntegrity()/runRestoreTest() both create real Artifacts via createOperationsArtifact({ownerId, ...}) — the SAME real, owner-scoped createArtifactInternal() every prior Step's owner-isolation tests already verify; discoverBackups()/BackupRecord carry no owner field at all (backups are a real, single-workspace filesystem concept in this repo — confirmed only one real workspace exists)."
+    },
+    "204": {
+      "title": "Every New Backup Must Record A Real Checksum At Creation Time",
+      "enforced_by": [
+        "scripts/backup.ts#backup"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: scripts/backup.ts's real backup loop computes sha256Hex(content) immediately after each real writeFileSync() call and stores it in the real manifest.checksums object — grep-verified; scripts/backup-integrity-test.ts proves a real, disposable fixture with matching checksums verifies VERIFIED and a tampered one verifies CORRUPT."
+    },
+    "205": {
+      "title": "New Capability Requires Reuse Search Evidence",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryWorkspaceRuntime.ts#recordCapabilityResolution"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: app/api/admin/ide/factory-workspace/sessions/[id]/prepare-context/route.ts rejects with INVALID_REQUEST when session.capabilityResolution is null — grep-verified; capability-resolver-test.ts proves resolveCapabilities() never returns a name-only match."
+    },
+    "206": {
+      "title": "AI Context Package Must Be Workspace-Scoped",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/aiContextRuntime.ts#buildAIContextPackage"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: contextFingerprint = sha256Hex(`${workspaceSessionId}:${contextPlanId}:${sourceFingerprint}`) — grep-verified; ai-context-test.ts proves two different sessions with identical file content still produce different fingerprints."
+    },
+    "207": {
+      "title": "Worker Assignment Requires Real Capability Compatibility",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/aiContextRuntime.ts#buildAIContextPackage"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: buildAIContextPackage() throws AIContextError(WORKER_UNAVAILABLE) when getWorkerDefinition(workerType).status === NOT_IMPLEMENTED — grep-verified; worker-assignment-test.ts proves the rejection is real, not a documented policy."
+    },
+    "208": {
+      "title": "Context Package Must Record A Real Source Fingerprint",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/contextPlannerRuntime.ts#buildContextPlan"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: sourceFingerprint = sha256Hex(includedFiles.map(f => `${f.path}:${f.sizeBytes}`).sort().join(\"|\")) — grep-verified; context-planner-test.ts proves the fingerprint changes when a real file's size changes."
+    },
+    "209": {
+      "title": "File Mutation In The Native Factory Flow Requires An Applied Change Set",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryWorkspaceRuntime.ts#beginExecution"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: beginExecution() calls the real, existing createChangeSet() (changeSetRuntime.ts) — the same real git-diff-capturing function every prior Step's Code Review Pipeline already uses — never a second, duplicate file-write path; native-factory-flow-test.ts proves changeSetId is always populated before Build is allowed."
+    },
+    "210": {
+      "title": "Owner Decision Gates Cannot Be Approved By AI",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryWorkspaceRuntime.ts#decideGate"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: decideGate() is only ever called from app/api/admin/ide/factory-workspace/sessions/[id]/decide/route.ts and the /approve-context, /release routes — every call site sits behind requireAuth(ADMIN_TIER) — grep-verified: zero calls to decideGate() from any AI-invoked path (capabilityResolverRuntime.ts, contextPlannerRuntime.ts, aiContextRuntime.ts, executionPlanRuntime.ts never import factoryWorkspaceRuntime.ts's decideGate)."
+    },
+    "211": {
+      "title": "EXTERNAL_MUTATION Is Always Blocked In The Native Factory Workspace",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/executionPlanRuntime.ts#approveExecutionPlan"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: approveExecutionPlan() throws ExecutionPlanError(EXTERNAL_MUTATION_BLOCKED) if any step.mutationLevel === EXTERNAL_MUTATION; the real step builder (buildExecutionPlan) never generates such a step; the /decide route independently rejects gate=EXTERNAL_MUTATION_APPROVED with decision=APPROVED at the HTTP layer with a 403 — grep-verified two independent enforcement points."
+    },
+    "212": {
+      "title": "Native Factory Outcome Status Requires Real, Checkable Evidence",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryWorkspaceRuntime.ts#computeOutcomeReport"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: computeOutcomeReport()'s status derivation is `s.releaseRunId ? \"OUTCOME_PROVEN\" : s.buildRunId ? \"TECHNICALLY_COMPLETE\" : ...` — grep-verified; native-factory-flow-test.ts proves a session with only a Change Set (no Release Run) never reports OUTCOME_PROVEN."
+    },
+    "213": {
+      "title": "VS Code Exit Cannot Be Declared From UI Availability Alone",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryCompletionRuntime.ts#computeCompletionGates"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: VS_CODE_EXIT_READY's status is derived from computeVSCodeDependencyAudit()'s real blockingOwnerMigration flags, not from FACTORY_WORKSPACE system's completion status — grep-verified; the Claude Code / VS Code entry stays blockingOwnerMigration=true because workerRegistry.ts#WORKER_REGISTRY.CODE_WORKER.status is honestly COMPATIBILITY_ONLY, not ACTIVE."
+    },
+    "214": {
+      "title": "Provider State Can Never Become DNA OS's Source Of Truth",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/factoryWorkspaceRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: the `sessions` Map in factoryWorkspaceRuntime.ts is the sole real source of WorkspaceSession.status — grep-verified: no code path reads status from AIContextPackage.provider or AIContextPackage.result and writes it back into WorkspaceSession.status; AIContextPackage.result is recorded via recordAIContextResult() as evidence only, never as the session's own status field."
+    },
+    "215": {
+      "title": "Exactly One Real Provider Call Per Real Execution Step",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/codeWorkerRuntime.ts#generateCodeWorkerProposal"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: generateCodeWorkerProposal() checks callCounts.get(capKey) >= MAX_CALLS_PER_STEP (1) and throws CodeWorkerError(CALL_CAP_EXCEEDED) before ever calling invokeAiGateway() — grep-verified; worker-code-gen-test.ts proves a second real call for the same step is refused."
+    },
+    "216": {
+      "title": "Real Provider Output Requires A Separate Owner Approval Before Any Write",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/codeWorkerRuntime.ts#applyCodeWorkerProposal"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: applyCodeWorkerProposal() throws CodeWorkerError(PROPOSAL_NOT_APPROVED) if proposal.approved is false — grep-verified; the real API route /approve-proposal is the only real call site of applyCodeWorkerProposal() and requires the real CODE_WORKER_OUTPUT_APPROVED Decision Gate first."
+    },
+    "217": {
+      "title": "Proposed File Paths Must Stay Inside The Approved Write Scope",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/codeWorkerRuntime.ts#generateCodeWorkerProposal"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: generateCodeWorkerProposal() filters each real proposed file against contextPlan.permittedWriteScope.includes(f.path), pushing violators into rejectedFiles[] rather than files[] — grep-verified; worker-code-gen-test.ts proves an out-of-scope path is real, honestly rejected, never silently written."
+    },
+    "218": {
+      "title": "Provider-Generated File Writes Reuse The One Real, Secure Write Path",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/codeWorkerRuntime.ts#applyCodeWorkerProposal"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: applyCodeWorkerProposal() calls the real fsSecurity.ts#resolveSafeRelativePath() and fileWrite.ts#writeFileAtomic() — the exact same real functions app/api/admin/ide/file/route.ts's PUT handler already uses — grep-verified: zero direct fs.writeFile/fs.promises.writeFile calls inside codeWorkerRuntime.ts."
+    },
+    "219": {
+      "title": "Knowledge Is Not Execution",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/securityKnowledgeRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — securityKnowledgeRuntime.ts exports only queryKnowledge()/__debugKnowledgeCategoryCount(), zero execute-shaped exports, zero import of securityExecutionRuntime.ts."
+    },
+    "220": {
+      "title": "Restricted Capability Requires Owner Authorization",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/securityExecutionRuntime.ts#requestSecurityExecution"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: requestSecurityExecution() checks all of REQUIRED_TEXT_FIELDS (ownerIntent/authorization/executionScope/riskAssessment/rollback/stopCondition/legalNotice) are real, non-empty strings before ever considering ALLOWED — grep-verified; security-intelligence-test.ts proves a missing field is honestly BLOCKED."
+    },
+    "221": {
+      "title": "No Autonomous Offensive Execution",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/restrictedCapabilityRegistry.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — RESTRICTED_CAPABILITY_REGISTRY.ATTACK_SIMULATION.status === \"NOT_IMPLEMENTED\"; securityExecutionRuntime.ts's gate checks status === \"ACTIVE\" before ever allowing a real action, so no real execution path exists for any offensive-shaped capability."
+    },
+    "222": {
+      "title": "No Public Exposure Of Restricted Capability",
+      "enforced_by": [
+        "app/api/admin/ide/security/**/route.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — every route.ts under app/api/admin/ide/security/ calls requireAuth(SUPER_ADMIN_ONLY), the real, existing role_tiers.super_admin_only = [\"super_admin\"] from registry/permissions.json; zero route accepts admin/employee/partner/customer roles."
+    },
+    "223": {
+      "title": "No Cross-Workspace Security Execution",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/securityExecutionRuntime.ts#listSecurityExecutionGateRecords"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: getSecurityExecutionGateRecord()/listSecurityExecutionGateRecords() both filter strictly on r.ownerId === ownerId — grep-verified; security-intelligence-test.ts proves Owner B cannot read Owner A's real gate record."
+    },
+    "224": {
+      "title": "No Unauthorized Target",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/securityTargetRuntime.ts#validateTarget"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: validateTarget() checks all 6 REQUIRED_FIELDS plus a real, non-empty allowedRuntime[] — grep-verified; securityExecutionRuntime.ts calls validateTarget() and appends every missing field to reasons[], forcing BLOCKED."
+    },
+    "225": {
+      "title": "Defense Is Always Allowed, Never Retaliation",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/securityDefenseRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — securityDefenseRuntime.ts exports only computeDefenseSummary()/listRealSignals(), zero mutation-shaped export, zero import of any write-capable Runtime function."
+    },
+    "226": {
+      "title": "Execution Requires Real Human Intent Text",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/securityExecutionRuntime.ts#requestSecurityExecution"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: ownerIntent is a member of REQUIRED_TEXT_FIELDS, checked for real, non-empty string content — grep-verified."
+    },
+    "227": {
+      "title": "Security Evidence Is Mandatory On Every Gate Request",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/securityExecutionRuntime.ts#requestSecurityExecution"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: requestSecurityExecution() calls createOperationsArtifact({artifactType: \"SECURITY_EXECUTION_GATE_RECORD\", ...}) unconditionally, before returning — grep-verified: no early return skips artifact creation."
+    },
+    "228": {
+      "title": "Unknown Remains Unknown In Restricted Capability Status",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/restrictedCapabilityRegistry.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — every one of the 12 real RESTRICTED_CAPABILITY_REGISTRY entries has status DECLARED/PARTIAL/NOT_IMPLEMENTED, zero ACTIVE; security-intelligence-test.ts asserts this as a live regression guard."
+    },
+    "229": {
+      "title": "Core Runtime Must Be Provider-Neutral",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/codeWorkerRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — codeWorkerRuntime.ts imports only workerContract.ts/workerSelectorRuntime.ts/executionBudgetRuntime.ts types, zero import of @anthropic-ai/sdk or any workerAdapters/* file; worker-adapter-test.ts proves this via source-text assertion."
+    },
+    "230": {
+      "title": "Provider SDK Cannot Be Imported By Code Worker Runtime",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/codeWorkerRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — zero occurrence of the literal string \"workerAdapters/\" in codeWorkerRuntime.ts's active import statements."
+    },
+    "231": {
+      "title": "Every Worker Execution Requires An Approved Context Package",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/codeWorkerRuntime.ts#generateCodeWorkerProposal"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — sourceFiles is built by filtering contextPlan.includedFiles against contextPlan.permittedReadScope; request.contextPackageId is set from contextPlan.contextPlanId, never null when a real plan is used."
+    },
+    "232": {
+      "title": "Worker Cannot Exceed Permitted File/Tool Scope",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/codeWorkerRuntime.ts#validateOperationScope"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: validateOperationScope() checks contextPlan.permittedWriteScope.includes(op.path) and the real, shared fsSecurity.ts#isExcludedName — a failing check routes the file into rejectedFiles[], never operations[]; code-worker-test.ts proves this live."
+    },
+    "233": {
+      "title": "Fallback Cannot Weaken Privacy Policy",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/workerSelectorRuntime.ts#isPrivacyCompliant"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: isPrivacyCompliant() returns false for any adapter id in the real CLOUD_BACKED_ADAPTER_IDS set when privacyLevel===LOCAL_ONLY — grep-verified; worker-selector-test.ts proves a LOCAL_ONLY request never selects/falls-back-to a cloud adapter."
+    },
+    "234": {
+      "title": "Local-Only Intent Cannot Fall Back To Cloud",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/workerSelectorRuntime.ts#selectWorker"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: the real eligible[] array used to build fallbackChain is already privacy-filtered by isPrivacyCompliant() before ranking — grep-verified; worker-fallback-test.ts proves the real, live fallback chain for a LOCAL_ONLY request contains only LOCAL_RUNTIME/HUMAN adapter ids."
+    },
+    "235": {
+      "title": "Execution Budget Is Mandatory",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/codeWorkerRuntime.ts#generateCodeWorkerProposal"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: generateCodeWorkerProposal() calls precheckBudget() before selectWorker(), then reserveBudget() before adapter.execute(), then recordActualUsage()+enforceBudget() after — grep-verified line order; worker-budget-test.ts proves a call that would exceed budget never reaches adapter.execute()."
+    },
+    "236": {
+      "title": "Actual Cost Must Not Be Fabricated",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/workerAdapters/cliWorkerAdapter.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: cliWorkerAdapter.ts sets cost.kind = envelope.total_cost_usd != null ? \"ACTUAL\" : \"UNKNOWN\" from the real, live-proven claude CLI JSON envelope field — grep-verified; apiWorkerAdapter.ts honestly reports cost.kind=\"UNKNOWN\" since services/ai/gateway.ts exposes no real per-call cost number."
+    },
+    "237": {
+      "title": "CLI Execution Must Use Argv-Safe Invocation",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/workerAdapters/cliWorkerAdapter.ts#realClaudeCliInvoke"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — realClaudeCliInvoke() calls spawnFn(binaryPath, [...argv array...], { shell: false, ... }); zero string-concatenated command anywhere in the file."
+    },
+    "238": {
+      "title": "Secrets Cannot Be Persisted In Artifact/Evidence",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/workerAdapters/apiWorkerAdapter.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — no Adapter file ever reads process.env.ANTHROPIC_API_KEY's real value into a WorkerResponse/Artifact field, only availability().reason (a real, human-readable boolean-derived string, never the key itself)."
+    },
+    "239": {
+      "title": "Structured Output Is Mandatory For File Mutation",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/workerAdapters/apiWorkerAdapter.ts#parseProposal"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: parseProposal()/parseProposalFromText() both JSON.parse the real response and validate a real files[] array shape, throwing a real error on any mismatch — the calling execute() catches this and returns status FAILED with a real, specific error, never a guessed mutation."
+    },
+    "240": {
+      "title": "Human Worker Action Must Be Recorded",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/workerAdapters/humanWorkerAdapter.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — humanWorkerAdapter.ts#execute() always returns status BLOCKED with limitations including the literal string \"OWNER_ACTION_REQUIRED\"."
+    },
+    "241": {
+      "title": "Configured Does Not Mean Healthy",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/workerAdapters/apiWorkerAdapter.ts#health"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified across all real Adapters — health() returns UNKNOWN (never HEALTHY) when lastLiveCallAt === null, regardless of availability().available; worker-adapter-test.ts proves this live."
+    },
+    "242": {
+      "title": "No Provider Owns DNA OS State",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/executionBudgetRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — the real budgets Map in executionBudgetRuntime.ts is the sole source of BudgetRecord state; no Adapter file ever writes into factoryWorkspaceRuntime.ts's session Map or executionBudgetRuntime.ts's budgets Map directly — only the real, provider-neutral codeWorkerRuntime.ts records results back."
+    },
+    "243": {
+      "title": "External Discovery Requires A Verified Domain Asset",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/externalAttackSurfaceRuntime.ts#runExternalDiscovery"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: runExternalDiscovery() checks asset.verified === true and throws ExternalAttackSurfaceError(DOMAIN_NOT_VERIFIED) otherwise — grep-verified; registration (registerDomainAsset) never sets verified=true itself."
+    },
+    "244": {
+      "title": "External Discovery Requires An Allowed Security Execution Gate",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/externalAttackSurfaceRuntime.ts#runExternalDiscovery"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: runExternalDiscovery() calls the real, existing securityExecutionRuntime.ts#requestSecurityExecution() and throws GATE_BLOCKED if gate.outcome !== \"ALLOWED\" — reuses the exact real gate from Step 13.25, never a second/parallel gate."
+    },
+    "245": {
+      "title": "Passive Discovery Only — No Active/Brute-Force Enumeration",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/externalDiscoveryAdapters/subfinderAdapter.ts#realSubfinderInvoke"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — the real argv array passed to spawn() in realSubfinderInvoke() is a fixed, hardcoded literal with exactly 4 real elements, never constructed from user input beyond the real, verified domain string itself."
+    },
+    "246": {
+      "title": "Non-Invasive HTTP Verification Only — No Port Scan, No Fuzzing",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/externalDiscoveryAdapters/httpxAdapter.ts#realHttpxInvoke"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — the real, fixed argv array in realHttpxInvoke() contains only -json/-silent/-status-code/-title/-tech-detect/-follow-redirects/-tls-grab; zero occurrence of -ports or any wordlist/fuzz flag anywhere in this file."
+    },
+    "247": {
+      "title": "No Exploitation Capability Exists In This Runtime",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/externalAttackSurfaceRuntime.ts"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — zero exported function matching /export (async )?function (exploit|bruteforce|portScan|fuzz)/i anywhere in externalAttackSurfaceRuntime.ts or externalDiscoveryAdapters/*."
+    },
+    "248": {
+      "title": "External Drift Classification Is Deterministic, Never AI-Guessed",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/externalAttackSurfaceRuntime.ts#computeExternalDrift"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — computeExternalDrift() imports nothing from services/ai/gateway.ts, workerSelectorRuntime.ts, or any Worker Adapter; classification is a real, deterministic if/else chain over real dns/http results only."
+    },
+    "249": {
+      "title": "Registration Does Not Imply Verification",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/domainAssetRuntime.ts#registerDomainAsset"
+      ],
+      "type": "runtime",
+      "detection": "Mechanical: grep-verified — registerDomainAsset() hardcodes verified: false in the real, constructed DomainAsset object; only the real, separate verifyDomainAsset() function may ever set it true."
+    },
+    "250": {
+      "title": "Registry-First Inquiry",
+      "enforced_by": [],
+      "type": "process",
+      "detection": "manual — no mechanical check can observe an AI session's question-asking behavior; same honest limitation already disclosed in SDRN-P7."
+    },
+    "251": {
+      "title": "Single Owner Inquiry Authority",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/managerQuestionRuntime.ts (submitWorkerQuestion/getOwnerFacingQueue/answerAggregatedQuestion/getAnswerForAsk)",
+        "app/api/admin/ide/_lib/workerTaskOrchestrator.ts#submitJobContractQuestion (the only Worker-facing entry point wired into the real JobContract dispatch path)",
+        "scripts/manager-question-queue-test.ts (real acceptance suite, 21/21 PASS, independently re-run and verified this session)"
+      ],
+      "type": "runtime",
+      "detection": "IMPLEMENTED — Mechanical: npm run manager-question-queue:test, 21/21 real PASS, independently re-executed by this session (not just trusted from the building agent's report). Proves: (a) 10 differently-worded duplicate Worker questions collapse to exactly 1 Owner-facing entry; (b) a registry-resolvable question is answered directly (RESOLVED_BY_REGISTRY) and never reaches the Owner queue, verified against 2 independent resolvable shapes plus real, ordered, 5-file registry-first lookup evidence; (c) a single Owner answer fans out to all original askers including a late 11th asker, with a real ALREADY_ANSWERED guard against double-answering; (d) whole-repo import-graph scan (with a positive control proving the scan isn't vacuous) confirms no WorkerType execution path can reach either Owner-facing function directly — only managerQuestionRuntime.ts's own exports can. Regression: npm run worker-01:test (12/12), worker-02:test (9/9), native-factory-flow:test (17/17) all unchanged before/after. Disclosed, real limitations (not hidden): dedup uses keyword-overlap (Szymkiewicz-Simpson coefficient), not NLU — same disclosed-limitation class as acceptanceContractRuntime.ts's NOT_MACHINE_CHECKABLE; registry-first auto-resolution covers a closed set of 4 recognized question shapes (RULE_STATUS/ACTIVE_WORKERS/CURRENT_TASK_STATUS/LATEST_CHANGELOG), not arbitrary questions; state is in-memory only, resets on process restart, same class as contextPlannerRuntime.ts's contextPlans. Cross-referenced with Rule 255 (a separate, concurrent session's Closed Loop Execution Policy, added same day as Rules 253-256): the two are complementary, not competing — Rule 255's FACTORY_CENTRAL_REGISTRY.json escalation_criteria (5 named conditions) is the intended concrete trigger for what Rule 251 calls a 'genuinely unresolved Owner Decision'; Rule 255 itself has no real source code yet (its own DNA-000082/097/100 entries state 'No source code written' explicitly), so Rule 251's runtime is currently the only real, tested mechanism for either rule. See registry/CHANGELOG.json DNA-000101."
+    },
+    "252": {
+      "title": "Manager Non-Mutation",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/workerTaskOrchestrator.ts (no gitWriteOps.ts or deploymentRuntime.ts import — grep-verified, no COMMIT/PUSH/DEPLOY capability by construction)",
+        "app/api/admin/ide/_lib/switchBasedOrchestratorRuntime.ts (Switch-Based Orchestrator gate pipeline — same Manager Non-Mutation import-graph-scan proof technique, extended to this new file: scripts/switch-based-orchestrator-test.ts test (7), 4/4 PASS)"
+      ],
+      "type": "runtime",
+      "detection": "Partial: COMMIT/PUSH/DEPLOY absence is mechanically grep-verifiable. WRITE SOURCE CODE boundary is NOT mechanically enforced — workerTaskOrchestrator.ts:317 calls codeWorkerRuntime.ts's applyCodeWorkerProposal() directly to apply an Owner-approved proposal; no check distinguishes 'Manager dispatches into Worker's own write function' from 'Manager writes directly' today. Same disclosed-limitation class as Rule 105/108 (discipline of the maintainer, not a hard gate)."
+    },
+    "253": {
+      "title": "Factory Central Registry Reporting Policy",
+      "enforced_by": [],
+      "type": "process",
+      "detection": "manual — same class of limitation as Rule 251; no mechanical check can observe an AI session's reporting behavior."
+    },
+    "254": {
+      "title": "Front Office AI / MANAGER-07 Parallel Command Chains",
+      "enforced_by": [],
+      "type": "process",
+      "detection": "manual — same class as Rule 251/253; Front Office AI is NOT_BUILT (TASK-046), nothing to mechanically check yet."
+    },
+    "255": {
+      "title": "Closed Loop Execution Policy",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/workerTaskOrchestrator.ts (JobContract.maxAttempts, real retry mechanism)",
+        "scripts/deploy-gate.ts (Root Cause Engine — real, partial failure classification, Rule 106)",
+        "app/api/admin/ide/_lib/gapLoopRuntime.ts#classifyGap/findDuplicateGap/computeFactoryStatus",
+        "scripts/gap-loop-test.ts (20/20 PASS, independently re-run and verified this session)"
+      ],
+      "type": "process",
+      "detection": "Partial: maxAttempts + deploy-gate.ts classification are real and mechanical. The full FAIL->capture->classify->repair-task->dispatch->revalidate loop across all 8 named failure types is NOT yet one wired mechanism — no UI_WORKER Department seat exists today (see FCR-007), so 'UI failure' specifically has no real dispatch path yet. Rest is manual discipline. AMENDMENT PENDING (Factory Gap Loop, DNA-000113): 10-category Gap taxonomy + dedup/merge + FACTORY_STATUS computation declared, not yet built — real code tracked as TASK-052. The loop's PROCEDURE itself (Gap found -> real fix dispatched without asking Owner -> independently verified -> closed) is already real and demonstrated 3 times this session (FCR-009, FCR-011, FCR-012) — only the classify/dedup/status-compute automation is the new, currently-NOT_IMPLEMENTED part. AMENDMENT IMPLEMENTED (TASK-052, DNA-000114): Mechanical, independently re-verified — npm run gap-loop:test 20/20 (re-run first-hand by MANAGER-07). classifyGap() real-classified all 3 real, live findings this session actually produced (FCR-009/011 -> COST_GAP, FCR-012 -> CODE_GAP) reading their real description text, never hardcoded, plus real UNCLASSIFIED paths for both a zero-signal and a genuinely-tied ambiguous description (never a forced guess). findDuplicateGap() reuses managerQuestionRuntime.ts's real, already-tested extractKeywords/overlapCoefficient directly (grep-verified import, no shadow reimplementation) and real-detects a reworded near-duplicate while real-not-flagging a genuinely different Gap. computeFactoryStatus() run against real, live repo state correctly produced real NOT_STABLE, citing real, live-read reasons (WORKER_IDENTITIES.json's real registered_count, and every real currently-open finding by finding_id) — corrected and superseded MANAGER-07's own earlier, incomplete manual factory_status snapshot from DNA-000113 (which cited only 3 reasons; the real, live enumeration found FCR-005/006/008/012 all genuinely open, not just FCR-010/012). Structurally proven to contain no daemon/cron/setInterval/polling loop anywhere, and no other file wires it into an auto-trigger — matches the amendment's own 'MANAGER-07 calls this when processing a Gap it already found' scope, not a standalone watcher. All 8 real regression suites independently re-run by MANAGER-07 and confirmed unchanged (12/12, 9/9, 17/17, 21/21, 22/22, 49/49, 37/37, 20/20). Disclosed, real limitation: no pre-existing aggregator for these 8 suites' pass/fail state existed in this repo (checked deploy-gate.ts and core/runtime/dbd.ts, neither fits) — a real, opt-in verifyTestSuites path was built (runs each suite's real npm script sequentially, ~194s, SKIP_LIVE=1 forced) rather than defaulting to it or fabricating a cached answer; default calls honestly state this criterion was not re-verified rather than assuming it passed. Zero real money spent. See registry/CHANGELOG.json DNA-000114."
+    },
+    "256": {
+      "title": "Capability-First Expansion Principle",
+      "enforced_by": [],
+      "type": "process",
+      "detection": "manual — architectural judgment call, no mechanical check for 'unnecessary new Worker/Department'."
+    },
+    "257": {
+      "title": "Execution Plane Cost Gate",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/costGateRuntime.ts (checkCostGate/grantCostBudget/revokeCostBudget/recordActualCost/shouldRunLiveSection)",
+        "app/api/admin/ide/_lib/codeWorkerRuntime.ts (real gate call before adapter.execute())",
+        "app/api/admin/ide/_lib/switchBasedOrchestratorRuntime.ts#attemptDispatch (cost gate checked after the registration gate — defense in depth at the 2nd real dispatch entry point)",
+        "scripts/worker-01-acceptance-test.ts (SKIP_LIVE opt-out bug -> shouldRunLiveSection()-driven opt-in, RUN_LIVE flag)",
+        "scripts/cost-gate-test.ts (real acceptance suite, 15/15 PASS, independently re-run and verified this session)",
+        "app/api/admin/ide/_lib/costGateRuntime.ts#classifyOperationCommand (real, closed-allowlist FREE_LOCAL/PAID_EXTERNAL/UNKNOWN_COST classifier for RUN_COMMAND/RUN_TEST/BUILD, cross-checked live against package.json — never a caller-trusted declaration)",
+        "scripts/cost-gate-test.ts (49/49, including 34 new FREE_LOCAL tests) + scripts/execution-hand-test.ts (37/37, including 3 new end-to-end tests) — both independently re-run and verified this session"
+      ],
+      "type": "runtime",
+      "detection": "IMPLEMENTED — Mechanical: npm run cost-gate:test, 15/15 real PASS, independently re-executed by this session (not trusted from the building agent's report alone). Proves: estimated_cost=0 auto-RELEASE; budget-covered charges RELEASE with real file-persisted remaining/exhaustion bookkeeping; no-budget and insufficient-budget both LOCK (never partial cover); UNKNOWN_COST never auto-treated as free; a caller-declared max_cost ceiling LOCKs even against a larger available budget; LOCK escalations land in the real, already-verified Rule 251 Owner queue (getOwnerFacingQueue()) tagged financial_approval_required, reusing that channel rather than a second one. The FCR-009 root cause is independently confirmed fixed: this session's own fresh `npm run worker-01:test` run with NO env var set produced the real, deterministic 12/12 (previously 17/17-by-default, i.e. live-and-costed by default) — the opt-out bug is real, structurally closed. Structural: whole-repo import scan confirms no Worker/Adapter file writes process.env.SKIP_LIVE/RUN_LIVE or imports the gate-granting functions directly (only the two real composing dispatch Runtimes may), with positive controls proving the scan is meaningful. All 5 pre-existing regression suites (worker-01 12/12, worker-02 9/9, native-factory-flow 17/17, manager-question-queue 21/21, switch-based-orchestrator 22/22) independently re-run by this session, unchanged except worker-01's intended default-behavior fix. tsc --noEmit clean except one pre-existing, unrelated error (issue-receipt/route.ts), independently confirmed. Zero real money spent building/verifying this (confirmed: registry/worker01-sandbox/live-proof.txt's mtime is unchanged from the original FCR-009 incident; registry/COST_LEDGER.json is real and empty). Disclosed, real limitations: registry/COST_BUDGETS.json's spent bookkeeping is real file-backed read-modify-write, would race under genuine concurrent multi-process writes (not a concern for this repo's current single-process usage, stated honestly rather than silently assumed safe); the switchBasedOrchestratorRuntime.ts wiring is real but currently unreachable in practice since WORKER_IDENTITIES.json's own registration gate (0/6) already blocks all dispatch first; a real, disclosed circular import exists between costGateRuntime.ts and switchBasedOrchestratorRuntime.ts (verified empirically safe under tsx since neither usage is module-top-level, flagged as an architectural wart, not hidden). See registry/CHANGELOG.json DNA-000104 and registry/FACTORY_CENTRAL_REGISTRY.json FCR-009 (status updated to RESOLVED). AMENDMENT IMPLEMENTED (FCR-011/TASK-050, DNA-000111): Mechanical, independently re-verified — npm run cost-gate:test 49/49, execution-hand:test 37/37 (both re-run first-hand by MANAGER-07, not trusted from the building agent alone). Real, closed allowlist (no wildcard): exact commands `git status`/`git diff`(bare)/`grep`/`cat`/`npx tsc --noEmit`/`eslint`(bare), plus specific `npm run <script>` entries individually cross-checked against real package.json content and, for shell wrappers, their real sub-script content, for network/cloud/API calls. Real, disclosed exclusions found during that same real inspection (not hidden): scripts/existence.sh (real curl to google.com), scripts/deploy-gate.ts (real Supabase writes when credentials are set, which they are today), and factory-readiness:test (transitively calls ollamaLocalAdapter.health()'s real fetch() when AI_GATEWAY_OLLAMA_URL is set) — all correctly classified UNKNOWN_COST/PAID_EXTERNAL, not FREE_LOCAL. registry/COST_LEDGER.json confirmed real and unchanged (0 entries) after every FREE_LOCAL execution — independently verified via direct read, not just the agent's claim. registry/worker01-sandbox/live-proof.txt mtime unchanged, confirming zero real money spent building/testing this. Bonus, real demonstration: TASK-044's real guard/dashboard RUN_COMMAND Job Contracts, which real-LOCKed before this fix (DNA-000109), now real-RELEASE and actually execute (dashboard exited 0/EXECUTED; guard exited 1/FAILED on a genuine, pre-existing, unrelated governance failure — reported honestly, not hidden). One real, unrelated regression surfaced (not caused) by that demo — see FCR-012, tracked separately as TASK-051, not blocking this rule's IMPLEMENTED status. See registry/CHANGELOG.json DNA-000111."
+    },
+    "258": {
+      "title": "EXECUTION_HAND (Minimal-Context Back Office Execution Worker)",
+      "enforced_by": [
+        "app/api/admin/ide/_lib/executionHandRuntime.ts (executeJobContract/runExecutionHandJobFromInbox, 874 lines)",
+        "workers/execution-hand/{ROLE.md,CONTRACT.md,STATUS.json,INBOX/,WORK/,OUTBOX/,EVIDENCE/} (real file-based interchange)",
+        "scripts/execution-hand-test.ts (real acceptance suite, 34/34 PASS, independently re-run and verified this session)"
+      ],
+      "type": "runtime",
+      "detection": "IMPLEMENTED — Mechanical: npm run execution-hand:test, 34/34 real PASS, independently re-executed by this session (not trusted from the building agent's report alone). Proves: all 10 required Job Contract fields individually detected as missing -> real BLOCKED, never inferred; a valid CREATE_FILE contract really executes with real evidence; paths outside allowed_paths or inside forbidden_paths are refused before any attempt; RUN_COMMAND/INSTALL_PACKAGE/BUILD all real-gate through costGateRuntime.ts (Rule 257) and LOCK correctly when no budget exists, escalating into the real Rule 251 Owner queue tagged financial approval; lock acquired/released with real before/after STATUS.json evidence (STANDBY restored); deliberately-failing commands/unmet acceptance criteria produce real FAILED, never silently EXECUTED; a disallowed tool or a Command-Policy-denylisted executable is refused before spawning. All 5 negative/structural guarantees from Rule 258 independently verified with positive controls proving the scan methodology is real: (a) cannot ask the Owner — never imports managerQuestionRuntime.ts's Owner-facing functions or the module at all; (b) cannot dispatch other Workers — never imports workerTaskOrchestrator.ts/switchBasedOrchestratorRuntime.ts, no dispatch function names appear in its code; (c) cannot read the full Registry/Constitution/CURRENT_STATE — no wildcard registry/ read, the only registry/*.json it ever reads is LOCK_MANAGER.json, and a behavioral proof shows a Job Contract naming registry/CONSTITUTION.json in its own allowed_paths is still refused (mtime unchanged, no content in evidence) — disclosed honestly as a behavioral+source-scan proof, not a pure type-system guarantee the way (e) is; (d) cannot invent its own work — no randomUUID()/task_id fabrication, a missing task_id stays null in the real BLOCKED result rather than being generated; (e) cannot self-declare PASS — the literal string \"PASS\" never appears in the file's real code (only in comments explaining what it deliberately excludes), ExecutionHandStatus is a closed EXECUTED|FAILED|BLOCKED union, confirmed behaviorally across every real call this session's re-run made. All 3 pre-existing regression suites (manager-question-queue 21/21, switch-based-orchestrator 22/22, cost-gate 15/15) independently re-run by this session, unchanged. Two real bugs the building agent found and fixed during development, disclosed rather than hidden: a hardcoded-false lockReleased field despite real release, and its own structural tests initially false-failing against their own honest doc-comment text (fixed by stripping comments before scanning). Zero real money spent (every costed operation test hit Cost Gate LOCK before any subprocess spawned, verified via zero real COMMAND_RESULT evidence for those cases). Disclosed limitations: CONTRACT.md's 10 fields don't name concrete per-operation parameters (accepted as additional JSON properties, a stated interpretation, not silently assumed); max_attempts retries identically with no self-correction/judgment loop; costGateRuntime.ts#recordActualCost is never called from this file (a RELEASE'd local command has no real dollar cost to report, so none is fabricated). See registry/CHANGELOG.json DNA-000107."
+    },
+    "259": {
+      "title": "MANAGER-07 Tool-Calling Authority (Integration Assembly)",
+      "enforced_by": [
+        "registry/FACTORY_CENTRAL_REGISTRY.json (real, live exchange channel with the separate Factory Architecture Advisor session)",
+        "MANAGER-07's own real Agent-dispatch capability (read-only research agents for Rapid-Integration-Team-style discovery)"
+      ],
+      "type": "process",
+      "detection": "Partial, honestly split by resource: (1) EXECUTION_HAND calling — real code exists (app/api/admin/ide/_lib/executionHandRuntime.ts) but not yet independently verified by MANAGER-07 as of this entry; see rule 258, pending TASK-049. (2) Factory Architecture Advisor — real, live, already-working exchange via registry/FACTORY_CENTRAL_REGISTRY.json (8+ real findings already logged by both sessions); MANAGER-07 has no code path that contacts it directly (verified: MANAGER-07's own tool set is Bash/Read/Edit/Write/Agent against this local repo only, no channel to another AI session exists or is claimed). (3) Rapid Integration Team — real today only in the sense that MANAGER-07 can dispatch a read-only research Agent under the named constraints; no dedicated runtime module exists or is needed — detection is manual (did the dispatched Agent's prompt and actual tool access honor read-only/no-deploy/no-secret-printing) same class of limitation as Rule 250's own detection. No mechanical check yet enforces the 'no duplicate connector' / 'no provider integration without capability mapping' hard restrictions — that requires the capability-map registry app/api/admin/capability-map already found to exist in this repo to be consulted programmatically by whatever calls EXECUTION_HAND for a connector/provider job; not yet wired, real gap, not hidden."
+    },
+    "260": {
+      "title": "DNA OS Is The Root Operating System",
+      "enforced_by": [],
+      "type": "process",
+      "detection": "NOT_IMPLEMENTED — declared architectural principle only as of DNA-000132. Real audit of every place Factory/Vercel/Provider/External-Platform is framed as the system's center tracked as TASK-057 (read-only research, no code change). A non-destructive migration plan is Owner deliverable #2 of that task — real code changes for the migration itself are explicitly gated on Owner approval of that plan, per the Owner's own instruction, not auto-applied."
+    },
+    "261": {
+      "title": "Owner Operability Is The Only Real Definition Of Done",
+      "enforced_by": [],
+      "type": "process",
+      "detection": "PARTIALLY IMPLEMENTED as of DNA-000154 — TASK-071's real Owner Operability Matrix confirms 7-8 of 9 priority areas already genuinely OWNER_OPERABLE with fresh evidence; Worker dispatch's newest layer (Cap #59 Phase 2/3 + #60) is BACKEND_ONLY, root cause = WORKER_IDENTITIES.json 0/6 registered. A cross-cutting persistence gap (in-memory-only state surviving refresh but not restart) affects Rule 261 point 8 across most areas. TASK-070 (live /admin/ide UI interaction audit) still in progress, will complete the full picture."
+    },
+    "262": {
+      "title": "Owner UI Rule + Visual Policy — DEPLOYED + OWNER VISUALLY VERIFIED, Light Theme default",
+      "enforced_by": [],
+      "type": "process",
+      "detection": "NOT_IMPLEMENTED — declared policy only as of DNA-000159. Real, tracked violation: FCR-025 (/admin/ide's default dark theme). No task yet dispatched to fix it — awaiting Owner direction on scope/priority given the scale (a full, ~5822-line file currently styled entirely with hardcoded dark hex values, no theme/token system)."
+    },
+    "263": {
+      "title": "Stable Owner URL — same route, no duplicate/alternate pages, old UI trashed only after real confirmation",
+      "enforced_by": [],
+      "type": "process",
+      "detection": "NOT_IMPLEMENTED — declared policy only as of DNA-000160. Governs how the still-pending /admin/ide light-theme work (FCR-025) and all future UI work must be deployed once dispatched."
+    }
+  },
+  "uncovered_rules": [
+    4,
+    5,
+    7,
+    8,
+    9,
+    10,
+    13,
+    15,
+    16,
+    17,
+    18,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    41,
+    42,
+    43,
+    44,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61,
+    62,
+    63,
+    64,
+    65,
+    66,
+    68,
+    70,
+    75,
+    76,
+    77,
+    78,
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    90,
+    91,
+    92,
+    93,
+    95,
+    96,
+    97,
+    99
+  ]
+}

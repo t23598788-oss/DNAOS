@@ -1,0 +1,44 @@
+/observer.json
+  status=200 bytes=35991
+  json keys: system, schema_version, description, design_shift, generated_at, _links, stats, architecture_pipeline, constitution, commands_summary, business_domains, capabilities_summary (+3 more)
+
+/api/v1/constitution
+  status=200 bytes=162201
+  json keys: schema_version, system, source, version, note, amendment_policy, core_principles, runtime_contract, recommendation_and_approval_levels, architecture_principles, layer_architecture, iron_rules (+6 more)
+
+/api/v1/drivers
+  status=200 bytes=1870
+  json keys: schema_version, source, description, version, drivers
+
+/api/v1/modules
+  status=200 bytes=472879
+  json keys: schema_version, source, total, modules
+
+/api/v1/workflows
+  status=200 bytes=1832
+  json keys: schema_version, source, total, workflows
+
+/api/v1/mcp/architecture/summary
+  status=200 bytes=11489
+  json keys: data, trace_id, source_files, registry_version, confidence, generated_at, read_only
+
+/api/v1/spec
+  status=200 bytes=32624
+  json keys: schema_version, system, description, query_endpoint, auth, observer_url, tools
+
+/observer
+  status=200 bytes=235446
+  title: DNA OS — Architecture Observer
+
+/playground
+  status=200 bytes=13127
+  title: DNA OS — Dead Board
+
+/examples
+  status=200 bytes=55693
+  title: DNA OS — Dead Board
+
+/start
+  status=200 bytes=52087
+  title: DNA OS — Dead Board
+

@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "description": "DNA OS Database Registry — Metadata Layer ระหว่างโค้ดกับ Supabase",
+  "provider": "supabase",
+  "project_ref": "tmxkiripdvorrcnuezvm",
+  "domains": {
+    "customer": "customer.registry.json",
+    "supplier": "supplier.registry.json",
+    "material": "material.registry.json",
+    "transport": "transport.registry.json",
+    "vehicle": "vehicle.registry.json",
+    "document": "document.registry.json",
+    "debt": "debt.registry.json",
+    "payment": "payment.registry.json",
+    "config": "config.registry.json"
+  }
+}

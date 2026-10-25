@@ -1,0 +1,216 @@
+{
+  "version": 2,
+  "protocol": "Canonical Intent Dictionary — Phase 0 of the Execution Registry initiative (owner, 2026-07-17). v2: added invariants (normative, not descriptive), allowed_extension_points/forbidden, stability, and variants (architecture-neutral — does NOT force a business decision about merging/splitting document types).",
+  "note": "Defines MEANING and CONSTITUTION before implementation. Root cause this closes: registry/rule-coverage.json's own Rule 101 entry already stated 'nothing scans intent or purpose, only file names and import edges' — this file is that missing layer. Does NOT touch code, does NOT change behavior. Grounded only in intents actually traced this session — no invented/aspirational intents. Confidence/open_question fields stay honest rather than guessed, per this codebase's own consciousness-layer rule (\"ระบบมีสิทธิ์ไม่รู้ แต่ไม่มีสิทธิ์เดาแล้วนำเสนอเป็นความจริง\"). IMPORTANT: `invariants` are NORMATIVE — the rule every implementation of that intent SHOULD satisfy, not a claim that current code already does. `invariant_compliance` on each known_implementation is the honest, evidence-based audit of whether it actually does — several show false on purpose, because that's the real, current state this file is supposed to expose, not hide.",
+  "created_at": "2026-07-17",
+  "created_by": "Owner + Claude, Invoice Workflow Redesign session — direct continuation of the document.send call-graph audit that found 5 competing implementations (A-E)",
+  "next_phases": {
+    "phase_1": "execution-registry.json — binds each intent below to ONE canonical implementation; validates against this file's invariants instead of checking file names",
+    "phase_2": "Migration — collapse the known document.send implementations into the canonical one, until invariant_compliance is true for all invariants",
+    "phase_3": "Intent Guard — pre-commit check that reads THIS file, rejects a new implementation of an intent that already has canonical_status: DECIDED, prompts Extend/Replace/Abort using allowed_extension_points",
+    "phase_4": "registry/invariants.json (repo-wide layer, e.g. communication_backbone/execution_pipeline immutability) — a superset of the per-intent invariants here"
+  },
+
+  "intents": {
+    "document.send": {
+      "definition": "Deliver a business document that already exists as a persisted row, to the customer via a messaging platform.",
+      "variants": ["invoice", "quotation", "receipt", "delivery_order", "billing_note"],
+      "variants_note": "Architecture-neutral list — records that these document_type values exist and currently share (mostly) one delivery mechanism. Does NOT decide whether they are one intent or several; that is a Business-layer decision explicitly deferred, not made here.",
+      "stability": "core",
+      "stability_reason": "Central revenue-facing action; the incident that started this whole initiative (5 competing send paths) happened here specifically.",
+      "confidence": "high — directly traced this session",
+      "canonical_status": "DECIDED for the invoice variant (2026-07-18): A (gateway/actions.ts::sendInvoiceToLine) is canonical. Both real UI callers (app/admin/relationships/workspace.tsx and app/admin/line-customers/page.tsx) now route invoice sends/resends through it via the Retry Send endpoint — verified by direct grep, 0 remaining invoice-table callers of E. B and E remain the live implementations for the other variants (quotation/receipt/delivery_order/billing_note via B, standalone_documents re-send via E) because neither has an invoice_items-equivalent items table yet — deliberately deferred, not forgotten.",
+
+      "invariants": {
+        "must_use_execution_pipeline": "Every caller reaches delivery through one shared pipeline function, never a route-local reimplementation.",
+        "must_not_call_line_api_directly": "Only the LINE Adapter layer calls api.line.me — business/route code never does.",
+        "must_have_audit": "Every send writes a durable record of what was sent, to whom, and when.",
+        "must_update_delivery_status": "The source document's own status field reflects whether it was actually sent.",
+        "must_register_entry_point": "Every caller of this intent is listed in execution-registry.json — no unregistered caller exists.",
+        "must_not_create_parallel_pipeline": "No new file may reimplement build-flex+push-LINE for this intent."
+      },
+
+      "known_implementations": [
+        {
+          "id": "A",
+          "location": "gateway/actions.ts::sendInvoiceToLine",
+          "scope": "invoice document_type only",
+          "entry_points": ["app/api/chat/confirm/route.ts (auto-called after ConfirmInvoice succeeds, invoice type only)", "app/api/admin/invoices/[invoiceId]/send/route.ts (Retry Send — as of 2026-07-18, real UI callers: app/admin/relationships/workspace.tsx::sendDocument() and app/admin/line-customers/page.tsx::sendDocument(), both only for doc.table==='invoices')"],
+          "invariant_compliance": {
+            "must_use_execution_pipeline": false,
+            "must_not_call_line_api_directly": false,
+            "must_have_audit": "partial — writes to line_events (a message log), no dedicated audit.delivery record",
+            "must_update_delivery_status": true,
+            "must_register_entry_point": false,
+            "must_not_create_parallel_pipeline": "n/a — this IS one of the parallel implementations being described, not a violator of a pipeline that doesn't exist yet"
+          },
+          "compliance_note": "Most complete of the three (has status tracking + duplicate-send guard + real line items), but still calls api.line.me directly — no adapter abstraction exists in this codebase today for ANY implementation."
+        },
+        {
+          "id": "B",
+          "location": "inline block in app/api/chat/confirm/route.ts",
+          "scope": "quotation/boq/receipt/delivery_order/billing document_types",
+          "entry_points": ["same POST /api/chat/confirm as A, branches by document_type"],
+          "invariant_compliance": {
+            "must_use_execution_pipeline": false,
+            "must_not_call_line_api_directly": false,
+            "must_have_audit": false,
+            "must_update_delivery_status": false,
+            "must_register_entry_point": false,
+            "must_not_create_parallel_pipeline": "n/a"
+          },
+          "compliance_note": "Least compliant — no status field on standalone_documents even exists to update, no audit trail at all."
+        },
+        {
+          "id": "E",
+          "location": "app/api/admin/line-customers/[lineUserId]/send-document/route.ts",
+          "scope": "standalone_documents only, as of 2026-07-18 (was: any existing invoices/standalone_documents row) — the invoices branch was repointed to A. Deprecating this route for invoices is a real state change, not a status label: verified by grep, 0 remaining callers pass table:\"invoices\" to it.",
+          "entry_points": ["app/admin/relationships/workspace.tsx::sendDocument() (standalone_documents branch only)", "app/admin/line-customers/page.tsx::sendDocument() (standalone_documents branch only, separate near-duplicate function in the legacy parallel page)"],
+          "invariant_compliance": {
+            "must_use_execution_pipeline": false,
+            "must_not_call_line_api_directly": false,
+            "must_have_audit": "partial — writes to line_events, same as A",
+            "must_update_delivery_status": false,
+            "must_register_entry_point": false,
+            "must_not_create_parallel_pipeline": "n/a"
+          },
+          "compliance_note": "Predates invoice_items entirely — sends a Flex card with NO line items, and can re-send an already-sent invoice with no guard."
+        }
+      ],
+
+      "allowed_extension_points": ["template", "footer", "pricing_summary", "attachments", "legal_notice", "ai_summary"],
+      "extension_points_note": "template/footer/pricing_summary are REAL today (DOC_LABELS per document_type, branding.footerNote/documentTerms from company-settings, the summary object) — attachments/legal_notice/ai_summary are valid future extension surfaces with no implementation yet. Both kinds belong here; this list is 'where a new feature should attach', not 'what already exists'.",
+      "forbidden": ["new_transport", "new_pipeline", "direct_line_api"],
+      "forbidden_note": "Honesty check: 'direct_line_api' is violated by ALL THREE known implementations today (A/B/E). Listing it as forbidden here is the target state this dictionary is meant to drive toward, not a claim it's already enforced."
+    },
+
+    "document.create": {
+      "definition": "Persist a business document (header + line items) that was previously only a computed preview, as a real committed row in the database.",
+      "variants": ["invoice", "quotation", "receipt", "delivery_order", "billing_note"],
+      "stability": "core",
+      "stability_reason": "Financial write — the only intent in this dictionary with a real Postgres transaction (confirm_invoice RPC) behind it.",
+      "confidence": "high — directly traced and rebuilt this session",
+      "canonical_status": "DECIDED — gateway/actions.ts::executeDocumentCreate is canonical for all document types. For invoice specifically, calls the confirm_invoice() Postgres RPC (atomic header+items commit).",
+
+      "invariants": {
+        "must_be_atomic": "Header and line items commit together or not at all.",
+        "must_require_human_confirmation": "Rule 72 — no write without a consumed preview_token.",
+        "must_not_recompute_business_values": "Persists exactly what was shown in Preview (business.calculate_tax's result), never a second calculation."
+      },
+
+      "known_implementations": [
+        {
+          "id": "canonical",
+          "location": "gateway/actions.ts::executeDocumentCreate",
+          "entry_points": ["app/api/chat/confirm/route.ts via dispatchAction({action:\"document.create\", mode:\"execute\"})"],
+          "invariant_compliance": {
+            "must_be_atomic": "true for invoice (confirm_invoice RPC) — NOT verified for standalone_documents, which still does a plain single-table insert with no items table at all",
+            "must_require_human_confirmation": true,
+            "must_not_recompute_business_values": "true for invoice (precomputedSummary threaded through) — NOT verified for standalone_documents"
+          }
+        }
+      ],
+      "allowed_extension_points": ["item_types", "tax_rules", "numbering_scheme"],
+      "forbidden": ["bypass_preview_token", "direct_table_insert_outside_gateway"]
+    },
+
+    "debt.notify": {
+      "definition": "Push a debt-reminder Flex card (outstanding balance, overdue days) to a customer, either on manual admin action or on the daily automated schedule.",
+      "variants": ["manual", "automated"],
+      "variants_note": "Unlike document.send's variants (business document types), these are delivery-trigger variants — kept separate implementations by necessity (different runtimes: Node vs Deno Edge Function), not a violation of must_not_create_parallel_pipeline.",
+      "stability": "core",
+      "stability_reason": "Revenue-critical automated flow running unattended daily.",
+      "confidence": "high — directly traced this session (during the getCurrentDebt/RLS audit)",
+      "canonical_status": "PARTIAL — two implementations, each canonical for its own trigger type (manual vs automated), both must stay formula-synchronized manually per this codebase's documented cross-runtime-duplication convention.",
+
+      "invariants": {
+        "must_use_single_source_of_truth_formula": "Debt figure must come from getCurrentDebt()/calcDebtTrackingSummary() lineage, never a separate calculation.",
+        "must_not_send_duplicate_same_day": "One reminder per customer per day, regardless of trigger."
+      },
+
+      "known_implementations": [
+        {
+          "id": "C",
+          "location": "app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
+          "trigger": "manual, admin-clicked",
+          "entry_points": ["app/admin/relationships/workspace.tsx::sendDebt()", "app/admin/line-customers/page.tsx::sendDebt() (sends no mode in its POST body — defaults to preview only; a real difference from the workspace.tsx version, not yet explained, found during Phase 0 research but not fixed here)"],
+          "invariant_compliance": {
+            "must_use_single_source_of_truth_formula": true,
+            "must_not_send_duplicate_same_day": "not enforced at this layer — no same-day check found; relies on the human not clicking twice"
+          }
+        },
+        {
+          "id": "D",
+          "location": "supabase/functions/debt-reminder-cron/index.ts",
+          "trigger": "automated, scheduled (10-min cron, fires once/day at configured hour)",
+          "entry_points": ["none — no UI, internal scheduler only"],
+          "invariant_compliance": {
+            "must_use_single_source_of_truth_formula": "true — mirrored formula, manually kept in sync (Deno cannot import Node code)",
+            "must_not_send_duplicate_same_day": true
+          }
+        }
+      ],
+      "allowed_extension_points": ["reminder_schedule", "escalation_tier", "footer"],
+      "forbidden": ["new_transport", "direct_line_api"]
+    },
+
+    "payment.request": {
+      "definition": "Request or record a payment against an existing invoice/debt.",
+      "variants": [],
+      "stability": "evolving",
+      "stability_reason": "Implementation exists and is real, but its own callers/UI were never traced this session — treat as less settled than document.send/debt.notify until verified.",
+      "confidence": "medium — confirmed the implementation exists and is called, but its own callers were not traced this session",
+      "canonical_status": "DECIDED (by default — only one implementation found)",
+
+      "invariants": {
+        "must_require_human_confirmation": "Rule 72 preview/execute pattern, same as document.create."
+      },
+      "known_implementations": [
+        {
+          "id": "canonical",
+          "location": "gateway/actions.ts::previewPayment / executePayment",
+          "entry_points": ["dispatchAction({action:\"payment\"}) — real UI callers not traced this session, unverified"],
+          "invariant_compliance": { "must_require_human_confirmation": "presumed true (uses the same preview/execute gateway pattern) but not directly verified this session" }
+        }
+      ],
+      "allowed_extension_points": [],
+      "forbidden": [],
+      "open_question": "Whether this is a document.send-adjacent intent (e.g. sends a payment confirmation/receipt) or purely a data-write with no messaging component — not verified. Do not assume either answer."
+    },
+
+    "partner.message": {
+      "definition": "Send a free-text (non-document) message to a customer's LINE — a reply, a notification, or an AI-drafted message.",
+      "variants": [],
+      "stability": "experimental",
+      "stability_reason": "Boundaries of this intent (vs approval.request) are not yet settled — see open_question. Treat as unstable until that decision is made.",
+      "confidence": "low — names/boundaries were inferred from file discovery this session, not deeply traced",
+      "canonical_status": "NOT DECIDED — at least 2 real, separately-implemented mechanisms found",
+
+      "invariants": {
+        "must_require_human_confirmation_if_ai_drafted": "An AI-proposed message must sit in a pending-review state until a human approves it (Rule 72)."
+      },
+      "known_implementations": [
+        {
+          "id": "unverified-1",
+          "location": "app/api/admin/outbound-drafts/[id]/send/route.ts",
+          "note": "Sends a human-editable, AI-drafted plain-text message from line_outbound_drafts pending review. Comment states it shares 'same LINE push call as app/api/admin/notifications/send/route.ts' — a third file not yet examined.",
+          "invariant_compliance": { "must_require_human_confirmation_if_ai_drafted": true }
+        },
+        {
+          "id": "unverified-2",
+          "location": "app/admin/line-customers/page.tsx::sendReply()",
+          "note": "Calls POST /api/chat/confirm — may actually route through the SAME endpoint as document.send (A/B), not a separate mechanism. Not confirmed.",
+          "invariant_compliance": { "must_require_human_confirmation_if_ai_drafted": "unverified" }
+        }
+      ],
+      "allowed_extension_points": [],
+      "forbidden": [],
+      "open_question": "Is 'approval.request' a distinct intent from 'partner.message', or simply the Rule-72-gated PRECONDITION every send intent already has? Needs a real decision before Phase 1 can register either one."
+    }
+  },
+
+  "explicitly_not_yet_defined": [
+    "approval.request — see partner.message's open_question",
+    "any Facebook/WhatsApp/Email/Instagram intent — no implementation of any kind exists in this codebase today; do not pre-define an intent for a platform with zero real code to ground it in"
+  ]
+}

@@ -1,0 +1,10 @@
+const icons={apps:'<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',chat:'<path d="M21 11a8 8 0 0 1-8 8H6l-4 3V11a9 9 0 0 1 19 0Z"/><path d="M7 10h9M7 14h6"/>',stock:'<path d="m12 3 9 5-9 5-9-5 9-5ZM3 8v9l9 5 9-5V8"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M5 5l2 2m10 10 2 2M19 5l-2 2M7 17l-2 2"/>',back:'<path d="m14 6-6 6 6 6"/>',forward:'<path d="m10 6 6 6-6 6"/>',refresh:'<path d="M20 8a8 8 0 1 0 0 8M20 3v5h-5"/>',plus:'<path d="M12 4v16M4 12h16"/>'};
+function icon(name){return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name]}</svg>`}
+[['toolsMain','apps'],['chatHome','chat'],['settings','gear'],['back','back'],['forward','forward'],['refresh','refresh'],['newTab','plus']].forEach(([id,name])=>$(id).innerHTML=icon(name));document.querySelector('[data-view=all]').innerHTML=icon('stock');$('add').innerHTML=icon('plus')+'<span>เพิ่มทรัพยากร</span>';$('add').style.display='flex';$('add').style.alignItems='center';$('add').style.gap='4px';
+const integrated=new URLSearchParams(location.search).get('dna')==='1';$('settings').onclick=()=>toast(integrated?'การเชื่อมต่อใช้ระบบ DNA OS เดิม — ไม่มีการแสดง Supabase key':'การเชื่อมต่อใช้ระบบ DNA OS เดิม');/* SIDEBAR เดียว (owner 2026-10-18): ปุ่ม "เปิดเครื่องมือ" เปิดเมนูเครื่องมือเดิมของ shell
+   (#toolsDialog + tools.json) แทนการเปิดผิว desktop ที่มี sidebar/tab bar ชุดที่สอง
+   ตัวเลือกเครื่องมือจะถูกเปิดในพื้นที่กลางเดิม (#toolFrame) — ไม่มี navigation ใหม่ */
+/* BUSINESS TOOL LAUNCHER (owner baseline 2026-10-18): ปุ่มสี่เหลี่ยมเดิมจุดเดียว
+   click = เปิด/ปิดรายการเครื่องมือธุรกิจ (hover = เปิดชั่วคราว) — ตัวจัดการอยู่ใน business-launcher.js
+   ส่วนเครื่องมือผู้พัฒนายังเข้าถึงได้จากปุ่มใน footer ของ launcher (ไม่ปะปนกับรายการธุรกิจ) */
+$('toolsMain').onclick=()=>window.toggleBusinessLauncher?.();$('chatHome').onclick=()=>openWorkspaceSurface('chat');

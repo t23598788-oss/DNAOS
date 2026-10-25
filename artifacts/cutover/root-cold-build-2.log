@@ -1,0 +1,1795 @@
+▲ Next.js 16.2.9 (Turbopack)
+- Environments: .env.local
+- Experiments (use with caution):
+  ⨯ serverSourceMaps
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+Turbopack build encountered 61 warnings:
+./app/api/admin/connectors/_lib/connectRuntime.ts:27:49
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m25 |[0m [36mexport[0m [36mfunction[0m buildDetectDeps(): [33mDetectDeps[0m {
+  [90m26 |[0m   [36mreturn[0m {
+[31m[1m>[0m [90m27 |[0m     fileExists: (relPath: string) => existsSync(join(process.cwd(), relPath)),
+  [90m   |[0m                                                 [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m28 |[0m     envNames: () => [33mObject[0m.keys(process.env),
+  [90m29 |[0m   };
+  [90m30 |[0m }
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./app/api/admin/connectors/_lib/connectRuntime.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./app/api/admin/connectors/_lib/connectRuntime.ts
+    ./app/api/admin/connectors/providers/[providerId]/prepare/route.ts
+
+
+./app/api/admin/ide/_lib/factoryCompletionRuntime.ts:37:27
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m35 |[0m
+  [90m36 |[0m [36mfunction[0m fileExists(rel: string): boolean {
+[31m[1m>[0m [90m37 |[0m   [36mtry[0m { [36mreturn[0m existsSync(path.join([33mROOT[0m, rel)); } [36mcatch[0m { [36mreturn[0m [36mfalse[0m; }
+  [90m   |[0m                           [31m[1m^^^^^^^^^^^^^^^^^^^^[0m
+  [90m38 |[0m }
+  [90m39 |[0m
+  [90m40 |[0m [36mfunction[0m fileNonTrivial(rel: string): boolean {
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./app/api/admin/ide/_lib/factoryCompletionRuntime.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./app/api/admin/ide/_lib/factoryCompletionRuntime.ts
+    ./app/api/admin/ide/factory-completion/route.ts
+
+
+./app/api/admin/ide/_lib/factoryCompletionRuntime.ts:42:24
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m40 |[0m [36mfunction[0m fileNonTrivial(rel: string): boolean {
+  [90m41 |[0m   [36mtry[0m {
+[31m[1m>[0m [90m42 |[0m     [36mconst[0m s = statSync(path.join([33mROOT[0m, rel));
+  [90m   |[0m                        [31m[1m^^^^^^^^^^^^^^^^^^^^[0m
+  [90m43 |[0m     [36mreturn[0m s.size > [35m200[0m; [90m// a real, non-stub file — not a proof of correctness, only of no...[0m
+  [90m44 |[0m   } [36mcatch[0m { [36mreturn[0m [36mfalse[0m; }
+  [90m45 |[0m }
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./app/api/admin/ide/_lib/factoryCompletionRuntime.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./app/api/admin/ide/_lib/factoryCompletionRuntime.ts
+    ./app/api/admin/ide/factory-completion/route.ts
+
+
+./app/api/admin/ide/_lib/fsSecurity.ts:137:21
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m135 |[0m   }
+  [90m136 |[0m
+[31m[1m>[0m [90m137 |[0m   [36mconst[0m candidate = path.resolve([33mWORKSPACE_ROOT[0m, clientPath);
+  [90m    |[0m                     [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m138 |[0m   [36mconst[0m withSep = [33mWORKSPACE_ROOT[0m + path.sep;
+  [90m139 |[0m   [36mif[0m (candidate !== [33mWORKSPACE_ROOT[0m && !candidate.startsWith(withSep)) {
+  [90m140 |[0m     [36mthrow[0m [36mnew[0m [33mIdeFsError[0m([32m"PATH_OUTSIDE_WORKSPACE"[0m, [32m"path escapes the workspace root"[0m);
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./app/api/admin/ide/_lib/fsSecurity.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./app/api/admin/ide/_lib/fsSecurity.ts
+    ./app/api/admin/ide/classification/route.ts
+
+
+./app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter.ts:91:17
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m89 |[0m   [36mconst[0m tsxCli = path.join(process.cwd(), [32m"node_modules"[0m, [32m"tsx"[0m, [32m"dist"[0m, [32m"cli.mjs"[0m);
+  [90m90 |[0m   [36mfor[0m ([36mconst[0m rel [36mof[0m registry.source.stdioEntrypoints) {
+[31m[1m>[0m [90m91 |[0m     [36mconst[0m abs = path.join(process.cwd(), rel);
+  [90m   |[0m                 [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m92 |[0m     [36mif[0m (!abs.endsWith([32m".js"[0m)) [36mcontinue[0m;
+  [90m93 |[0m     candidates.push({ entrypoint: abs, launcher: [] });
+  [90m94 |[0m   }
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter.ts
+    ./app/api/admin/ide/_lib/workerAdapterRegistry.ts
+    ./app/api/admin/ide/workers/route.ts
+
+
+./app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter.ts:96:17
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m94 |[0m   }
+  [90m95 |[0m   [36mfor[0m ([36mconst[0m rel [36mof[0m registry.source.stdioEntrypoints) {
+[31m[1m>[0m [90m96 |[0m     [36mconst[0m abs = path.join(process.cwd(), rel);
+  [90m   |[0m                 [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m97 |[0m     [36mif[0m (!abs.endsWith([32m".ts"[0m)) [36mcontinue[0m;
+  [90m98 |[0m     candidates.push({ entrypoint: abs, launcher: [tsxCli] });
+  [90m99 |[0m   }
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter.ts
+    ./app/api/admin/ide/_lib/workerAdapterRegistry.ts
+    ./app/api/admin/ide/workers/route.ts
+
+
+./app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter.ts:211:21
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m209 |[0m ...[36mxport[0m [36mfunction[0m createStdioTransport(registry: [33mMcpToolRegistry[0m): { transport: [33mMcpToolCa...[0m
+  [90m210 |[0m ... [36mconst[0m candidates = resolveMcpServerEntrypoints(registry);
+[31m[1m>[0m [90m211 |[0m ... [36mconst[0m serverDir = path.join(process.cwd(), registry.source.server);
+  [90m    |[0m                       [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m212 |[0m ... [36mconst[0m launchable = candidates.filter((c) => c.launcher.length === [35m0[0m || fileExists(c.l...
+  [90m213 |[0m ... [36mconst[0m pick = launchable[[35m0[0m] ?? candidates[[35m0[0m];
+  [90m214 |[0m ... [36mif[0m (!pick) {
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./app/api/admin/ide/_lib/workerAdapters/mcpDnaOsAdapter.ts
+    ./app/api/admin/ide/_lib/workerAdapterRegistry.ts
+    ./app/api/admin/ide/workers/route.ts
+
+
+./app/api/admin/workspace/file/route.ts:43:19
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m41 |[0m   }
+  [90m42 |[0m
+[31m[1m>[0m [90m43 |[0m   [36mconst[0m absPath = resolve(join([33mROOT[0m, relPath));
+  [90m   |[0m                   [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m44 |[0m   [36mif[0m (!absPath.startsWith(resolve([33mROOT[0m) + [32m"/"[0m)) {
+  [90m45 |[0m     [36mreturn[0m [33mNextResponse[0m.json({ error: [32m"path escapes project root"[0m }, { status: [35m400[0m });
+  [90m46 |[0m   }
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import trace:
+  App Route:
+    ./app/api/admin/workspace/file/route.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./app/api/admin/workspace/file/route.ts:43:27
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m41 |[0m   }
+  [90m42 |[0m
+[31m[1m>[0m [90m43 |[0m   [36mconst[0m absPath = resolve(join([33mROOT[0m, relPath));
+  [90m   |[0m                           [31m[1m^^^^^^^^^^^^^^^^^^^[0m
+  [90m44 |[0m   [36mif[0m (!absPath.startsWith(resolve([33mROOT[0m) + [32m"/"[0m)) {
+  [90m45 |[0m     [36mreturn[0m [33mNextResponse[0m.json({ error: [32m"path escapes project root"[0m }, { status: [35m400[0m });
+  [90m46 |[0m   }
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import trace:
+  App Route:
+    ./app/api/admin/workspace/file/route.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./app/api/admin/workspace/status/route.ts:25:13
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m23 |[0m
+  [90m24 |[0m [36mfunction[0m readJSON<[33mT[0m>(relPath: string): [33mT[0m | [36mnull[0m {
+[31m[1m>[0m [90m25 |[0m   [36mconst[0m p = join([33mROOT[0m, relPath);
+  [90m   |[0m             [31m[1m^^^^^^^^^^^^^^^^^^^[0m
+  [90m26 |[0m   [36mif[0m (!existsSync(p)) [36mreturn[0m [36mnull[0m;
+  [90m27 |[0m   [36mtry[0m {
+  [90m28 |[0m     [36mreturn[0m [33mJSON[0m.parse(readFileSync(p, [32m"utf-8"[0m));
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import trace:
+  App Route:
+    ./app/api/admin/workspace/status/route.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./app/api/dbd/route.ts:18:13
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m16 |[0m
+  [90m17 |[0m [36mfunction[0m readJSON(rel: string): any {
+[31m[1m>[0m [90m18 |[0m   [36mconst[0m p = join([33mROOT[0m, rel);
+  [90m   |[0m             [31m[1m^^^^^^^^^^^^^^^[0m
+  [90m19 |[0m   [36mif[0m (!existsSync(p)) [36mreturn[0m [36mnull[0m;
+  [90m20 |[0m   [36mtry[0m { [36mreturn[0m [33mJSON[0m.parse(readFileSync(p, [32m"utf-8"[0m)); } [36mcatch[0m { [36mreturn[0m [36mnull[0m; }
+  [90m21 |[0m }
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import trace:
+  App Route:
+    ./app/api/dbd/route.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./app/api/reader/route.ts:48:19
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m46 |[0m [90m// path, which let an operator escape the project (e.g. registry/../../.env.local).[0m
+  [90m47 |[0m [36mfunction[0m resolveAllowed(requested: string): string | [36mnull[0m {
+[31m[1m>[0m [90m48 |[0m   [36mconst[0m absPath = resolve([33mROOT[0m, requested);
+  [90m   |[0m                   [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m49 |[0m   [36mconst[0m rel = relative([33mROOT[0m, absPath);
+  [90m50 |[0m   [36mif[0m (!rel || isAbsolute(rel) || rel === [32m".."[0m || rel.startsWith([32m`..[0m${sep[32m}`[0m)) [36mreturn[0m [36mnull[0m;
+  [90m51 |[0m   [36mconst[0m relPosix = rel.split(sep).join([32m"/"[0m);
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import trace:
+  App Route:
+    ./app/api/reader/route.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./core/runtime/contextBroker.ts:34:34
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m32 |[0m [36mfunction[0m readJSON<[33mT[0m>(relPath: string): [33mT[0m {
+  [90m33 |[0m   readCounter.count++;
+[31m[1m>[0m [90m34 |[0m   [36mreturn[0m [33mJSON[0m.parse(readFileSync(join([33mROOT[0m, relPath), [32m"utf-8"[0m));
+  [90m   |[0m                                  [31m[1m^^^^^^^^^^^^^^^^^^^[0m
+  [90m35 |[0m }
+  [90m36 |[0m
+  [90m37 |[0m [90m// ── Real read counter ── incremented by each self-description file's readJSON[0m
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./core/runtime/contextBroker.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./core/runtime/contextBroker.ts
+    ./engines/documents/selfDescription.ts
+    ./app/api/admin/runtime/document-engine/route.ts
+
+
+./core/runtime/self-awareness.ts:15:36
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m13 |[0m [36mfunction[0m loadJSON(path: string): [33mRecord[0m<string, unknown> {
+  [90m14 |[0m   [36mtry[0m {
+[31m[1m>[0m [90m15 |[0m     [36mreturn[0m [33mJSON[0m.parse(readFileSync(join([33mROOT[0m, path), [32m"utf-8"[0m));
+  [90m   |[0m                                    [31m[1m^^^^^^^^^^^^^^^^[0m
+  [90m16 |[0m   } [36mcatch[0m {
+  [90m17 |[0m     [36mreturn[0m {};
+  [90m18 |[0m   }
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./core/runtime/self-awareness.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./core/runtime/self-awareness.ts
+    ./app/api/self-description/route.ts
+
+
+./engines/documents/selfDescription.ts:28:34
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m26 |[0m [36mfunction[0m readJSON<[33mT[0m>(relPath: string): [33mT[0m {
+  [90m27 |[0m   readCounter.count++; [90m// real, incremented on every actual fs read — see core/runtime/con...[0m
+[31m[1m>[0m [90m28 |[0m   [36mreturn[0m [33mJSON[0m.parse(readFileSync(join([33mROOT[0m, relPath), [32m"utf-8"[0m));
+  [90m   |[0m                                  [31m[1m^^^^^^^^^^^^^^^^^^^[0m
+  [90m29 |[0m }
+  [90m30 |[0m
+  [90m31 |[0m [36mconst[0m [33mTARGET_FILE[0m = [32m"engines/documents/engine.ts"[0m;
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./engines/documents/selfDescription.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./engines/documents/selfDescription.ts
+    ./app/api/admin/runtime/document-engine/route.ts
+
+
+./engines/governance/hardcode-decision-engine.ts:33:34
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m31 |[0m
+  [90m32 |[0m [36mfunction[0m readRepoJSON<[33mT[0m>(relPath: string): [33mT[0m {
+[31m[1m>[0m [90m33 |[0m   [36mreturn[0m [33mJSON[0m.parse(readFileSync(join([33mROOT[0m, relPath), [32m"utf-8"[0m));
+  [90m   |[0m                                  [31m[1m^^^^^^^^^^^^^^^^^^^[0m
+  [90m34 |[0m }
+  [90m35 |[0m
+  [90m36 |[0m [36mexport[0m [36mtype[0m [33mCategory[0m =
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./engines/governance/hardcode-decision-engine.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./engines/governance/hardcode-decision-engine.ts
+    ./engines/validation/dispatcher.ts
+    ./app/api/admin/material-quote/route.ts
+
+
+./engines/workspace/dependencyRegistry.ts:30:34
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m28 |[0m
+  [90m29 |[0m [36mfunction[0m readJSON<[33mT[0m>(relPath: string): [33mT[0m {
+[31m[1m>[0m [90m30 |[0m   [36mreturn[0m [33mJSON[0m.parse(readFileSync(join([33mROOT[0m, relPath), [32m"utf-8"[0m));
+  [90m   |[0m                                  [31m[1m^^^^^^^^^^^^^^^^^^^[0m
+  [90m31 |[0m }
+  [90m32 |[0m
+  [90m33 |[0m [36mexport[0m [36mfunction[0m getDependents(resourcePath: string): [33mDependencyEdge[0m[] {
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./engines/workspace/dependencyRegistry.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./engines/workspace/dependencyRegistry.ts
+    ./app/api/admin/workspace/route.ts
+
+
+./engines/workspace/fileTree.ts:62:18
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m60 |[0m [90m * deeper levels load on demand by calling this again with that node's path. */[0m
+  [90m61 |[0m [36mexport[0m [36mfunction[0m buildFileTree(rootRelPath: string, maxDepth = [35m2[0m): [33mFileTreeNode[0m[] {
+[31m[1m>[0m [90m62 |[0m   [36mconst[0m absDir = join([33mROOT[0m, rootRelPath);
+  [90m   |[0m                  [31m[1m^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m63 |[0m   [36mconst[0m stat = statSync(absDir);
+  [90m64 |[0m   [36mif[0m (!stat.isDirectory()) [36mreturn[0m [];
+  [90m65 |[0m   [36mreturn[0m walk(absDir, maxDepth, [35m0[0m);
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./engines/workspace/fileTree.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./engines/workspace/fileTree.ts
+    ./app/api/admin/workspace/tree/route.ts
+
+
+./engines/workspace/registryWriter.ts:37:19
+The file pattern ('/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m35 |[0m   mutate: (current: unknown) => unknown
+  [90m36 |[0m ): [33mPromise[0m<[33mT[0m> {
+[31m[1m>[0m [90m37 |[0m   [36mconst[0m absPath = join([33mPROJECT_ROOT[0m, relativePath);
+  [90m   |[0m                   [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m38 |[0m   [36mconst[0m resourceType = relativePath.endsWith([32m".ts"[0m) ? [32m"file"[0m : [32m"registry"[0m;
+  [90m39 |[0m
+  [90m40 |[0m   [36mreturn[0m withLock(db, resourceType, relativePath, actor, sessionId, [36masync[0m () => {
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./engines/workspace/registryWriter.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./engines/workspace/registryWriter.ts
+    ./engines/workspace/devLoopSession.ts
+    ./app/api/gateway/proposals/[id]/decide/route.ts
+
+
+./app/api/admin/ide/_lib/fsSecurity.ts:148:14
+The file pattern ('/ROOT//' <dynamic> | <dynamic> '/' <dynamic> | '/ROOT/' <dynamic> | <dynamic>) matches 28165 files in [project]/
+  [90m146 |[0m   [36mlet[0m walked = [33mWORKSPACE_ROOT[0m;
+  [90m147 |[0m   [36mfor[0m ([36mconst[0m segment [36mof[0m segments) {
+[31m[1m>[0m [90m148 |[0m     walked = path.join(walked, segment);
+  [90m    |[0m              [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m149 |[0m     [36mlet[0m lstat;
+  [90m150 |[0m     [36mtry[0m {
+  [90m151 |[0m       lstat = [36mawait[0m fs.lstat(walked);
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./app/api/admin/ide/_lib/fsSecurity.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./app/api/admin/ide/_lib/fsSecurity.ts
+    ./app/api/admin/ide/classification/route.ts
+
+
+./app/api/reader/route.ts:75:23
+The file pattern ('/ROOT/registry' | '/ROOTregistry' | '/ROOT/core' | '/ROOTcore' | '/ROOT/gateway' | '/ROOTgateway' | '/ROOT/engines' | '/ROOTengines' | '/ROOT/cognitive' | '/ROOTcognitive' | '/ROOT/presenter' | '/ROOTpresenter' | '/ROOT/services' | '/ROOTservices' | '/ROOT/plugins' | '/ROOTplugins' | '/ROOT/app/api' | '/ROOTapp/api' | '/ROOT/scripts' | '/ROOTscripts' | '/ROOT/' <dynamic> | '/ROOT' <dynamic>) matches 11290 files in [project]/
+  [90m73 |[0m     [36mconst[0m files: { path: string; [36mtype[0m: string; size: number }[] = [];
+  [90m74 |[0m     [36mfor[0m ([36mconst[0m root [36mof[0m [33mALLOWED_ROOTS[0m) {
+[31m[1m>[0m [90m75 |[0m       [36mconst[0m absRoot = join([33mROOT[0m, root);
+  [90m   |[0m                       [31m[1m^^^^^^^^^^^^^^^^[0m
+  [90m76 |[0m       [36mif[0m (!existsSync(absRoot)) [36mcontinue[0m;
+  [90m77 |[0m       collectFiles(absRoot, root, files);
+  [90m78 |[0m     }
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import trace:
+  App Route:
+    ./app/api/reader/route.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./app/api/admin/ide/_lib/monitoringRuntime.ts:62:60
+The file pattern (<dynamic> '/app/api/admin/ide/build/runs/route.ts' | <dynamic> 'app/api/admin/ide/build/runs/route.ts' | <dynamic> '/app/api/admin/ide/release/runs/route.ts' | <dynamic> 'app/api/admin/ide/release/runs/route.ts' | <dynamic> '/app/api/admin/ide/deployment/plans/route.ts' | <dynamic> 'app/api/admin/ide/deployment/plans/route.ts' | <dynamic> '/app/api/admin/ide/global-factory/route.ts' | <dynamic> 'app/api/admin/ide/global-factory/route.ts' | <dynamic> '/app/api/admin/ide/factory-completion/route.ts' | <dynamic> 'app/api/admin/ide/factory-completion/route.ts' | <dynamic> '/' <dynamic> | <dynamic>) matches 11230 files in [project]/
+  [90m60 |[0m ...[32mctory-completion/route.ts"[0m,
+  [90m61 |[0m ...
+[31m[1m>[0m [90m62 |[0m ...lRoutes.filter((r) => !existsSync(path.join([33mROOT[0m, r)));
+  [90m   |[0m                                      [31m[1m^^^^^^^^^^^^^^^^^^[0m
+  [90m63 |[0m ...
+  [90m64 |[0m ...h === [35m0[0m ? [32m"HEALTHY"[0m : [32m"UNHEALTHY"[0m, severity: missing.length === [35m0[0m ? [32m"INFO"[0m : [32m"MEDIUM"[0m,
+  [90m65 |[0m ...h === [35m0[0m ? [32m`all [0m${criticalRoutes.length[32m} real critical route files present (structural c...[0m
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./app/api/admin/ide/_lib/monitoringRuntime.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./app/api/admin/ide/_lib/monitoringRuntime.ts
+    ./app/api/admin/ide/operations/monitoring/signals/route.ts
+
+  #3 [App Route]:
+    ./app/api/admin/ide/_lib/monitoringRuntime.ts
+    ./app/api/admin/ide/_lib/inspectionRuntime.ts
+    ./app/api/admin/ide/ui-inspection/list/route.ts
+
+
+./app/api/admin/ide/_lib/monitoringRuntime.ts:189:58
+The file pattern (<dynamic> '/registry/architecture-book.json' | <dynamic> 'registry/architecture-book.json' | <dynamic> '/registry/governance-summary.json' | <dynamic> 'registry/governance-summary.json' | <dynamic> '/registry/factory-summary.json' | <dynamic> 'registry/factory-summary.json' | <dynamic> '/registry/global-factory-report.json' | <dynamic> 'registry/global-factory-report.json' | <dynamic> '/registry/factory-completion-report.json' | <dynamic> 'registry/factory-completion-report.json' | <dynamic> '/' <dynamic> | <dynamic>) matches 11230 files in [project]/
+  [90m187 |[0m ...[33mGNAL_TYPE_REGISTRY[0m.[33mDATA_FRESHNESS[0m.staleAfterMs!;
+  [90m188 |[0m ...tring; ageMs: number | [36mnull[0m }[] = files.map((f) => {
+[31m[1m>[0m [90m189 |[0m ...: f, ageMs: [33mDate[0m.now() - statSync(path.join([33mROOT[0m, f)).mtimeMs }; } [36mcatch[0m { [36mreturn[0m { fi...
+  [90m    |[0m                                      [31m[1m^^^^^^^^^^^^^^^^^^[0m
+  [90m190 |[0m ...
+  [90m191 |[0m ...filter((a) => a.ageMs === [36mnull[0m);
+  [90m192 |[0m ...lter((a) => a.ageMs !== [36mnull[0m && a.ageMs > staleAfter);
+
+Overly broad patterns can lead to build performance issues and over bundling.
+
+Import traces:
+  #1 [App Route]:
+    ./app/api/admin/ide/_lib/monitoringRuntime.ts
+    ./app/api/admin/workspace/file/route.ts
+
+  #2 [App Route]:
+    ./app/api/admin/ide/_lib/monitoringRuntime.ts
+    ./app/api/admin/ide/operations/monitoring/signals/route.ts
+
+  #3 [App Route]:
+    ./app/api/admin/ide/_lib/monitoringRuntime.ts
+    ./app/api/admin/ide/_lib/inspectionRuntime.ts
+    ./app/api/admin/ide/ui-inspection/list/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/build/runs/[buildRunId]/compare/route.js
+  [output]/.next/server/chunks/_170noci._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/build/runs/[buildRunId]/evidence/route.js
+  [output]/.next/server/chunks/_0ngfapy._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/build/runs/[buildRunId]/route.js
+  [output]/.next/server/chunks/_00r06h_._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/build/runs/route.js
+  [output]/.next/server/chunks/_0lh6pl6._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/deployment/plans/[deploymentPlanId]/route.js
+  [output]/.next/server/chunks/_1e7i7ad._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/execution/run/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__1gm1w73._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/factory-workspace/sessions/[id]/approve-context/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__1--2g6l._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/factory-workspace/sessions/[id]/decide/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__0b-mw00._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/factory-workspace/sessions/[id]/execute/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__0ep5m-f._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/factory-workspace/sessions/[id]/intent/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__1taqllu._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/factory-workspace/sessions/[id]/release/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__1bn1csn._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/factory-workspace/sessions/[id]/result/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__0k2128j._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/factory-workspace/sessions/[id]/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__1tdrrnp._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/factory-workspace/sessions/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__0z9zqad._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/file/route.js
+  [output]/.next/server/chunks/app_api_admin_ide__lib_0uqkiun._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/inspection/[inspectionId]/cancel/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__1di_j20._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/inspection/job/[jobId]/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__10xwsku._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/operations/loop/runs/route.js
+  [output]/.next/server/chunks/_1tsklmn._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/operations/monitoring/collect/route.js
+  [output]/.next/server/chunks/_1u4ph2v._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/operations/monitoring/signals/route.js
+  [output]/.next/server/chunks/_1366q02._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/operations/monitoring/summary/route.js
+  [output]/.next/server/chunks/_1ccmnql._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/operations/recovery/plans/[planId]/route.js
+  [output]/.next/server/chunks/_0-zxs7r._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/release/packages/route.js
+  [output]/.next/server/chunks/_1qfer-i._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/release/runs/[releaseRunId]/route.js
+  [output]/.next/server/chunks/_0sw6j33._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/review/change-sets/[changeSetId]/artifacts/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__0nnlthm._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/review/change-sets/[changeSetId]/decision/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__1mmq21w._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/review/change-sets/[changeSetId]/diff/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__1kqwb4d._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/review/change-sets/[changeSetId]/evidence/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__0r5a1g8._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/review/change-sets/[changeSetId]/impact/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__0px-dy6._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/review/change-sets/[changeSetId]/refresh/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__0nbabnk._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/review/change-sets/[changeSetId]/review/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__0471pgb._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/review/change-sets/[changeSetId]/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__0g5mf8s._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/test/runs/[testRunId]/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__1y14deo._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/ui-inspection/[inspectionId]/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__1_k-rzv._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/admin/ide/ui-inspection/run/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__1y128v3._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/cron/operations-loop/route.js
+  [output]/.next/server/chunks/_17fccsh._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/v1/mcp/contractor/task-claim/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__0dlez9m._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/workspace/file/route.ts
+
+
+✓ Compiled successfully in 10.1s
+  Running TypeScript ...
+  Finished TypeScript in 12.5s ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/328) ...
+  Generating static pages using 9 workers (82/328) 
+  Generating static pages using 9 workers (164/328) 
+  Generating static pages using 9 workers (246/328) 
+✓ Generating static pages using 9 workers (328/328) in 1030ms
+  Finalizing page optimization ...
+
+Route (app)                                                              Revalidate  Expire
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /.well-known/oauth-authorization-server
+├ ƒ /.well-known/oauth-protected-resource
+├ ƒ /account/change-password
+├ ƒ /admin
+├ ƒ /admin/api-explorer
+├ ƒ /admin/api-tokens
+├ ƒ /admin/backup
+├ ƒ /admin/connectors
+├ ƒ /admin/create-document
+├ ƒ /admin/dbd
+├ ƒ /admin/debt-notice
+├ ƒ /admin/debt-tracking
+├ ƒ /admin/delivery-order
+├ ƒ /admin/deploy
+├ ƒ /admin/dev-loop
+├ ƒ /admin/devices
+├ ƒ /admin/dna
+├ ƒ /admin/documents
+├ ƒ /admin/engine-explorer
+├ ƒ /admin/equipment
+├ ƒ /admin/event-inbox
+├ ƒ /admin/finance
+├ ƒ /admin/ide
+├ ƒ /admin/infrastructure
+├ ƒ /admin/invoice
+├ ƒ /admin/jobs
+├ ƒ /admin/jobs/[id]
+├ ƒ /admin/jobs/create
+├ ƒ /admin/line-customers
+├ ƒ /admin/line-profiles
+├ ƒ /admin/links
+├ ƒ /admin/login
+├ ƒ /admin/materials
+├ ƒ /admin/notifications
+├ ƒ /admin/partners
+├ ƒ /admin/partners/[id]
+├ ƒ /admin/payment-voucher
+├ ƒ /admin/pending
+├ ƒ /admin/pits
+├ ƒ /admin/purchase-order
+├ ƒ /admin/quotation-queue
+├ ƒ /admin/reader
+├ ƒ /admin/receipt
+├ ƒ /admin/receipts
+├ ƒ /admin/relationships
+├ ƒ /admin/relationships/[relationshipId]
+├ ƒ /admin/schema-audit
+├ ƒ /admin/settings
+├ ƒ /admin/storage
+├ ƒ /admin/system-config
+├ ƒ /admin/traces
+├ ƒ /admin/transactions
+├ ƒ /admin/ui-gallery
+├ ƒ /admin/ui-gallery/assistants
+├ ƒ /admin/ui-gallery/business-display
+├ ƒ /admin/ui-gallery/compare
+├ ƒ /admin/ui-gallery/lab
+├ ƒ /admin/ui-gallery/preview
+├ ƒ /admin/ui-gallery/visual-review
+├ ƒ /admin/users
+├ ƒ /admin/workspace
+├ ○ /ai-services
+├ ƒ /api/admin/api-tokens
+├ ƒ /api/admin/api-tokens/[id]
+├ ƒ /api/admin/architecture/control-graph
+├ ƒ /api/admin/authorizations
+├ ƒ /api/admin/authorizations/[id]/decide
+├ ƒ /api/admin/backup
+├ ƒ /api/admin/capability-boxes
+├ ƒ /api/admin/capability-boxes/run
+├ ƒ /api/admin/company-expenses
+├ ƒ /api/admin/connectors
+├ ƒ /api/admin/connectors/[id]
+├ ƒ /api/admin/connectors/[id]/enable
+├ ƒ /api/admin/connectors/[id]/test
+├ ƒ /api/admin/connectors/catalog
+├ ƒ /api/admin/connectors/discover/[slug]
+├ ƒ /api/admin/connectors/providers
+├ ƒ /api/admin/connectors/providers/[providerId]/approval-request
+├ ƒ /api/admin/connectors/providers/[providerId]/prepare
+├ ƒ /api/admin/debt-trackings
+├ ƒ /api/admin/debt-trackings/[id]
+├ ƒ /api/admin/debt-trackings/[id]/draft
+├ ƒ /api/admin/debt-trackings/[id]/events
+├ ƒ /api/admin/dev-loop/approve
+├ ƒ /api/admin/dev-loop/problem-report
+├ ƒ /api/admin/devices
+├ ƒ /api/admin/devices/[id]
+├ ƒ /api/admin/devices/[id]/probe
+├ ƒ /api/admin/devices/commands
+├ ƒ /api/admin/devices/commands/[cmdId]
+├ ƒ /api/admin/devices/compute-relay
+├ ƒ /api/admin/devices/grants
+├ ƒ /api/admin/documents
+├ ƒ /api/admin/documents/[id]
+├ ƒ /api/admin/documents/[id]/artifact-recover
+├ ƒ /api/admin/documents/[id]/confirm
+├ ƒ /api/admin/documents/[id]/file
+├ ƒ /api/admin/domains/availability
+├ ƒ /api/admin/domains/register
+├ ƒ /api/admin/domains/suggestions
+├ ƒ /api/admin/domains/whois
+├ ƒ /api/admin/equipment
+├ ƒ /api/admin/equipment/maintenance-tickets
+├ ƒ /api/admin/equipment/maintenance-tickets/[id]/close
+├ ƒ /api/admin/equipment/toggle-permission
+├ ƒ /api/admin/equipment/trigger-start
+├ ƒ /api/admin/event-inbox
+├ ƒ /api/admin/finance-alerts
+├ ƒ /api/admin/finance-summary
+├ ƒ /api/admin/finance/audit
+├ ƒ /api/admin/finance/transactions
+├ ƒ /api/admin/ide/artifact/[artifactId]
+├ ƒ /api/admin/ide/artifact/[artifactId]/children
+├ ƒ /api/admin/ide/artifact/[artifactId]/evidence
+├ ƒ /api/admin/ide/artifact/[artifactId]/lineage
+├ ƒ /api/admin/ide/artifact/[artifactId]/parents
+├ ƒ /api/admin/ide/artifact/[artifactId]/regenerate
+├ ƒ /api/admin/ide/artifact/events
+├ ƒ /api/admin/ide/artifact/integrity
+├ ƒ /api/admin/ide/artifact/list
+├ ƒ /api/admin/ide/build/environment-profiles
+├ ƒ /api/admin/ide/build/registry
+├ ƒ /api/admin/ide/build/runs
+├ ƒ /api/admin/ide/build/runs/[buildRunId]
+├ ƒ /api/admin/ide/build/runs/[buildRunId]/artifacts
+├ ƒ /api/admin/ide/build/runs/[buildRunId]/cancel
+├ ƒ /api/admin/ide/build/runs/[buildRunId]/compare
+├ ƒ /api/admin/ide/build/runs/[buildRunId]/evidence
+├ ƒ /api/admin/ide/build/runs/[buildRunId]/findings
+├ ƒ /api/admin/ide/build/runs/[buildRunId]/manifest
+├ ƒ /api/admin/ide/build/runs/[buildRunId]/outputs
+├ ƒ /api/admin/ide/build/runs/[buildRunId]/rerun
+├ ƒ /api/admin/ide/classification
+├ ƒ /api/admin/ide/command
+├ ƒ /api/admin/ide/decisions
+├ ƒ /api/admin/ide/deployment/plans
+├ ƒ /api/admin/ide/deployment/plans/[deploymentPlanId]
+├ ƒ /api/admin/ide/execution-context
+├ ƒ /api/admin/ide/execution-context/approve
+├ ƒ /api/admin/ide/execution-context/gate
+├ ƒ /api/admin/ide/execution/cancel/[id]
+├ ƒ /api/admin/ide/execution/commands
+├ ƒ /api/admin/ide/execution/run
+├ ƒ /api/admin/ide/execution/run/[id]
+├ ƒ /api/admin/ide/execution/runs
+├ ƒ /api/admin/ide/execution/stream/[id]
+├ ƒ /api/admin/ide/factory-completion
+├ ƒ /api/admin/ide/factory-readiness
+├ ƒ /api/admin/ide/factory-workspace/capabilities/search
+├ ƒ /api/admin/ide/factory-workspace/sessions
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/approve-context
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/approve-plan
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/approve-proposal
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/approve-review
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/build
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/create-plan
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/decide
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/execute
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/generate-proposal
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/intent
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/prepare-context
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/release
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/resolve-capabilities
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/result
+├ ƒ /api/admin/ide/factory-workspace/sessions/[id]/vscode-dependency
+├ ƒ /api/admin/ide/factory-workspace/workers
+├ ƒ /api/admin/ide/file
+├ ƒ /api/admin/ide/fs/create
+├ ƒ /api/admin/ide/fs/move
+├ ƒ /api/admin/ide/fs/rename
+├ ƒ /api/admin/ide/fs/restore
+├ ƒ /api/admin/ide/fs/trash
+├ ƒ /api/admin/ide/git/blame
+├ ƒ /api/admin/ide/git/branches
+├ ƒ /api/admin/ide/git/conflicts
+├ ƒ /api/admin/ide/git/diff
+├ ƒ /api/admin/ide/git/history
+├ ƒ /api/admin/ide/git/merge-status
+├ ƒ /api/admin/ide/git/status
+├ ƒ /api/admin/ide/git/tags
+├ ƒ /api/admin/ide/global-factory
+├ ƒ /api/admin/ide/governance/events
+├ ƒ /api/admin/ide/governance/factories
+├ ƒ /api/admin/ide/governance/rules
+├ ƒ /api/admin/ide/governance/rules/[ruleId]
+├ ƒ /api/admin/ide/governance/summary
+├ ƒ /api/admin/ide/governance/verify
+├ ƒ /api/admin/ide/inspection/[inspectionId]
+├ ƒ /api/admin/ide/inspection/[inspectionId]/cancel
+├ ƒ /api/admin/ide/inspection/job/[jobId]
+├ ƒ /api/admin/ide/inspection/list
+├ ƒ /api/admin/ide/inspection/run
+├ ƒ /api/admin/ide/operations/alerts
+├ ƒ /api/admin/ide/operations/alerts/[id]
+├ ƒ /api/admin/ide/operations/alerts/[id]/acknowledge
+├ ƒ /api/admin/ide/operations/backups
+├ ƒ /api/admin/ide/operations/backups/[id]
+├ ƒ /api/admin/ide/operations/backups/[id]/verify
+├ ƒ /api/admin/ide/operations/events
+├ ƒ /api/admin/ide/operations/incidents
+├ ƒ /api/admin/ide/operations/incidents/[incidentId]
+├ ƒ /api/admin/ide/operations/incidents/[incidentId]/status
+├ ƒ /api/admin/ide/operations/loop/run
+├ ƒ /api/admin/ide/operations/loop/runs
+├ ƒ /api/admin/ide/operations/loop/runs/[id]
+├ ƒ /api/admin/ide/operations/monitoring/collect
+├ ƒ /api/admin/ide/operations/monitoring/signals
+├ ƒ /api/admin/ide/operations/monitoring/signals/[signalId]
+├ ƒ /api/admin/ide/operations/monitoring/summary
+├ ƒ /api/admin/ide/operations/readiness
+├ ƒ /api/admin/ide/operations/recovery/plans
+├ ƒ /api/admin/ide/operations/recovery/plans/[planId]
+├ ƒ /api/admin/ide/operations/recovery/plans/[planId]/approve
+├ ƒ /api/admin/ide/operations/recovery/plans/[planId]/verify
+├ ƒ /api/admin/ide/operations/restore-tests
+├ ƒ /api/admin/ide/operations/restore-tests/[id]
+├ ƒ /api/admin/ide/operations/restore-tests/[id]/verify
+├ ƒ /api/admin/ide/operations/status
+├ ƒ /api/admin/ide/owner-command
+├ ƒ /api/admin/ide/owner-command/approve
+├ ƒ /api/admin/ide/problems
+├ ƒ /api/admin/ide/queue/cancel/[id]
+├ ƒ /api/admin/ide/queue/clear
+├ ƒ /api/admin/ide/queue/job/[id]
+├ ƒ /api/admin/ide/queue/jobs
+├ ƒ /api/admin/ide/queue/retry/[id]
+├ ƒ /api/admin/ide/queue/types
+├ ƒ /api/admin/ide/release/packages
+├ ƒ /api/admin/ide/release/registry
+├ ƒ /api/admin/ide/release/runs
+├ ƒ /api/admin/ide/release/runs/[releaseRunId]
+├ ƒ /api/admin/ide/release/runs/[releaseRunId]/rerun
+├ ƒ /api/admin/ide/review/change-sets
+├ ƒ /api/admin/ide/review/change-sets/[changeSetId]
+├ ƒ /api/admin/ide/review/change-sets/[changeSetId]/artifacts
+├ ƒ /api/admin/ide/review/change-sets/[changeSetId]/decision
+├ ƒ /api/admin/ide/review/change-sets/[changeSetId]/diff
+├ ƒ /api/admin/ide/review/change-sets/[changeSetId]/evidence
+├ ƒ /api/admin/ide/review/change-sets/[changeSetId]/findings
+├ ƒ /api/admin/ide/review/change-sets/[changeSetId]/impact
+├ ƒ /api/admin/ide/review/change-sets/[changeSetId]/refresh
+├ ƒ /api/admin/ide/review/change-sets/[changeSetId]/review
+├ ƒ /api/admin/ide/search
+├ ƒ /api/admin/ide/security/capabilities
+├ ƒ /api/admin/ide/security/defense
+├ ƒ /api/admin/ide/security/execution-gate
+├ ƒ /api/admin/ide/security/external-surface/discover
+├ ƒ /api/admin/ide/security/external-surface/domains
+├ ƒ /api/admin/ide/security/external-surface/domains/[id]/verify
+├ ƒ /api/admin/ide/security/forensics/[artifactId]/timeline
+├ ƒ /api/admin/ide/security/knowledge
+├ ƒ /api/admin/ide/settings
+├ ƒ /api/admin/ide/standards
+├ ƒ /api/admin/ide/test/runs
+├ ƒ /api/admin/ide/test/runs/[testRunId]
+├ ƒ /api/admin/ide/test/runs/[testRunId]/rerun
+├ ƒ /api/admin/ide/tree
+├ ƒ /api/admin/ide/ui-inspection/[inspectionId]
+├ ƒ /api/admin/ide/ui-inspection/[inspectionId]/artifacts
+├ ƒ /api/admin/ide/ui-inspection/[inspectionId]/cancel
+├ ƒ /api/admin/ide/ui-inspection/[inspectionId]/findings
+├ ƒ /api/admin/ide/ui-inspection/[inspectionId]/rerun
+├ ƒ /api/admin/ide/ui-inspection/[inspectionId]/snapshot/[artifactId]
+├ ƒ /api/admin/ide/ui-inspection/[inspectionId]/viewports
+├ ƒ /api/admin/ide/ui-inspection/capability
+├ ƒ /api/admin/ide/ui-inspection/list
+├ ƒ /api/admin/ide/ui-inspection/run
+├ ƒ /api/admin/ide/workers
+├ ƒ /api/admin/ide/workers/[id]
+├ ƒ /api/admin/ide/workers/[id]/health
+├ ƒ /api/admin/ide/workers/budget
+├ ƒ /api/admin/ide/workers/execute
+├ ƒ /api/admin/ide/workers/executions
+├ ƒ /api/admin/ide/workers/executions/[id]
+├ ƒ /api/admin/ide/workers/select
+├ ƒ /api/admin/ide/workers/settings
+├ ƒ /api/admin/infrastructure
+├ ƒ /api/admin/invoices/[invoiceId]/send
+├ ƒ /api/admin/jobs/[id]/assign
+├ ƒ /api/admin/line-customers
+├ ƒ /api/admin/line-customers/[lineUserId]
+├ ƒ /api/admin/line-customers/[lineUserId]/ask
+├ ƒ /api/admin/line-customers/[lineUserId]/build-event
+├ ƒ /api/admin/line-customers/[lineUserId]/document-preview
+├ ƒ /api/admin/line-customers/[lineUserId]/reply
+├ ƒ /api/admin/line-customers/[lineUserId]/send-debt
+├ ƒ /api/admin/line-customers/[lineUserId]/send-document
+├ ƒ /api/admin/line-profiles
+├ ƒ /api/admin/line-profiles/[lineUserId]
+├ ƒ /api/admin/material-quote
+├ ƒ /api/admin/materials
+├ ƒ /api/admin/notifications/send
+├ ƒ /api/admin/outbound-drafts
+├ ƒ /api/admin/outbound-drafts/[id]/reject
+├ ƒ /api/admin/outbound-drafts/[id]/send
+├ ƒ /api/admin/partners
+├ ƒ /api/admin/partners/[id]/chain
+├ ƒ /api/admin/partners/[id]/credit
+├ ƒ /api/admin/partners/[id]/line-messages
+├ ƒ /api/admin/partners/[id]/timeline
+├ ƒ /api/admin/payables
+├ ƒ /api/admin/pits
+├ ƒ /api/admin/pits/[pitId]
+├ ƒ /api/admin/pits/[pitId]/materials
+├ ƒ /api/admin/pits/[pitId]/request-quote
+├ ƒ /api/admin/provider-settings
+├ ƒ /api/admin/provider-settings/[providerId]
+├ ƒ /api/admin/provider-settings/[providerId]/request-approval
+├ ƒ /api/admin/provider-settings/[providerId]/rotate
+├ ƒ /api/admin/pulse
+├ ƒ /api/admin/quotation-queue
+├ ƒ /api/admin/receipt-documents
+├ ƒ /api/admin/receipt-documents/[id]/acknowledge
+├ ƒ /api/admin/receipt-documents/[id]/company
+├ ƒ /api/admin/receipt-documents/[id]/confirm
+├ ƒ /api/admin/receipt-documents/[id]/reject
+├ ƒ /api/admin/relationships
+├ ƒ /api/admin/relationships/[relationshipId]
+├ ƒ /api/admin/relationships/[relationshipId]/match
+├ ƒ /api/admin/runtime/document-engine
+├ ƒ /api/admin/schema-audit
+├ ƒ /api/admin/screen-vision
+├ ƒ /api/admin/settings
+├ ƒ /api/admin/sites
+├ ƒ /api/admin/storage-intelligence
+├ ƒ /api/admin/subscriptions
+├ ƒ /api/admin/system-config
+├ ƒ /api/admin/system-reality
+├ ƒ /api/admin/transactions
+├ ƒ /api/admin/transactions/[id]
+├ ƒ /api/admin/transactions/[id]/advance
+├ ƒ /api/admin/upload
+├ ƒ /api/admin/users
+├ ƒ /api/admin/users/[id]/role
+├ ƒ /api/admin/workspace
+├ ƒ /api/admin/workspace/ai-agents
+├ ƒ /api/admin/workspace/automation
+├ ƒ /api/admin/workspace/database
+├ ƒ /api/admin/workspace/file
+├ ƒ /api/admin/workspace/status
+├ ƒ /api/admin/workspace/tree
+├ ƒ /api/auth/auto-login
+├ ƒ /api/auth/logout
+├ ○ /api/auth/providers                                                          5m      1y
+├ ƒ /api/build
+├ ƒ /api/chat
+├ ƒ /api/chat/confirm
+├ ƒ /api/command
+├ ƒ /api/connectors/oauth/authorize/[slug]
+├ ƒ /api/connectors/oauth/callback/[slug]
+├ ƒ /api/connectors/webhook/[slug]
+├ ƒ /api/cron/operations-loop
+├ ƒ /api/cron/supabase-project-status
+├ ƒ /api/dbd
+├ ƒ /api/deploy
+├ ƒ /api/document
+├ ƒ /api/explain
+├ ƒ /api/gateway/observe/github
+├ ƒ /api/gateway/observe/line
+├ ƒ /api/gateway/observe/meta
+├ ƒ /api/gateway/observe/railway
+├ ƒ /api/gateway/observe/vercel
+├ ƒ /api/gateway/proposals
+├ ƒ /api/gateway/proposals/[id]/decide
+├ ƒ /api/governance
+├ ƒ /api/internal/ai/gateway
+├ ƒ /api/internal/ai/ollama-relay/api/generate
+├ ƒ /api/internal/ai/ollama-relay/api/poll
+├ ƒ /api/internal/ai/ollama-relay/api/result
+├ ƒ /api/internal/canonical/jobs
+├ ƒ /api/internal/connect/erp-import
+├ ƒ /api/internal/connect/event
+├ ƒ /api/internal/connect/expense
+├ ƒ /api/internal/connect/inbound-source
+├ ƒ /api/internal/connect/payment-confirm
+├ ƒ /api/internal/connect/receipt-company
+├ ƒ /api/internal/connect/resource-transaction
+├ ƒ /api/internal/device/commands
+├ ƒ /api/internal/device/commands/[cmdId]
+├ ƒ /api/internal/device/health
+├ ƒ /api/internal/device/pair
+├ ƒ /api/internal/equipment/lock-command
+├ ƒ /api/internal/equipment/telemetry
+├ ƒ /api/internal/gmail/token
+├ ƒ /api/internal/line/command
+├ ƒ /api/internal/line/document-artifact
+├ ƒ /api/internal/line/token
+├ ƒ /api/internal/openclaw/command
+├ ƒ /api/manual-doc
+├ ƒ /api/oauth/authorize
+├ ƒ /api/public/assets
+├ ƒ /api/public/company
+├ ƒ /api/public/interview
+├ ƒ /api/public/register
+├ ƒ /api/public/resources
+├ ƒ /api/public/transporter
+├ ƒ /api/reader
+├ ƒ /api/routes
+├ ƒ /api/self-description
+├ ƒ /api/traces
+├ ƒ /api/v1/capabilities
+├ ƒ /api/v1/constitution
+├ ƒ /api/v1/drivers
+├ ƒ /api/v1/mcp/architecture/dependency-graph
+├ ƒ /api/v1/mcp/architecture/summary
+├ ƒ /api/v1/mcp/business/dispatch
+├ ƒ /api/v1/mcp/contractor/evidence-submit
+├ ƒ /api/v1/mcp/contractor/status
+├ ƒ /api/v1/mcp/contractor/task-claim
+├ ƒ /api/v1/mcp/governance/deploy-approval-status
+├ ƒ /api/v1/mcp/governance/impact/[evidenceEventId]
+├ ƒ /api/v1/mcp/governance/registry-proposals
+├ ƒ /api/v1/mcp/governance/session-proposals
+├ ƒ /api/v1/mcp/governance/status
+├ ƒ /api/v1/mcp/manifest
+├ ƒ /api/v1/mcp/registry/commands
+├ ƒ /api/v1/modules
+├ ƒ /api/v1/query
+├ ƒ /api/v1/spec
+├ ƒ /api/v1/workflows
+├ ƒ /api/workspace/embed-check
+├ ƒ /api/workspace/org-context
+├ ƒ /api/workspace/ui-preferences
+├ ƒ /app
+├ ƒ /auth/confirm
+├ ƒ /auth/verify
+├ ƒ /biz
+├ ƒ /biz/[section]
+├ ƒ /business
+├ ƒ /business-workspace-template
+├ ƒ /business-workspace-template/documents
+├ ƒ /business-workspace-template/login
+├ ƒ /business-workspace-template/overview
+├ ƒ /business-workspace-template/tasks
+├ ƒ /business-workspace-template/workspace
+├ ○ /developer
+├ ○ /download
+├ ○ /examples
+├ ○ /install
+├ ○ /liff/add-friend
+├ ○ /login
+├ ○ /marketplace
+├ ƒ /oauth/authorize
+├ ƒ /oauth/register
+├ ƒ /oauth/token
+├ ƒ /observer
+├ ƒ /observer.json
+├ ƒ /partner
+├ ○ /playground
+├ ○ /products
+├ ƒ /pub
+├ ○ /pub/register
+├ ○ /report
+├ ○ /robots.txt
+├ ○ /sitemap.xml
+├ ○ /solutions
+├ ○ /start
+├ ƒ /transporter
+├ ƒ /user
+├ ƒ /workspace
+├ ƒ /workspace-preview
+├ ƒ /workspace-preview/apps/[appId]
+├ ƒ /workspace-preview/debt-widget
+├ ƒ /workspace-preview/document
+├ ƒ /workspace-preview/invoice
+├ ƒ /workspace-preview/material
+├ ƒ /workspace-preview/order
+├ ƒ /workspace-preview/partner
+├ ƒ /workspace-preview/transport
+├ ƒ /workspace-preview/workflow
+└ ƒ /workspace/capability
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+ROOT2_EXIT=0

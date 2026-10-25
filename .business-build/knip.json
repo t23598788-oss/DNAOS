@@ -1,0 +1,118 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "entry": [
+    "app/**/*.{ts,tsx}",
+    "core/runtime/engine.ts",
+    "engines/index.ts",
+    "engines/business.ts",
+    "plugins/index.ts",
+    "gateway/index.ts",
+    "registry/index.ts"
+  ],
+  "project": [
+    "components/**/*.{ts,tsx}",
+    "core/**/*.ts",
+    "gateway/**/*.ts",
+    "engines/**/*.ts",
+    "cognitive/**/*.ts",
+    "presenter/**/*.ts",
+    "services/**/*.ts",
+    "plugins/**/*.ts",
+    "registry/**/*.ts"
+  ],
+  "ignore": [
+    "supabase/functions/**",
+    "plugins/line/**",
+    "**/*.test.ts",
+    "scripts/**",
+    "local-runtime/**",
+    "core/workspace/composer/**",
+    "core/workspace/orchestrator/**",
+    "core/workspace/planner/**",
+    "plugins/platform/mac/**",
+    "presenter/index.ts",
+    "presenter/ranker.ts",
+    "services/ai/translator.ts",
+    "services/supabase/realtime.ts",
+    "cognitive/intent/index.ts",
+    "cognitive/knowledge/index.ts",
+    "cognitive/priority/index.ts",
+    "components/workspace/WorkspaceContext.tsx",
+    "core/auth/index.ts",
+    "engines/impact/engine.ts",
+    "services/ai/bridge-local.ts",
+    "services/ai/bridge-claude.ts",
+    "components/admin/useAiTaskPulse.ts",
+    "engines/governance/hardcode-decision-engine.ts",
+    "services/ai-connection/manager.ts",
+    "services/ai-connection/healthCheck.ts",
+    "services/ai-connection/vault.ts",
+    "services/ai-connection/statusRepository.ts",
+    "engines/governance/hardcode-dependency-context.ts",
+    "engines/integration-gateway/selfDescription.ts",
+    "engines/storage/adapters/googleDriveLocal.ts",
+    "engine.ts",
+    "gateway/index.ts",
+    "app/api/admin/ide/_lib/openCapabilityArchitecture.ts",
+    "e2e/**",
+    "playwright.config.ts",
+    "plugins/agent/server.ts",
+    "app/workspace/_lib/toolBindings.ts",
+    "app/workspace/_lib/businessTools.ts",
+    "app/workspace/_lib/jobDisplayModel.ts",
+    "public/sw.js",
+    "device-connector/dnaos-device.mjs",
+    ".ui-v3-backups/**",
+    "src-tauri/target/**",
+    "public/material-workspace/**",
+    "app/_nav/sectionMeta.ts",
+    "engines/transport/driver-workflow.ts",
+    "core/auth/orgScope.ts"
+  ],
+  "workspaces": {
+    "dna-os-mcp-server": {
+      "entry": [
+        "src/index.ts",
+        "src/index-http.ts",
+        "src/index-governance-http.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
+    },
+    "dna-os-compute": {
+      "entry": [
+        "src/daemon.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ],
+      "ignore": [
+        "src/server-entry.ts",
+        "src/trust.ts"
+      ]
+    }
+  },
+  "ignoreDependencies": [
+    "three",
+    "@types/three",
+    "@types/chokidar",
+    "@tauri-apps/cli",
+    "react-force-graph-3d",
+    "react-dom",
+    "@types/react-dom"
+  ],
+  "ignoreBinaries": [
+    "top",
+    "awk",
+    "tail",
+    "memory_pressure",
+    "which",
+    "tsc",
+    "tsx",
+    "next",
+    "eslint",
+    "knip",
+    "jscpd"
+  ]
+}

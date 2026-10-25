@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-05",
+  "enabled": true,
+  "storage_table": "line_events",
+  "registries": {
+    "trace":   { "file": "trace.registry.json",   "status": "ACTIVE", "description": "Trace schema and span definitions" },
+    "metrics": { "file": "metrics.registry.json", "status": "ACTIVE", "description": "Metric definitions and aggregations" }
+  }
+}

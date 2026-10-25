@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-05",
+  "pipelines": {
+    "line_message_pipeline": {
+      "id": "line_message_pipeline",
+      "name": "LINE Message Processing Pipeline",
+      "channel": "line",
+      "trigger": "line_webhook_v2_message_event",
+      "status": "ACTIVE",
+      "policy": {
+        "allow_partial": false,
+        "stop_on_error": true,
+        "retry_count": 0
+      },
+      "steps": [
+        {
+          "id": "step_verify",
+          "label": "Verify LINE Signature",
+          "engine": "line_signature_verifier",
+          "policy_gate": "webhook_receiver",
+          "output_to": "step_log",
+          "timeout_ms": 500,
+          "status": "ACTIVE"
+        },
+        {
+          "id": "step_log",
+          "label": "Log Event to Supabase",
+          "engine": "supabase_db",
+          "policy_gate": "event_log",
+          "input_from": "step_verify",
+          "output_to": "step_extract",
+          "timeout_ms": 1000,
+          "status": "ACTIVE",
+          "note": "writes to line_events table"
+        },
+        {
+          "id": "step_extract",
+          "label": "AI Entity Extraction (Gemini)",
+          "engine": "gemini_extractor",
+          "policy_gate": "ai_extraction",
+          "input_from": "step_log",
+          "output_to": "step_workflow",
+          "timeout_ms": 5000,
+          "status": "ACTIVE",
+          "note": "extracts: material_type, quantity_m3, delivery_location, delivery_date"
+        },
+        {
+          "id": "step_workflow",
+          "label": "Workflow Engine (Match + Quote)",
+          "engine": "workflow_engine",
+          "policy_gate": "workflow",
+          "input_from": "step_extract",
+          "output_to": "step_reply",
+          "timeout_ms": 3000,
+          "status": "ACTIVE"
+        },
+        {
+          "id": "step_reply",
+          "label": "Reply via LINE API",
+          "engine": "line_reply_api",
+          "policy_gate": "reply_api",
+          "input_from": "step_workflow",
+          "timeout_ms": 2000,
+          "status": "ACTIVE",
+          "note": "ResponseGateway.replyToLine() — ai_reply=DISABLED so NO askGeminiAgent"
+        }
+      ]
+    }
+  }
+}

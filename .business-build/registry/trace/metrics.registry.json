@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-05",
+  "metrics": {
+    "message_count": {
+      "id": "message_count",
+      "label": "จำนวน message ที่รับ",
+      "unit": "messages",
+      "type": "counter",
+      "source": "line_events.count",
+      "aggregation": "count",
+      "description": "นับจำนวน LINE message events ที่เข้าสู่ระบบ"
+    },
+    "reply_latency_ms": {
+      "id": "reply_latency_ms",
+      "label": "เวลาตอบกลับ (ms)",
+      "unit": "ms",
+      "type": "histogram",
+      "source": "line_events.latency_ms",
+      "aggregation": "p95",
+      "description": "latency ตั้งแต่รับ webhook จนส่ง reply"
+    },
+    "extraction_success_rate": {
+      "id": "extraction_success_rate",
+      "label": "อัตราสกัด entity สำเร็จ",
+      "unit": "percent",
+      "type": "gauge",
+      "source": "line_events.extraction_status",
+      "aggregation": "avg",
+      "description": "% ของ messages ที่ Gemini สกัด entity ได้ครบ"
+    },
+    "match_success_rate": {
+      "id": "match_success_rate",
+      "label": "อัตราจับคู่บ่อสำเร็จ",
+      "unit": "percent",
+      "type": "gauge",
+      "source": "line_events.workflow_status",
+      "aggregation": "avg",
+      "description": "% ของ requests ที่หาบ่อวัสดุเจอ"
+    },
+    "quota_used_pct": {
+      "id": "quota_used_pct",
+      "label": "LINE Messaging Quota (%)",
+      "unit": "percent",
+      "type": "gauge",
+      "source": "infrastructure_registry.line_messaging.quota_used_pct",
+      "aggregation": "max",
+      "description": "% ของ 500 messages/month ที่ใช้ไป"
+    },
+    "gemini_calls": {
+      "id": "gemini_calls",
+      "label": "จำนวน Gemini API calls",
+      "unit": "calls",
+      "type": "counter",
+      "source": "line_events.extraction_status",
+      "aggregation": "count",
+      "description": "นับ Gemini API calls ทั้งหมด"
+    }
+  }
+}

@@ -1,0 +1,253 @@
+import { NextRequest, NextResponse } from "next/server"
+import { cookies } from "next/headers"
+import { requireAuth } from "@/core/auth/requireAuth"
+import { ADMIN_TIER } from "@/core/auth/session"
+import { ORG_CONTEXT_COOKIE, sanitizeOrgCookie } from "@/core/auth/orgContext"
+import { isCompanyInScope } from "@/core/auth/orgScope"
+import { resolveVerifiedScope } from "@/services/supabase/tenantAuthority"
+import { supabaseAdmin as supabase, canonicalDocumentType } from "@/services/supabase/queries"
+import {
+  type DocumentDraftInput,
+  type DocumentType,
+  calculateDocumentTotals,
+  draftToDocData,
+} from "@/engines/documents/document-editor"
+import { DOC_LABELS, generateDoc } from "@/engines/documents/engine"
+import { loadCompanySettings } from "@/core/config/company-settings"
+import { getCanonicalDocumentRows } from "@/services/canonical/document-list"
+import { resolveOrderForDocument } from "@/engines/canonical/transaction-write"
+import { createDocument } from "@/engines/canonical/document-write"
+import { buildBusinessJob, executeBusinessJob } from "@/engines/jobs/business-job-adapter"
+import { runBusinessAcceptance } from "@/app/api/admin/ide/_lib/businessAcceptanceRuntime"
+import { recordBusinessJobProgress } from "@/app/api/admin/ide/_lib/businessJobProgressRuntime"
+import { handleDocumentList } from "./_lib/listDocuments"
+
+// PHASE D3/D9 — canonical transaction linking.
+// The old behaviour created a customer_order with only company+status when none
+// existed (a half chain). Now the target order is resolved BEFORE the document is
+// written; when the context is incomplete the request fails validation and nothing
+// is written (no half chain, no orphan document).
+
+async function resolveOrder(opts: { partnerId: string; transactionId: string | null }) {
+  return resolveOrderForDocument({ customer_company_id: opts.partnerId, transactionId: opts.transactionId })
+}
+
+export async function GET(req: NextRequest) {
+  // FINANCIAL DOCUMENT MANAGEMENT (owner mission 2026-10-10) — ตัวค้นหา/กรอง/ artifact
+  // presence ทั้งหมดอยู่ที่ ./_lib/listDocuments (เส้นทาง canonical เดิม invoices /
+  // standalone_documents + document_versions → document_artifacts) ห้ามมีที่อื่น
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+  const orgCookie = sanitizeOrgCookie((await cookies()).get(ORG_CONTEXT_COOKIE)?.value ?? null)
+  const scopeResult = await resolveVerifiedScope(supabase(), { auth, organizationId: orgCookie })
+  return handleDocumentList(req, scopeResult.ok ? scopeResult.scope : null)
+}
+
+export async function POST(req: NextRequest) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
+  // STEP 4 — verified tenant scope for both the read (resolveOrder) and the
+  // write. The org is the one the user selected server-side; membership and
+  // company ownership are checked before any writer runs.
+  const orgCookie = sanitizeOrgCookie((await cookies()).get(ORG_CONTEXT_COOKIE)?.value ?? null)
+  const scopeResult = await resolveVerifiedScope(supabase(), { auth, organizationId: orgCookie })
+  if (!scopeResult.ok) {
+    return NextResponse.json({ error: "ต้องเลือกองค์กรก่อนสร้างเอกสาร", code: scopeResult.code }, { status: 403 })
+  }
+  const scope = scopeResult.scope
+
+  const body = await req.json()
+  const draft = body as DocumentDraftInput
+  if (draft.partnerId && !isCompanyInScope(scope, draft.partnerId)) {
+    return NextResponse.json({ error: "คู่ค้าที่ระบุไม่ได้อยู่ใน organization scope", code: "RESOURCE_NOT_OWNED" }, { status: 403 })
+  }
+  // Client-generated idempotency key (1 ต่อ 1 ความตั้งใจบันทึก) — ส่งมาจากหน้าจอ
+  const idempotencyKey: string = typeof body?.idempotencyKey === "string" ? body.idempotencyKey.trim() : ""
+
+  if (!draft.type || !DOC_LABELS[draft.type]) {
+    return NextResponse.json({ error: "type ไม่ถูกต้อง" }, { status: 400 })
+  }
+  if (!draft.customer?.name?.trim()) {
+    return NextResponse.json({ error: "ต้องระบุชื่อคู่ค้า" }, { status: 400 })
+  }
+
+  // STEP 1 — DUPLICATE PROTECTION (บังคับระดับ DB): กัน "Retry / Concurrent / Double-click ของคำสั่งเดิม"
+  //  key มาจาก client (UUID ต่อ 1 draft session) — key เดิม = คำสั่งเดิม → คืนเอกสารเดิมที่สร้างไปแล้ว ไม่สร้างซ้ำ
+  //  เอกสารใหม่ (แม้เนื้อหาเหมือนกัน) = คนละคำสั่ง = คนละ key → สร้างได้ปกติ
+  //  ห้ามตัดสินด้วย content-hash (จะผูกเอกสารเนื้อหาเหมือนกันเป็นฉบับเดียวผิด) — ใช้ unique PK ของ document_idempotency แทน
+  const db = supabase()
+  if (idempotencyKey) {
+    const { data: existing, error: idemErr } = await db
+      .from("document_idempotency")
+      .select("document_id, document_no")
+      .eq("idempotency_key", idempotencyKey)
+      .maybeSingle()
+    // 42P01 = undefined_table (migration ยังไม่ถูก apply) → ข้ามการกันซ้ำแต่ยังบันทึกได้ — error อื่นหยุดจริง
+    if (idemErr && idemErr.code !== "42P01") {
+      return NextResponse.json({ error: `ตรวจ idempotency ไม่สำเร็จ: ${idemErr.message}` }, { status: 500 })
+    }
+    if (existing) {
+      return NextResponse.json({
+        ok: true,
+        duplicate: true,
+        document: { id: existing.document_id, document_number: existing.document_no },
+      })
+    }
+  }
+
+  const label = DOC_LABELS[draft.type]
+  const docNumber = draft.documentNumber?.trim() || `${label.prefix}-${new Date().toISOString().split("T")[0].replace(/-/g, "")}-${String(Date.now()).slice(-3)}`
+
+  let settings
+  try {
+    settings = await loadCompanySettings()
+  } catch (e: unknown) {
+    return NextResponse.json(
+      { error: "ยังไม่ได้ตั้งค่าข้อมูลบริษัท (ชื่อ/เลขผู้เสียภาษี/บัญชีธนาคาร) — ตั้งค่าที่เมนู ตั้งค่า ก่อนออกเอกสาร", detail: e instanceof Error ? e.message : String(e) },
+      { status: 503 }
+    )
+  }
+  const documentData = draftToDocData(draft, docNumber, settings)
+  const rendered = generateDoc(documentData)
+  const totals = calculateDocumentTotals(draft)
+
+  // PHASE D3/D9 — resolve the transaction BEFORE writing anything.
+  // Incomplete context ⇒ validation error, no document, no half chain.
+  let orderId: string | null = null
+  if (draft.partnerId) {
+    const resolution = await resolveOrder({ partnerId: draft.partnerId, transactionId: draft.transactionId || null })
+    if (!resolution.linked || !resolution.order_id) {
+      return NextResponse.json(
+        { error: resolution.reason ?? "บริบทงานไม่ครบ", code: resolution.code ?? "TRANSACTION_CONTEXT_INCOMPLETE" },
+        { status: 400 },
+      )
+    }
+    orderId = resolution.order_id
+  }
+
+  // PHASE D2/D9 — every document goes through the canonical write service:
+  // v1.1 money ladder, real line items, version 1 snapshot, audit.
+  //
+  // IntegrPASS 3 (G1+G3) — the SAME writer now runs inside the canonical job envelope.
+  // Control metadata is added separately; the business payload/paths below are untouched.
+  const writeInput = {
+    kind: draft.type === "invoice" ? ("invoice" as const) : ("standalone_document" as const),
+    document_no: docNumber,
+    document_type: draft.type,
+    customer_company_id: draft.partnerId || null,
+    customer_order_id: orderId,
+    issue_date: draft.issueDate || null,
+    due_date: draft.type === "invoice" ? draft.dueDate || null : null,
+    reference_no: draft.reference || null,
+    notes: draft.note || null,
+    rows: draft.rows,
+    discountAmount: draft.discountAmount ?? 0,
+    vatEnabled: draft.vatEnabled,
+    vatMode: draft.vatMode,
+    withholdingTaxPercent: draft.withholdingTaxPercent,
+    items: draft.rows.map((r, i) => ({
+      description: r.description,
+      qty: r.qty,
+      unit: r.unit ?? null,
+      unit_price: r.unitPrice,
+      sort_order: i,
+    })),
+    actor: auth.email,
+    status: draft.type === "invoice" ? ("DRAFT" as const) : ("active" as const),
+    tenant: { organizationId: scope.organizationId, actorId: auth.id },
+  }
+
+  // STEP 1 — envelope idempotency_key = client key (ของคำสั่งเดิม) — ถ้า client ไม่ส่ง (legacy) ใช้ UUID ต่อคำขอ
+  //  (ไม่มี dedup สำหรับ legacy แต่ยังสร้างได้ปกติ) — ไม่ใช้ content-hash อีกต่อไป
+  const envelopeIdempotencyKey = idempotencyKey || `document.create:advisory-${crypto.randomUUID()}`
+
+  const builtJob = buildBusinessJob({
+    capability: "document.create",
+    requested_by: { kind: "staff", id: auth.email ?? "admin" },
+    idempotency_key: envelopeIdempotencyKey,
+    exec_args: writeInput,
+  })
+
+  let execution: Awaited<ReturnType<typeof executeBusinessJob<Awaited<ReturnType<typeof createDocument>>>>>
+  try {
+    execution = await executeBusinessJob(
+      builtJob.envelope!,
+      async (envelope) => ({
+        // The canonical writer remains the executor — unchanged.
+        result: await createDocument(envelope.exec_args as Parameters<typeof createDocument>[0]),
+        observed_writes: writeInput.kind === "invoice"
+          ? ["invoices", "invoice_items", "document_versions", "audit_logs"]
+          : ["standalone_documents", "standalone_document_items", "document_versions", "audit_logs"],
+      }),
+      { acceptanceRunner: runBusinessAcceptance },
+    )
+  } catch (e: unknown) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "สร้างเอกสารไม่สำเร็จ" }, { status: 500 })
+  }
+
+  // Control-plane failure (blocked/pending/failed) — the business payload is not sent.
+  if (!execution.result) {
+    return NextResponse.json(
+      { error: execution.violations[0] ?? "งานถูกปฏิเสธโดย canonical job envelope", control: { status: execution.status, job_id: execution.job_id, violations: execution.violations } },
+      { status: 500 },
+    )
+  }
+
+  const created = execution.result
+
+  // STEP 1 — บันทึก key → เอกสาร (best-effort): ปล่อยให้ unique PK ของ document_idempotency
+  //  เป็นตัวบังคับถ้ามี concurrent แทรก — error ที่ไม่ใช่ duplicate (เช่น ตารางยังไม่มี) ไม่ทำให้บันทึกล้ม
+  if (idempotencyKey) {
+    await db.from("document_idempotency").insert({
+      idempotency_key: idempotencyKey,
+      document_id: created.document_id,
+      document_no: created.document_no,
+      actor: auth.email,
+    })
+  }
+
+  const doc = {
+    id: created.document_id,
+    document_number: created.document_no,
+    document_type: draft.type,
+    status: draft.type === "invoice" ? "draft" : "active",
+    created_at: new Date().toISOString(),
+    totals: created.totals,
+    version_no: created.version.version_no,
+    items_written: created.items_written,
+    transaction_id: orderId,
+  }
+
+  void rendered
+  void totals
+
+  // Business response unchanged; control metadata is additive and separate.
+  // IntegrPASS 4 (G8) — the same job also appends real progress to the EXISTING checkpoint chain
+  // (control plane only; business truth stays in the canonical writer's rows).
+  const progress = await recordBusinessJobProgress({
+    job_id: execution.job_id ?? "unknown",
+    capability: execution.capability,
+    status: execution.status,
+    executor: execution.control?.executor ?? { module: "engines/canonical/document-write.ts", export: "createDocument" },
+    acceptance: execution.acceptance ?? [],
+    document_id: created.document_id,
+    actor: auth.email ?? "admin",
+  })
+
+  return NextResponse.json(
+    {
+      document: doc,
+      control: {
+        status: execution.status,
+        job_id: execution.job_id,
+        capability: execution.capability,
+        executor: execution.control?.executor ?? null,
+        envelope_digest: execution.control?.envelope_digest ?? null,
+        acceptance: execution.acceptance ?? [],
+        progress: { step: progress.step, checkpoint_id: progress.checkpoint_id, recorded: progress.recorded, business_truth: progress.business_truth },
+      },
+    },
+    { status: 201 },
+  )
+}

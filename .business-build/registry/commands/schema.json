@@ -1,0 +1,154 @@
+{
+  "version": "1.2",
+  "phase": "copilot",
+
+  "permissions": {
+    "read": true,
+    "analyze": true,
+    "query_database": true,
+    "generate_document": true,
+    "preview": true,
+    "send_message": false,
+    "require_human_approval": true
+  },
+
+  "actions": [
+    "OPEN_APP",
+    "FOCUS_WINDOW",
+    "GET_WINDOW_LIST",
+    "CAPTURE_WINDOW",
+    "OCR_WINDOW",
+    "READ_WINDOW",
+    "READ_SELECTION",
+    "CLICK",
+    "TYPE_TEXT",
+    "PRESS_KEY",
+    "SCROLL",
+    "WAIT",
+    "SEARCH_DATABASE",
+    "QUERY_MAP",
+    "CALCULATE",
+    "GENERATE",
+    "PREVIEW",
+    "APPROVE",
+    "EXECUTE",
+    "REGISTER",
+    "SAVE",
+    "SAVE_CONTEXT",
+    "LOAD_CONTEXT"
+  ],
+
+  "commands": [
+    {
+      "command": "OPEN_LINE",
+      "action": "OPEN_APP",
+      "target": "LINE",
+      "layer": "V6",
+      "approval": false
+    },
+    {
+      "command": "READ_CHAT",
+      "action": "READ_WINDOW",
+      "target": "LINE",
+      "layer": "V1",
+      "approval": false,
+      "params": { "chat": { "type": "string", "default": "current" } }
+    },
+    {
+      "command": "SUMMARIZE_CHAT",
+      "action": "READ_WINDOW",
+      "target": "LINE",
+      "layer": "V4",
+      "approval": false
+    },
+    {
+      "command": "SEARCH_PARTNER",
+      "action": "SEARCH_DATABASE",
+      "table": "partners",
+      "layer": "V1",
+      "approval": false,
+      "params": { "keyword": { "type": "string", "required": true } }
+    },
+    {
+      "command": "SEARCH_DEBT",
+      "action": "SEARCH_DATABASE",
+      "table": "debts",
+      "layer": "V3",
+      "approval": false,
+      "params": { "partner": { "type": "string", "required": true } }
+    },
+    {
+      "command": "LOAD_INVOICE",
+      "action": "SEARCH_DATABASE",
+      "table": "documents",
+      "layer": "V1",
+      "approval": false,
+      "params": { "partner": { "type": "string", "required": true }, "status": { "type": "string", "default": "all" } }
+    },
+    {
+      "command": "CALCULATE_PRICE",
+      "action": "CALCULATE",
+      "engine": "pricing",
+      "layer": "V3",
+      "approval": false,
+      "params": { "from": { "type": "string", "required": true }, "to": { "type": "string", "required": true }, "product": { "type": "string", "required": true }, "quantity": { "type": "number", "required": true } }
+    },
+    {
+      "command": "CHECK_DISTANCE",
+      "action": "QUERY_MAP",
+      "layer": "V3",
+      "approval": false,
+      "params": { "origin": { "type": "string", "required": true }, "destination": { "type": "string", "required": true } }
+    },
+    {
+      "command": "GENERATE_DOCUMENT",
+      "action": "GENERATE",
+      "layer": "V3",
+      "approval": false,
+      "params": { "type": { "type": "string", "required": true } }
+    },
+    {
+      "command": "PREVIEW_DOCUMENT",
+      "action": "PREVIEW",
+      "layer": "V5",
+      "approval": false
+    },
+    {
+      "command": "WAIT_APPROVAL",
+      "action": "APPROVE",
+      "layer": "V6",
+      "approval": true
+    },
+    {
+      "command": "SEND_LINE_MESSAGE",
+      "action": "EXECUTE",
+      "target": "LINE",
+      "layer": "V6",
+      "approval": true,
+      "params": { "approved": { "type": "boolean", "required": true } }
+    },
+    {
+      "command": "REGISTER_PARTNER",
+      "action": "REGISTER",
+      "table": "partners",
+      "layer": "V6",
+      "approval": true,
+      "params": { "line_name": { "type": "string" }, "company": { "type": "string" }, "contact": { "type": "string" }, "phone": { "type": "string" }, "tax_id": { "type": "string" } }
+    }
+  ],
+
+  "workflow_sequence": [
+    "OPEN_LINE",
+    "READ_CHAT",
+    "SUMMARIZE_CHAT",
+    "SEARCH_PARTNER",
+    "SEARCH_DEBT",
+    "LOAD_INVOICE",
+    "CHECK_DISTANCE",
+    "CALCULATE_PRICE",
+    "GENERATE_DOCUMENT",
+    "PREVIEW_DOCUMENT",
+    "WAIT_APPROVAL",
+    "SEND_LINE_MESSAGE"
+  ]
+}

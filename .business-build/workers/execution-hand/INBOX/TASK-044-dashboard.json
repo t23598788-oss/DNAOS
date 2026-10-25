@@ -1,0 +1,21 @@
+{
+  "task_id": "TASK-044-dashboard",
+  "operation": "RUN_COMMAND",
+  "scope": "task-044-readiness-audit-dashboard",
+  "allowed_paths": [],
+  "forbidden_paths": [
+    "registry/CONSTITUTION.json",
+    "registry/CURRENT_STATE.json",
+    "registry/TASK_QUEUE.json",
+    "registry/CHANGELOG.json",
+    "registry/FACTORY_CENTRAL_REGISTRY.json",
+    "registry/rule-coverage.json"
+  ],
+  "tools_allowed": ["bash"],
+  "dependencies": [],
+  "expected_output": "real stdout/exit code from `npm run dashboard` (bash scripts/dashboard.sh), captured as COMMAND_RESULT evidence — one input to TASK-044's refreshed readiness audit",
+  "acceptance_criteria": [],
+  "max_attempts": 1,
+  "command": "bash",
+  "args": ["scripts/dashboard.sh"]
+}

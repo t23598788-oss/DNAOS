@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "note": "Consolidates providers/*/provider.json (TASK-051) into one queryable directory — not a second source, a read-oriented rollup. Each entry's source file is cited.",
+  "providers": [
+    {
+      "name": "openai",
+      "status": "role_reassigned_not_implemented",
+      "purpose": "OLD role (Business Connector/Translation) permanently removed 2026-07-25 (DNA-000078); NEW role (Front Office AI intake) not implemented — registry/infrastructure.json",
+      "source": "providers/openai/provider.json"
+    },
+    {
+      "name": "google",
+      "status": "active (as 3 separate real services, not 1 unified entry)",
+      "purpose": "gemini=LINE Webhook AI Processing, google_maps=distance/partner search, gmail=payment/subscription evidence source — registry/infrastructure.json",
+      "source": "providers/google/provider.json"
+    },
+    {
+      "name": "anthropic",
+      "status": "pending_credential",
+      "purpose": "AI Translation + vision OCR classification — registry/infrastructure.json",
+      "source": "providers/anthropic/provider.json"
+    },
+    {
+      "name": "github",
+      "status": "active",
+      "purpose": "Source Code Repository — registry/infrastructure.json",
+      "source": "providers/github/provider.json"
+    },
+    {
+      "name": "vercel",
+      "status": "active",
+      "purpose": "Frontend Hosting + Next.js Deployment — registry/infrastructure.json",
+      "source": "providers/vercel/provider.json"
+    },
+    {
+      "name": "supabase",
+      "status": "active",
+      "purpose": "Database + Auth + Realtime + Edge Functions — registry/infrastructure.json",
+      "source": "providers/supabase/provider.json"
+    },
+    {
+      "name": "cloudflare",
+      "status": "code exists, not a registered connector",
+      "purpose": "DNS + Zone management — engines/domains/cloudflare.ts (real client) — gated by connector-lifecycle.json, no 'cloudflare' Connector row exists yet",
+      "source": "providers/cloudflare/provider.json"
+    },
+    {
+      "name": "digitalocean",
+      "status": "code_exists_pending_credential",
+      "purpose": "Cloud AI Inference (Worker Router — code.generate), real adapter app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts, registered in WORKER_ADAPTER_REGISTRY 2026-08-10. Waiting on real DIGITALOCEAN_INFERENCE_API_KEY — see DIGITALOCEAN_AI_INFERENCE_DISCOVERY_REPORT.md",
+      "source": "providers/digitalocean/provider.json"
+    },
+    {
+      "name": "runpod",
+      "status": "active (local-runtime migration tooling)",
+      "purpose": "Cloud AI Runtime (Rule 117 — local Ollama migrated to RunPod, local-runtime/migrate-ollama.ts, runpod-controller.mjs) — real, but system-config/route.ts's GPU widget separately reports 'No GPU/RunPod adapter in codebase', a real internal inconsistency worth reconciling, not smoothed over here",
+      "source": "providers/runpod/provider.json"
+    },
+    {
+      "name": "mcp",
+      "status": "protocol, not a vendor",
+      "purpose": "Model Context Protocol — no registry/infrastructure.json entry; not a single provider in the same sense as the others, an integration mechanism other providers could use",
+      "source": "providers/mcp/provider.json"
+    },
+    {
+      "name": "line",
+      "status": "active",
+      "purpose": "line_messaging (send/receive) + line_notify (owner alerts) — registry/infrastructure.json, 2 real services",
+      "source": "providers/line/provider.json"
+    },
+    {
+      "name": "sip",
+      "status": "not registered",
+      "purpose": "Mentioned only as an unregistered connector type in scripts/register-known-connectors.ts (DNA-000084) — no real credential, no real implementation",
+      "source": "providers/sip/provider.json"
+    },
+    {
+      "name": "openclaw",
+      "status": "active",
+      "purpose": "OpenClaw + Pinto mobile channel bridge — app/api/internal/openclaw/command/route.ts + supabase/functions/openclaw-webhook (real, distinct from any unrelated same-named folder elsewhere on this Desktop)",
+      "source": "providers/openclaw/provider.json"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "name": "documents",
+  "name_th": "ระบบจัดการเอกสาร",
+  "purpose": "Manages the lifecycle of all business documents, including creation, rendering, and status tracking.",
+  "purpose_th": "เก็บและจัดการข้อมูลเอกสารทุกประเภทในระบบ",
+  "description_th": "ใช้เก็บใบเสนอราคา, ใบแจ้งหนี้, ใบส่งของ, และเอกสารทางธุรกิจอื่นๆ ทั้งหมด",
+  "used_by": [
+    "lib/documents/engine.ts",
+    "lib/v2-rules/actions.ts",
+    "lib/v3-engines/debt/engine.ts"
+  ],
+  "used_by_th": [
+    "ไฟล์สร้างและจัดการเอกสาร",
+    "ไฟล์ยืนยันการสร้างเอกสาร",
+    "ไฟล์จัดการหนี้ (ที่ผูกกับเอกสาร)"
+  ],
+  "depends_on": [
+    "partners",
+    "debt",
+    "app_configs"
+  ],
+  "depends_on_th": [
+    "ข้อมูลคู่ค้า",
+    "ระบบจัดการหนี้",
+    "ค่ากำหนดของระบบ"
+  ]
+}

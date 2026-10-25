@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-05",
+  "intents": {
+    "PRICE_QUERY": {
+      "id": "PRICE_QUERY",
+      "label": "ถามราคาวัสดุ",
+      "description": "ลูกค้าถามราคาวัสดุก่อสร้าง (ดิน/หิน/ทราย)",
+      "examples_th": ["ราคาดินเท่าไร", "หินคิวละเท่าไหร่", "ทรายราคาเท่าไร", "หินมีราคาไหม"],
+      "required_entities": ["material_type"],
+      "optional_entities": ["quantity_m3", "delivery_location"],
+      "triggers_state": "COLLECTING_MATERIAL",
+      "confidence_threshold": 0.7,
+      "status": "ACTIVE"
+    },
+    "LOCATION_SHARE": {
+      "id": "LOCATION_SHARE",
+      "label": "ส่งพิกัด",
+      "description": "ลูกค้าส่ง location share จาก LINE",
+      "examples_th": ["(LINE location message)", "นี่คือที่อยู่ผม"],
+      "required_entities": ["delivery_location"],
+      "optional_entities": [],
+      "triggers_state": "COLLECTING_QUANTITY",
+      "confidence_threshold": 1.0,
+      "status": "ACTIVE"
+    },
+    "MATERIAL_ORDER": {
+      "id": "MATERIAL_ORDER",
+      "label": "สั่งวัสดุ",
+      "description": "ลูกค้าต้องการสั่งวัสดุพร้อมระบุปริมาณและที่ส่ง",
+      "examples_th": ["สั่งดิน 100 คิว", "ต้องการหิน 50 คิว ส่งที่นี่", "ขอทราย 200 คิว"],
+      "required_entities": ["material_type", "quantity_m3", "delivery_location"],
+      "optional_entities": ["delivery_date"],
+      "triggers_state": "MATCHING",
+      "confidence_threshold": 0.8,
+      "status": "ACTIVE"
+    },
+    "BOQ_REQUEST": {
+      "id": "BOQ_REQUEST",
+      "label": "ขอใบเสนอราคา",
+      "description": "ลูกค้าขอเอกสาร BOQ / ใบเสนอราคา",
+      "examples_th": ["ขอใบเสนอราคา", "ทำ BOQ ให้หน่อย", "ส่งราคาเป็นเอกสาร"],
+      "required_entities": ["material_type", "quantity_m3"],
+      "optional_entities": ["delivery_location", "delivery_date"],
+      "triggers_state": "GENERATING_BOQ",
+      "confidence_threshold": 0.75,
+      "status": "ACTIVE"
+    },
+    "ORDER_STATUS": {
+      "id": "ORDER_STATUS",
+      "label": "ถามสถานะออเดอร์",
+      "description": "ลูกค้าถามว่าออเดอร์ไปถึงไหนแล้ว",
+      "examples_th": ["ออเดอร์ไปถึงไหนแล้ว", "รถออกจากบ่อยัง", "ส่งของถึงยัง"],
+      "required_entities": [],
+      "optional_entities": [],
+      "triggers_state": "CHECKING_STATUS",
+      "confidence_threshold": 0.7,
+      "status": "ACTIVE"
+    },
+    "UNKNOWN": {
+      "id": "UNKNOWN",
+      "label": "ไม่รู้จัก intent",
+      "description": "ข้อความที่ระบบไม่สามารถจัดหมวดได้",
+      "examples_th": [],
+      "required_entities": [],
+      "optional_entities": [],
+      "triggers_state": "IDLE",
+      "confidence_threshold": 0.0,
+      "status": "ACTIVE"
+    }
+  }
+}

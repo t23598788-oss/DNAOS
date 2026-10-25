@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "policy": "Workflow คือลำดับการทำงานที่สำคัญของธุรกิจ ต้องลงทะเบียนและตรวจสอบได้",
+  "workflows": {
+    "quote_generation": {
+      "name": "การสร้างใบเสนอราคา",
+      "description": "Receives user input, calculates price, generates a document, and presents it.",
+      "description_th": "รับข้อมูลจากผู้ใช้, คำนวณราคา, สร้างเอกสาร, และแสดงผล",
+      "trigger": "command: quote.calc",
+      "trigger_th": "ถูกเรียกใช้ผ่านคำสั่ง quote.calc",
+      "steps": ["v4-ai", "v3-engines", "v5-presenter", "documents"],
+      "steps_th": ["AI แปลภาษา", "เครื่องยนต์คำนวณ", "จัดรูปแบบการแสดงผล", "สร้างเอกสาร"]
+    },
+    "debt_collection_check": {
+      "name": "การตรวจสอบหนี้ค้างชำระ",
+      "description": "Runs automatically on a schedule to check for overdue debts and transition their status.",
+      "description_th": "ทำงานอัตโนมัติตามเวลาเพื่อตรวจสอบหนี้ที่ครบกำหนดและเปลี่ยนสถานะ",
+      "trigger": "cron: daily",
+      "trigger_th": "ถูกเรียกใช้อัตโนมัติทุกวัน",
+      "steps": ["v3-engines/debt/scheduler", "v3-engines/debt/transition"],
+      "steps_th": ["ตัวตั้งเวลาตรวจสอบหนี้", "ตัวเปลี่ยนสถานะหนี้"]
+    },
+    "line_price_inquiry": {
+      "name": "การตอบราคาผ่าน LINE",
+      "description": "Receives a message from LINE, analyzes it with AI, calculates a price, and sends a reply.",
+      "description_th": "รับข้อความจาก LINE, วิเคราะห์ด้วย AI, คำนวณราคา, และส่งข้อความตอบกลับ",
+      "trigger": "webhook: /api/line-webhook",
+      "trigger_th": "ถูกเรียกใช้ผ่าน Webhook ของ LINE",
+      "steps": ["gemini-ai", "v3-engines/pricing", "line-messaging-api"],
+      "steps_th": ["AI Gemini วิเคราะห์ข้อความ", "เครื่องยนต์คำนวณราคา", "API สำหรับส่งข้อความ LINE"]
+    }
+  }
+}

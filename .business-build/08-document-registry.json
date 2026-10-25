@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "policy": "ประเภทเอกสารทั้งหมดต้องถูกกำหนดไว้ที่นี่",
+  "documents": {
+    "quotation": {
+      "name_th": "ใบเสนอราคา",
+      "prefix": "QT"
+    },
+    "invoice": {
+      "name_th": "ใบแจ้งหนี้",
+      "prefix": "IV"
+    },
+    "receipt": {
+      "name_th": "ใบเสร็จรับเงิน",
+      "prefix": "RE"
+    },
+    "delivery_order": {
+      "name_th": "ใบส่งของ",
+      "prefix": "DO"
+    }
+  }
+}

@@ -1,0 +1,353 @@
+{
+  "generatedAt": "2026-08-07T23:54:48.688Z",
+  "nodes": [
+    {
+      "id": "executionRuntime",
+      "file": "app/api/admin/ide/_lib/executionRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/executionRuntime.ts"
+    },
+    {
+      "id": "queueRuntime",
+      "file": "app/api/admin/ide/_lib/queueRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/queueRuntime.ts"
+    },
+    {
+      "id": "inspectionRuntime",
+      "file": "app/api/admin/ide/_lib/inspectionRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/inspectionRuntime.ts"
+    },
+    {
+      "id": "governanceRuntime",
+      "file": "app/api/admin/ide/_lib/governanceRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/governanceRuntime.ts"
+    },
+    {
+      "id": "artifactRuntime",
+      "file": "app/api/admin/ide/_lib/artifactRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/artifactRuntime.ts"
+    },
+    {
+      "id": "changeSetRuntime",
+      "file": "app/api/admin/ide/_lib/changeSetRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/changeSetRuntime.ts"
+    },
+    {
+      "id": "testRuntime",
+      "file": "app/api/admin/ide/_lib/testRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/testRuntime.ts"
+    },
+    {
+      "id": "buildRuntime",
+      "file": "app/api/admin/ide/_lib/buildRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/buildRuntime.ts"
+    },
+    {
+      "id": "releaseRuntime",
+      "file": "app/api/admin/ide/_lib/releaseRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/releaseRuntime.ts"
+    },
+    {
+      "id": "factoryCompletionRuntime",
+      "file": "app/api/admin/ide/_lib/factoryCompletionRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/factoryCompletionRuntime.ts"
+    },
+    {
+      "id": "deploymentRuntime",
+      "file": "app/api/admin/ide/_lib/deploymentRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/deploymentRuntime.ts"
+    },
+    {
+      "id": "globalFactoryRuntime",
+      "file": "app/api/admin/ide/_lib/globalFactoryRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/globalFactoryRuntime.ts"
+    },
+    {
+      "id": "monitoringRuntime",
+      "file": "app/api/admin/ide/_lib/monitoringRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/monitoringRuntime.ts"
+    },
+    {
+      "id": "incidentRuntime",
+      "file": "app/api/admin/ide/_lib/incidentRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/incidentRuntime.ts"
+    },
+    {
+      "id": "recoveryRuntime",
+      "file": "app/api/admin/ide/_lib/recoveryRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/recoveryRuntime.ts"
+    },
+    {
+      "id": "continuousOperationsRuntime",
+      "file": "app/api/admin/ide/_lib/continuousOperationsRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/continuousOperationsRuntime.ts"
+    },
+    {
+      "id": "alertRuntime",
+      "file": "app/api/admin/ide/_lib/alertRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/alertRuntime.ts"
+    },
+    {
+      "id": "backupRuntime",
+      "file": "app/api/admin/ide/_lib/backupRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/backupRuntime.ts"
+    },
+    {
+      "id": "restoreTestRuntime",
+      "file": "app/api/admin/ide/_lib/restoreTestRuntime.ts",
+      "status": "REAL",
+      "evidence": "real, existing file: app/api/admin/ide/_lib/restoreTestRuntime.ts"
+    }
+  ],
+  "edges": [
+    {
+      "from": "queueRuntime",
+      "to": "executionRuntime"
+    },
+    {
+      "from": "inspectionRuntime",
+      "to": "executionRuntime"
+    },
+    {
+      "from": "inspectionRuntime",
+      "to": "governanceRuntime"
+    },
+    {
+      "from": "artifactRuntime",
+      "to": "queueRuntime"
+    },
+    {
+      "from": "artifactRuntime",
+      "to": "executionRuntime"
+    },
+    {
+      "from": "artifactRuntime",
+      "to": "inspectionRuntime"
+    },
+    {
+      "from": "artifactRuntime",
+      "to": "governanceRuntime"
+    },
+    {
+      "from": "changeSetRuntime",
+      "to": "inspectionRuntime"
+    },
+    {
+      "from": "changeSetRuntime",
+      "to": "governanceRuntime"
+    },
+    {
+      "from": "changeSetRuntime",
+      "to": "artifactRuntime"
+    },
+    {
+      "from": "testRuntime",
+      "to": "executionRuntime"
+    },
+    {
+      "from": "testRuntime",
+      "to": "artifactRuntime"
+    },
+    {
+      "from": "testRuntime",
+      "to": "changeSetRuntime"
+    },
+    {
+      "from": "buildRuntime",
+      "to": "executionRuntime"
+    },
+    {
+      "from": "buildRuntime",
+      "to": "queueRuntime"
+    },
+    {
+      "from": "buildRuntime",
+      "to": "artifactRuntime"
+    },
+    {
+      "from": "buildRuntime",
+      "to": "changeSetRuntime"
+    },
+    {
+      "from": "buildRuntime",
+      "to": "testRuntime"
+    },
+    {
+      "from": "buildRuntime",
+      "to": "governanceRuntime"
+    },
+    {
+      "from": "releaseRuntime",
+      "to": "buildRuntime"
+    },
+    {
+      "from": "releaseRuntime",
+      "to": "changeSetRuntime"
+    },
+    {
+      "from": "releaseRuntime",
+      "to": "testRuntime"
+    },
+    {
+      "from": "releaseRuntime",
+      "to": "queueRuntime"
+    },
+    {
+      "from": "releaseRuntime",
+      "to": "artifactRuntime"
+    },
+    {
+      "from": "deploymentRuntime",
+      "to": "releaseRuntime"
+    },
+    {
+      "from": "deploymentRuntime",
+      "to": "factoryCompletionRuntime"
+    },
+    {
+      "from": "deploymentRuntime",
+      "to": "queueRuntime"
+    },
+    {
+      "from": "deploymentRuntime",
+      "to": "artifactRuntime"
+    },
+    {
+      "from": "globalFactoryRuntime",
+      "to": "factoryCompletionRuntime"
+    },
+    {
+      "from": "globalFactoryRuntime",
+      "to": "releaseRuntime"
+    },
+    {
+      "from": "globalFactoryRuntime",
+      "to": "deploymentRuntime"
+    },
+    {
+      "from": "monitoringRuntime",
+      "to": "executionRuntime"
+    },
+    {
+      "from": "monitoringRuntime",
+      "to": "queueRuntime"
+    },
+    {
+      "from": "monitoringRuntime",
+      "to": "buildRuntime"
+    },
+    {
+      "from": "monitoringRuntime",
+      "to": "releaseRuntime"
+    },
+    {
+      "from": "monitoringRuntime",
+      "to": "deploymentRuntime"
+    },
+    {
+      "from": "monitoringRuntime",
+      "to": "artifactRuntime"
+    },
+    {
+      "from": "monitoringRuntime",
+      "to": "governanceRuntime"
+    },
+    {
+      "from": "monitoringRuntime",
+      "to": "globalFactoryRuntime"
+    },
+    {
+      "from": "incidentRuntime",
+      "to": "monitoringRuntime"
+    },
+    {
+      "from": "incidentRuntime",
+      "to": "globalFactoryRuntime"
+    },
+    {
+      "from": "incidentRuntime",
+      "to": "queueRuntime"
+    },
+    {
+      "from": "incidentRuntime",
+      "to": "artifactRuntime"
+    },
+    {
+      "from": "recoveryRuntime",
+      "to": "incidentRuntime"
+    },
+    {
+      "from": "recoveryRuntime",
+      "to": "monitoringRuntime"
+    },
+    {
+      "from": "recoveryRuntime",
+      "to": "queueRuntime"
+    },
+    {
+      "from": "recoveryRuntime",
+      "to": "artifactRuntime"
+    },
+    {
+      "from": "recoveryRuntime",
+      "to": "artifactRuntime"
+    },
+    {
+      "from": "continuousOperationsRuntime",
+      "to": "monitoringRuntime"
+    },
+    {
+      "from": "continuousOperationsRuntime",
+      "to": "incidentRuntime"
+    },
+    {
+      "from": "continuousOperationsRuntime",
+      "to": "alertRuntime"
+    },
+    {
+      "from": "continuousOperationsRuntime",
+      "to": "backupRuntime"
+    },
+    {
+      "from": "continuousOperationsRuntime",
+      "to": "artifactRuntime"
+    },
+    {
+      "from": "alertRuntime",
+      "to": "incidentRuntime"
+    },
+    {
+      "from": "alertRuntime",
+      "to": "artifactRuntime"
+    },
+    {
+      "from": "backupRuntime",
+      "to": "artifactRuntime"
+    },
+    {
+      "from": "restoreTestRuntime",
+      "to": "backupRuntime"
+    },
+    {
+      "from": "restoreTestRuntime",
+      "to": "artifactRuntime"
+    }
+  ]
+}

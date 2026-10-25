@@ -1,0 +1,13 @@
+{
+  "task_id": "TASK-009-category-picker-removal",
+  "operation": "EDIT_FILE",
+  "scope": "components/documents/DocumentBuilder.tsx",
+  "allowed_paths": ["components/documents/DocumentBuilder.tsx"],
+  "forbidden_paths": [],
+  "tools_allowed": ["EDIT_FILE"],
+  "dependencies": [],
+  "expected_output": "the category-picker code TASK-009 refers to removed from components/documents/DocumentBuilder.tsx",
+  "acceptance_criteria": [],
+  "max_attempts": 1,
+  "target_path": "components/documents/DocumentBuilder.tsx"
+}

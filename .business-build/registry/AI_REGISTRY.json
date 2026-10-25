@@ -1,0 +1,329 @@
+{
+  "version": 1,
+  "protocol": "DNA OS AI Protocol v1",
+  "note": "DNA OS is AI-agnostic — it is not locked to any single AI vendor. Any agent that satisfies compatibility_contract is DNA OS Compatible, whether or not it appears in agents[] below. This list is a directory of agents known to have worked on or been evaluated against this repo, not a whitelist or a gate. A new AI does not need to be added here first — it only needs to follow registry/README.md.",
+  "compatibility_contract": {
+    "title": "DNA OS Compatible",
+    "th": "AI ทุกตัวที่สามารถทำสิ่งต่อไปนี้ ถือว่าเป็น DNA OS Compatible",
+    "requires": [
+      "อ่าน Registry",
+      "ปฏิบัติตาม Constitution",
+      "เขียน CHANGELOG",
+      "อัปเดต CURRENT_STATE",
+      "รับ Handoff",
+      "ผ่าน Validation"
+    ]
+  },
+  "agents": [
+    {
+      "id": "claude-code",
+      "vendor": "Anthropic",
+      "type": "coding",
+      "authority": "scoped by owner instruction per job (CANONICAL_JOB_CONTRACT.scope)",
+      "must_not_do": [
+        "ตัดสินสถาปัตยกรรมเองนอกขอบเขต",
+        "เขียน production business truth ตรง",
+        "ข้าม owner/canonical gate",
+        "force-push",
+        "commit secret",
+        "mock เพื่อให้ test ผ่าน"
+      ],
+      "tooling": {
+        "local": [
+          "terminal",
+          "git",
+          "supabase-go (owner-approved statements)"
+        ],
+        "mcp": [
+          "registry.*",
+          "architecture.*",
+          "runtime.query",
+          "governance.read_deploy_approval_status",
+          "governance.propose_session"
+        ],
+        "not_available": "git.*/deploy.*/delete.*/reset.*/restore.* (ห้ามอยู่ใน MCP adapter โดยนโยบาย)"
+      },
+      "status_source": "registry/AI_SESSIONS.json + public.ai_connection_status + registry/LOCK_MANAGER.json",
+      "role": "development / repair worker"
+    },
+    {
+      "id": "gemini-cli",
+      "vendor": "Google",
+      "type": "coding",
+      "authority": "scoped by owner instruction per job (CANONICAL_JOB_CONTRACT.scope)",
+      "must_not_do": [
+        "ตัดสินสถาปัตยกรรมเองนอกขอบเขต",
+        "เขียน production business truth ตรง",
+        "ข้าม owner/canonical gate",
+        "force-push",
+        "commit secret",
+        "mock เพื่อให้ test ผ่าน"
+      ],
+      "tooling": {
+        "local": [
+          "terminal",
+          "git",
+          "supabase-go (owner-approved statements)"
+        ],
+        "mcp": [
+          "registry.*",
+          "architecture.*",
+          "runtime.query",
+          "governance.read_deploy_approval_status",
+          "governance.propose_session"
+        ],
+        "not_available": "git.*/deploy.*/delete.*/reset.*/restore.* (ห้ามอยู่ใน MCP adapter โดยนโยบาย)"
+      },
+      "status_source": "registry/AI_SESSIONS.json + public.ai_connection_status + registry/LOCK_MANAGER.json",
+      "role": "development / analysis worker"
+    },
+    {
+      "id": "chatgpt",
+      "vendor": "OpenAI",
+      "type": "general",
+      "authority": "advisory (no system write)",
+      "must_not_do": [
+        "ถือเป็น source of truth",
+        "ใช้ตัวเลขโดยไม่ตรวจกับ DB จริง"
+      ],
+      "tooling": {
+        "local": [],
+        "mcp": [],
+        "note": "ไม่มีสิทธิ์แตะระบบ — ให้ข้อเสนอเท่านั้น"
+      },
+      "status_source": "registry/AI_SESSIONS.json (liveness) + public.ai_connection_status (health cache)",
+      "role": "advisory / proposal only (ไม่มีสิทธิ์แตะระบบ)"
+    },
+    {
+      "id": "copilot",
+      "vendor": "GitHub",
+      "authority": "human-mediated only",
+      "must_not_do": [
+        "ตัดสินสถาปัตยกรรมเองนอกขอบเขต",
+        "เขียน production business truth ตรง",
+        "ข้าม owner/canonical gate",
+        "force-push",
+        "commit secret",
+        "mock เพื่อให้ test ผ่าน"
+      ],
+      "tooling": {
+        "local": [
+          "IDE"
+        ],
+        "mcp": []
+      },
+      "status_source": "registry/AI_SESSIONS.json + public.ai_connection_status + registry/LOCK_MANAGER.json",
+      "role": "code suggestion"
+    },
+    {
+      "id": "cursor",
+      "authority": "human-mediated only",
+      "must_not_do": [
+        "ตัดสินสถาปัตยกรรมเองนอกขอบเขต",
+        "เขียน production business truth ตรง",
+        "ข้าม owner/canonical gate",
+        "force-push",
+        "commit secret",
+        "mock เพื่อให้ test ผ่าน"
+      ],
+      "tooling": {
+        "local": [
+          "IDE"
+        ],
+        "mcp": []
+      },
+      "status_source": "registry/AI_SESSIONS.json + public.ai_connection_status + registry/LOCK_MANAGER.json",
+      "role": "development assistant"
+    },
+    {
+      "id": "windsurf",
+      "authority": "human-mediated only",
+      "must_not_do": [
+        "ตัดสินสถาปัตยกรรมเองนอกขอบเขต",
+        "เขียน production business truth ตรง",
+        "ข้าม owner/canonical gate",
+        "force-push",
+        "commit secret",
+        "mock เพื่อให้ test ผ่าน"
+      ],
+      "tooling": {
+        "local": [
+          "IDE"
+        ],
+        "mcp": []
+      },
+      "status_source": "registry/AI_SESSIONS.json + public.ai_connection_status + registry/LOCK_MANAGER.json",
+      "role": "development assistant"
+    },
+    {
+      "id": "qwen",
+      "authority": "advisory (no system write)",
+      "must_not_do": [
+        "ถือเป็น source of truth",
+        "ใช้ตัวเลขโดยไม่ตรวจกับ DB จริง"
+      ],
+      "tooling": {
+        "local": [],
+        "mcp": [],
+        "note": "ไม่มีสิทธิ์แตะระบบ — ให้ข้อเสนอเท่านั้น"
+      },
+      "status_source": "registry/AI_SESSIONS.json (liveness) + public.ai_connection_status (health cache)",
+      "role": "advisory / proposal only (ไม่มีสิทธิ์แตะระบบ)"
+    },
+    {
+      "id": "deepseek",
+      "authority": "advisory (no system write)",
+      "must_not_do": [
+        "ถือเป็น source of truth",
+        "ใช้ตัวเลขโดยไม่ตรวจกับ DB จริง"
+      ],
+      "tooling": {
+        "local": [],
+        "mcp": [],
+        "note": "ไม่มีสิทธิ์แตะระบบ — ให้ข้อเสนอเท่านั้น"
+      },
+      "status_source": "registry/AI_SESSIONS.json (liveness) + public.ai_connection_status (health cache)",
+      "role": "advisory / proposal only (ไม่มีสิทธิ์แตะระบบ)"
+    },
+    {
+      "id": "kimi",
+      "authority": "advisory (no system write)",
+      "must_not_do": [
+        "ถือเป็น source of truth",
+        "ใช้ตัวเลขโดยไม่ตรวจกับ DB จริง"
+      ],
+      "tooling": {
+        "local": [],
+        "mcp": [],
+        "note": "ไม่มีสิทธิ์แตะระบบ — ให้ข้อเสนอเท่านั้น"
+      },
+      "status_source": "registry/AI_SESSIONS.json (liveness) + public.ai_connection_status (health cache)",
+      "role": "advisory / proposal only (ไม่มีสิทธิ์แตะระบบ)"
+    },
+    {
+      "id": "grok",
+      "authority": "advisory (no system write)",
+      "must_not_do": [
+        "ถือเป็น source of truth",
+        "ใช้ตัวเลขโดยไม่ตรวจกับ DB จริง"
+      ],
+      "tooling": {
+        "local": [],
+        "mcp": [],
+        "note": "ไม่มีสิทธิ์แตะระบบ — ให้ข้อเสนอเท่านั้น"
+      },
+      "status_source": "registry/AI_SESSIONS.json (liveness) + public.ai_connection_status (health cache)",
+      "role": "advisory / proposal only (ไม่มีสิทธิ์แตะระบบ)"
+    },
+    {
+      "id": "mistral",
+      "authority": "advisory (no system write)",
+      "must_not_do": [
+        "ถือเป็น source of truth",
+        "ใช้ตัวเลขโดยไม่ตรวจกับ DB จริง"
+      ],
+      "tooling": {
+        "local": [],
+        "mcp": [],
+        "note": "ไม่มีสิทธิ์แตะระบบ — ให้ข้อเสนอเท่านั้น"
+      },
+      "status_source": "registry/AI_SESSIONS.json (liveness) + public.ai_connection_status (health cache)",
+      "role": "advisory / proposal only (ไม่มีสิทธิ์แตะระบบ)"
+    },
+    {
+      "id": "llama",
+      "authority": "advisory (no system write)",
+      "must_not_do": [
+        "ถือเป็น source of truth",
+        "ใช้ตัวเลขโดยไม่ตรวจกับ DB จริง"
+      ],
+      "tooling": {
+        "local": [],
+        "mcp": [],
+        "note": "ไม่มีสิทธิ์แตะระบบ — ให้ข้อเสนอเท่านั้น"
+      },
+      "status_source": "registry/AI_SESSIONS.json (liveness) + public.ai_connection_status (health cache)",
+      "role": "advisory / proposal only (ไม่มีสิทธิ์แตะระบบ)"
+    },
+    {
+      "id": "custom",
+      "authority": "advisory (no system write)",
+      "must_not_do": [
+        "ถือเป็น source of truth",
+        "ใช้ตัวเลขโดยไม่ตรวจกับ DB จริง"
+      ],
+      "tooling": {
+        "local": [],
+        "mcp": [],
+        "note": "ไม่มีสิทธิ์แตะระบบ — ให้ข้อเสนอเท่านั้น"
+      },
+      "status_source": "registry/AI_SESSIONS.json (liveness) + public.ai_connection_status (health cache)",
+      "role": "advisory / proposal only (ไม่มีสิทธิ์แตะระบบ)"
+    },
+    {
+      "id": "cline",
+      "vendor": "Cline (VS Code extension)",
+      "type": "coding",
+      "role": "development / repair worker (session-scoped)",
+      "authority": "scoped by owner instruction per job (CANONICAL_JOB_CONTRACT.scope)",
+      "must_not_do": [
+        "ตัดสินสถาปัตยกรรมเองนอกขอบเขต",
+        "เขียน production business truth ตรง",
+        "ข้าม owner/canonical gate",
+        "force-push",
+        "commit secret",
+        "mock เพื่อให้ test ผ่าน"
+      ],
+      "tooling": {
+        "local": [
+          "terminal",
+          "git",
+          "supabase-go (owner-approved statements)"
+        ],
+        "mcp": [
+          "registry.*",
+          "architecture.*",
+          "runtime.query",
+          "governance.read_deploy_approval_status",
+          "governance.propose_session"
+        ],
+        "not_available": "git.*/deploy.*/delete.*/reset.*/restore.* (ห้ามอยู่ใน MCP adapter โดยนโยบาย)",
+        "note": "ทำงานในเชลล์/ไฟล์ของเครื่องผ่าน session ของ owner"
+      },
+      "status_source": "registry/AI_SESSIONS.json + public.ai_connection_status"
+    },
+    {
+      "id": "codex",
+      "vendor": "OpenAI",
+      "type": "coding",
+      "role": "development / repair worker (handoff-scoped)",
+      "authority": "scoped by owner instruction per job (CANONICAL_JOB_CONTRACT.scope)",
+      "must_not_do": [
+        "ตัดสินสถาปัตยกรรมเองนอกขอบเขต",
+        "เขียน production business truth ตรง",
+        "ข้าม owner/canonical gate",
+        "force-push",
+        "commit secret",
+        "mock เพื่อให้ test ผ่าน"
+      ],
+      "tooling": {
+        "local": [
+          "terminal",
+          "git",
+          "supabase-go (owner-approved statements)"
+        ],
+        "mcp": [
+          "registry.*",
+          "architecture.*",
+          "runtime.query",
+          "governance.read_deploy_approval_status",
+          "governance.propose_session"
+        ],
+        "not_available": "git.*/deploy.*/delete.*/reset.*/restore.* (ห้ามอยู่ใน MCP adapter โดยนโยบาย)"
+      },
+      "status_source": "registry/AI_SESSIONS.json + project/docs/codex-dna-os-mcp-handoff.md"
+    }
+  ],
+  "authority_reference": "DNA_OS_AUTHORITY_BOUNDARY_MATRIX.md (เพดานของทุก actor) + registry/CANONICAL_JOB_CONTRACT.json (scope/approval/cost ต่อ job)",
+  "health_cache_note": "public.ai_connection_status = health cache ของ api_tokens/connectors (วันนี้ 0 แถว = ยังไม่เคยเก็บผลตรวจจริง — ห้ามเดาสถานะ)"
+}

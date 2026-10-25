@@ -1,0 +1,34 @@
+-- Runs supabase/functions/receipt-reconcile-sweep every 5 minutes so any
+-- receipt_documents row with complete evidence (amount + sender_name +
+-- transaction_datetime) that's still stuck Pending Review — for ANY reason,
+-- not just the one bug that prompted this (payment_advice vs transfer_slip
+-- classification, fixed same session) — gets picked up and reconciled
+-- without a human needing to notice and fix it manually. Owner request
+-- 2026-07-24: "ทำไมไม่ทำให้มันอัปเดตตัวเองแบบ real-time" — 5 minutes is the
+-- closest a scheduled sweep reasonably gets to that; the event-driven path
+-- (handlers/image.ts's tryAutoConfirmPayment, fires the instant a slip
+-- arrives with complete evidence) still handles the normal case immediately.
+--
+-- Same secret pattern as migration 20260711000003 (debt-reminder-cron) — the
+-- real RECEIPT_RECONCILE_CRON_SECRET value is NOT in this file (generated
+-- via `supabase secrets set` and inlined directly against the live DB via
+-- `supabase db query --linked`). This file documents the shape for
+-- reproducibility.
+
+-- pg_cron / pg_net already enabled by migration 20260711000003.
+
+-- Applied live with the real secret substituted in place of the placeholder below:
+-- select cron.schedule(
+--   'receipt-reconcile-sweep',
+--   '*/5 * * * *',
+--   $$
+--   select net.http_post(
+--     url := 'https://xeytcavxejhyzxwevgto.supabase.co/functions/v1/receipt-reconcile-sweep',
+--     headers := jsonb_build_object(
+--       'Content-Type', 'application/json',
+--       'x-reconcile-secret', '<RECEIPT_RECONCILE_CRON_SECRET value>'
+--     ),
+--     body := '{}'::jsonb
+--   );
+--   $$
+-- );

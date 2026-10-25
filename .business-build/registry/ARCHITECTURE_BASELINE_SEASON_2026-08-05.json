@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "frozen": true,
+  "note": "Season Closure baseline (owner-directed Architecture Stabilization pass, 2026-08-05). This is the Single Source of Truth for the next Season's starting state — a point-in-time snapshot, not a live/regenerated file. Anchored to a real git commit; every number below was read directly from registry/architecture-book.json, registry/system-control-summary.json, registry/capability-roadmap.json, and registry/transitional-layers.json at that commit, never estimated.",
+  "anchor_commit": "c1b5cef1848b71f6ec30210432e3643168d6cb6b",
+  "season_commits": [
+    "7f666e5",
+    "b32a668",
+    "c574be3",
+    "f182f55",
+    "c1b5cef"
+  ],
+  "generated_at": "2026-08-05T00:46:07.758Z",
+  "module_registry": {
+    "total": 737,
+    "ok": 737,
+    "broken": 0,
+    "unused": 0,
+    "unregistered": 0
+  },
+  "system_control_graph": {
+    "total_nodes": 1136,
+    "total_edges": 2710,
+    "layers": 9,
+    "commands": 99,
+    "events": 60,
+    "capabilities_registered": 202,
+    "services": 13,
+    "drivers": 11,
+    "connector_stages": 5,
+    "registry_completeness_pct": 1.49,
+    "circular_dependencies": {
+      "count": 1,
+      "cycles": [
+        ["module:engines/documents/engine.ts", "module:engines/documents/template.ts", "module:engines/documents/engine.ts"]
+      ]
+    },
+    "duplicate_registrations": 22,
+    "unknown_field_counts": {
+      "nodes_with_unknown_source_file": 82,
+      "nodes_with_unknown_status": 159,
+      "nodes_with_unknown_provider": 1112
+    }
+  },
+  "capability_roadmap": {
+    "total_entries": 56,
+    "this_season_entries": ["#56 Integration Gateway (Observe + Propose channels)"],
+    "known_gap": "Dev Loop Pipeline, Owner Control Center, and IDE Workspace shell built this Season have no capability-roadmap.json entry yet — see SEASON_CLOSURE_REPORT.md Section 4.1"
+  },
+  "transitional_layers": {
+    "total_entries": 7,
+    "removal_condition_met_count": 0,
+    "all_entries": [
+      "app/admin/dev-loop (iframe)",
+      "app/admin/schema-audit (iframe)",
+      "app/admin/telemetry (iframe)",
+      "app/admin/settings (iframe)",
+      "app/admin/event-inbox (iframe)",
+      "app/admin/traces (iframe)",
+      "app/admin/architecture?layer= (iframe)"
+    ]
+  },
+  "governance_gate": {
+    "checks_passed": 8,
+    "checks_total": 8,
+    "score": 100
+  },
+  "known_deprecated_modules_pre_existing": [
+    "gateway/index.ts",
+    "plugins/line/line.ts",
+    "components/workspace/WorkspaceContext.tsx"
+  ],
+  "known_out_of_scope_items": [
+    "39 iCloud Drive sync-conflict duplicate files present on disk at snapshot time — never committed, not part of this baseline's module counts",
+    "Layer taxonomy (registry/architecture.json) does not include app/, components/, or scripts/ as declared layers — pre-existing, all Season capabilities live there"
+  ]
+}

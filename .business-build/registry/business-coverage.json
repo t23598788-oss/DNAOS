@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "policy": "ทุก Business Domain ต้องรู้ว่าครอบคลุมแค่ไหน",
+  "domains": {
+    "sales": {
+      "label": "งานขาย / เสนอราคา",
+      "status": "covered",
+      "modules": ["engines/pricing", "engines/cost", "engines/distance", "engines/fuel", "engines/capacity", "engines/time"],
+      "commands": ["business.calculate_price", "calc.price", "calc.distance"],
+      "workflows": ["doc.generate", "doc.preview"],
+      "documents": ["quotation", "invoice"]
+    },
+    "purchase": {
+      "label": "งานจัดซื้อ",
+      "status": "covered",
+      "modules": ["cognitive/partners", "engines/validation/resolver"],
+      "commands": ["partner.list", "partner.find"],
+      "workflows": ["db.search_partner"],
+      "documents": ["purchase-order"]
+    },
+    "debt": {
+      "label": "ลูกหนี้ / ติดตามหนี้",
+      "status": "covered",
+      "modules": ["engines/debt/engine", "engines/debt/interest", "engines/debt/collection", "engines/debt/status", "engines/debt/transition", "engines/debt/scheduler", "engines/debt/calculator", "cognitive/debts"],
+      "commands": ["debt.list", "debt.all", "debt.trackings", "debt.create", "business.calculate_debt"],
+      "workflows": ["db.search_debt"],
+      "documents": ["invoice"]
+    },
+    "tax": {
+      "label": "ภาษี / VAT / หัก ณ ที่จ่าย",
+      "status": "covered",
+      "modules": ["engines/tax"],
+      "commands": ["business.calculate_tax"],
+      "workflows": [],
+      "documents": ["receipt"]
+    },
+    "transport": {
+      "label": "ขนส่ง / จัดส่งวัสดุ",
+      "status": "covered",
+      "modules": ["engines/distance", "engines/fuel", "engines/capacity", "engines/time", "engines/cost"],
+      "commands": ["job.list", "job.active"],
+      "workflows": ["calc.distance"],
+      "documents": ["delivery-order"]
+    },
+    "document": {
+      "label": "เอกสาร / ใบเสนอราคา / ใบแจ้งหนี้",
+      "status": "covered",
+      "modules": ["engines/documents/engine", "cognitive/documents", "cognitive/invoices"],
+      "commands": ["document.list", "document.create", "invoice.list", "invoice.create", "receipt.create"],
+      "workflows": ["doc.generate", "doc.preview"],
+      "documents": ["quotation", "invoice", "receipt", "boq", "delivery-order", "purchase-order"]
+    },
+    "communication": {
+      "label": "LINE / Email / แจ้งเตือน",
+      "status": "covered",
+      "modules": ["cognitive/line", "plugins/drivers/line"],
+      "commands": ["line.send", "line.read"],
+      "workflows": ["line.send", "chat.read", "email.send"],
+      "documents": []
+    },
+    "inventory": {
+      "label": "คลังสินค้า / สต๊อกวัสดุ",
+      "status": "not_covered",
+      "modules": [],
+      "commands": [],
+      "workflows": [],
+      "documents": [],
+      "gap": "ยังไม่มี module สำหรับจัดการคลังสินค้า / สต๊อก"
+    },
+    "hr": {
+      "label": "บุคลากร / คนขับรถ / ช่าง",
+      "status": "not_covered",
+      "modules": [],
+      "commands": [],
+      "workflows": [],
+      "documents": [],
+      "gap": "ยังไม่มี module สำหรับจัดการบุคลากร"
+    },
+    "maintenance": {
+      "label": "ซ่อมบำรุง / เครื่องจักร",
+      "status": "partial",
+      "modules": [
+        "engines/equipment/relay-command.ts",
+        "engines/equipment/engine-hours.ts",
+        "app/api/admin/equipment/route.ts",
+        "app/api/admin/equipment/trigger-start/route.ts",
+        "app/api/admin/equipment/toggle-permission/route.ts",
+        "app/api/admin/equipment/maintenance-tickets/route.ts",
+        "app/api/admin/equipment/maintenance-tickets/[id]/close/route.ts",
+        "app/api/internal/equipment/telemetry/route.ts",
+        "app/api/internal/equipment/lock-command/route.ts",
+        "app/admin/equipment/page.tsx",
+        "supabase/functions/equipment-maintenance-cron/index.ts"
+      ],
+      "commands": [],
+      "workflows": [],
+      "documents": ["docs/equipment-maintenance-lock-module.md"],
+      "gap": "แก้ไข 2026-08-04: telemetry ingestion, engine-hours accumulation (real time-delta math, capped gap), maintenance ticket generation ที่ 250h, auto-lock ที่ +50h เกิน, shift-lock 17:00 และ permission-revocation→hardware-lock เป็นโค้ดจริงแล้วทั้งหมด — ที่ยังไม่จริงคือการเชื่อมต่อฮาร์ดแวร์จริง: ยังไม่มี SMS gateway provider จริง (SMS_GATEWAY_API_URL/API_KEY), ยังไม่ยืนยันรูปแบบคำสั่งกล่อง GPSDD GDD070 จริง, cron ยังไม่ได้ deploy/schedule จริงบน live Supabase (รอ owner สั่ง `supabase functions deploy` + ตั้ง secret จริง) — รายละเอียดเต็มดู docs/equipment-maintenance-lock-module.md"
+    },
+    "accounting": {
+      "label": "บัญชี / งบการเงิน",
+      "status": "not_covered",
+      "modules": [],
+      "commands": [],
+      "workflows": [],
+      "documents": [],
+      "gap": "ยังไม่มี module สำหรับบัญชี/งบการเงิน"
+    },
+    "relationship": {
+      "label": "ความสัมพันธ์ธุรกิจ / Business Timeline",
+      "status": "covered",
+      "design_principle": "เอกสารคือ artifact ของ event ไม่ใช่ตัว event เอง — ศูนย์กลางคือ partner + timeline",
+      "modules": [
+        "engines/partner/timeline",
+        "app/admin/partners/page",
+        "app/admin/partners/[id]/page"
+      ],
+      "commands": [
+        "partner.list",
+        "partner.timeline"
+      ],
+      "workflows": [],
+      "documents": [],
+      "gap": "business_events ยังว่างอยู่ (phase 1 ใช้ documents เป็นหลัก) — phase 2 คือ event capture จาก LINE + manual note"
+    }
+  }
+}

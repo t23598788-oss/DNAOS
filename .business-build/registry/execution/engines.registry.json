@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-05",
+  "engines": {
+    "gemini_extractor": {
+      "id": "gemini_extractor",
+      "label": "Gemini 2.5 Flash Lite — Entity Extractor",
+      "type": "ai_extraction",
+      "model": "gemini-2.5-flash-lite",
+      "env_key": "GEMINI_API_KEY",
+      "endpoint": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent",
+      "status": "ACTIVE",
+      "purpose": "Extract structured entities from Thai construction messages: material_type, quantity_m3, delivery_location, coordinates",
+      "used_by": ["step_extract"],
+      "cost_per_call": "free_tier"
+    },
+    "claude_translator": {
+      "id": "claude_translator",
+      "label": "Claude Haiku 4.5 — Command Translator",
+      "type": "ai_translation",
+      "model": "claude-haiku-4-5-20251001",
+      "env_key": "ANTHROPIC_API_KEY",
+      "endpoint": "https://api.anthropic.com/v1/messages",
+      "status": "PENDING_CREDENTIAL",
+      "purpose": "Translate Thai natural language commands to structured JSON for workflow engine (swapped from openai_translator, owner instruction 2026-07-25 — removed OpenAI permanently). Real code, gated cleanly until ANTHROPIC_API_KEY is set",
+      "used_by": ["step_workflow"],
+      "cost_per_call": null
+    },
+    "line_signature_verifier": {
+      "id": "line_signature_verifier",
+      "label": "LINE Signature Verifier",
+      "type": "internal",
+      "env_key": "LINE_CHANNEL_SECRET",
+      "status": "ACTIVE",
+      "purpose": "Verify HMAC-SHA256 signature on incoming LINE webhook requests",
+      "used_by": ["step_verify"]
+    },
+    "supabase_db": {
+      "id": "supabase_db",
+      "label": "Supabase Database Engine",
+      "type": "database",
+      "env_key": "SUPABASE_SERVICE_ROLE_KEY",
+      "status": "ACTIVE",
+      "purpose": "Read/write to Supabase tables: line_events, entity_registry, conversation_states, match_queue",
+      "used_by": ["step_log", "step_workflow"]
+    },
+    "line_reply_api": {
+      "id": "line_reply_api",
+      "label": "LINE Reply API",
+      "type": "external_api",
+      "env_key": "LINE_CHANNEL_ACCESS_TOKEN",
+      "endpoint": "https://api.line.me/v2/bot/message/reply",
+      "status": "ACTIVE",
+      "purpose": "Send reply messages back to LINE users via Reply API",
+      "used_by": ["step_reply"]
+    },
+    "line_notify": {
+      "id": "line_notify",
+      "label": "LINE Notify (deprecated)",
+      "type": "external_api",
+      "env_key": "LINE_NOTIFY_TOKEN",
+      "endpoint": "https://notify-api.line.me/api/notify",
+      "status": "ACTIVE",
+      "purpose": "Send CEO alerts via LINE Notify — will be replaced by Telegram when LINE Notify shuts down",
+      "used_by": []
+    },
+    "workflow_engine": {
+      "id": "workflow_engine",
+      "label": "DNA OS Workflow Engine",
+      "type": "rule_engine",
+      "status": "ACTIVE",
+      "purpose": "Match borrow pit to customer request, calculate price, determine reply content",
+      "used_by": ["step_workflow"]
+    }
+  }
+}

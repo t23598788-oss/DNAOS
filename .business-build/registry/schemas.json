@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "schemas": {
+    "Command": {
+      "required": ["version", "command"],
+      "properties": { "version": "number", "command": "string", "args": "object" }
+    },
+    "Event": {
+      "required": ["id", "type", "source", "timestamp"],
+      "properties": { "id": "string (UUID)", "type": "string", "source": "string", "timestamp": "string (ISO8601)", "data": "object", "traceId": "string (UUID)" }
+    },
+    "DriverResponse": {
+      "required": ["success", "command", "timestamp"],
+      "properties": { "success": "boolean", "command": "string", "timestamp": "string (ISO8601)", "data": "object", "error": "string" }
+    },
+    "DocumentData": {
+      "required": ["type", "items"],
+      "properties": { "type": "DocType", "company": "object", "customer": "object", "items": "DocItem[]", "events": "DocEvent[]", "paymentRequired": "boolean", "payment": "object", "debt": "object" }
+    },
+    "AgentCall": {
+      "required": ["driver", "command"],
+      "properties": { "driver": "string", "command": "string", "args": "object" }
+    }
+  }
+}

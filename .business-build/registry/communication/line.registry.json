@@ -1,0 +1,368 @@
+{
+  "version": 2,
+  "schema_version": "1.0.0",
+  "channel_type": "line_messaging",
+  "last_updated": "2026-07-06",
+  "compatibility": ["1.0.0"],
+  "deprecated_since": null,
+  "migration_required": false,
+
+  "authority": {
+    "source": "source_of_truth",
+    "managed_by": "DNA OS Registry",
+    "owner": "เฮีย (t23598788@gmail.com)",
+    "last_verified": null,
+    "policy_note": "Registry นี้คือ Single Source of Truth ของ LINE — ทุก service อ่านค่าจากที่นี่ ห้ามตัดสินใจเองหรือ hardcode ใน code"
+  },
+
+  "health": {
+    "status": "CONFIGURING",
+    "last_check": null,
+    "last_error": null,
+    "health_score": null
+  },
+
+  "depends_on": {
+    "required_services": ["supabase", "line_messaging"],
+    "required_env": ["LINE_CHANNEL_ACCESS_TOKEN", "GEMINI_API_KEY"],
+    "required_drivers": [],
+    "required_modules": [
+      "supabase/functions/line-webhook-v2/index.ts",
+      "supabase/functions/line-webhook-v2/helpers.ts",
+      "supabase/functions/line-webhook-v2/engines/response.ts"
+    ]
+  },
+
+  "channel": {
+    "channel_id": {
+      "value": null,
+      "env_key": null,
+      "note": "ดูได้ที่ LINE Developers Console → Basic settings → Channel ID",
+      "status": "not_registered"
+    },
+    "channel_secret": {
+      "value": null,
+      "env_key": "LINE_CHANNEL_SECRET",
+      "note": "ใช้ verify signature ทุก webhook request — เก็บใน Supabase secret",
+      "status": "not_registered"
+    },
+    "channel_access_token": {
+      "value": null,
+      "env_key": "LINE_CHANNEL_ACCESS_TOKEN",
+      "note": "Long-lived token สำหรับ Reply/Push/Broadcast — real value never stored in this registry file, only in Vercel Production env, Supabase Edge Function secrets, and .env.local (local dev). Verified live 2026-07-18 via GET https://api.line.me/v2/bot/info — returned basicId '@799xetsx', matching this file's own oa_id.value below. Confirms: same LINE OA everywhere (Vercel/Supabase/local), not a new/different channel.",
+      "status": "registered",
+      "verified_in": ["vercel_production", "supabase_edge_secrets", ".env.local (local dev, added 2026-07-18)"],
+      "verified_via": "GET https://api.line.me/v2/bot/info returned basicId @799xetsx (2026-07-18)"
+    },
+    "oa_id": {
+      "value": "@799xetsx",
+      "display_name": "OS_ ระบบแนะนำวัสดุ",
+      "display_name_note": "bot/info verification 2026-07-18 returned displayName 'D N A O S', not 'OS_ ระบบแนะนำวัสดุ' — real OA display name may have changed since this field was last written, or that call returns a different name field than what's registered here. Flagging honestly, not overwriting without confirming which is current.",
+      "note": "LINE OA ที่ผู้ใช้จะเพิ่มเป็นเพื่อน — linked กับ LINE Login channel บอร์ดทดสอบ",
+      "status": "registered"
+    },
+    "liff": {
+      "app_name": "D N A O S",
+      "liff_id": "2010611298-12xcj3n8",
+      "liff_url": "https://liff.line.me/2010611298-12xcj3n8",
+      "size": "Full",
+      "scope": ["openid", "profile"],
+      "linked_oa": "@799xetsx",
+      "add_friend_option": "aggressive",
+      "env_key": "NEXT_PUBLIC_LIFF_ADD_FRIEND_ID",
+      "domain": "app.dnaos.ai",
+      "endpoint_url_current": "https://app.dnaos.ai",
+      "endpoint_url_required": "https://app.dnaos.ai/liff/add-friend",
+      "status": "registered",
+      "action_required": "LINE Console → LIFF → D N A O S → Endpoint URL → Edit → ใส่ https://app.dnaos.ai/liff/add-friend"
+    }
+  },
+
+  "lifecycle": {
+    "_policy": "ทุก service อ่านค่าจาก lifecycle ก่อนทำงาน — ห้าม enable feature โดยไม่ประกาศที่นี่",
+    "channel":           "ACTIVE",
+    "webhook_receiver":  "ACTIVE",
+    "event_log":         "ACTIVE",
+    "ai_extraction":     "ACTIVE",
+    "workflow":          "ACTIVE",
+    "document_engine":   "ACTIVE",
+    "reply_api":         "ACTIVE",
+    "push_api":          "ACTIVE",
+    "broadcast":         "DISABLED",
+    "ai_reply":          "DISABLED",
+    "auto_reply_oa":     "UNKNOWN",
+    "greeting_message":  "UNKNOWN",
+    "rich_menu":         "DISABLED",
+    "liff_add_friend":   "ACTIVE",
+    "follow_event":      "ACTIVE",
+    "_notes": {
+      "ai_extraction": "Gemini ใช้แยก entity จากข้อความเท่านั้น — ไม่ใช่ตอบแชท",
+      "ai_reply": "DISABLED โดยเจตนา — เฮียไม่ต้องการให้บอท AI ตอบสนทนาอัตโนมัติ",
+      "auto_reply_oa": "ต้องเช็คที่ manager.line.biz — ถ้า ACTIVE จะตอบซ้อนกับ webhook",
+      "greeting_message": "ต้องเช็คที่ manager.line.biz"
+    }
+  },
+
+  "policy": {
+    "allow_ai_reply":   false,
+    "allow_auto_reply": false,
+    "allow_broadcast":  false,
+    "allow_push":       true,
+    "allow_schedule":   false,
+    "allow_document":   true,
+    "allow_payment":    false
+  },
+
+  "security": {
+    "required_env":     ["LINE_CHANNEL_ACCESS_TOKEN", "LINE_CHANNEL_SECRET"],
+    "secret_keys":      ["LINE_CHANNEL_ACCESS_TOKEN", "LINE_CHANNEL_SECRET"],
+    "verify_signature": true,
+    "permission_scope": ["messaging:read", "messaging:write"],
+    "encryption":       null,
+    "token_rotation":   null
+  },
+
+  "capabilities": {
+    "receive_message": { "enabled": true,  "status": "ACTIVE",   "note": "webhook รับ message.text, message.location" },
+    "send_message":    { "enabled": true,  "status": "ACTIVE",   "note": "reply + push API" },
+    "reply":           { "enabled": true,  "status": "ACTIVE",   "note": "reply token จาก event (หมดอายุ 30 วินาที)" },
+    "broadcast":       { "enabled": false, "status": "DISABLED", "note": "lifecycle.broadcast = DISABLED" },
+    "attachment":      { "enabled": false, "status": "DISABLED", "note": "ยังไม่ implement" },
+    "location":        { "enabled": true,  "status": "ACTIVE",   "note": "รับ message.location และ resolveAddressToCoordinates" },
+    "rich_menu":       { "enabled": false, "status": "DISABLED", "note": "lifecycle.rich_menu = DISABLED" },
+    "liff_add_friend": { "enabled": true,  "status": "ACTIVE",   "note": "LIFF app เพิ่มเพื่อน — /liff/add-friend, liff_id: 2010611298-12xcj3n8, liff_url: https://liff.line.me/2010611298-12xcj3n8, bot_prompt: aggressive" },
+    "follow_event":    { "enabled": true,  "status": "ACTIVE",   "note": "follow/unfollow events → line_events table + welcome push message" },
+    "webhook":         { "enabled": true,  "status": "ACTIVE",   "note": "line-webhook-v2 endpoint" },
+    "voice_call":      { "enabled": false, "status": "DISABLED", "note": "LINE ไม่รองรับ voice call via API" },
+    "video_call":      { "enabled": false, "status": "DISABLED", "note": "LINE ไม่รองรับ video call via API" },
+    "payment":         { "enabled": false, "status": "DISABLED", "note": "LINE Pay ยังไม่ implement" },
+    "notification":    { "enabled": true,  "status": "ACTIVE",   "note": "LINE Notify — deprecated, ควร migrate ไป push API" }
+  },
+
+  "topology": {
+    "_description": "แผนผังการไหลของ message ตั้งแต่รับจนถึงตอบ — อ่าน Registry แทนการไล่โค้ด",
+    "flow": [
+      "receiver",
+      "event_log",
+      "ai_extraction",
+      "workflow",
+      "reply"
+    ],
+    "nodes": {
+      "receiver": {
+        "label": "LINE Webhook Receiver",
+        "function_slug": "line-webhook-v2",
+        "url": "{NEXT_PUBLIC_SUPABASE_URL}/functions/v1/line-webhook-v2",
+        "url_note": "TASK-034 (registry/CHANGELOG.json DNA-000067): real value is process.env.NEXT_PUBLIC_SUPABASE_URL + this path — the literal project URL was removed since Guard 1 (scripts/pre-commit-check.sh) correctly treats any hardcoded .supabase.co string as a violation even in documentation data; this field was never programmatically read (confirmed: no code accesses nodes.receiver.url), so nothing functional changes, only the literal string.",
+        "file": "supabase/functions/line-webhook-v2/index.ts",
+        "handles": ["message.text", "message.location"],
+        "supabase_version": 19,
+        "status": "ACTIVE"
+      },
+      "event_log": {
+        "label": "Event Logger",
+        "table": "supabase:line_events",
+        "columns": ["id", "line_user_id", "raw_text", "line_message_id", "raw_type", "status", "extracted", "admin_note"],
+        "retention": "ไม่กำหนด — ควรตั้ง cleanup job",
+        "status": "ACTIVE"
+      },
+      "ai_extraction": {
+        "label": "Entity Extraction",
+        "model": "gemini-2.5-flash-lite",
+        "file": "supabase/functions/line-webhook-v2/helpers.ts",
+        "function": "extractStructuredEntitiesWithGemini",
+        "extracts": ["material", "quantity", "contact_name", "contact_phone", "project_name", "destination_text", "vehicle_type", "concrete_type"],
+        "also_resolves": "resolveAddressToCoordinates — แปลที่อยู่เป็น GPS ด้วย Gemini",
+        "lifecycle_gate": "ai_extraction",
+        "status": "ACTIVE"
+      },
+      "workflow": {
+        "label": "Conversation Workflow Engine",
+        "file": "supabase/functions/line-webhook-v2/index.ts",
+        "tables": ["conversation_states", "entity_registry", "match_queue"],
+        "steps": [
+          "getOrInitState — โหลด/สร้าง conversation state",
+          "saveEntitiesToRegistry — บันทึก entity",
+          "updateConversationState — อัปเดต state",
+          "handleSilentMatching — จับคู่บ่อวัสดุโดยไม่ตอบ",
+          "processQuotation — คำนวณราคา + ออก BOQ draft"
+        ],
+        "status": "ACTIVE"
+      },
+      "reply": {
+        "label": "Reply Gateway",
+        "file": "supabase/functions/line-webhook-v2/engines/response.ts",
+        "class": "ResponseGateway",
+        "methods": ["dispatchResponse", "pushMessage"],
+        "lifecycle_gate": "reply_api",
+        "note": "ai_reply = DISABLED → ห้ามเรียก askGeminiAgent เพื่อสร้าง conversational response",
+        "status": "ACTIVE"
+      }
+    },
+    "zombie_receivers": [
+      {
+        "function_slug": "line-webhook",
+        "version": 35,
+        "status": "ACTIVE_ZOMBIE",
+        "risk": "สูง — ถ้า LINE Console ชี้ที่นี่ event จะวิ่งเข้าโค้ดเก่า",
+        "action": "DELETE",
+        "command": "npx supabase functions delete line-webhook"
+      },
+      {
+        "function_slug": "line-integration",
+        "version": 3,
+        "status": "ACTIVE_PHANTOM",
+        "risk": "กลาง — ไม่มี source code ในมือ ไม่รู้ว่าทำอะไร",
+        "action": "DELETE",
+        "command": "npx supabase functions delete line-integration"
+      }
+    ]
+  },
+
+  "pipeline": {
+    "step_1_receive": {
+      "topology_node": "receiver",
+      "description": "รับ webhook event จาก LINE",
+      "input": "LINE webhook POST request",
+      "output": "parsed event object"
+    },
+    "step_2_log": {
+      "topology_node": "event_log",
+      "description": "บันทึก event ลง line_events table",
+      "input": "parsed event",
+      "output": "saved record id"
+    },
+    "step_3_extract": {
+      "topology_node": "ai_extraction",
+      "description": "ใช้ Gemini แยก entity จากข้อความ",
+      "input": "raw_text from event",
+      "output": "structured entities"
+    },
+    "step_4_workflow": {
+      "topology_node": "workflow",
+      "description": "ประมวลผล conversation state และ matching",
+      "input": "entities + conversation state",
+      "output": "workflow result + response payload"
+    },
+    "step_5_reply": {
+      "topology_node": "reply",
+      "description": "ส่ง response กลับหา user",
+      "note": "policy.allow_ai_reply=false → skip askGeminiAgent",
+      "input": "response payload",
+      "output": "LINE API response"
+    }
+  },
+
+  "monitoring": {
+    "metrics": ["message_count", "reply_latency_ms", "quota_used_pct"],
+    "logging": { "level": "info", "table": "line_events" },
+    "trace": true,
+    "audit": false,
+    "last_check": null,
+    "last_error": null,
+    "health_score": null
+  },
+
+  "apis": {
+    "reply_api": {
+      "endpoint": "https://api.line.me/v2/bot/message/reply",
+      "auth": "Bearer LINE_CHANNEL_ACCESS_TOKEN",
+      "quota": "ไม่จำกัด — ใช้ reply token จาก event (หมดอายุ 30 วินาที, ใช้ได้ครั้งเดียว)",
+      "lifecycle_gate": "reply_api",
+      "used_in": ["supabase/functions/line-webhook-v2/engines/response.ts"]
+    },
+    "push_api": {
+      "endpoint": "https://api.line.me/v2/bot/message/push",
+      "auth": "Bearer LINE_CHANNEL_ACCESS_TOKEN",
+      "quota": "Free plan = 500 msg/เดือน",
+      "quota_used_pct": 72,
+      "lifecycle_gate": "push_api",
+      "used_in": ["supabase/functions/line-webhook-v2/engines/response.ts"],
+      "note": "ใช้ push ให้เจ้าของบ่อเมื่อมี match ใหม่"
+    },
+    "broadcast": {
+      "endpoint": "https://api.line.me/v2/bot/message/broadcast",
+      "auth": "Bearer LINE_CHANNEL_ACCESS_TOKEN",
+      "quota": "รวมกับ push quota 500 msg/เดือน",
+      "lifecycle_gate": "broadcast",
+      "used_in": [],
+      "note": "lifecycle.broadcast = DISABLED — ยังไม่ implement"
+    }
+  },
+
+  "notify": {
+    "line_notify": {
+      "endpoint": "https://notify-api.line.me/api/notify",
+      "env_key": "LINE_NOTIFY_TOKEN",
+      "purpose": "แจ้งเตือนเฮีย (CEO) เมื่อมี BOQ Draft รออนุมัติ",
+      "used_in": [
+        "supabase/functions/line-webhook-v2/engines/response.ts",
+        "supabase/functions/back-to-back/index.ts"
+      ],
+      "status": "ACTIVE",
+      "warning": "LINE Notify ประกาศปิดบริการ — ควรย้ายไป Messaging API push แทน"
+    }
+  },
+
+  "oa_features": {
+    "auto_reply_oa": {
+      "lifecycle_gate": "auto_reply_oa",
+      "configured_at": "manager.line.biz → ตั้งค่า → ตอบกลับอัตโนมัติ",
+      "must_be": "DISABLED",
+      "reason": "ถ้าเปิดอยู่จะตอบซ้อนกับ webhook — ต้องปิดให้ webhook จัดการทั้งหมด"
+    },
+    "greeting_message": {
+      "lifecycle_gate": "greeting_message",
+      "configured_at": "manager.line.biz → ตั้งค่า → ข้อความทักทาย",
+      "must_be": "UNKNOWN",
+      "reason": "ถ้าตั้งไว้จะส่งอัตโนมัติเมื่อลูกค้า add friend — ต้องเช็คว่า content ถูกต้อง"
+    },
+    "rich_menu": {
+      "lifecycle_gate": "rich_menu",
+      "configured_at": "LINE Developers Console API หรือ manager.line.biz",
+      "must_be": "DISABLED",
+      "reason": "lifecycle.rich_menu = DISABLED — ยังไม่ implement"
+    }
+  },
+
+  "cleanup_required": [
+    {
+      "priority": 1,
+      "action": "DELETE",
+      "target": "supabase edge function: line-webhook",
+      "reason": "Zombie v35 — ACTIVE แต่ไม่มีไฟล์ใน repo",
+      "command": "npx supabase functions delete line-webhook"
+    },
+    {
+      "priority": 2,
+      "action": "DELETE",
+      "target": "supabase edge function: line-integration",
+      "reason": "Phantom v3 — ACTIVE แต่ไม่มีใครรู้ว่าทำอะไร",
+      "command": "npx supabase functions delete line-integration"
+    },
+    {
+      "priority": 3,
+      "action": "VERIFY",
+      "target": "LINE Developers Console — Webhook URL",
+      "reason": "ต้องแน่ใจว่าชี้ที่ line-webhook-v2 ไม่ใช่ตัวเก่า",
+      "url": "https://developers.line.biz/console/"
+    },
+    {
+      "priority": 4,
+      "action": "SET_DISABLED",
+      "target": "LINE OA Manager — Auto Reply",
+      "reason": "lifecycle.auto_reply_oa ต้องเป็น DISABLED",
+      "url": "https://manager.line.biz/"
+    }
+  ],
+
+  "metadata": {
+    "use_cases": [
+      "ลูกค้าถามราคาวัสดุก่อสร้าง",
+      "จับคู่บ่อวัสดุ",
+      "ออก BOQ Draft",
+      "แจ้งเจ้าของบ่อเมื่อมี match"
+    ],
+    "note": "LINE Messaging API channel หลักของ DNA OS"
+  }
+}

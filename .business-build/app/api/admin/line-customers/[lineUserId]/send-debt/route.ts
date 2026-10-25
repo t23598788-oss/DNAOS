@@ -1,0 +1,235 @@
+import { NextResponse } from "next/server"
+import { requireAuth } from "@/core/auth/requireAuth"
+import { createBusinessEvent } from "@/engines/canonical/event-write"
+import { ADMIN_TIER } from "@/core/auth/session"
+import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { debtReminderFlex } from "@/engines/documents/flex-template"
+import { loadCompanySettings } from "@/core/config/company-settings"
+import { deliverBusinessResult, findRecentIdenticalOutbound } from "@/engines/delivery/result-delivery"
+import { resolveExternalIdentity } from "@/engines/connect/identity"
+import { sendLineMessage } from "@/registry/communication"
+import { normalizeSendResult } from "@/app/api/admin/ide/_lib/businessFailureBridge"
+
+type Params = { params: Promise<{ lineUserId: string }> }
+
+/** The provider this admin screen acts on — a value, never a branch. */
+const PROVIDER = "line"
+
+// Owner request 2026-07-11: the debt figure shown in this page's header was
+// only ever passive display — เฮีย wants a one-click "send" from the same
+// screen. Re-reads debt_snapshots fresh from the DB server-side rather than
+// trusting whatever the client had cached, since this is a real financial
+// figure going out to a customer.
+
+// Owner request 2026-07-11: "ให้เห็นภาพรายการก่อนที่จะกดส่งยืนยัน" — this route
+// now takes an optional body { mode: "preview" | "execute" } (default
+// "preview"). Preview builds and returns the real Flex card without pushing
+// or writing anything; only "execute" actually sends and logs. The admin UI
+// calls preview first, shows the card, then re-POSTs with mode:"execute".
+export async function POST(req: Request, { params }: Params) {
+  const auth = await requireAuth(ADMIN_TIER)
+  if (auth instanceof NextResponse) return auth
+
+  const { lineUserId } = await params
+  const body = await req.json().catch(() => ({}))
+  const mode = body?.mode === "execute" ? "execute" : "preview"
+  const db = supabase()
+
+  const { data: link } = await db
+    .from("company_line_links").select("companies(id, name)").eq("line_user_id", lineUserId).maybeSingle()
+  const company = (link as any)?.companies ?? null
+  if (!company) return NextResponse.json({ error: "ยังไม่จับคู่บริษัทลูกค้า" }, { status: 400 })
+
+  // PHASE E5.2 — the amount sent to a real customer now comes from the canonical
+  // ledger projection (company_debt_current). The legacy engine's
+  // principal+interest+penalty recalculation is NOT used here any more: the ledger
+  // already carries every movement, and interest/penalty that were actually
+  // collected are its own event type (reported separately, never re-derived).
+  const { data: debtProjection } = await db
+    .from("company_debt_current")
+    .select("ledger_outstanding, ledger_debt_started, ledger_receipt_received, ledger_interest_penalty_received, ledger_manual_adjustment, snapshot_collection_state, snapshot_days_overdue")
+    .eq("company_id", company.id)
+    .maybeSingle()
+  const { data: debtRow } = await db
+    .from("debt_snapshots")
+    .select("debt_type, document_type")
+    .eq("customer_company_id", company.id)
+    .maybeSingle()
+
+  const ledgerOutstanding = Number(debtProjection?.ledger_outstanding ?? 0)
+  const principalOutstanding = Math.round(
+    (Number(debtProjection?.ledger_debt_started ?? 0) +
+      Number(debtProjection?.ledger_manual_adjustment ?? 0) -
+      Number(debtProjection?.ledger_receipt_received ?? 0)) *
+      100,
+  ) / 100
+  const interestPenaltyReceived = Number(debtProjection?.ledger_interest_penalty_received ?? 0)
+
+  const debt = debtRow
+    ? {
+        total_due: Math.round(ledgerOutstanding * 100) / 100,
+        overdue_days: Number(debtProjection?.snapshot_days_overdue ?? 0),
+        principal: principalOutstanding,
+        // the ledger does not accrue interest/penalty (only records what was received),
+        // so nothing is invented here — the collected amount is shown separately
+        interest: 0,
+        penalty: 0,
+        collection_fee: 0,
+        interest_penalty_received: interestPenaltyReceived,
+        debt_type: debtRow.debt_type,
+        document_type: debtRow.document_type,
+      }
+    : null
+
+  if (!debt || debt.total_due <= 0) {
+    return NextResponse.json({ error: "ไม่มียอดหนี้ค้างชำระให้ส่ง" }, { status: 400 })
+  }
+
+  // Debt Tracking Model — Phase B (owner, 2026-07-18): this button may only
+  // send the collection_reminder_notice card. A debt classified
+  // trade_receivable belongs to the Invoice module instead — document choice
+  // is a property of the debt row, not this button. document_type null
+  // (pre-migration data) is allowed through rather than blocked, since
+  // blocking would regress every existing customer before the backfill runs.
+  if (debt.document_type && debt.document_type !== "collection_reminder_notice") {
+    return NextResponse.json(
+      { error: `หนี้รายนี้จัดประเภทเป็น ${debt.debt_type} — ต้องออกเอกสารผ่านโมดูล Invoice ไม่ใช่การ์ดแจ้งยอดค้างชำระ` },
+      { status: 400 },
+    )
+  }
+
+  const branding = await loadCompanySettings()
+  const flex = debtReminderFlex({
+    companyName: company.name,
+    totalOutstanding: debt.total_due,
+    daysOverdue: debt.overdue_days,
+    // Owner request 2026-07-18: itemize the card (principal/interest/
+    // penalty/collection_fee) instead of one lump total — getCurrentDebt()
+    // already computes all of these, just wasn't threading them through.
+    principal: debt.principal,
+    interest: debt.interest,
+    penalty: debt.penalty,
+    collectionFee: debt.collection_fee,
+    branding: {
+      ourCompanyName: branding.companyName || undefined,
+      ourCompanyTaxId: branding.companyTaxId || undefined,
+      terms: branding.documentTerms || undefined,
+      footerNote: branding.documentFooterNote || undefined,
+    },
+  })
+
+  if (mode === "preview") {
+    return NextResponse.json({ ok: true, flex_preview: flex })
+  }
+
+  // UNIFIED DELIVERY (owner directive ต่อจาก 24823b1): ขั้นส่งไปผ่าน Response
+  // Gateway กลางเดียว (deliverBusinessResult) — ไม่สร้าง Sender ใหม่:
+  // send wrapper เดินช่องทางส่งเดิม (registry/communication.sendLineMessage —
+  // connector Run gate + canonical credential path) กับ payload Flex เดิม
+  // ทุกตัวอักษร; engine ดูแล normalize/retry(5xx ครั้งเดียว)/RESULT-ID
+  // idempotency/audit/live_commands แบบเดียวกับทุกเส้นทางรวมส่ง
+  const replyText = `💰 แจ้งยอดค้างชำระ ${debt.total_due.toLocaleString("th-TH")} บาท ส่งให้ลูกค้าแล้ว`
+
+  // Recipient mapping ผ่าน Connect Identity เดิม — ผู้รับมาจาก company_line_links
+  // (row จริงข้างบน) ไม่พบ จึงยอมใช้ lineUserId จาก params ไปเทียบร่วม; อ่านๆ
+  // ชั้น identity ไม่ได้ = ปฏิเสธ (fail-closed)
+  try {
+    await resolveExternalIdentity(supabase(), { provider: "line", externalSubjectId: lineUserId })
+  } catch {
+    return NextResponse.json({ error: "อ่านตาราง Connect Identity ไม่สำเร็จ — ปฏิเสธส่งเพื่อกัน mapping ผิด (fail-closed)" }, { status: 500 })
+  }
+
+  // กันการ์ดแจ้งยอดเดิมซ้ำข้ามช่องทาง (bot ก็เขียน line_events ขาออกเหมือนกัน)
+  try {
+    const duplicated = await findRecentIdenticalOutbound(supabase(), lineUserId, replyText)
+    if (duplicated) {
+      return NextResponse.json(
+        { ok: false, error: "การ์ดแจ้งยอดข้อความเดียวกันถูกส่งให้ลูกค้านี้แล้วเมื่อเร็ว ๆ นี้ — ไม่ส่งซ้ำ" },
+        { status: 409 },
+      )
+    }
+  } catch {
+    return NextResponse.json({ error: "อ่านประวัติการส่ง (line_events) ไม่สำเร็จ — ปฏิเสธส่งเพื่อกันส่งซ้ำ (fail-closed)" }, { status: 500 })
+  }
+
+  let lastNormalized: Awaited<ReturnType<typeof normalizeSendResult>> | null = null
+  const normalizer = (async (res: { success: boolean; error?: string }) => {
+    lastNormalized = await normalizeSendResult(res, {
+      providerSlug: "line",
+      businessAction: "line.send_debt",
+      ownerId: auth.id,
+      actor: auth.email,
+      source: "/api/admin/line-customers/[lineUserId]/send-debt",
+    })
+    return lastNormalized
+  }) as never
+
+  const delivery = await deliverBusinessResult(
+    { lineUserId, replyText, resultKey: `debtNotice:${lineUserId}:${company.id}:${new Date().toISOString().slice(0, 10)}`, navigateUrl: null, workspace: null, authorize: async () => true },
+    {
+      db: supabase() as never,
+      normalizer,
+      // payload Flex เดิมเป๊ะ — ยังเดิน channel เดิม (sendLineMessage) เท่านั้น
+      send: ((_db: never, to: string, _messages: unknown[]) =>
+        sendLineMessage(supabase(), to, [{ type: "flex", altText: "แจ้งยอดค้างชำระ", contents: flex }])) as never,
+    },
+  )
+
+  if (delivery.status !== "SENT") {
+    if (delivery.status === "SKIPPED_DUPLICATE") {
+      return NextResponse.json(
+        { ok: false, error: "แจ้งยอดค้างชำระรายนี้ส่งให้ลูกค้าแล้วภายใน 24 ชม. — ไม่ส่งซ้ำ" },
+        { status: 409 },
+      )
+    }
+    // FAILED — สัญญาเดิม: business_event/line_events ยังไม่ถูกเขียน (writes ข้างล่างไม่ run)
+    return NextResponse.json(lastNormalized ?? { ok: false, code: "SEND_FAILED", message: "ส่งไม่สำเร็จ", failureClass: delivery.failureClass ?? null, workId: null, incidentId: null }, { status: 503 })
+  }
+
+  await db.from("line_events").insert({
+    line_user_id: lineUserId,
+    raw_type: "flex",
+    raw_text: replyText,
+    status: "processed",
+    direction: "out",
+    // Delivery evidence completeness (mission 2026-10-10 §4): the provider
+    // message id from the push answer — same field every other out writer
+    // records since BATCH 38.
+    line_message_id: delivery.messageId ?? null,
+    // Owner request 2026-07-24: admin control room must show the EXACT card
+    // the customer received — the real Flex JSON, not a paraphrased summary.
+    extracted: { flex },
+  })
+
+  // Owner-reported gap 2026-07-11: after this card goes out, a customer
+  // reply like "รับทราบครับ" fell into the generic "เดี๋ยวเช็คให้นะครับ"
+  // fallback, which makes no sense as a reply to an acknowledgment. This
+  // row is what supabase/functions/line-webhook-v2/engines/debt-followup.ts
+  // looks for to ask a real follow-up (the payment date) instead. A
+  // dedicated status (not awaiting_info/ready_to_quote) keeps this out of
+  // the quotation queue, which isn't relevant here.
+  const { count } = await db
+    .from("business_events").select("id", { count: "exact", head: true })
+    .gte("created_at", new Date().toISOString().slice(0, 10))
+  const yy = new Date().getFullYear().toString().slice(-2)
+  const mm = String(new Date().getMonth() + 1).padStart(2, "0")
+  const dd = String(new Date().getDate()).padStart(2, "0")
+  const eventCode = `EV${yy}${mm}${dd}-${String((count ?? 0) + 1).padStart(4, "0")}`
+
+  // Capability D: created through the canonical Business Event writer. The
+  // canonical input carries a provider-neutral source reference; the legacy
+  // provider-shaped column names never appear here.
+  await createBusinessEvent(db, {
+    eventCode,
+    eventType: "แจ้งชำระเงิน",
+    eventDate: new Date().toISOString().slice(0, 10),
+    title: `แจ้งยอดค้างชำระ ${debt.total_due.toLocaleString("th-TH")} บาท`,
+    source: { provider: PROVIDER, externalSubjectId: lineUserId },
+    partnerId: company.id,
+    status: "awaiting_payment_date",
+    confidence: 1,
+    actor: auth.email ?? auth.id ?? "admin",
+  })
+
+  return NextResponse.json({ ok: true, delivery: { status: delivery.status, message_id: delivery.messageId ?? null, attempts: delivery.attempts } })
+}

@@ -1,0 +1,196 @@
+{
+  "protocol": "DNA OS Unified AI Runtime v1",
+  "change_id": "DNA-000218",
+  "status": "READY",
+  "current_task": "OWNER BUSINESS ROUTING FIX COMPLETE (2026-10-11): 'เปิดข้อมูลบริษัท ช.ธวัชชัยการช่าง' → deterministic answerCompanyInfoQuestion → partner.find/profile/timeline (37 real activities) — zero AI gateway calls, openai adapter disabled (owner 2026-07-25 order), regression 15/15, local+production E2E 3/3, deploy ae485b6c.",
+  "current_file": "N/A — no file mid-edit by MANAGER-07 directly; TASK-051 (FCR-012 fix) dispatched to CODE_WORKER, in progress",
+  "next_step": "Await owner. Optional follow-ups: remove OPENAI_API_KEY from Railway/Supabase envs when convenient (adapter already disabled — key is inert), consider deleting local qwen3:8b if not needed, pre-existing blockers unchanged (acceptance 3 data fails, identity-cutover, dnsos.dev DNS, Vercel 402, LINE rotate, Tailscale for Railway→Mac).",
+  "handoff": "Read MASTER_EXECUTION_STATE.md first — regenerated 2026-08-10 (DNA-000117) as the real Factory Stabilization Phase STEP 2 Reference Index, pointing to Architecture/Control Plane/Worker Roles/Runtime/Registry/Rules/Routing/Evidence/Completed Tasks/Known Remaining Gaps. If MASTER_EXECUTION_STATE.md and this file (or TASK_QUEUE.json) ever disagree, these JSON registries win — same relationship CLAUDE.md has to registry/CONSTITUTION.json. This file's own pre-2026-08-09 content (architecture_freeze, plan_lock, older exceptions_log entries) is real, historical, and left unedited (C-010, append-only) — only the top-level current_task/next_step/handoff/change_id fields and plan_lock.exceptions_log (one new FACTORY entry appended) reflect today's real work.",
+  "open_questions": [
+    {
+      "raised_by": "Claude",
+      "file": "app/admin/layout.tsx",
+      "question": "This file is the shared layout for every /admin/* route (the real business admin panel). Its own code comment reads 'Main layout for the Documentation Portal'. Was replacing the business-admin sidebar with a Documentation-Portal-only nav intentional, or was a layout meant for /start applied to the wrong route? Do not guess — confirm before treating this as settled.",
+      "status": "unresolved",
+      "workaround_applied": "2026-07-07: added registry/portals.json → docs[] listing all 28 real existing /admin/* pages (both business-admin and documentation/explorer pages) so nothing is hidden from the sidebar and tsc/build pass. This is a neutral stopgap, not a decision — it does not resolve whether /admin should eventually be documentation-only."
+    },
+    {
+      "raised_by": "Claude",
+      "file": "app/business/layout.tsx",
+      "question": "Expects real 'role-based dashboards' nav content for the Business Portal. Only one real page (app/business/page.tsx) exists today — what the eventual multi-dashboard nav should contain is still undecided and must not be guessed (ห้ามเดาเนื้อหาการขาย).",
+      "status": "unresolved",
+      "workaround_applied": "2026-07-07: added registry/portals.json → business[] with a single honest entry pointing at the one real page. No sales/marketing nav items were invented."
+    },
+    {
+      "raised_by": "Claude",
+      "file": "services/supabase/api-tokens.ts",
+      "question": "Contractor/MCP runtime activation is deferred (TASK-082). Which canonical surface in the DNA OS Owner Settings / Credential Authorization UI should issue the contractor token (scopes read + governance:propose) and inject it into the Cline / Freebuff runtime environment? Do not create an alternate token/credential path in the meantime.",
+      "status": "open",
+      "workaround_applied": "None — runtime activation intentionally deferred; no token was created."
+    }
+  ],
+  "known_stale_docs_not_yet_fixed": [
+    "registry/existence.json, business-coverage.json, decision-coverage.json still contain internal references to pre-reorg paths (v3-engines/, lib/v3-engines/) — see TASK_QUEUE TASK-010. rule-coverage.json not re-checked this session."
+  ],
+  "working_tree_note": "As of DNA-000019 git status showed 344 modified, uncommitted files. This session (DNA-000021) added further uncommitted changes on top (see CHANGELOG for the file list) — nothing has been committed by any AI session so far. Do not run destructive git operations without the user's explicit go-ahead; run `git status` before assuming anything is tracked.",
+  "architecture_freeze": {
+    "declared_by": "owner",
+    "declared_at": "2026-07-13",
+    "phase_2_status": "CLOSED",
+    "closed_at": "2026-07-13",
+    "closeout_documents": [
+      "PROJECT_CLOSEOUT.md",
+      "PHASE3_BACKLOG.md",
+      "TECHNICAL_DEBT.md"
+    ],
+    "closeout_note": "The Canonical Architecture Specification produced during this migration (ownership/timeline/workspace/routing/runtime/dependency-graph/migration-matrix) is now persisted in the 3 files above at the repo root — read those instead of relying on conversation history for a future Phase 3. The closeout pass also found and corrected a real error in this migration's own risk assessment: the 'partner.timeline' command, previously treated as a live external API contract requiring careful preservation, was found to be unreachable (missing from registry/command-registry.json's commands object, rejected by dispatch() as a Shadow Command before its handler ever runs) — see TECHNICAL_DEBT.md.",
+    "scope": "Relationship-Centric Workspace / Timeline architecture only (app/admin/relationships/*, engines/partner/timeline.ts, engines/presentation/*, app/admin/partners/[id]/page.tsx, app/admin/jobs/[id]/page.tsx, components/documents/DocumentBuilder.tsx, components/transactions/TransactionPanel.tsx, and any settings/app_configs schema change tied to this migration)",
+    "rule": "The Phase 1 + Phase 2 implementation (relationship_id-keyed workspace at /admin/relationships, registry reconciliation, shared timeline-linking logic in engines/presentation/timeline-engine.ts, shared event-style mapping in engines/presentation/event-style.ts) is the accepted, frozen reference architecture. No further implementation in this scope may proceed — no Timeline refactor, no DocumentBuilder/TransactionPanel rewrite, no Relationship Workspace UI change, no route deletion, no schema migration — until the owner gives explicit Phase 3 authorization naming Phase 3 directly.",
+    "why": "Mission-critical live production system with real customer/debt/money data. Remaining work (Unified Timeline Engine merge, embeddable component rewrites, page deletions, settings schema migration) carries real blast radius per this session's own Migration Matrix risk ratings (several High) — each should land as its own deliberately-authorized, individually-verified step, not a continuous unpaused pass.",
+    "reference": "Full Canonical Architecture Specification (Canonical Ownership, Canonical Timeline, Canonical Workspace, Canonical Routing, Canonical Runtime, Canonical Dependency Graph, Migration Matrix, Execution Plan) was produced this session as a report — not persisted to a registry file, but must be re-derived or the owner asked to re-share it before any future AI attempts Phase 3, rather than guessing its content."
+  },
+  "plan_lock": {
+    "declared_by": "owner",
+    "declared_at": "2026-07-08",
+    "rule": "ห้ามสร้าง Module ใหม่, หน้าใหม่, หรือ Feature ใหม่ใด ๆ จนกว่า TASK-001, TASK-002, TASK-003 จะมีสถานะ DONE 100% ทั้งหมด (also in registry/CONSTITUTION.json iron_rules)",
+    "gate_tasks_in_order": [
+      "TASK-001",
+      "TASK-002",
+      "TASK-003"
+    ],
+    "why_this_order": "TASK-001 (SSO/Auth) first because TASK-002 (real data everywhere) and TASK-003 (clean + deploy) both assume one shared session model already exists. Owner's framing: these 3 unlock the 200+ existing modules to run on one shared foundation instead of as disconnected pieces.",
+    "renumbering_note": "First filed as TASK-023/024/025 (2026-07-08, same day) because TASK_QUEUE.json already had TASK-001/002/003 for unrelated prior work. The owner then explicitly instructed using 'TASK-001' for the SSO task, matching their own plan document's numbering — so the 3 gate tasks were renumbered to TASK-001/002/003, and the 3 pre-existing tasks that held those numbers were moved to TASK-026 (was TASK-001, admin sidebar design question), TASK-027 (was TASK-002, business portal nav design question), TASK-028 (was TASK-003, stale CLAUDE.md, already done). CHANGELOG.json and HANDOFF.json entries dated before 2026-07-08 that mention TASK-001/002/003 refer to the OLD tasks (now TASK-026/027/028) — those historical entries were left unedited on purpose (append-only audit trail), only live/forward-looking references were updated.",
+    "note_2026_07_13": "The Relationship-Centric Workspace migration (DNA-000021) proceeded under a direct, explicit owner instruction in real-time conversation — the same class of exception already exercised for the business_events core-architecture work and TASK-030's reframing. Not a general suspension of Plan Lock; TASK-001/002/003 are still not DONE as of this entry.",
+    "exceptions_log": [
+      {
+        "program": "EWA",
+        "granted_at": "2026-07-14",
+        "granted_by": "owner, real-time conversation instruction",
+        "evidence": "'ARCHITECTURE APPROVED. Proceed to Phase 1 only. Authorization granted for implementation.', followed by explicit Phase 2 and Phase 3 authorizations in the same conversation",
+        "scope": "core/auth/resolveDestination.ts, core/navigation/resolveNavItems.ts, components/workspace/WorkspaceShell.tsx, app/login/page.tsx, app/admin/layout.tsx (attempted, reverted), app/business/layout.tsx, app/user/*, app/partner/*, registry/permissions.json, components/business/BusinessSidebarNav.tsx (deleted)",
+        "note": "Not a general suspension of Plan Lock — TASK-001/002/003 (AUTH/DATA/DEPLOY) remain not-DONE. This exception covers only the named EWA scope. Recorded retroactively during Governance Reconciliation (2026-07-14) — the work itself had already proceeded across several turns unlogged; this closes that gap rather than authorizing anything new.",
+        "status": "exercised — EWA-P1/P2 shipped, EWA-P3 blocked (see registry/GOVERNANCE_REGISTRY.json)"
+      },
+      {
+        "program": "DOMAIN",
+        "granted_at": "2026-07-13/14",
+        "granted_by": "owner, real-time conversation instruction",
+        "evidence": "EXECUTION_MODE=DOMAIN_SETUP mission brief, then explicit authorization ('จัดการเลย') to use an owner-supplied Hostinger API credential for DNS writes",
+        "scope": "Vercel domain binding for dnaos.dev, Hostinger DNS zone records (A @ and A www), config/system-links.ts, 12-environments.json, NEXT_PUBLIC_APP_URL in all Vercel environments",
+        "note": "Not a general suspension of Plan Lock. Recorded retroactively during Governance Reconciliation (2026-07-14), same reason as the EWA entry above.",
+        "status": "exercised — DOMAIN-P1/P2/P3 complete, verified live"
+      },
+      {
+        "program": "SDRN",
+        "granted_at": "2026-07-14",
+        "granted_by": "owner, real-time conversation instruction (AskUserQuestion selection, not a free-text quote — recorded honestly in that form rather than fabricating a verbatim authorization sentence)",
+        "evidence": "Owner was asked directly whether the 'Self Describing Runtime Network' build (Self Description Interface + HELLO DNA OS protocol + live event-based self-reporting, requested in full across all 464 modules) should proceed given the active Plan Lock. Selected: 'Grant an explicit exception, scoped narrowly' for the Plan Lock question, and 'One real subsystem end-to-end' for the Phase 1 scope question — explicitly rejecting the option to build the full 13-question interface across all modules at once, citing this project's own RUNTIME_WIRING_REPORT.md finding that the prior broad build (Composer/Planner/Orchestrator across all 202 Capabilities) ended up unwired.",
+        "scope": "SDRN-P1 only: a Self Description Interface for exactly one real subsystem (engines/documents/engine.ts, the Document Engine — chosen because it was the owner's own worked example in the request, is real/live/9 real callers, and is not inside the existing Relationship-Centric Workspace architecture_freeze), plus a HELLO DNA OS session-start entry point that queries it alongside already-existing self-description sources (existence-intelligence.ts, CURRENT_STATE.json, TASK_QUEUE.json). Does NOT cover: per-module interfaces for the other 463 modules, live event-based self-reporting/pub-sub, or automatic System Memory propagation — those remain unauthorized until a further, explicitly-scoped exception.",
+        "note": "Not a general suspension of Plan Lock — TASK-001/002/003 remain not-DONE. This exception covers only SDRN-P1 as scoped above. Any expansion to additional modules or the event-based layer needs its own explicit authorization, per the same narrow-scoping principle the owner just chose.",
+        "status": "exercised — see registry/CHANGELOG.json DNA-000028"
+      },
+      {
+        "program": "SDRN",
+        "granted_at": "2026-07-14",
+        "granted_by": "owner, real-time conversation instruction (AskUserQuestion selection)",
+        "evidence": "Owner submitted 'PHASE NEXT: DNA OS Runtime Nervous System' — a 10-requirement implementation directive re-asking for the full SPRP vision (every module self-describing, auto-registration at startup, automatic event publishing, continuous aggregation, natural-language System.* APIs, graph reading Runtime directly, automatic Owner Requests). Surfaced both the Plan Lock conflict and a real technical concern (requirements assume a persistent process; this is a serverless Next.js/Vercel app with no server 'startup' to hook into, which is exactly why core/workspace/runtimeRegistry.ts was already built client-side-only). Asked for scope; owner selected 'SDRN-P3: wire runtimeRegistry.ts for the Document Engine' — the exact narrow next-step already suggested in DNA-000031's next_task.",
+        "scope": "SDRN-P3 only: get core/workspace/runtimeRegistry.ts's register() called for real, for the first time ever, for exactly the Document Engine — via a new minimal API route (app/api/admin/runtime/document-engine/route.ts, serves engines/documents/selfDescription.ts over HTTP since that module does Node fs reads and can't run in-browser) and a new minimal client component (app/workspace-preview/document/DocumentEngineRuntimeRegistration.tsx, calls register()/unregister() on mount/unmount), mounted in the existing, real, live app/workspace-preview/document/page.tsx. Does NOT cover: any other module, the 8 Publish*() methods, automatic/startup registration, continuous aggregation, or any System.* API — those remain unauthorized.",
+        "note": "Not a general suspension of Plan Lock — TASK-001/002/003 remain not-DONE. Also recorded a real, honest model mismatch found while building: RuntimeHandle (core/workspace/types.ts) was designed for long-running processes (background jobs, subscriptions) with start()/stop() lifecycle; the Document Engine is a stateless call/return function with no such lifecycle. start()/stop() were implemented as documented no-ops rather than fabricating a lifecycle that doesn't exist — flagged in code comments, not hidden.",
+        "status": "exercised — see registry/CHANGELOG.json DNA-000032"
+      },
+      {
+        "program": "SDRN",
+        "granted_at": "2026-07-15",
+        "granted_by": "owner, real-time conversation instruction (AskUserQuestion selection)",
+        "evidence": "Owner submitted 'Architecture Directive: Runtime Self-Describing Contract' — a full 19-field contract + Runtime Negotiation Flow protocol, with a sweeping mandate that all future AI sessions replace repository-first discovery with contract-first discovery across all ~470 modules. Surfaced the Plan Lock conflict directly (TASK-001/002/003 still not DONE) and the exact precedent (the prior 'PHASE NEXT: DNA OS Runtime Nervous System' request was scoped down to SDRN-P1's single subsystem, then SDRN-P3's single wiring step). Asked for scope via AskUserQuestion; owner selected 'One additional real module, end-to-end' — full 19-field RuntimeContract type + Negotiation Flow built as real types, implemented for the Document Engine (upgrading its existing SelfDescription) AND one additional real, live module chosen for having deep, already-verified real history this session.",
+        "scope": "SDRN-P6: (1) RuntimeContract type (19 fields) + NegotiationFlow type added to core/shared/types.ts (2) Document Engine (engines/documents/selfDescription.ts) upgraded to implement the full RuntimeContract, not just the prior 9-ish-field SelfDescription (3) plugins/drivers/line.ts (the canonical, live LINE driver — chosen because this session already produced a full, real, verified root-cause history for it in KM-002-line) gets a full RuntimeContract implementation in a new file, plugins/drivers/line.selfDescription.ts, following the same server/CLI-only file-separation convention as the Document Engine's. Does NOT cover: any other module, automatic/startup registration beyond what SDRN-P3 already wired, a mandatory contract-first requirement replacing repository inspection for all future AI sessions (that remains the directive's stated GOAL, not something this scoped exception makes universally true today), or the other ~468 registered modules.",
+        "note": "Not a general suspension of Plan Lock — TASK-001/002/003 remain not-DONE. This exception covers only SDRN-P6 as scoped above. A repo-wide contract-first rollout was explicitly presented as an option and explicitly NOT chosen, same narrow-scoping pattern as every prior SDRN exception.",
+        "status": "exercised — see registry/CHANGELOG.json DNA-000060"
+      },
+      {
+        "program": "SDRN",
+        "granted_at": "2026-07-15",
+        "granted_by": "owner, real-time conversation instruction (custom AskUserQuestion free-text answer, quoted verbatim below since it is not a preset option)",
+        "evidence": "Owner submitted 'Architecture Upgrade Directive' (System-Wide Runtime Execution Platform, 10 mandatory requirements + numeric acceptance criteria). Claude flagged directly, before building anything, that several requirements are not buildable in this repository regardless of scope (mechanical AI-execution gating and token/read/context measurement both require intercepting the Claude Code agent loop itself, which lives outside this repo; the 60% numeric acceptance criteria cannot be honestly claimed without real session instrumentation that does not exist). Offered 3 scoped options via AskUserQuestion; owner's actual answer (quoted verbatim): 'Build the complete Runtime Contract infrastructure, not a module-specific implementation. Scope: 1. Promote RuntimeContract into a platform-level contract shared by every module. 2. Implement: ContextBudget, DeltaContext, WorkOrder, RuntimeNegotiation, ExecutionReadiness, VerificationContract. 3. Every module SHALL expose the Runtime Contract before implementation. 4. Repository inspection SHALL become fallback only. 5. AI SHALL consume Runtime Contract first. 6. Build measurement infrastructure instead of claiming results. Required Metrics: Repository Read Count, Context Size, Context Reuse Ratio, Delta Context Ratio, Contract Coverage, Repository Scan Avoidance, Execution Preparation Time. Do not claim a 60% reduction. Implement measurable instrumentation so the system can prove the reduction after deployment.'",
+        "scope": "SDRN-P7: (1) core/shared/types.ts gains ContextBudget, DeltaContext, WorkOrder, ExecutionReadiness, VerificationContract, and MeasurementReport types, plus real derivation functions (deriveWorkOrder, computeExecutionReadiness, computeContextBudget, computeDeltaContext) — RuntimeNegotiation is NOT duplicated, it already exists as NegotiationFlowState/computeNegotiationStage() from SDRN-P6 (Rule 101/103/C-010: reuse, don't re-declare) (2) a real, computed Contract Coverage metric (module-registry.json total vs modules that actually export a *RuntimeContract function, detected by real file scanning, not hardcoded) (3) the other 6 named metrics (Repository Read Count, Context Size, Context Reuse Ratio, Delta Context Ratio, Repository Scan Avoidance, Execution Preparation Time) get real TypeScript types/schema so a future real instrumentation source could populate them, but are honestly returned as null with an unmeasurable_reason — per the owner's own explicit instruction not to claim results, this repo has no access to AI session token/read counts, that data lives in the Claude Code harness outside this repository (4) ContextBudget/WorkOrder/ExecutionReadiness/DeltaContext applied to the same 2 real modules from SDRN-P6 (Document Engine, LINE driver) — NOT extended to the other ~468 modules; 'promote to platform-level' is satisfied by the TYPES living in the one shared core/shared/types.ts file (already the platform-level single source of truth for all shared types in this codebase), not by implementing per-module contracts for every module.",
+        "note": "Not a general suspension of Plan Lock — TASK-001/002/003 remain not-DONE. This exception covers only SDRN-P7 as scoped above. Mechanical AI-execution gating, real token/context-size/read-count measurement, and the 60% numeric acceptance criteria are explicitly NOT covered by this exception because they are not achievable in this repository at all, not because of narrow scoping — stated honestly per the owner's own 'do not claim a 60% reduction' instruction.",
+        "status": "exercised — see registry/CHANGELOG.json DNA-000061"
+      },
+      {
+        "program": "SDRN",
+        "granted_at": "2026-07-15",
+        "granted_by": "owner, real-time conversation instruction ('/work' unrecognized, then 'เริ่มทำงานต่อจากจุดล่าสุดอัตโนมัติ' — continue automatically from the last point)",
+        "evidence": "Owner's prior message ('งานต่อคืออะไร' / what's next) was answered with TASK-039 (deploy, needs explicit approval) vs TASK-037/038 (not started, real work) as the real options. This message authorized automatic continuation — interpreted as covering TASK-037's narrowest real increment (consistent with every SDRN phase's own narrow-scoping precedent), NOT covering TASK-039 (deploy), which its own task queue entry explicitly requires separate explicit owner go-ahead for.",
+        "scope": "SDRN-P11: full RuntimeContract implementation (all 19 fields + derived views: WorkOrder/ExecutionPlan/ContextBudget/ExecutionReadiness/DeltaContext) for exactly one additional real module — plugins/drivers/chrome.ts — registered with the Runtime Context Broker alongside the existing 2. Does not cover any other module, does not cover TASK-038 (Workspace Orchestrator), does not cover TASK-039 (Production Deploy).",
+        "note": "Not a general suspension of Plan Lock — TASK-001/002/003 remain not-DONE. This exception covers only SDRN-P11 as scoped above.",
+        "status": "exercised — see registry/CHANGELOG.json DNA-000068"
+      },
+      {
+        "program": "SDRN",
+        "granted_at": "2026-07-15",
+        "granted_by": "owner, real-time conversation instruction ('เริ่มงานต่อ' / 'รันงานต่อ' — continue/run the next work)",
+        "evidence": "Direct continuation of SDRN-P11's already-explicitly-scoped pattern (one additional module's RuntimeContract, same 2-module precedent). No new scope, no new architecture, no new rule — extending the same real work already authorized.",
+        "scope": "SDRN-P12: RuntimeContract for the remaining 9 real drivers, built via a shared factory (Rule 101/103 — avoids 9x hand-copied duplication). All 11 real drivers + Document Engine now wired into the Runtime Context Broker.",
+        "note": "Not a general suspension of Plan Lock — TASK-001/002/003 remain not-DONE. Real Contract Coverage now 12/486 = 2.47%.",
+        "status": "exercised — see registry/CHANGELOG.json DNA-000069"
+      },
+      {
+        "program": "HCG",
+        "granted_at": "2026-08-04",
+        "granted_by": "owner, real-time conversation instruction (AskUserQuestion selection)",
+        "evidence": "HCG-P1 (registries + decision engine + commands/events + tests, REPORT_ONLY/on-demand only) was built and verified. Owner then asked to elevate hardcode-governance from a manual tool into a wired-in central Governance Service across 7 real integration points (dev pipeline, command execution, registry validation, API/data integration, business engine, hardware/IoT, AI code generation), with 3 enforcement levels (REPORT_ONLY/BLOCK_CRITICAL/STRICT). Claude reported real integration-point findings first (per owner's own 'report before editing' instruction) via a read-only Explore pass, then asked scope via AskUserQuestion given the size and the fact that pre-commit/deploy-gate already block builds on a live production system with real money data.",
+        "scope": "HCG-P2 (narrowed, owner selected 'start with items 1-2' + 'do the AI hook now'): (1) Command Execution Layer — engines/validation/dispatcher.ts's dispatch() gains a hardcode-classification pass over command payload values, REPORT_ONLY (logged, never blocks dispatch) (2) Software Development Pipeline — a new pre-commit Guard that dry-runs the classifier against staged files under a critical-path allowlist (security/API-integration/business-rules/payment/hardware-control/executor dirs) and reports findings without exit 1, pending a separate confirmation once dry-run output is reviewed for false positives, before BLOCK_CRITICAL is actually turned on (7) AI Code Generation — a new .claude/settings.json PreToolUse hook (first hooks config in this project) gating Write/Edit on the same critical-path allowlist, BLOCK_CRITICAL only (denies only on SECURITY_VIOLATION/ARCHITECTURE_VIOLATION verdicts; everything else logged, not blocked). Does NOT cover: STRICT mode anywhere, Registry Validation via registryWriter.ts (registryWriter.ts itself is not yet wired into any real registry write path per HCG-P1's own investigation — building metadata validation on top of unused infra was explicitly flagged as a risk and deferred), API/Data Integration adapter consolidation (LINE has no single adapter today), Hardware/IoT (no real driver exists in this repo), or turning pre-commit's new Guard from dry-run into an actual blocking gate (separate confirmation required after reviewing dry-run output).",
+        "note": "Not a general suspension of Plan Lock — TASK-001/002/003 remain not-DONE. This exception covers only HCG-P2 as scoped above. Also recorded here: HCG-P1's original exceptions_log entry and its GOVERNANCE_REGISTRY.json HCG program entry were found MISSING during this session (present on disk in registry/hardcode-governance/*, engines/governance/hardcode-decision-engine.ts, but absent from CURRENT_STATE.json/GOVERNANCE_REGISTRY.json/command-registry.json's hardcode.* commands) — apparent silent overwrite by a concurrent session, the exact failure mode Rule 116 exists to prevent. This entry is written via withRegistryLock (Rule 116 pipeline) specifically to avoid repeating that loss, and folds in HCG-P1's original record since it was lost.",
+        "status": "exercised — dispatcher.ts REPORT_ONLY wiring verified (real dispatch() call flagged a planted secret payload without blocking), pre-commit Guard 14 dry-run verified 0 false positives across all 178 real files in the critical-path allowlist (1 real false-positive pattern found and fixed: case-insensitive /Users/ match was catching Gmail API's /users/me/ path), .claude/settings.json PreToolUse hook built + pipe-tested (deny on critical-path secret, allow outside scope, allow on clean critical-path edit) — live-fire proof deferred: config watcher wasn't watching .claude/ since it didn't exist when this session started (documented tool caveat), owner needs to open /hooks once or restart to activate it."
+      },
+      {
+        "program": "FACTORY",
+        "granted_at": "2026-08-09/10",
+        "granted_by": "owner, continuous real-time conversation instruction — every real task this program covers began with an explicit 'OWNER COMMAND' message, same discipline as every prior exceptions_log entry",
+        "evidence": "Uninterrupted sequence of explicit Owner directives across 2026-08-09/10: creation of MANAGER-07's own Constitution rules (250-259: Registry-First Inquiry, Single Owner Inquiry Authority, Manager Non-Mutation, MANAGER-07 Tool-Calling Authority), EXECUTION_HAND (Rule 258), the Switch-Based Orchestrator gate pipeline (Rule 252), the Execution Plane Cost Gate (Rule 257, plus its FREE_LOCAL amendment), the 11th WorkerType EDGE_FUNCTION_WORKER (a separate, explicitly-named Rule 252 exception, DNA-000082/083), and the Factory Gap Loop (Rule 255 amendment). Culminating instruction, 2026-08-10: 'เข้าสู่ FACTORY STABILIZATION & BASELINE PHASE' explicitly prohibiting new subsystems/features/parallel architecture — a consolidation directive, not further expansion.",
+        "scope": "The real Control Plane surface only (app/api/admin/ide/_lib/{managerQuestionRuntime,switchBasedOrchestratorRuntime,costGateRuntime,executionHandRuntime,edgeFunctionWorkerRuntime,gapLoopRuntime}.ts + workers/execution-hand/ + their real acceptance suites + registry/FACTORY_CENTRAL_REGISTRY.json's real findings/type_enum/factory_status). Does NOT cover, and explicitly excludes per the Owner's own 2026-08-10 scoping decision (AskUserQuestion): Front Office AI (TASK-046, 0% built), Worker Team self-registration (WORKER_IDENTITIES.json, 0/6), or any BMO/Black Box/World Data Engine work (explicitly forbidden this phase).",
+        "note": "Not a general suspension of Plan Lock — TASK-001/002/003 (the original 2026-07-08 gate tasks) remain not-DONE, same as every prior exception in this log. This entry retroactively records authorization for real, already-shipped work (consistent with the HCG-P2 entry's own precedent for retroactive recording) rather than leaving 38 real DNA-numbered changes unaccounted for in this file specifically — registry/CHANGELOG.json itself was updated live throughout, this entry closes the gap in THIS file only.",
+        "status": "exercised — see registry/CHANGELOG.json DNA-000079 through DNA-000117"
+      }
+    ]
+  },
+  "see_also": {
+    "who_is_working_now": "registry/AI_SESSIONS.json",
+    "what_is_locked": "registry/LOCK_MANAGER.json",
+    "available_work_by_path": "registry/SCHEDULER.json",
+    "last_session_summary": "registry/HANDOFF.json",
+    "pending_work": "registry/TASK_QUEUE.json",
+    "full_history": "registry/CHANGELOG.json",
+    "governing_rules": "registry/CONSTITUTION.json",
+    "how_to_comply": "registry/EXECUTION_CONTRACT.json",
+    "program_level_tracking": "registry/GOVERNANCE_REGISTRY.json — Architecture Programs (AUTH/DATA/DEPLOY/REL/EWA/DOMAIN/DOMCONN/CONN), canonical Program-Phase IDs, dependency graph, conflict matrix. Read this before using a bare 'Phase N' anywhere — every phase now requires a program prefix.",
+    "contractor_runtime_activation": "registry/TASK_QUEUE.json#TASK-082"
+  },
+  "updated_at": "2026-09-23T00:00:00.000Z",
+  "autonomous_maintenance": {
+    "note": "Pointer only — full detail lives in registry/CHANGELOG.json autonomous_execution blocks and registry/VALIDATION_RESULTS.json, not duplicated here (Rule 103). Updated per Rule 105 (registry/CONSTITUTION.json) every time an autonomous modification completes.",
+    "last_change_id": "DNA-000052",
+    "last_timestamp": "2026-07-14T14:41:16.094Z",
+    "last_summary": "scripts/governance.sh Duplicate Detector: jscpd --exitCode -> --exit-code (real CLI flag name fix, runtime repair, no business logic touched)"
+  },
+  "previous_change_id_2026_07_13": "DNA-000021 (Relationship-Centric Workspace Phase 2 freeze) — superseded as the CURRENT focus by the work below, but architecture_freeze itself remains real and active, see that key unchanged.",
+  "contractor_track": {
+    "status": "PAUSED_INCOMPLETE",
+    "baseline_commit": "76f6995ff9527b0dfbb500b0691a94ecf0416382",
+    "token_issuer_source": "COMPLETE",
+    "token_issuer_runtime": "NOT_ACTIVATED",
+    "owner_token": "NOT_CREATED",
+    "contractor_runtime": "NOT_ACTIVATED",
+    "cline_freebuff_end_to_end": "NOT_PROVEN",
+    "resume_condition": "DNA OS Owner Settings / Credential Authorization surface available",
+    "forbidden": "alternate token/credential path, temporary UI, ad-hoc token creation",
+    "note": "Runtime activation intentionally deferred until DNA OS Owner Settings / Credential Authorization surface is available. Do not create alternate token/credential path."
+  },
+  "state_id": "DNA-000217",
+  "what_actually_works": "Owner Workspace AI tool integration RESTORED: real Workspace-to-Cline round trip proven — owner message (authenticated /api/chat) -> Cline CLI (provider=cline account, deepseek, NOT OpenAI) discovers DNA OS MCP manifest, executes WHITELISTED READ commands through POST /api/v1/mcp/business/dispatch (requireAuth + READ whitelist + existing dispatcher + existing business readers; document.preview reuses getDocumentDetail), returns structured results SANITIZED into existing ChatResult contracts (table/timeline/document/sections/file) rendered inline by the unchanged WorkspaceFrame; conversation context = DNA OS memory (who/who_id via existing newSession) + DNA OS-hosted rolling history (cline resume broken in 3.0.62); every deterministic path still answers FIRST, cline only fills ask_user + board-fallback gaps; fail-closed everywhere: no cline binary (Railway) = ms-level null, write commands 403, unauth 401, proxy path allow-list, cookie never leaves the worker process",
+  "known_working_endpoints": [
+    "POST /api/chat (session cookie) — deterministic first, clineWorker fallback (Mac host only, fail-closed elsewhere)",
+    "POST /api/v1/mcp/business/dispatch — authorized AI-worker->dispatcher bridge: READ whitelist only + document.preview",
+    "GET /api/v1/mcp/manifest — tool discovery incl. active business.dispatch"
+  ]
+}

@@ -1,0 +1,139 @@
+/**
+ * Canonical audit writer (Phase D8) — every significant canonical write lands here.
+ *
+ * Contract: CANONICAL_MODEL_DOCUMENT_TRANSACTION_FINANCE_V1_1.md
+ * `audit_logs` is the single audit owner (actor + time + entity + evidence).
+ * Actions are the canonical vocabulary:
+ *   document.created · document.updated · document.issued · document.voided
+ *   payment.allocated · payment.reallocated · debt.event_created
+ *   transaction.created · transaction.status_changed
+ *   artifact.created
+ *
+ * The writer is deliberately strict (it throws) so a business write never
+ * silently loses its evidence: callers decide whether to abort or to record a
+ * failure marker.
+ */
+import { supabaseAdmin } from "@/services/supabase/queries";
+
+export const CANONICAL_AUDIT_ACTIONS = [
+  "document.created",
+  "document.updated",
+  "document.issued",
+  "document.voided",
+  "payment.allocated",
+  "payment.reallocated",
+  "debt.event_created",
+  // BOM-070 FINAL RELEASE (owner 2026-10-14) — ledger correction audit vocabulary,
+  // appended additively (same rule as above); used by the raw-SQL migration
+  // 20261014000003_canonical_ledger_correction_0722ae13 and its rollback.
+  "debt.event_updated",
+  "transaction.created",
+  "transaction.status_changed",
+  "artifact.created",
+  "artifact.failed",
+  // D3 deferred work landed (owner 2026-09-24) — money-out side vocabulary,
+  // appended additively; no test pins this list (grep-verified)
+  "expense.recorded",
+  "payable.requested",
+  "payable.transitioned",
+  // BATCH 40 (owner 2026-10-08) — payment acknowledgement vocabulary,
+  // appended additively (same rule as the D3 additions above)
+  "receipt.acknowledged",
+  // BOM-070 FINAL HARDENING (owner 2026-10-14) — receipt rejection vocabulary,
+  // appended additively (same rule as above): the reject route now records
+  // evidence every time it flips a receipt out of the review queue.
+  "receipt.rejected",
+  // UNIFIED AI CAPABILITY INTEGRATION (owner 2026-10-17, STEP 07) — AI invocation
+  // history vocabulary, appended additively (same rule as all additions above):
+  // services/ai/gateway.ts emitDefaultEvidence appends ONE audit_logs row per AI
+  // gateway event (entity_type "ai_invocation", entity_id = requestId) so a
+  // Request ID is traceable after the fact instead of being overwritten inside
+  // the single system_health_status row. No parallel audit system: same table,
+  // same writer semantics, vocabulary declared here as everywhere else.
+  "ai.invocation",
+] as const;
+
+export type CanonicalAuditAction = (typeof CANONICAL_AUDIT_ACTIONS)[number];
+
+export interface CanonicalAuditInput {
+  action: CanonicalAuditAction;
+  entity_type: string;
+  entity_id: string;
+  actor: string;
+  company_id?: string | null;
+  field?: string | null;
+  old_value?: unknown;
+  new_value?: unknown;
+  /** free-form evidence: ids of versions/allocations/artifacts that prove the change */
+  evidence?: Record<string, unknown> | null;
+}
+
+/**
+ * Same insert semantics as recordCanonicalAudit, minus the strict actor
+ * requirement — used ONLY for AI gateway evidence history (owner 2026-10-17,
+ * STEP 07): the gateway itself always has an ownerId (assertSafeRequest enforced)
+ * and its evidence event must never abort an AI call because of audit write
+ * issues, so the caller wraps this in its own best-effort handling. Same table,
+ * same vocabulary owner, no second audit system.
+ */
+export async function appendAuditHistory(input: {
+  action: CanonicalAuditAction;
+  entity_type: string;
+  entity_id: string;
+  actor: string;
+  evidence?: Record<string, unknown> | null;
+}): Promise<{ id: string } | { appender_error: string }> {
+  const { data, error } = await supabaseAdmin()
+    .from("audit_logs")
+    .insert({
+      actor_user_id: null,
+      company_id: null,
+      entity_type: input.entity_type,
+      entity_id: input.entity_id,
+      action: input.action,
+      field: null,
+      old_value: null,
+      new_value: asText({ value: null, evidence: input.evidence ?? null }),
+      created_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
+  if (error || !data) return { appender_error: error?.message ?? "no row returned" };
+  return data as { id: string };
+}
+
+const asText = (v: unknown): string | null => {
+  if (v === undefined || v === null) return null;
+  return typeof v === "string" ? v : JSON.stringify(v);
+};
+
+export interface CanonicalAuditRecord {
+  id: string;
+  action: string;
+  entity_type: string;
+  entity_id: string | null;
+  created_at: string;
+}
+
+export async function recordCanonicalAudit(input: CanonicalAuditInput): Promise<CanonicalAuditRecord> {
+  if (!input.actor || !input.actor.trim()) {
+    throw new Error("AUDIT_ACTOR_REQUIRED: every canonical write must carry an actor");
+  }
+  const { data, error } = await supabaseAdmin()
+    .from("audit_logs")
+    .insert({
+      actor_user_id: null,
+      company_id: input.company_id ?? null,
+      entity_type: input.entity_type,
+      entity_id: input.entity_id,
+      action: input.action,
+      field: input.field ?? null,
+      old_value: asText(input.old_value),
+      new_value: asText({ value: input.new_value ?? null, evidence: input.evidence ?? null }),
+      created_at: new Date().toISOString(),
+    })
+    .select("id, action, entity_type, entity_id, created_at")
+    .single();
+  if (error) throw new Error(`บันทึก audit ไม่สำเร็จ (${input.action}): ${error.message}`);
+  return data as CanonicalAuditRecord;
+}

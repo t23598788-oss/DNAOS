@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "services": {
+    "agent":           { "type": "http",     "port": 7777,  "module": "plugins/agent/server.ts",                 "status": "stale", "reconciliation_note": "File does not exist on disk. Already tracked as TASK-018 in registry/TASK_QUEUE.json — not re-guessed here, see reconciliation report DNA-000024." },
+    "supabase":        { "type": "database", "module": "services/supabase/queries.ts",                            "status": "active" },
+    "supabase-realtime": { "type": "websocket", "module": "services/supabase/realtime.ts",                        "status": "active" },
+    "line-receiver":   { "type": "edge-function", "module": "supabase/functions/line-receiver/index.ts",     "status": "stale", "reconciliation_note": "File does not exist on disk. supabase/functions/line-webhook-v2/ is the real, current LINE inbound webhook (registered in module-registry.json this session) but is not itself declared in this file — not assumed to be this entry's replacement, see reconciliation report DNA-000024." },
+    "line-webhook":    { "type": "edge-function", "module": "supabase/functions/line-webhook/index.ts",      "status": "stale", "reconciliation_note": "File does not exist on disk. Same note as line-receiver — supabase/functions/line-webhook-v2/ exists but was not assumed to be this entry's replacement, see reconciliation report DNA-000024." },
+    "document-api":    { "type": "api-route", "path": "/api/document",  "module": "app/api/document/route.ts",  "status": "active" },
+    "computer-api":    { "type": "api-route", "path": "/api/computer",  "module": "app/api/computer/route.ts",  "status": "stale", "reconciliation_note": "File does not exist on disk. Not resolved to a replacement, see reconciliation report DNA-000024." },
+    "action-api":      { "type": "api-route", "path": "/api/action",    "module": "app/api/action/route.ts",    "status": "stale", "reconciliation_note": "File does not exist on disk. execute-api (gateway/actions.ts, same registry) already covers dispatchAction — possible supersession, not assumed, see reconciliation report DNA-000024." },
+    "translate-api":   { "type": "api-route", "path": "/api/translate",  "module": "app/api/translate/route.ts", "status": "stale", "reconciliation_note": "File does not exist on disk. Not resolved to a replacement, see reconciliation report DNA-000024." },
+    "explain-api":     { "type": "api-route", "path": "/api/explain",    "module": "app/api/explain/route.ts",  "status": "active" },
+    "execute-api":     { "type": "api-route", "path": "/api/execute",    "module": "gateway/actions.ts",  "status": "active" }
+  }
+}

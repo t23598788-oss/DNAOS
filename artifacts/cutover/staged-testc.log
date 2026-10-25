@@ -1,0 +1,63 @@
+▲ Next.js 16.2.9 (Turbopack)
+- Environments: .env.local
+- Experiments (use with caution):
+  ⨯ serverSourceMaps
+
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+  Creating an optimized production build ...
+Turbopack build encountered 2 warnings:
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/connectors/_lib/connectRuntime.ts
+    ./app/api/admin/connectors/providers/route.ts
+
+
+./next.config.ts
+Encountered unexpected file in NFT list
+A file was traced that indicates that the whole project was traced unintentionally. Somewhere in the import trace below, there are:
+- filesystem operations (like path.join, path.resolve or fs.readFile), or
+- very dynamic requires (like require('./' + foo)).
+To resolve this, you can
+- remove them if possible, or
+- only use them in development, or
+- make sure they are statically scoped to some subfolder: path.join(process.cwd(), 'data', bar), or
+- add ignore comments: path.join(/*turbopackIgnore: true*/ process.cwd(), bar)
+
+Output asset trace:
+  [output]/.next/server/app/api/cron/operations-loop/route.js
+  [output]/.next/server/chunks/[root-of-the-server]__11fxue0._.js
+
+Import trace:
+  App Route:
+    ./next.config.ts
+    ./app/api/admin/connectors/_lib/connectRuntime.ts
+    ./app/api/admin/connectors/providers/route.ts
+
+
+✓ Compiled successfully in 8.3s
+  Running TypeScript ...
+  Finished TypeScript in 10.9s ...
+  Collecting page data using 9 workers ...
+  Generating static pages using 9 workers (0/155) ...
+  Generating static pages using 9 workers (38/155) 
+Error occurred prerendering page "/admin/notifications". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Export encountered an error on /admin/notifications/page: /admin/notifications, exiting the build.
+Error occurred prerendering page "/liff/add-friend". Read more: https://nextjs.org/docs/messages/prerender-error
+Error [InvariantError]: Invariant: Expected workStore to be initialized. This is a bug in Next.js.
+    at ignore-listed frames
+Export encountered an error on /liff/add-friend/page: /liff/add-friend, exiting the build.
+⨯ Next.js build worker exited with code: 1 and signal: null

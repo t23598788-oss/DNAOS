@@ -1,0 +1,945 @@
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0
+node:fs:798
+  return binding.read(fd, buffer, offset, length, position);
+                 ^
+
+Error: Unknown system error -11: Unknown system error -11, read
+    at Object.readSync (node:fs:798:18)
+    at tryReadSync (node:fs:427:20)
+    at Object.readFileSync (node:fs:522:19)
+    at getSourceSync (node:internal/modules/esm/load:41:17)
+    at defaultLoadSync (node:internal/modules/esm/load:156:34)
+    at #loadAndMaybeBlockOnLoaderThread (node:internal/modules/esm/loader:802:12)
+    at #loadSync (node:internal/modules/esm/loader:834:53)
+    at ModuleLoader.load (node:internal/modules/esm/loader:783:26)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:494:31)
+    at #getOrCreateModuleJobAfterResolve (node:internal/modules/esm/loader:560:36) {
+  errno: -11,
+  code: 'Unknown system error -11',
+  syscall: 'read'
+}
+
+Node.js v24.19.0

@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "policy": "สองสภาพแวดล้อมต้องแยกกันชัดเจน — Production ห้ามรับผลกระทบจาก Studio",
+  "description": "Environment Registry — กำหนดความแตกต่างระหว่าง Production, Studio, และ Staging",
+
+  "environments": {
+
+    "production": {
+      "name": "Production",
+      "description": "ระบบที่ใช้งานจริง — ลูกค้าและพนักงานเข้าใช้งาน ต้องเสถียรเสมอ",
+      "url": "dnaos.dev",
+      "branch": "main",
+      "deploy_target": "Railway — existing DNA-OS-INFRASTRUCTURE / production / dna-os-deadboard; canonical public domain dnaos.dev (Owner 2026-10-07). DNS cutover pending; Vercel is a connector only.",
+      "railway": {"project_id": "ffe589bf-58fb-4e3e-8969-4a75915fda1a", "environment_id": "4d28eafa-9735-4405-a585-55ea354bafab", "service_id": "c08254e4-9679-4984-b388-402f7909bf47"},
+      "loads_feature_status": ["released"],
+      "change_policy": "เปลี่ยนเฉพาะ Release เท่านั้น — ห้าม hotfix โดยไม่ผ่าน QA",
+      "supabase_project": "production",
+      "characteristics": [
+        "เสถียร",
+        "ลูกค้าใช้งาน",
+        "เปลี่ยนเฉพาะ Release",
+        "ต้องมี migration plan ก่อน deploy ทุกครั้ง"
+      ]
+    },
+
+    "studio": {
+      "name": "Studio / Lab",
+      "description": "สภาพแวดล้อมของ Owner สำหรับทดลองและพัฒนา — ใช้ร่วมกับ AI assistant",
+      "url": "dna-os-deadboard (local / preview)",
+      "branch": "dev / feature/*",
+      "deploy_target": "Vercel Preview",
+      "loads_feature_status": ["draft", "testing", "approved", "released"],
+      "change_policy": "ทดลองได้ทุกอย่าง — ไม่กระทบ Production",
+      "supabase_project": "development (หรือ production ถ้า read-only)",
+      "characteristics": [
+        "ทดลอง UI ใหม่",
+        "ทดลอง AI Workflow",
+        "Debug และ Refactor",
+        "Feature ทุก status โหลดได้"
+      ]
+    },
+
+    "staging": {
+      "name": "Staging (Planned)",
+      "description": "สภาพแวดล้อมกลางระหว่าง Studio และ Production — ใช้ทดสอบก่อน Release จริง",
+      "url": "https://dna-os-staging.up.railway.app",
+      "branch": "release/*",
+      "deploy_target": "Railway — project DNA-OS-business-workspace-staging / environment Staging (service ---------------DNA-OS), deploy ผ่าน GitHub main webhook",
+      "loads_feature_status": ["approved", "released"],
+      "change_policy": "เฉพาะ Approved features — ห้าม Draft หรือ Testing",
+      "supabase_project": "zjhgysugbmyyciatmltv (dna-os-staging — แยก DB จาก production จริง ไม่แชร์ข้อมูล)",
+      "status": "active",
+      "railway": {
+        "project_id": "d5ae6989-1824-423b-b249-d6fea91eed4b",
+        "environment_id": "5a86998f-ce7d-4c54-8f01-ca326ead3f21",
+        "service_id": "4464b4c0-a965-406d-9834-74331cf7cbff"
+      },
+      "note": "ยกขึ้นใช้งานจริง 2026-09-24 (Owner R1.1): Supabase project แยกต่างหาก + baseline (local-migration/full_schema.sql) และ migration ทั้ง 121 ไฟล์ applied แล้ว · runtime ชี้ไป staging DB เท่านั้น (isolation proven) · release ขึ้นผ่าน GitHub → Railway webhook เดียว · provider accounts ลงทะเบียนใน public.connect_external_accounts ของ staging แล้ว"
+    }
+
+  },
+
+  "shared_engines": {
+    "description": "Engine เหล่านี้ทุก environment ใช้ร่วมกัน — การเปลี่ยนแปลงกระทบทุกที่",
+    "engines": [
+      { "id": "registry",           "path": "*.json (root)",                     "note": "Single source of truth" },
+      { "id": "business_engine",    "path": "engines/",                   "note": "Pricing, Debt, Scheduling" },
+      { "id": "workflow_engine",    "path": "engines/transactions/workflows.ts",     "note": "State machine per tx_type" },
+      { "id": "document_engine",   "path": "engines/documents/engine.ts",           "note": "Document generation" },
+      { "id": "calculation_engine","path": "engines/documents/document-editor.ts",  "note": "VAT, discount, totals" },
+      { "id": "supabase_schema",    "path": "supabase/migrations/",              "note": "DB schema สำหรับทุก env" }
+    ]
+  },
+
+  "not_shared": {
+    "description": "สิ่งเหล่านี้แต่ละ environment ดูแลแยกกัน",
+    "items": [
+      "UI Components (components/) — Studio ทดลองได้, Production เฉพาะ Released",
+      "App Routes (app/) — แต่ละ env อาจมี route ต่างกัน",
+      "Feature Flags (11-feature-flags.json .status) — อ่านตามสิทธิ์ของ env",
+      "Environment Variables — Supabase URL, API Keys แยกต่างหาก",
+      "Experimental AI integrations — ทดลองใน Studio ก่อนเสมอ"
+    ]
+  }
+}

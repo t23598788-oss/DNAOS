@@ -1,0 +1,66 @@
+PATH                                           CODE   TYPE  
+/                                              307          
+/login                                         200    text/html; charset=utf-8
+/admin                                         307          
+/workspace                                     307    text/html; charset=utf-8
+/biz                                           307    text/html; charset=utf-8
+/business                                      307          
+/admin/ide                                     307          
+/admin/deploy                                  307          
+/admin/dev-loop                                307          
+/admin/developer                               307          
+/admin/ui-gallery                              307          
+/admin/api-explorer                            307          
+/admin/engine-explorer                         307          
+/admin/dbd                                     307          
+/admin/infrastructure                          307          
+/admin/backup                                  307          
+/admin/schema-audit                            307          
+/admin/storage                                 307          
+/admin/system-config                           307          
+/admin/traces                                  307          
+/admin/links                                   307          
+/admin/workspace                               307          
+/admin/reader                                  307          
+/admin/dna                                     307          
+/workspace-preview                             307          
+/business-workspace-template                   307          
+/observer                                      200    text/html; charset=utf-8
+/observer.json                                 200    application/json
+/playground                                    200    text/html; charset=utf-8
+/examples                                      200    text/html; charset=utf-8
+/start                                         200    text/html; charset=utf-8
+/api/admin/ide/file                            401    application/json
+/api/admin/ide/command                         401    application/json
+/api/admin/ide/build/registry                  401    application/json
+/api/admin/dev-loop/approve                    401    application/json
+/api/admin/architecture/control-graph          401    application/json
+/api/admin/backup                              401    application/json
+/api/admin/capability-boxes                    401    application/json
+/api/admin/domains/whois                       401    application/json
+/api/admin/infrastructure                      401    application/json
+/api/admin/runtime                             401    application/json
+/api/admin/schema-audit                        401    application/json
+/api/admin/storage-intelligence                401    application/json
+/api/admin/system-config                       401    application/json
+/api/admin/system-reality                      401    application/json
+/api/admin/workspace                           401    application/json
+/api/build                                     401    application/json
+/api/dbd                                       401    application/json
+/api/deploy                                    401    application/json
+/api/governance                                401    application/json
+/api/manual-doc                                501    application/json
+/api/reader                                    401    application/json
+/api/routes                                    401    application/json
+/api/self-description                          401    application/json
+/api/traces                                    401    application/json
+/api/v1/mcp/architecture/summary               200    application/json
+/api/v1/mcp/governance/status                  401    application/json
+/api/v1/mcp/contractor/status                  401    application/json
+/api/v1/constitution                           200    application/json
+/api/v1/drivers                                200    application/json
+/api/v1/modules                                200    application/json
+/api/v1/workflows                              200    application/json
+/api/v1/spec                                   200    application/json
+/api/v1/query                                  405          
+/api/chat                                      405          

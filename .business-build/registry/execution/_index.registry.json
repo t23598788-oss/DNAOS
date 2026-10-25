@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "last_updated": "2026-07-05",
+  "registries": {
+    "pipeline": { "file": "pipeline.registry.json", "status": "ACTIVE", "description": "Pipeline definitions for all channels" },
+    "engines":  { "file": "engines.registry.json",  "status": "ACTIVE", "description": "Execution engine catalog" },
+    "stages":   { "file": "stages.registry.json",   "status": "ACTIVE", "description": "Runtime stage state machine" },
+    "trace":    { "file": "trace.registry.json",    "status": "ACTIVE", "description": "Trace and observability config" }
+  },
+  "active_pipelines": ["line_message_pipeline"],
+  "default_pipeline": "line_message_pipeline"
+}

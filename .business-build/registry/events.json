@@ -1,0 +1,665 @@
+{
+  "version": 1,
+  "events": {
+    "line.message_received": {
+      "source": "cognitive",
+      "data": [
+        "userId",
+        "messageText",
+        "messageType",
+        "timestamp"
+      ]
+    },
+    "command.parsed": {
+      "source": "cognitive",
+      "data": [
+        "action",
+        "payload"
+      ]
+    },
+    "command.translated": {
+      "source": "v4-ai",
+      "data": [
+        "action",
+        "mode",
+        "payload"
+      ]
+    },
+    "rule.validated": {
+      "source": "v2-rules",
+      "data": [
+        "valid",
+        "message"
+      ]
+    },
+    "engine.calculated": {
+      "source": "v3-engines",
+      "data": [
+        "result",
+        "audit"
+      ]
+    },
+    "document.generated": {
+      "source": "documents",
+      "data": [
+        "type",
+        "docNumber",
+        "html",
+        "summary"
+      ]
+    },
+    "document.previewed": {
+      "source": "v5-presenter",
+      "data": [
+        "docNumber"
+      ]
+    },
+    "approval.requested": {
+      "source": "v6-executor",
+      "data": [
+        "capability",
+        "args"
+      ]
+    },
+    "approval.confirmed": {
+      "source": "v6-executor",
+      "data": [
+        "confirmId"
+      ]
+    },
+    "executor.completed": {
+      "source": "v6-executor",
+      "data": [
+        "tool",
+        "action",
+        "result"
+      ]
+    },
+    "driver.action": {
+      "source": "drivers",
+      "data": [
+        "driver",
+        "command",
+        "result"
+      ]
+    },
+    "debt.status_changed": {
+      "source": "v3-engines",
+      "data": [
+        "debtId",
+        "from",
+        "to",
+        "event"
+      ]
+    },
+    "debt.interest_calculated": {
+      "source": "v3-engines",
+      "data": [
+        "debtId",
+        "principal",
+        "interest",
+        "total"
+      ]
+    },
+    "payment.received": {
+      "source": "supabase",
+      "data": [
+        "invoiceId",
+        "amount",
+        "method"
+      ]
+    },
+    "error.occurred": {
+      "source": "*",
+      "data": [
+        "module",
+        "action",
+        "error",
+        "code"
+      ]
+    },
+    "validation.result_recorded": {
+      "source": "registry/VALIDATION_RESULTS.json",
+      "data": [
+        "module",
+        "command",
+        "validator",
+        "result",
+        "root_cause"
+      ]
+    },
+    "storage.scan.started": {
+      "source": "engines/storage",
+      "data": [
+        "event_id",
+        "timestamp",
+        "actor",
+        "machine_id",
+        "resource_path",
+        "resource_type",
+        "classification",
+        "size_bytes",
+        "checksum",
+        "evidence",
+        "decision",
+        "reason",
+        "operation_id",
+        "correlation_id"
+      ]
+    },
+    "storage.scan.completed": {
+      "source": "engines/storage",
+      "data": [
+        "event_id",
+        "timestamp",
+        "actor",
+        "machine_id",
+        "resource_path",
+        "resource_type",
+        "classification",
+        "size_bytes",
+        "checksum",
+        "evidence",
+        "decision",
+        "reason",
+        "operation_id",
+        "correlation_id"
+      ]
+    },
+    "storage.resource.classified": {
+      "source": "engines/storage",
+      "data": [
+        "event_id",
+        "timestamp",
+        "actor",
+        "machine_id",
+        "resource_path",
+        "resource_type",
+        "classification",
+        "size_bytes",
+        "checksum",
+        "evidence",
+        "decision",
+        "reason",
+        "operation_id",
+        "correlation_id"
+      ]
+    },
+    "storage.remote.verified": {
+      "source": "engines/storage",
+      "data": [
+        "event_id",
+        "timestamp",
+        "actor",
+        "machine_id",
+        "resource_path",
+        "resource_type",
+        "classification",
+        "size_bytes",
+        "checksum",
+        "evidence",
+        "decision",
+        "reason",
+        "operation_id",
+        "correlation_id"
+      ]
+    },
+    "storage.reclaim.plan.created": {
+      "source": "engines/storage",
+      "data": [
+        "event_id",
+        "timestamp",
+        "actor",
+        "machine_id",
+        "resource_path",
+        "resource_type",
+        "classification",
+        "size_bytes",
+        "checksum",
+        "evidence",
+        "decision",
+        "reason",
+        "operation_id",
+        "correlation_id"
+      ]
+    },
+    "storage.resource.moved_to_trash": {
+      "source": "engines/storage",
+      "data": [
+        "event_id",
+        "timestamp",
+        "actor",
+        "machine_id",
+        "resource_path",
+        "resource_type",
+        "classification",
+        "size_bytes",
+        "checksum",
+        "evidence",
+        "decision",
+        "reason",
+        "operation_id",
+        "correlation_id"
+      ]
+    },
+    "storage.threshold.breached": {
+      "source": "engines/storage",
+      "data": [
+        "event_id",
+        "timestamp",
+        "actor",
+        "machine_id",
+        "resource_path",
+        "resource_type",
+        "classification",
+        "size_bytes",
+        "checksum",
+        "evidence",
+        "decision",
+        "reason",
+        "operation_id",
+        "correlation_id"
+      ]
+    },
+    "storage.operation.blocked": {
+      "source": "engines/storage",
+      "data": [
+        "event_id",
+        "timestamp",
+        "actor",
+        "machine_id",
+        "resource_path",
+        "resource_type",
+        "classification",
+        "size_bytes",
+        "checksum",
+        "evidence",
+        "decision",
+        "reason",
+        "operation_id",
+        "correlation_id"
+      ]
+    },
+    "storage.operation.failed": {
+      "source": "engines/storage",
+      "data": [
+        "event_id",
+        "timestamp",
+        "actor",
+        "machine_id",
+        "resource_path",
+        "resource_type",
+        "classification",
+        "size_bytes",
+        "checksum",
+        "evidence",
+        "decision",
+        "reason",
+        "operation_id",
+        "correlation_id"
+      ]
+    },
+    "workspace.lock.acquired": {
+      "source": "engines/workspace",
+      "data": [
+        "resource_type",
+        "resource_path",
+        "holder_actor",
+        "holder_session_id",
+        "operation_id",
+        "expires_at"
+      ]
+    },
+    "workspace.lock.released": {
+      "source": "engines/workspace",
+      "data": [
+        "resource_path",
+        "holder_actor",
+        "released_at"
+      ]
+    },
+    "workspace.lock.timeout": {
+      "source": "engines/workspace",
+      "data": [
+        "resource_path",
+        "holder_actor",
+        "expires_at"
+      ]
+    },
+    "workspace.lock.conflict": {
+      "source": "engines/workspace",
+      "data": [
+        "resource_path",
+        "requested_by_actor",
+        "requested_by_session_id",
+        "held_by_actor",
+        "held_by_session_id",
+        "resolution"
+      ]
+    },
+    "dependency.scan.completed": {
+      "source": "engines/workspace",
+      "data": [
+        "resource_path",
+        "edge_count"
+      ]
+    },
+    "dependency.impact.detected": {
+      "source": "engines/workspace",
+      "data": [
+        "resource_path",
+        "dependency_count",
+        "dependents",
+        "safe_to_migrate"
+      ]
+    },
+    "migration.plan.created": {
+      "source": "engines/workspace",
+      "data": [
+        "plan_id",
+        "resource_path",
+        "dependency_count",
+        "safe",
+        "approved",
+        "status",
+        "correlation_id"
+      ]
+    },
+    "resource.migration.blocked": {
+      "source": "engines/workspace",
+      "data": [
+        "plan_id",
+        "resource_path",
+        "dependency_count",
+        "safe",
+        "approved",
+        "status",
+        "correlation_id",
+        "blocking_dependent",
+        "dependency_kind"
+      ]
+    },
+    "resource.migration.completed": {
+      "source": "engines/workspace",
+      "data": [
+        "plan_id",
+        "resource_path",
+        "dependency_count",
+        "safe",
+        "approved",
+        "status",
+        "correlation_id",
+        "trash_path"
+      ]
+    },
+    "concurrent.update.detected": {
+      "source": "engines/workspace",
+      "data": [
+        "resource_path",
+        "requested_by_actor",
+        "requested_by_session_id",
+        "held_by_actor",
+        "held_by_session_id",
+        "resolution"
+      ]
+    },
+    "hardcode.detected": {
+      "source": "engines/governance/hardcode-decision-engine.ts",
+      "data": [
+        "value",
+        "file",
+        "line",
+        "context_key"
+      ]
+    },
+    "hardcode.classified": {
+      "source": "engines/governance/hardcode-decision-engine.ts",
+      "data": [
+        "value",
+        "category",
+        "verdict",
+        "file",
+        "line"
+      ]
+    },
+    "hardcode.allowed": {
+      "source": "engines/governance/hardcode-decision-engine.ts",
+      "data": [
+        "value",
+        "category",
+        "file",
+        "line",
+        "evidence_required"
+      ]
+    },
+    "hardcode.blocked": {
+      "source": "engines/governance/hardcode-decision-engine.ts",
+      "data": [
+        "value",
+        "category",
+        "verdict",
+        "file",
+        "line",
+        "move_to"
+      ]
+    },
+    "hardcode.exception.registered": {
+      "source": "engines/governance/hardcode-decision-engine.ts",
+      "data": [
+        "id",
+        "value_or_pattern",
+        "category",
+        "registered_by",
+        "reason"
+      ]
+    },
+    "hardcode.migration.required": {
+      "source": "engines/governance/hardcode-decision-engine.ts",
+      "data": [
+        "value",
+        "file",
+        "line",
+        "verdict",
+        "action"
+      ]
+    },
+    "hardcode.external_constraint.verified": {
+      "source": "engines/governance/hardcode-decision-engine.ts",
+      "data": [
+        "provider",
+        "endpoint_forced_fixed",
+        "varies_by_region_or_env",
+        "verdict"
+      ]
+    },
+    "hardcode.policy.violation": {
+      "source": "engines/governance/hardcode-decision-engine.ts",
+      "data": [
+        "value",
+        "category",
+        "verdict",
+        "file",
+        "line",
+        "rationale"
+      ]
+    },
+    "architecture.drift.detected": {
+      "source": "engines/workspace",
+      "data": [
+        "machine_id",
+        "checked_at",
+        "clean",
+        "finding_count",
+        "findings"
+      ]
+    },
+    "equipment.telemetry_received": {
+      "source": "app/api/internal/equipment/telemetry/route.ts",
+      "data": [
+        "equipmentId",
+        "recordedAt",
+        "engineRunning",
+        "vccVoltage",
+        "deltaHours",
+        "newTotalHours"
+      ]
+    },
+    "equipment.maintenance_ticket_opened": {
+      "source": "supabase/functions/equipment-maintenance-cron",
+      "data": [
+        "equipmentId",
+        "ticketId",
+        "triggerHours"
+      ]
+    },
+    "equipment.maintenance_ticket_closed": {
+      "source": "app/api/admin/equipment/maintenance-tickets/[id]/close/route.ts",
+      "data": [
+        "equipmentId",
+        "ticketId",
+        "closedBy"
+      ]
+    },
+    "equipment.auto_locked": {
+      "source": "supabase/functions/equipment-maintenance-cron",
+      "data": [
+        "equipmentId",
+        "reason"
+      ]
+    },
+    "FILE_DISCOVERED": {
+      "source": "engines/workspace",
+      "data": [
+        "actor",
+        "session",
+        "command",
+        "path",
+        "hash",
+        "timestamp"
+      ]
+    },
+    "FILE_REGISTERED": {
+      "source": "engines/workspace",
+      "data": [
+        "actor",
+        "session",
+        "command",
+        "path",
+        "hash",
+        "timestamp"
+      ]
+    },
+    "FILE_UNCLASSIFIED": {
+      "source": "engines/workspace",
+      "data": [
+        "actor",
+        "session",
+        "command",
+        "path",
+        "hash",
+        "timestamp"
+      ]
+    },
+    "FILE_SNAPSHOT_CREATED": {
+      "source": "engines/workspace",
+      "data": [
+        "actor",
+        "session",
+        "command",
+        "path",
+        "hash",
+        "timestamp"
+      ]
+    },
+    "FILE_DELETE_PREVIEWED": {
+      "source": "engines/workspace",
+      "data": [
+        "actor",
+        "session",
+        "command",
+        "path",
+        "hash",
+        "timestamp"
+      ]
+    },
+    "FILE_DELETE_BLOCKED": {
+      "source": "engines/workspace",
+      "data": [
+        "actor",
+        "session",
+        "command",
+        "path",
+        "hash",
+        "timestamp"
+      ]
+    },
+    "FILE_DELETED": {
+      "source": "engines/workspace",
+      "data": [
+        "actor",
+        "session",
+        "command",
+        "path",
+        "hash",
+        "timestamp"
+      ]
+    },
+    "FILE_RESTORED": {
+      "source": "engines/workspace",
+      "data": [
+        "actor",
+        "session",
+        "command",
+        "path",
+        "hash",
+        "timestamp"
+      ]
+    },
+    "FILE_DUPLICATE_DETECTED": {
+      "source": "engines/workspace",
+      "data": [
+        "actor",
+        "session",
+        "command",
+        "path",
+        "hash",
+        "timestamp"
+      ]
+    },
+    "FILE_RECONSTRUCTED": {
+      "source": "engines/workspace",
+      "data": [
+        "actor",
+        "session",
+        "command",
+        "path",
+        "hash",
+        "timestamp"
+      ],
+      "status": "declared_not_yet_emitted"
+    },
+    "FILE_MISSING": {
+      "source": "engines/workspace",
+      "data": [
+        "actor",
+        "session",
+        "command",
+        "path",
+        "hash",
+        "timestamp"
+      ]
+    },
+    "FILE_CONCURRENT_CONFLICT": {
+      "source": "engines/workspace",
+      "data": [
+        "actor",
+        "session",
+        "command",
+        "path",
+        "hash",
+        "timestamp"
+      ],
+      "status": "declared_not_yet_emitted"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+name: DNA OS Governance Gate
+
+# Owner, 2026-07-24: the only enforcement that previously existed was a local
+# git hook (.git/hooks/pre-commit, DNA-000073) — real, but untracked, and
+# bypassable with --no-verify or simply never installed on a given machine.
+# This workflow is the second, independent gate: it runs the identical real
+# checks (scripts/pre-commit-check.sh) on GitHub itself, on every push and
+# PR, so no local bypass or missing hook lets bad registry/architecture state
+# reach main unnoticed.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  governance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Governance guards (registry sync, drift, dead code, duplicates, dependency graph, evidence isolation, registry stub check)
+        run: bash scripts/pre-commit-check.sh
+
+      # Dev Loop Pipeline (owner, 2026-08-05): scripts/watch-registry.ts + scripts/impact-analyzer.ts
+      # write real pass/warning/fail verdicts and registry proposals to Supabase as the
+      # AI edits files locally. This is the second, CI-side half of that loop — it blocks
+      # the same way governance.sh above does if the latest verdict for any path is
+      # 'fail' or a registry proposal is still pending Owner approval. See scripts/deploy-gate.ts.
+      - name: Dev Loop Deploy Gate (blocks on Impact Analyzer fails / unapproved registry proposals)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/deploy-gate.ts

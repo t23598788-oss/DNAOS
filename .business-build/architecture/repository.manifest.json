@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "dna.repository.v1",
+  "repositoryId": "BUSINESS_RUNTIME",
+  "githubRepository": "t23598788-oss/---------------DNA-OS",
+  "role": "BUSINESS_RUNTIME",
+  "authorityStatus": "CANONICAL",
+  "runtimeAllowed": true,
+  "runtimeLocationClass": "BUSINESS_PROCESS",
+  "businessDataAuthority": true,
+  "owns": [
+    "BUSINESS_WORKFLOWS",
+    "BUSINESS_DOCUMENTS",
+    "BUSINESS_TRANSACTIONS",
+    "BUSINESS_DOMAIN_SERVICES",
+    "BUSINESS_DOMAIN_PERSISTENCE",
+    "DOMAIN_SPECIFIC_ENGINES"
+  ],
+  "mustNotOwn": [
+    "GLOBAL_COMMAND_AUTHORITY",
+    "GLOBAL_PERMISSION_AUTHORITY",
+    "GLOBAL_REPOSITORY_REGISTRY",
+    "PROVIDER_ROUTING",
+    "NODE_ORCHESTRATION",
+    "OWNER_UI_AUTHORITY"
+  ],
+  "allowedDependencies": [
+    "INFRASTRUCTURE"
+  ],
+  "forbiddenDependencies": [
+    "CONTROL_WORKSPACE_DIRECT",
+    "FINANCE_SUBSYSTEM_UNTIL_PROMOTE",
+    "PROVIDER_API_DEFAULT",
+    "CORE_INTERNAL_IMPORT_BYPASS"
+  ],
+  "deploymentBoundary": {
+    "productionDeployAllowed": true,
+    "notes": "Business/operational runtime via contract from Core"
+  },
+  "dataAuthority": {
+    "kind": "BUSINESS_DOMAIN",
+    "notes": "Business DB / domain persistence"
+  },
+  "executionAuthority": {
+    "kind": "BUSINESS_EXECUTION",
+    "notes": "Domain engines under business contracts"
+  },
+  "sourceAuthority": {
+    "kind": "GITHUB",
+    "status": "CURRENT"
+  },
+  "contractSource": "DNA OS Nine-Repo Executable Architecture Contract"
+}
