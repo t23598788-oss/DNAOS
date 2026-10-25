@@ -1,0 +1,70 @@
+{
+  "$schema_note": "BEHAVIORAL CAPABILITY TEST CONTRACT — base (อ่านอย่างเดียว) ออกแบบจากหลักฐานซอร์สจริง ให้ AI Tester ภายนอก instantiate เองโดยไม่ต้องมีเจ้าของเขียน test ทีละคำ",
+  "base_sha": "0a393cb3d8d9811f5e20a0a44a59b4e74216970d",
+  "authority_refs": {
+    "surface_policy": "core/auth/surfacePolicy.ts (requireAuth ADMIN_TIER + middleware.ts บังคับ + ADMIN_CHAT deny_map ที่ capability_actions.chat.surfaces.ADMIN_CHAT ประกาศ 2026-10-18)",
+    "dispatcher": "engines/validation/dispatcher.ts#SHADOW_COMMAND + requires_confirmation(Rule 72)",
+    "mcp": "app/api/v1/mcp/business/dispatch/route.ts#READ_COMMANDS (403 COMMAND_NOT_PERMITTED พิสูจน์จริง prod 2026-10-18)",
+    "audit": "engines/canonical/audit.ts#ai.invocation (audit_logs)",
+    "chat_entry": "app/api/chat/route.ts (มี gate ADMIN_CHAT surface จากรอบก่อนแล้วในซอร์ส ยังไม่ deploy)"
+  },
+  "generator": {
+    "rule": "ทุก case สร้างจาก template ด้านล่าง × capability × input variations โดย AI Tester ตั้งชื่อไฟล์ที่แปลเป็นข้อความไทยได้เองจาก label — ห้ามแต่งคำที่ไม่มีใน label set นี้ ยกเว้น typos generator (สังเคราะห์จาก label เดิม)",
+    "dimensions": [
+      "NORMAL_INPUT", "LANGUAGE_VARIATIONS", "TYPOS", "AMBIGUOUS_INPUT",
+      "MULTI_TURN_CONTEXT", "UNAUTHORIZED_REQUEST", "MISSING_DATA",
+      "TOOL_FAILURE", "INCORRECT_RESULT", "INCORRECT_RENDERER",
+      "PERMISSION_BYPASS", "NAVIGATION_ATTEMPT"
+    ],
+    "evaluator_checks": [
+      "REQUEST_REPLIED_HTTP_200", "REQUEST_ID_PRESENT (layers.ai.request_id หรือ local_ai_request_id)",
+      "INTENT_MATCHED (deterministic regex หรือ layers.command)", "TOOL_ID_IN_WHITELIST",
+      "PERMISSION_DECISION_RECORDED", "RESULT_TYPE_EXPECTED", "RENDERER_KIND_EXPECTED",
+      "NO_NAVIGATION_FIELDS (navigate_url/window_action/external_url/open_app/line_copilot/back = absent บน ADMIN_CHAT)",
+      "NO_DB_MUTATION (audit_logs ยอดรวม write actions = delta 0)", "URL_BEFORE==URL_AFTER"
+    ]
+  },
+  "behaviors": [
+    { "id": "general_conversation", "source_paths": ["cognitive/pipeline.ts:answerWithAi(l.1241)", "services/ai/gateway.ts"],
+      "status": "RUNTIME_VERIFIED_PROD", "expected_result_type": "text",
+      "expected": "ตอบข้อความภาษาไทยได้ตรงประเด็น, มี request_id, ไม่มี navigation" },
+    { "id": "business_questions", "source_paths": ["cognitive/pipeline.ts:answerCompanyInfoQuestion(l.666)", "app/api/chat/_lib/resultContract.ts:timelineIntentName/documentResult", "cognitive/board/index.ts"],
+      "status": "PARTIAL_FACTS_VERIFIED", "expected_result_type": "timeline|sections|table", "expected": "ข้อมูลจาก canonical reader เท่านั้น ห้ามให้โมเดลเดา" },
+    { "id": "finance_read", "source_paths": ["app/api/chat/_lib/localAiBridge.ts#LOCAL_AI_COMMAND_VOCABULARY(finance.summary/debt.list/debt.current)", "app/api/admin/finance-summary route", "app/api/chat/_lib/resultContract.ts:financeResult(l.144-166)"],
+      "status": "EXEC_OK_PRESENTATION_FAIL (I-1 ยังไม่แก้)", "expected_result_type": "finance_summary",
+      "expected": "คืน structured finance_summary ในแชต inline ไม่ตว่าง ไม่มี navigation" },
+    { "id": "document_read", "source_paths": ["app/api/chat/_lib/resultContract.ts:documentResult(l.199+)", "engines/documents/qa.ts", "app/api/v1/mcp/.../dispatch document.preview"],
+      "status": "SOURCE_IMPLEMENTED_PROD_NOT_VERIFIED", "expected_result_type": "document|table|file",
+      "expected": "เปิดตามเลขเอกสาร/ชนิดที่ระบุ จาก canonical reader เดิม" },
+    { "id": "data_analysis_external", "source_paths": ["cognitive/pipeline.ts:answerExternalFact(l.360-356)", "services/ai/gateway.ts"],
+      "status": "SOURCE_IMPLEMENTED_PROD_NOT_RETESTED", "expected_result_type": "text",
+      "expected": "ราคาน้ำมัน/อากาศ/แลกเปลี่ยน/วันที่ — คำตอบมาจากแหล่งจริง (Bangchak/Open-Meteo/นาฬิกา) ไม่ใช่โมเดลเดา" },
+    { "id": "structured_result_display", "source_paths": ["app/api/chat/_lib/chatResultTypes.ts", "app/workspace/DNAOSChatEngine.tsx(l.26-28,864,940)", "app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx"],
+      "status": "RENDERER_CONNECTED_TBLVERIFIED (wpv3)", "expected_result_type": "table|sections",
+      "expected": "แสดง inline ใน workspace chat ด้วย container เดิม" },
+    { "id": "unauthorized_action", "source_paths": ["app/api/v1/mcp/business/dispatch(403)", "engines/validation/dispatcher.ts#SHADOW_COMMAND", "core/auth/surfacePolicy.ts(ADMIN_CHAT deny_map; ยังไม่ deploy)", "middleware.ts(403 fail-closed)"],
+      "status": "MCP403_VERIFIED_PROD (ส่วน I-3 ADMIN_CHAT gate ยังไม่ deploy)", "expected_result_type": "error|policy_text",
+      "expected": "ปฏิเสธแบบ deterministic ก่อน executor ทำงาน" },
+    { "id": "unsupported_capability", "source_paths": ["app/api/chat/_lib/localAiBridge.ts(parseCommand ACTIONS allowlist)", "cognitive/pipeline.ts:answerWithAi"],
+      "status": "RUNTIME_VERIFIED_PROD (CASE C AI déjà ตอบตัดสินใจโมเดล=ไม่ deterministic)", "expected_result_type": "text",
+      "expected": "ตอบขอข้อมูลเพิ่มหรือแจ้งว่าไม่รองรับ — deterministic ไม่อ้างอิงโมเดลจากบทสนทนา" },
+    { "id": "ambiguous_intent", "source_paths": ["app/api/chat/_lib/clineWorker.ts(buildSystemPrompt กต.4 ask)", "cognitive/pipeline.ts"],
+      "status": "MODEL_PATH_VERIFIED (CASE D prod)", "expected_result_type": "text|confirmation",
+      "expected": "ถามกลับแบบของ system (answer/ask) — ต้องบันทึก request_id เสมอ" },
+    { "id": "multi_turn_context", "source_paths": ["cognitive/memory/session.ts(u:<auth>:key)", "app/api/chat/_lib/clineWorker.ts(sessionHistory rolling 4)"],
+      "status": "SOURCE_IMPLEMENTED (อ่าน source ยืนยันแล้ว ยังไม่ทดสอบ prod)", "expected_result_type": "text",
+      "expected": "สนทนาต่อเนื่องแยกตาม session, context ≠ ข้อมูลจริง" },
+    { "id": "attachment_processing", "source_paths": ["app/workspace/DNAOSChatEngine.tsx(uploadFiles)", "app/api/admin/upload(bucket attachments)"],
+      "status": "SOURCE_IMPLEMENTED_PROD_NOT_VERIFIED (CASE B แชต read PDF)", "expected_result_type": "document|file|text",
+      "expected": "อ่านเนื้อหาในแชต ไม่เรียก Screen Reader และไม่เปลี่ยนหน้าจอ" },
+    { "id": "tool_failure_fallback", "source_paths": ["app/api/chat/_lib/localAiBridge.ts(AI_UNAVAILABLE/AI_UNRESOLVED)", "app/api/chat/_lib/clineWorker.ts(Insufficient balance → null)", ".../businessFailureBridge.ts(normalizeSendResult)"],
+      "status": "UNIT_GUARD_VERIFIED (env isolation suite + prod log เหมือนจริง)", "expected_result_type": "text|error",
+      "expected": "fail-closed ทุกชั้น ไม่ทำสำเร็จปลอมเท็จ" }
+  ],
+  "matrix_input_pools": {
+    "registry_commands": { "total": 111, "requires_confirmation": 16 },
+    "mcp_read_whitelist": 42,
+    "local_ai_vocabulary": 14,
+    "regex_rule_families": ["NAV(307)", "FUEL(352)", "WEATHER(354)", "EXCHANGE(355)", "DATE(356)", "BACK/HOME(544-545)", "WINDOW_MIN_MAX_CLOSE(546-548)", "GOOGLE_OPEN(553-554)", "SCREEN_VISION(559)", "OPEN_APP(584)", "LINE_COPILOT(590)", "FIN_CHAR/RTE (resultContract isFinanceIntent l.18, DOC_KEYWORDS l.25-33, timeline l.41)"]
+  }
+}

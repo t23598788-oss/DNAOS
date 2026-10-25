@@ -1,0 +1,18 @@
+<!--
+  DNA OS — Magic Link / Email OTP template
+  Declared in supabase/config.toml as [auth.email.template.magic_link] and pushed
+  to the hosted project with `supabase config push`. Rendered by Supabase Auth
+  for signInWithOtp() (login OTP + login link).
+
+  IMPORTANT: {{ .Token }} is the numeric OTP the login screen asks for. Removing
+  it would leave users with only a link and the OTP field would have nothing to
+  match. {{ .ConfirmationURL }} is kept so the same email also signs the user in
+  through /auth/confirm (one verifier, two ways in).
+-->
+<h2>DNA OS — รหัสยืนยันการเข้าสู่ระบบ</h2>
+<p>รหัส OTP สำหรับเข้าสู่ระบบ DNA OS ของคุณคือ</p>
+<p style="font-size:30px;font-weight:700;letter-spacing:8px;margin:16px 0">{{ .Token }}</p>
+<p>รหัสนี้ใช้ได้ครั้งเดียว และหมดอายุตามเวลาที่ระบบกำหนด (ค่าเริ่มต้น 1 ชั่วโมง)</p>
+<p>หากต้องการเข้าสู่ระบบด้วยลิงก์แทนการกรอกรหัส:<br />
+  <a href="{{ .ConfirmationURL }}">ยืนยันการเข้าสู่ระบบด้วยลิงก์</a></p>
+<p style="color:#666;font-size:12px">ถ้าคุณไม่ได้ขอล็อกอิน DNA OS ไม่ต้องดำเนินการใด ๆ — ไม่มีรหัสผ่านถูกสร้างหรือเปลี่ยนแปลง</p>

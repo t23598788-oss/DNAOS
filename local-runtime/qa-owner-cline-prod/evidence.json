@@ -1,0 +1,39 @@
+{
+  "tasks": [
+    {
+      "id": "1e2dc41e-3b3c-47a6-b4ed-4995528a13ac",
+      "status": "processing",
+      "claimed_by": "railway-cline-worker-1",
+      "resultType": null,
+      "error": null
+    },
+    {
+      "id": "26109d5e-9a8d-4a0e-ab9a-c0b270c22438",
+      "status": "failed",
+      "claimed_by": "railway-cline-worker-1",
+      "resultType": null,
+      "error": "stale processing (worker restart or cline timeout)"
+    },
+    {
+      "id": "6a060d02-9348-42ab-b332-204a68371c7c",
+      "status": "failed",
+      "claimed_by": "railway-cline-worker-1",
+      "resultType": null,
+      "error": "stale processing (worker restart or cline timeout)"
+    },
+    {
+      "id": "24c1cf20-5697-41dd-950e-f8980ee4d859",
+      "status": "failed",
+      "claimed_by": "railway-cline-worker-1",
+      "resultType": null,
+      "error": "spawn: spawn cline ENOENT"
+    },
+    {
+      "id": "9001942d-d931-4692-875a-d4540a482fb3",
+      "status": "failed",
+      "claimed_by": "railway-cline-worker-1",
+      "resultType": null,
+      "error": "spawn: spawn cline ENOENT"
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+ "input": "งานที่กำลังทำตอนนี้มีอะไร",
+ "http": 200,
+ "timeToFirstPayloadMs": 32552,
+ "timeToFirstVisibleFeedbackMs": 0,
+ "frames": {
+  "count": 3,
+  "baselineBeforeSend": 0,
+  "firstFrames": [
+   {
+    "t": 1792256931400,
+    "muts": 1,
+    "added": 1,
+    "charDelta": 62,
+    "text": "วันนี้จะทำอะไร? พิมพ์คำสั่ง แนบไฟล์ หรือเปิดเครื่องมือด้านข้าง"
+   },
+   {
+    "t": 1792256931500,
+    "muts": 3,
+    "added": 1,
+    "charDelta": -13,
+    "text": "งานที่กำลังทำตอนนี้มีอะไร DNA OS กำลังประมวลผล..."
+   },
+   {
+    "t": 1792256963914,
+    "muts": 2,
+    "added": 1,
+    "charDelta": 71,
+    "text": "งานที่กำลังทำตอนนี้มีอะไร DNA OS job.active — อ่านจาก canonical dispatcher (ไม่มีรายการ) ตาราง table JOB.ACTIV"
+   }
+  ],
+  "lastFrame": {
+   "t": 1792256963914,
+   "muts": 2,
+   "added": 1,
+   "charDelta": 71,
+   "text": "งานที่กำลังทำตอนนี้มีอะไร DNA OS job.active — อ่านจาก canonical dispatcher (ไม่มีรายการ) ตาราง table JOB.ACTIV"
+  }
+ },
+ "backend_first_payload": {
+  "sender": "ai",
+  "type": "text",
+  "text": "",
+  "result": {
+   "type": "table",
+   "title": "job.active — อ่านจาก canonical dispatcher (ไม่มีรายการ)",
+   "table": {
+    "columns": [
+     {
+      "key": "status",
+      "label": "สถานะ"
+     }
+    ],
+    "rows": [
+     [
+      "ไม่มีรายการ"
+     ]
+    ]
+   }
+  },
+  "local_ai_command": "job.active",
+  "ai_status": "AI_OK",
+  "local_ai_request_id": "olar-1792256945856-x23jmfu5",
+  "layers": {
+   "input": {
+    "message": "งานที่กำลังทำตอนนี้มีอะไร",
+    "command": "job.active",
+    "payload": {}
+   },
+   "ai": {
+    "status": "AI_OK",
+    "request_id": "olar-1792256945856-x23jmfu5",
+    "error": null,
+    "command": "job.active",
+    "payload": {},
+    "provider": "ollama",
+    "capability": "intent.classify",
+    "evidenceId": "evidence-1792256945856-o5hchta1",
+    "occurredAt": "2026-10-17T17:09:05.856Z"
+   },
+   "tool": {
+    "last_command": "job.active"
+   },
+   "dispatcher": {
+    "command": "job.active",
+    "ok": true,
+    "violations": [],
+    "requires_confirmation": false,
+    "code": "OK",
+    "surface": "chat",
+    "hardcode_warnings": 0
+   },
+   "database": {
+    "reader": "services/supabase/queries#getJobs (jobs IN_PROGRESS)"
+   },
+   "result": {
+    "status": "OK",
+    "renders_as": "table"
+   },
+   "workspace": {
+    "renders_as": "table",
+    "client": "app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx"
+   }
+  }
+ }
+}

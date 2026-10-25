@@ -1,0 +1,122 @@
+{
+ "tag": "BEFORE",
+ "report": [
+  {
+   "case": "1-สนทนา",
+   "input": "สวัสดีครับ",
+   "http": 200,
+   "req_id": "olar-1792257810656-6udkhi5k",
+   "ai_status": "AI_UNRESOLVED",
+   "command": null,
+   "sent_at": 1792257770835,
+   "resp_at": 1792257823722,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 52887,
+   "text_head": "สวัสดีครับ ยินดีต้อนรับครับ ช่วยเหลืออะไรได้ไหมครับ?",
+   "on_screen": true,
+   "win_start": 1792257770835,
+   "win_end": 1792257823722
+  },
+  {
+   "case": "2-ความสามารถ",
+   "input": "คุณทำอะไรได้บ้าง",
+   "http": 200,
+   "req_id": null,
+   "ai_status": "SKIPPED",
+   "command": null,
+   "sent_at": 1792257826366,
+   "resp_at": 1792257842064,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 15698,
+   "text_head": "เปิดหน้าลูกค้า 1 รายให้แล้วครับ ต้องการดูรายไหนเป็นพิเศษไหมครับ?",
+   "on_screen": false,
+   "win_start": 1792257826366,
+   "win_end": 1792257842064
+  },
+  {
+   "case": "3-อธิบายระบบ",
+   "input": "อธิบายระบบ DNA OS อย่างละเอียด",
+   "http": 200,
+   "req_id": "olar-1792257907065-dkrau74p",
+   "ai_status": "AI_UNRESOLVED",
+   "command": null,
+   "sent_at": 1792257844619,
+   "resp_at": 1792257928235,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 83616,
+   "text_head": "ระบบ DNA OS เป็นระบบปฏิบัติการที่ออกแบบมาเพื่อช่วยเหลือเจ้าของธุรกิจวัสดุก่อสร้าง จ.ขอนแก่น ในการจัดการงานต่างๆ ผ่านการสั่งงานด้วยคำสั่งง่าย เช่น \"เปิด [ชื่อแอป",
+   "on_screen": true,
+   "win_start": 1792257844619,
+   "win_end": 1792257928235
+  },
+  {
+   "case": "4-อธิบายAI",
+   "input": "ช่วยอธิบายเรื่อง AI หน่อย",
+   "http": 200,
+   "req_id": "olar-1792257987668-7ozuu8vk",
+   "ai_status": "AI_UNRESOLVED",
+   "command": null,
+   "sent_at": 1792257930865,
+   "resp_at": 1792257999474,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 68609,
+   "text_head": "AI คือเทคโนโลยีที่ทำให้เครื่องจักรสามารถทำงานได้คล้ายมนุษย์ เช่น คิด วิเคราะห์ หรือเรียนรู้ ใช้ในหลายด้าน เช่น แอปช่วยตัดสินใจ ระบบแนะนำสินค้า หรือการแปลภาษา คร",
+   "on_screen": true,
+   "win_start": 1792257930865,
+   "win_end": 1792257999474
+  },
+  {
+   "case": "5-ต่อเนื่อง",
+   "input": "อธิบายเรื่องเมื่อกี้ต่อ",
+   "http": 200,
+   "req_id": "olar-1792258060486-5u0vs1kh",
+   "ai_status": "AI_UNRESOLVED",
+   "command": null,
+   "sent_at": 1792258002468,
+   "resp_at": 1792258073311,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 70843,
+   "text_head": "เมื่อกี้ต่อหมายถึงช่วงเวลาที่ตามมาหลังจาก \"เมื่อกี้\" ครับ ถ้าคุณหมายถึงเรื่องเฉพาะ ช่วยอธิบายเพิ่มเติมได้ไหมครับ",
+   "on_screen": true,
+   "win_start": 1792258002468,
+   "win_end": 1792258073311
+  }
+ ],
+ "counts": [
+  {
+   "msg": "1-สนทนา",
+   "calls": 0,
+   "detail": []
+  },
+  {
+   "msg": "2-ความสามารถ",
+   "calls": 0,
+   "detail": []
+  },
+  {
+   "msg": "3-อธิบายระบบ",
+   "calls": 0,
+   "detail": []
+  },
+  {
+   "msg": "4-อธิบายAI",
+   "calls": 0,
+   "detail": []
+  },
+  {
+   "msg": "5-ต่อเนื่อง",
+   "calls": 0,
+   "detail": []
+  }
+ ]
+}
