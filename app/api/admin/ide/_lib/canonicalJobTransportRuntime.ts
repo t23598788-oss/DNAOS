@@ -56,7 +56,11 @@ export type CrossRuntimeExecutors = Record<string, (env: CrossRuntimeEnvelope) =
 export const CANONICAL_RUNTIME_EXECUTORS: CrossRuntimeExecutors = {
   "transaction.create": async (env) => {
     const args = env.exec_args as Parameters<typeof createTransaction>[0];
-    const result = await createTransaction(args, env.identity_refs?.line_user_id ?? env.source_runtime);
+    // WAVE 2: the envelope's own idempotency key drives the order number, so a
+    // retried job returns the SAME order instead of creating a second one.
+    const result = await createTransaction(args, env.identity_refs?.line_user_id ?? env.source_runtime, {
+      idempotencyKey: env.idempotency_key,
+    });
     return { result, observed_writes: ["projects", "document_groups", "customer_orders", "customer_sites"] };
   },
 };

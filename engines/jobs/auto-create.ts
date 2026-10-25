@@ -159,6 +159,9 @@ export async function tryAutoCreateJob(db: any, event: AutoCreateEventInput): Pr
       delivery_note: `ผู้ติดต่อหน้างาน: ${event.contact_name ?? "-"} โทร ${event.contact_phone}`,
     },
     "system:jobs:auto-create",
+    // WAVE 2 — one business event produces at most one transaction, even if the
+    // confirm/retry path runs twice (order_no is derived from this key).
+    { idempotencyKey: `job_auto_create:${event.id}` },
   );
   const order = tx.order as { id: string; order_no: string };
 

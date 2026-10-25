@@ -4,6 +4,7 @@ import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase, getTransactionById } from "@/services/supabase/queries"
 import { getTransactionDetail } from "@/services/canonical/transaction-detail"
 import { changeTransactionStatus } from "@/engines/canonical/transaction-write"
+import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -16,6 +17,20 @@ export async function GET(_req: NextRequest, { params }: Params) {
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params
+
+  // Organization scope (WAVE 2): resolve the owning company BEFORE loading the
+  // chain, so a transaction outside scope is never read at all.
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (ctx.companyIds !== null) {
+    const { data: owner } = await supabase()
+      .from("customer_orders")
+      .select("customer_company_id")
+      .eq("id", id)
+      .maybeSingle()
+    if (!isCompanyVisible(ctx, owner?.customer_company_id)) return notFound()
+  }
 
   try {
     const [legacy, canonical] = await Promise.all([getTransactionById(id), getTransactionDetail(id)])

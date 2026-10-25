@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-25T16:37:56.617Z",
+  "generated_at": "2026-10-24T16:16:23.896Z",
   "nodes": [
     {
       "id": "layer:core",
@@ -297,9 +297,10 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [
-        "module:app/OperationalWorkspace.tsx",
-        "module:core/auth/requireAuthPage.ts",
-        "module:core/auth/session.ts"
+        "module:components/public/LineContactButton.tsx",
+        "module:components/public/PublicPriceTable.tsx",
+        "module:core/public-catalog/policy.ts",
+        "module:services/public-catalog/reader.ts"
       ],
       "dependents": [],
       "commands": [],
@@ -319,7 +320,8 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:app/globals.css.ts",
-        "module:components/pwa/PwaRegistration.tsx"
+        "module:components/pwa/PwaRegistration.tsx",
+        "module:config/system-links.ts"
       ],
       "dependents": [],
       "commands": [],
@@ -1087,6 +1089,7 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:engines/validation/dispatcher.ts",
+        "module:registry/permissions.json.ts",
         "module:services/supabase/api-tokens.ts"
       ],
       "dependents": [],
@@ -1395,6 +1398,7 @@
       "dependencies": [
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
+        "module:engines/canonical/transaction-write.ts",
         "module:services/canonical/transaction-detail.ts",
         "module:services/supabase/queries.ts"
       ],
@@ -1417,6 +1421,7 @@
       "dependencies": [
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
+        "module:engines/canonical/transaction-write.ts",
         "module:engines/transactions/state-machine.ts",
         "module:services/supabase/queries.ts"
       ],
@@ -3123,6 +3128,7 @@
         "module:components/documents/DocumentBuilder.tsx",
         "module:components/documents/DocumentPreview.tsx",
         "module:components/transactions/TransactionPanel.tsx",
+        "module:engines/canonical/internal-credit-evidence.ts",
         "module:engines/documents/artifact.ts",
         "module:engines/documents/document-editor.ts",
         "module:engines/documents/flex-template.ts",
@@ -3508,7 +3514,8 @@
       ],
       "dependents": [
         "module:app/api/admin/transactions/[id]/advance/route.ts",
-        "module:app/workspace-preview/presentationGatewayDeps.ts"
+        "module:app/workspace-preview/presentationGatewayDeps.ts",
+        "module:scripts/transaction-status-authority.test.ts"
       ],
       "commands": [],
       "events": [],
@@ -4608,7 +4615,11 @@
       "dependents": [
         "module:app/admin/links/page.tsx",
         "module:app/admin/settings/page.tsx",
-        "module:app/api/admin/workspace/database/route.ts"
+        "module:app/api/admin/workspace/database/route.ts",
+        "module:app/layout.tsx",
+        "module:app/products/[slug]/page.tsx",
+        "module:app/robots.ts",
+        "module:app/sitemap.ts"
       ],
       "commands": [],
       "events": [],
@@ -4720,6 +4731,7 @@
         "module:app/api/explain/route.ts",
         "module:app/api/gateway/observe/github/route.ts",
         "module:app/api/gateway/observe/line/route.ts",
+        "module:app/api/gateway/observe/meta/route.ts",
         "module:app/api/gateway/observe/railway/route.ts",
         "module:app/api/gateway/observe/vercel/route.ts",
         "module:app/api/gateway/proposals/[id]/decide/route.ts",
@@ -4746,6 +4758,7 @@
         "module:engines/canonical/document-write.ts",
         "module:engines/canonical/expense-write.ts",
         "module:engines/canonical/inbound-write.ts",
+        "module:engines/canonical/internal-credit-evidence.ts",
         "module:engines/canonical/payment-write.ts",
         "module:engines/canonical/receipt-confirm-flow.ts",
         "module:engines/canonical/transaction-write.ts",
@@ -4787,6 +4800,7 @@
         "module:services/canonical/transaction-detail.ts",
         "module:services/canonical/transaction-list.ts",
         "module:services/knowledge/client.ts",
+        "module:services/public-catalog/reader.ts",
         "module:services/supabase/realtime.ts",
         "module:services/supabase/state-cache.ts"
       ],
@@ -6031,6 +6045,7 @@
         "module:app/admin/dev-loop/DevLoopDashboard.tsx",
         "module:app/admin/relationships/workspace.tsx",
         "module:app/login/page.tsx",
+        "module:app/register/page.tsx",
         "module:app/workspace/WorkspaceFrame.tsx",
         "module:components/admin/VoiceStandbyWidget.tsx",
         "module:components/admin/useAiTaskPulse.ts",
@@ -6064,6 +6079,7 @@
         "module:app/admin/devices/page.tsx",
         "module:app/admin/ide/page.tsx",
         "module:app/admin/layout.tsx",
+        "module:app/admin/operations/page.tsx",
         "module:app/admin/relationships/[relationshipId]/page.tsx",
         "module:app/admin/relationships/page.tsx",
         "module:app/admin/settings/page.tsx",
@@ -6353,7 +6369,6 @@
         "module:app/business-workspace-template/layout.tsx",
         "module:app/business/layout.tsx",
         "module:app/oauth/authorize/page.tsx",
-        "module:app/page.tsx",
         "module:app/partner/layout.tsx",
         "module:app/user/layout.tsx",
         "module:app/workspace-preview/apps/[appId]/page.tsx",
@@ -6704,6 +6719,7 @@
         "module:app/admin/devices/page.tsx",
         "module:app/admin/ide/page.tsx",
         "module:app/admin/layout.tsx",
+        "module:app/admin/operations/page.tsx",
         "module:app/admin/relationships/[relationshipId]/page.tsx",
         "module:app/admin/relationships/page.tsx",
         "module:app/admin/settings/page.tsx",
@@ -6712,7 +6728,6 @@
         "module:app/business-workspace-template/layout.tsx",
         "module:app/business/layout.tsx",
         "module:app/oauth/authorize/page.tsx",
-        "module:app/page.tsx",
         "module:app/partner/layout.tsx",
         "module:app/user/layout.tsx",
         "module:app/workspace-preview/apps/[appId]/page.tsx",
@@ -9268,6 +9283,7 @@
         "module:app/app/page.tsx",
         "module:app/auth/confirm/route.ts",
         "module:app/login/page.tsx",
+        "module:app/register/page.tsx",
         "module:scripts/auth-access-test.ts"
       ],
       "commands": [],
@@ -11955,7 +11971,8 @@
       ],
       "dependents": [
         "module:app/api/admin/line-customers/[lineUserId]/send-document/route.ts",
-        "module:app/api/internal/line/document-artifact/route.ts"
+        "module:app/api/internal/line/document-artifact/route.ts",
+        "module:engines/canonical/internal-credit-evidence.ts"
       ],
       "commands": [],
       "events": [],
@@ -11997,7 +12014,8 @@
         "module:engines/documents/engine.ts"
       ],
       "dependents": [
-        "module:gateway/document-artifact-storage.ts"
+        "module:gateway/document-artifact-storage.ts",
+        "module:scripts/internal-credit-evidence-integration-test.ts"
       ],
       "commands": [],
       "events": [],
@@ -14274,6 +14292,7 @@
         "module:core/shared/types.ts"
       ],
       "dependents": [
+        "module:app/api/admin/ide/_lib/contextPlannerRuntime.ts",
         "module:app/api/admin/workspace/route.ts",
         "module:engines/governance/hardcode-dependency-context.ts",
         "module:engines/storage/engine.ts",
@@ -15887,6 +15906,7 @@
         "module:app/api/gateway/proposals/route.ts",
         "module:engines/integration-gateway/adapters/github.ts",
         "module:engines/integration-gateway/adapters/line.ts",
+        "module:engines/integration-gateway/adapters/meta.ts",
         "module:engines/integration-gateway/adapters/railway.ts",
         "module:engines/integration-gateway/adapters/supabase.ts",
         "module:engines/integration-gateway/adapters/vercel.ts",
@@ -15896,6 +15916,7 @@
         "module:engines/integration-gateway/policy/gate.ts",
         "module:engines/integration-gateway/selfDescription.ts",
         "module:scripts/check-transitional-layers.ts",
+        "module:scripts/connect-channel-receive.test.ts",
         "module:scripts/connect-inbound-boundary-test.ts",
         "module:scripts/dispatcher-execution-mode-test.ts",
         "module:scripts/railway-adapter-test.ts"
@@ -15928,6 +15949,7 @@
         "module:app/api/admin/provider-settings/[providerId]/request-approval/route.ts",
         "module:app/api/gateway/observe/github/route.ts",
         "module:app/api/gateway/observe/line/route.ts",
+        "module:app/api/gateway/observe/meta/route.ts",
         "module:app/api/gateway/observe/railway/route.ts",
         "module:app/api/gateway/observe/vercel/route.ts",
         "module:app/api/gateway/proposals/route.ts",
@@ -16234,7 +16256,7 @@
         "module:services/supabase/browser.ts"
       ],
       "dependents": [
-        "module:app/page.tsx"
+        "module:app/admin/operations/page.tsx"
       ],
       "commands": [],
       "events": [],
@@ -16538,8 +16560,7 @@
       "provider": "UNKNOWN",
       "dependencies": [
         "module:app/admin/connectors/_lib/types.ts",
-        "module:app/api/admin/ide/_lib/autoSaveRuntime.ts",
-        "module:presentation/shell/ide/TabStrip.tsx"
+        "module:app/api/admin/ide/_lib/autoSaveRuntime.ts"
       ],
       "dependents": [
         "module:app/admin/ide/page.tsx",
@@ -22565,6 +22586,7 @@
         "module:scripts/execution-planner-test.ts",
         "module:scripts/factory-workspace-test.ts",
         "module:scripts/native-factory-flow-test.ts",
+        "module:scripts/semantic-preflight-package-integration-test.ts",
         "module:scripts/vscode-exit-test.ts"
       ],
       "commands": [],
@@ -22668,7 +22690,8 @@
       "dependencies": [
         "module:app/api/admin/ide/_lib/artifactRuntime.ts",
         "module:app/api/admin/ide/_lib/capabilityResolverRuntime.ts",
-        "module:app/api/admin/ide/_lib/fsSecurity.ts"
+        "module:app/api/admin/ide/_lib/fsSecurity.ts",
+        "module:engines/workspace/dependencyRegistry.ts"
       ],
       "dependents": [
         "module:app/api/admin/ide/_lib/aiContextRuntime.ts",
@@ -22688,6 +22711,7 @@
         "module:scripts/context-planner-test.ts",
         "module:scripts/factory-workspace-test.ts",
         "module:scripts/native-factory-flow-test.ts",
+        "module:scripts/semantic-preflight-package-integration-test.ts",
         "module:scripts/switch-based-orchestrator-test.ts",
         "module:scripts/vscode-exit-test.ts"
       ],
@@ -22722,6 +22746,7 @@
         "module:scripts/context-planner-test.ts",
         "module:scripts/factory-workspace-test.ts",
         "module:scripts/native-factory-flow-test.ts",
+        "module:scripts/semantic-preflight-package-integration-test.ts",
         "module:scripts/vscode-exit-test.ts"
       ],
       "commands": [],
@@ -26654,6 +26679,7 @@
         "module:app/api/admin/connectors/providers/route.ts",
         "module:app/api/admin/connectors/route.ts",
         "module:app/api/admin/provider-settings/route.ts",
+        "module:scripts/connect-channel-receive.test.ts",
         "module:scripts/connect-core-acceptance-test.ts",
         "module:scripts/connect-inbound-boundary-test.ts"
       ],
@@ -27046,6 +27072,7 @@
         "module:app/api/admin/documents/[id]/confirm/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/route.ts",
+        "module:engines/canonical/internal-credit-evidence.ts",
         "module:gateway/actions.ts",
         "module:scripts/canonical-finance-acceptance-test.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts",
@@ -27074,6 +27101,8 @@
       "dependents": [
         "module:app/api/admin/documents/route.ts",
         "module:app/api/admin/ide/_lib/canonicalJobTransportRuntime.ts",
+        "module:app/api/admin/transactions/[id]/advance/route.ts",
+        "module:app/api/admin/transactions/[id]/route.ts",
         "module:app/api/admin/transactions/route.ts",
         "module:engines/jobs/auto-create.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts",
@@ -27149,7 +27178,8 @@
       ],
       "dependents": [
         "module:app/api/admin/receipt-documents/route.ts",
-        "module:app/api/internal/connect/inbound-source/route.ts"
+        "module:app/api/internal/connect/inbound-source/route.ts",
+        "module:engines/canonical/internal-credit-evidence.ts"
       ],
       "commands": [],
       "events": [],
@@ -27846,8 +27876,7 @@
         "module:app/admin/line-customers/page.tsx",
         "module:app/admin/relationships/workspace.tsx",
         "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
-        "module:app/admin/ui-gallery/_lib/componentHost.tsx",
-        "module:app/workspace/BusinessWorkspace.tsx"
+        "module:app/admin/ui-gallery/_lib/componentHost.tsx"
       ],
       "commands": [],
       "events": [],
@@ -27870,7 +27899,6 @@
         "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
         "module:app/admin/ui-gallery/_lib/componentHost.tsx",
         "module:app/admin/ui-gallery/visual-review/page.tsx",
-        "module:app/workspace/BusinessWorkspace.tsx",
         "module:presentation/panels/Inspector.tsx",
         "module:presentation/shell/navigation/ListColumn.tsx",
         "module:presentation/table/DataTable.tsx",
@@ -28201,49 +28229,8 @@
       "dependents": [
         "module:app/admin/line-customers/page.tsx",
         "module:app/admin/ui-gallery/_lib/componentHost.tsx",
-        "module:app/workspace/BusinessWorkspace.tsx",
         "module:components/workspace/WorkspaceShell.tsx",
         "module:presentation/shell/AppShell.tsx"
-      ],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
-      "id": "module:presentation/shell/navigation/HomeBackBar.tsx",
-      "name": "presentation/shell/navigation/HomeBackBar.tsx",
-      "type": "Module",
-      "layer": "presentation",
-      "source_file": "presentation/shell/navigation/HomeBackBar.tsx",
-      "status": "OK",
-      "runtime_callable": false,
-      "provider": "UNKNOWN",
-      "dependencies": [],
-      "dependents": [
-        "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
-        "module:app/admin/ui-gallery/_lib/componentHost.tsx"
-      ],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
-      "id": "module:presentation/shell/navigation/AppHeader.tsx",
-      "name": "presentation/shell/navigation/AppHeader.tsx",
-      "type": "Module",
-      "layer": "presentation",
-      "source_file": "presentation/shell/navigation/AppHeader.tsx",
-      "status": "OK",
-      "runtime_callable": false,
-      "provider": "UNKNOWN",
-      "dependencies": [],
-      "dependents": [
-        "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
-        "module:app/admin/ui-gallery/_lib/componentHost.tsx"
       ],
       "commands": [],
       "events": [],
@@ -28645,8 +28632,6 @@
         "module:presentation/shell/AppShell.tsx",
         "module:presentation/shell/PortalShell.tsx",
         "module:presentation/shell/TemplateShell.tsx",
-        "module:presentation/shell/navigation/AppHeader.tsx",
-        "module:presentation/shell/navigation/HomeBackBar.tsx",
         "module:presentation/shell/navigation/IconRail.tsx",
         "module:presentation/shell/navigation/ListColumn.tsx",
         "module:presentation/shell/workspace/DashboardBoard.tsx",
@@ -28691,37 +28676,6 @@
       "cost_source": "UNKNOWN"
     },
     {
-      "id": "module:app/workspace/BusinessWorkspace.tsx",
-      "name": "app/workspace/BusinessWorkspace.tsx",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/workspace/BusinessWorkspace.tsx",
-      "status": "OK",
-      "runtime_callable": false,
-      "provider": "UNKNOWN",
-      "dependencies": [
-        "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
-        "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
-        "module:app/workspace/InboxIndicator.tsx",
-        "module:app/workspace/WorkspaceSettings.tsx",
-        "module:app/workspace/_lib/businessTools.ts",
-        "module:app/workspace/_lib/toolBindings.ts",
-        "module:app/workspace/_lib/workspaceAppearance.ts",
-        "module:presentation/feedback/EmptyState.tsx",
-        "module:presentation/panels/ActionBar.tsx",
-        "module:presentation/shell/ide/TabStrip.tsx",
-        "module:presentation/shell/navigation/IconRail.tsx"
-      ],
-      "dependents": [
-        "module:scripts/workspace-tool-bindings-test.tsx"
-      ],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
       "id": "module:app/business-workspace-template/layout.tsx",
       "name": "app/business-workspace-template/layout.tsx",
       "type": "Module",
@@ -28743,26 +28697,6 @@
       "cost_source": "UNKNOWN"
     },
     {
-      "id": "module:presentation/shell/ide/TabStrip.tsx",
-      "name": "presentation/shell/ide/TabStrip.tsx",
-      "type": "Module",
-      "layer": "presentation",
-      "source_file": "presentation/shell/ide/TabStrip.tsx",
-      "status": "OK",
-      "runtime_callable": false,
-      "provider": "UNKNOWN",
-      "dependencies": [],
-      "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx",
-        "module:components/ide-shell/IDEWorkspace.tsx"
-      ],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
       "id": "module:app/workspace/_lib/businessTools.ts",
       "name": "app/workspace/_lib/businessTools.ts",
       "type": "Module",
@@ -28775,7 +28709,6 @@
         "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts"
       ],
       "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx",
         "module:app/workspace/_lib/jobDisplayModel.ts",
         "module:scripts/workspace-capability-access-test.ts",
         "module:scripts/workspace-job-path-test.ts",
@@ -28908,7 +28841,6 @@
         "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
         "module:app/admin/ui-gallery/business-display/page.tsx",
         "module:app/api/chat/_lib/chatResultTypes.ts",
-        "module:app/workspace/BusinessWorkspace.tsx",
         "module:app/workspace/WorkspaceFrame.tsx",
         "module:app/workspace/_lib/businessTools.ts",
         "module:app/workspace/_lib/jobDisplayModel.ts"
@@ -28952,8 +28884,6 @@
         "module:presentation/shell/AppShell.tsx",
         "module:presentation/shell/PortalShell.tsx",
         "module:presentation/shell/TemplateShell.tsx",
-        "module:presentation/shell/navigation/AppHeader.tsx",
-        "module:presentation/shell/navigation/HomeBackBar.tsx",
         "module:presentation/shell/navigation/ListColumn.tsx",
         "module:presentation/shell/workspace/DashboardBoard.tsx",
         "module:presentation/table/DataTable.tsx",
@@ -29009,7 +28939,6 @@
       ],
       "dependents": [
         "module:app/admin/ui-gallery/business-display/page.tsx",
-        "module:app/workspace/BusinessWorkspace.tsx",
         "module:app/workspace/WorkspaceFrame.tsx"
       ],
       "commands": [],
@@ -29817,53 +29746,10 @@
       "runtime_callable": true,
       "provider": "UNKNOWN",
       "dependencies": [
-        "module:app/workspace/BusinessWorkspace.tsx",
         "module:app/workspace/_lib/businessTools.ts",
-        "module:app/workspace/_lib/toolBindings.ts",
-        "module:app/workspace/_lib/workspaceAppearance.ts"
-      ],
-      "dependents": [],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
-      "id": "module:app/workspace/WorkspaceSettings.tsx",
-      "name": "app/workspace/WorkspaceSettings.tsx",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/workspace/WorkspaceSettings.tsx",
-      "status": "OK",
-      "runtime_callable": false,
-      "provider": "UNKNOWN",
-      "dependencies": [
         "module:app/workspace/_lib/toolBindings.ts"
       ],
-      "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx"
-      ],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
-      "id": "module:app/workspace/_lib/workspaceAppearance.ts",
-      "name": "app/workspace/_lib/workspaceAppearance.ts",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/workspace/_lib/workspaceAppearance.ts",
-      "status": "OK",
-      "runtime_callable": false,
-      "provider": "UNKNOWN",
-      "dependencies": [],
-      "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx",
-        "module:scripts/workspace-tool-bindings-test.tsx"
-      ],
+      "dependents": [],
       "commands": [],
       "events": [],
       "capabilities": [],
@@ -29881,8 +29767,6 @@
       "provider": "UNKNOWN",
       "dependencies": [],
       "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx",
-        "module:app/workspace/WorkspaceSettings.tsx",
         "module:scripts/auth-access-test.ts",
         "module:scripts/workspace-tool-bindings-test.tsx"
       ],
@@ -30515,25 +30399,6 @@
       "dependencies": [],
       "dependents": [
         "module:app/layout.tsx"
-      ],
-      "commands": [],
-      "events": [],
-      "capabilities": [],
-      "health": "OK",
-      "cost_source": "UNKNOWN"
-    },
-    {
-      "id": "module:app/workspace/InboxIndicator.tsx",
-      "name": "app/workspace/InboxIndicator.tsx",
-      "type": "Module",
-      "layer": "app",
-      "source_file": "app/workspace/InboxIndicator.tsx",
-      "status": "OK",
-      "runtime_callable": false,
-      "provider": "UNKNOWN",
-      "dependencies": [],
-      "dependents": [
-        "module:app/workspace/BusinessWorkspace.tsx"
       ],
       "commands": [],
       "events": [],
@@ -31201,6 +31066,431 @@
         "module:app/api/chat/_lib/resultContract.ts",
         "module:app/api/chat/route.ts",
         "module:app/workspace/WorkspaceFrame.tsx"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/ui-baseline-guard.ts",
+      "name": "scripts/ui-baseline-guard.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/ui-baseline-guard.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:engines/integration-gateway/adapters/meta.ts",
+      "name": "engines/integration-gateway/adapters/meta.ts",
+      "type": "Module",
+      "layer": "engines",
+      "source_file": "engines/integration-gateway/adapters/meta.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:engines/integration-gateway/contracts/event.ts"
+      ],
+      "dependents": [
+        "module:app/api/gateway/observe/meta/route.ts",
+        "module:scripts/connect-channel-receive.test.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/gateway/observe/meta/route.ts",
+      "name": "app/api/gateway/observe/meta/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/gateway/observe/meta/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:engines/integration-gateway/adapters/meta.ts",
+        "module:engines/integration-gateway/event-bus/bus.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/semantic-preflight-package-integration-test.ts",
+      "name": "scripts/semantic-preflight-package-integration-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/semantic-preflight-package-integration-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/api/admin/ide/_lib/capabilityResolverRuntime.ts",
+        "module:app/api/admin/ide/_lib/contextPlannerRuntime.ts",
+        "module:app/api/admin/ide/_lib/intentRuntime.ts",
+        "module:external-packages/semantic-preflight/src/index.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/internal-credit-evidence-integration-test.ts",
+      "name": "scripts/internal-credit-evidence-integration-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/internal-credit-evidence-integration-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:engines/canonical/internal-credit-evidence.ts",
+        "module:engines/documents/artifact.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:engines/canonical/internal-credit-evidence.ts",
+      "name": "engines/canonical/internal-credit-evidence.ts",
+      "type": "Module",
+      "layer": "engines",
+      "source_file": "engines/canonical/internal-credit-evidence.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:engines/canonical/document-write.ts",
+        "module:engines/canonical/inbound-write.ts",
+        "module:engines/documents/engine.ts",
+        "module:gateway/document-artifact-storage.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:scripts/internal-credit-evidence-integration-test.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/register/page.tsx",
+      "name": "app/register/page.tsx",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/register/page.tsx",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:core/auth/resolveDestination.ts",
+        "module:services/supabase/browser.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/sitemap.ts",
+      "name": "app/sitemap.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/sitemap.ts",
+      "status": "UNUSED",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:config/system-links.ts",
+        "module:registry/permissions.json.ts",
+        "module:services/public-catalog/reader.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "UNUSED",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/robots.ts",
+      "name": "app/robots.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/robots.ts",
+      "status": "UNUSED",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:config/system-links.ts",
+        "module:registry/permissions.json.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "UNUSED",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/public-catalog-policy-test.ts",
+      "name": "scripts/public-catalog-policy-test.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "source_file": "scripts/public-catalog-policy-test.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:core/public-catalog/policy.ts",
+        "module:core/public-catalog/structured-data.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:core/public-catalog/structured-data.ts",
+      "name": "core/public-catalog/structured-data.ts",
+      "type": "Module",
+      "layer": "core",
+      "source_file": "core/public-catalog/structured-data.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:core/public-catalog/policy.ts"
+      ],
+      "dependents": [
+        "module:app/products/[slug]/page.tsx",
+        "module:scripts/public-catalog-policy-test.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:core/public-catalog/policy.ts",
+      "name": "core/public-catalog/policy.ts",
+      "type": "Module",
+      "layer": "core",
+      "source_file": "core/public-catalog/policy.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:app/api/public/products/route.ts",
+        "module:app/page.tsx",
+        "module:app/products/catalog/page.tsx",
+        "module:components/public/PublicPriceTable.tsx",
+        "module:core/public-catalog/structured-data.ts",
+        "module:scripts/public-catalog-policy-test.ts",
+        "module:services/public-catalog/reader.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/products/catalog/page.tsx",
+      "name": "app/products/catalog/page.tsx",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/products/catalog/page.tsx",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:core/public-catalog/policy.ts",
+        "module:services/public-catalog/reader.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/products/[slug]/page.tsx",
+      "name": "app/products/[slug]/page.tsx",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/products/[slug]/page.tsx",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:config/system-links.ts",
+        "module:core/public-catalog/structured-data.ts",
+        "module:services/public-catalog/reader.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/public/products/route.ts",
+      "name": "app/api/public/products/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/public/products/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:core/public-catalog/policy.ts",
+        "module:services/public-catalog/reader.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/api/public/products/[slug]/route.ts",
+      "name": "app/api/public/products/[slug]/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/api/public/products/[slug]/route.ts",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:services/public-catalog/reader.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:services/public-catalog/reader.ts",
+      "name": "services/public-catalog/reader.ts",
+      "type": "Module",
+      "layer": "services",
+      "source_file": "services/public-catalog/reader.ts",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:core/public-catalog/policy.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:app/api/public/products/[slug]/route.ts",
+        "module:app/api/public/products/route.ts",
+        "module:app/page.tsx",
+        "module:app/products/[slug]/page.tsx",
+        "module:app/products/catalog/page.tsx",
+        "module:app/sitemap.ts"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:components/public/LineContactButton.tsx",
+      "name": "components/public/LineContactButton.tsx",
+      "type": "Module",
+      "layer": "components",
+      "source_file": "components/public/LineContactButton.tsx",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [],
+      "dependents": [
+        "module:app/page.tsx",
+        "module:components/public/PublicPriceTable.tsx"
+      ],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:app/admin/operations/page.tsx",
+      "name": "app/admin/operations/page.tsx",
+      "type": "Module",
+      "layer": "app",
+      "source_file": "app/admin/operations/page.tsx",
+      "status": "OK",
+      "runtime_callable": true,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:app/OperationalWorkspace.tsx",
+        "module:core/auth/requireAuthPage.ts",
+        "module:core/auth/session.ts"
+      ],
+      "dependents": [],
+      "commands": [],
+      "events": [],
+      "capabilities": [],
+      "health": "OK",
+      "cost_source": "UNKNOWN"
+    },
+    {
+      "id": "module:components/public/PublicPriceTable.tsx",
+      "name": "components/public/PublicPriceTable.tsx",
+      "type": "Module",
+      "layer": "components",
+      "source_file": "components/public/PublicPriceTable.tsx",
+      "status": "OK",
+      "runtime_callable": false,
+      "provider": "UNKNOWN",
+      "dependencies": [
+        "module:components/public/LineContactButton.tsx",
+        "module:core/public-catalog/policy.ts"
+      ],
+      "dependents": [
+        "module:app/page.tsx"
       ],
       "commands": [],
       "events": [],
@@ -38247,6 +38537,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/admin/operations/page.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/admin/page.tsx",
       "type": "governed_by"
     },
@@ -40317,6 +40612,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/gateway/observe/meta/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/gateway/observe/railway/route.ts",
       "type": "governed_by"
     },
@@ -40418,6 +40718,16 @@
     {
       "source": "layer:app",
       "target": "module:app/api/oauth/authorize/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/public/products/[slug]/route.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/public/products/route.ts",
       "type": "governed_by"
     },
     {
@@ -40682,6 +40992,16 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/products/[slug]/page.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/products/catalog/page.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/products/loading.tsx",
       "type": "governed_by"
     },
@@ -40692,12 +41012,27 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/register/page.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/report/loading.tsx",
       "type": "governed_by"
     },
     {
       "source": "layer:app",
       "target": "module:app/report/page.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/robots.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/sitemap.ts",
       "type": "governed_by"
     },
     {
@@ -40797,22 +41132,7 @@
     },
     {
       "source": "layer:app",
-      "target": "module:app/workspace/BusinessWorkspace.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/workspace/InboxIndicator.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
       "target": "module:app/workspace/WorkspaceFrame.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/workspace/WorkspaceSettings.tsx",
       "type": "governed_by"
     },
     {
@@ -40828,11 +41148,6 @@
     {
       "source": "layer:app",
       "target": "module:app/workspace/_lib/toolBindings.ts",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/workspace/_lib/workspaceAppearance.ts",
       "type": "governed_by"
     },
     {
@@ -41102,6 +41417,16 @@
     },
     {
       "source": "layer:components",
+      "target": "module:components/public/LineContactButton.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:components",
+      "target": "module:components/public/PublicPriceTable.tsx",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:components",
       "target": "module:components/pwa/PwaRegistration.tsx",
       "type": "governed_by"
     },
@@ -41283,6 +41608,16 @@
     {
       "source": "layer:core",
       "target": "module:core/policy/scope.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:core",
+      "target": "module:core/public-catalog/policy.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:core",
+      "target": "module:core/public-catalog/structured-data.ts",
       "type": "governed_by"
     },
     {
@@ -41662,6 +41997,11 @@
     },
     {
       "source": "layer:engines",
+      "target": "module:engines/canonical/internal-credit-evidence.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:engines",
       "target": "module:engines/canonical/payment-write.ts",
       "type": "governed_by"
     },
@@ -41918,6 +42258,11 @@
     {
       "source": "layer:engines",
       "target": "module:engines/integration-gateway/adapters/line.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/integration-gateway/adapters/meta.ts",
       "type": "governed_by"
     },
     {
@@ -42777,21 +43122,6 @@
     },
     {
       "source": "layer:presentation",
-      "target": "module:presentation/shell/ide/TabStrip.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:presentation",
-      "target": "module:presentation/shell/navigation/AppHeader.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:presentation",
-      "target": "module:presentation/shell/navigation/HomeBackBar.tsx",
-      "type": "governed_by"
-    },
-    {
-      "source": "layer:presentation",
       "target": "module:presentation/shell/navigation/IconRail.tsx",
       "type": "governed_by"
     },
@@ -43532,6 +43862,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/internal-credit-evidence-integration-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/job-contract-cross-runtime-test.ts",
       "type": "governed_by"
     },
@@ -43652,6 +43987,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/public-catalog-policy-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/pwa-install-test.ts",
       "type": "governed_by"
     },
@@ -43737,6 +44077,11 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/semantic-preflight-package-integration-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/settings-real-wiring-test.ts",
       "type": "governed_by"
     },
@@ -43788,6 +44133,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/tool-scope-test.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/ui-baseline-guard.ts",
       "type": "governed_by"
     },
     {
@@ -43973,6 +44323,11 @@
     {
       "source": "layer:services",
       "target": "module:services/middleware/sanitize.ts",
+      "type": "governed_by"
+    },
+    {
+      "source": "layer:services",
+      "target": "module:services/public-catalog/reader.ts",
       "type": "governed_by"
     },
     {
@@ -44726,6 +45081,21 @@
       "type": "imports"
     },
     {
+      "source": "module:app/admin/operations/page.tsx",
+      "target": "module:app/OperationalWorkspace.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/admin/operations/page.tsx",
+      "target": "module:core/auth/requireAuthPage.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/admin/operations/page.tsx",
+      "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/admin/partners/[id]/page.tsx",
       "target": "module:core/shared/types.ts",
       "type": "imports"
@@ -45077,16 +45447,6 @@
     },
     {
       "source": "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
-      "target": "module:presentation/shell/navigation/AppHeader.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
-      "target": "module:presentation/shell/navigation/HomeBackBar.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
       "target": "module:presentation/shell/navigation/ListColumn.tsx",
       "type": "imports"
     },
@@ -45278,16 +45638,6 @@
     {
       "source": "module:app/admin/ui-gallery/_lib/componentHost.tsx",
       "target": "module:presentation/shell/TemplateShell.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/ui-gallery/_lib/componentHost.tsx",
-      "target": "module:presentation/shell/navigation/AppHeader.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/admin/ui-gallery/_lib/componentHost.tsx",
-      "target": "module:presentation/shell/navigation/HomeBackBar.tsx",
       "type": "imports"
     },
     {
@@ -46963,6 +47313,11 @@
     {
       "source": "module:app/api/admin/ide/_lib/contextPlannerRuntime.ts",
       "target": "module:app/api/admin/ide/_lib/fsSecurity.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/ide/_lib/contextPlannerRuntime.ts",
+      "target": "module:engines/workspace/dependencyRegistry.ts",
       "type": "imports"
     },
     {
@@ -52062,6 +52417,11 @@
     },
     {
       "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
+      "target": "module:engines/canonical/transaction-write.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/advance/route.ts",
       "target": "module:engines/transactions/state-machine.ts",
       "type": "imports"
     },
@@ -52078,6 +52438,11 @@
     {
       "source": "module:app/api/admin/transactions/[id]/route.ts",
       "target": "module:core/auth/session.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/admin/transactions/[id]/route.ts",
+      "target": "module:engines/canonical/transaction-write.ts",
       "type": "imports"
     },
     {
@@ -52601,6 +52966,21 @@
       "type": "imports"
     },
     {
+      "source": "module:app/api/gateway/observe/meta/route.ts",
+      "target": "module:engines/integration-gateway/adapters/meta.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/gateway/observe/meta/route.ts",
+      "target": "module:engines/integration-gateway/event-bus/bus.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/gateway/observe/meta/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/api/gateway/observe/railway/route.ts",
       "target": "module:engines/integration-gateway/adapters/railway.ts",
       "type": "imports"
@@ -52896,6 +53276,21 @@
       "type": "imports"
     },
     {
+      "source": "module:app/api/public/products/[slug]/route.ts",
+      "target": "module:services/public-catalog/reader.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/public/products/route.ts",
+      "target": "module:core/public-catalog/policy.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/public/products/route.ts",
+      "target": "module:services/public-catalog/reader.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/api/reader/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "type": "imports"
@@ -53122,6 +53517,11 @@
     },
     {
       "source": "module:app/api/v1/query/route.ts",
+      "target": "module:registry/permissions.json.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/api/v1/query/route.ts",
       "target": "module:services/supabase/api-tokens.ts",
       "type": "imports"
     },
@@ -53266,6 +53666,11 @@
       "type": "imports"
     },
     {
+      "source": "module:app/layout.tsx",
+      "target": "module:config/system-links.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/login/page.tsx",
       "target": "module:core/auth/resolveDestination.ts",
       "type": "imports"
@@ -53402,17 +53807,22 @@
     },
     {
       "source": "module:app/page.tsx",
-      "target": "module:app/OperationalWorkspace.tsx",
+      "target": "module:components/public/LineContactButton.tsx",
       "type": "imports"
     },
     {
       "source": "module:app/page.tsx",
-      "target": "module:core/auth/requireAuthPage.ts",
+      "target": "module:components/public/PublicPriceTable.tsx",
       "type": "imports"
     },
     {
       "source": "module:app/page.tsx",
-      "target": "module:core/auth/session.ts",
+      "target": "module:core/public-catalog/policy.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/page.tsx",
+      "target": "module:services/public-catalog/reader.ts",
       "type": "imports"
     },
     {
@@ -53521,6 +53931,31 @@
       "type": "imports"
     },
     {
+      "source": "module:app/products/[slug]/page.tsx",
+      "target": "module:config/system-links.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/products/[slug]/page.tsx",
+      "target": "module:core/public-catalog/structured-data.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/products/[slug]/page.tsx",
+      "target": "module:services/public-catalog/reader.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/products/catalog/page.tsx",
+      "target": "module:core/public-catalog/policy.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/products/catalog/page.tsx",
+      "target": "module:services/public-catalog/reader.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:app/products/loading.tsx",
       "target": "module:presentation/feedback/CapabilitySkeleton.tsx",
       "type": "imports"
@@ -53533,6 +53968,16 @@
     {
       "source": "module:app/products/page.tsx",
       "target": "module:registry/portals.json.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/register/page.tsx",
+      "target": "module:core/auth/resolveDestination.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/register/page.tsx",
+      "target": "module:services/supabase/browser.ts",
       "type": "imports"
     },
     {
@@ -53568,6 +54013,31 @@
     {
       "source": "module:app/report/page.tsx",
       "target": "module:registry/rule-coverage.json.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/robots.ts",
+      "target": "module:config/system-links.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/robots.ts",
+      "target": "module:registry/permissions.json.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/sitemap.ts",
+      "target": "module:config/system-links.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/sitemap.ts",
+      "target": "module:registry/permissions.json.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:app/sitemap.ts",
+      "target": "module:services/public-catalog/reader.ts",
       "type": "imports"
     },
     {
@@ -53996,61 +54466,6 @@
       "type": "imports"
     },
     {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/admin/ui-gallery/_lib/businessDisplayModel.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/workspace/InboxIndicator.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/workspace/WorkspaceSettings.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/workspace/_lib/businessTools.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/workspace/_lib/toolBindings.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:app/workspace/_lib/workspaceAppearance.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:presentation/feedback/EmptyState.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:presentation/panels/ActionBar.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:presentation/shell/ide/TabStrip.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/BusinessWorkspace.tsx",
-      "target": "module:presentation/shell/navigation/IconRail.tsx",
-      "type": "imports"
-    },
-    {
       "source": "module:app/workspace/WorkspaceFrame.tsx",
       "target": "module:app/admin/ui-gallery/_lib/BusinessDisplayRenderer.tsx",
       "type": "imports"
@@ -54098,11 +54513,6 @@
     {
       "source": "module:app/workspace/WorkspaceFrame.tsx",
       "target": "module:services/supabase/browser.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:app/workspace/WorkspaceSettings.tsx",
-      "target": "module:app/workspace/_lib/toolBindings.ts",
       "type": "imports"
     },
     {
@@ -54721,13 +55131,18 @@
       "type": "imports"
     },
     {
-      "source": "module:components/ide-shell/IDEWorkspace.tsx",
-      "target": "module:presentation/shell/ide/TabStrip.tsx",
+      "source": "module:components/line/ContactSettingsModal.tsx",
+      "target": "module:registry/contact-settings-categories.ts",
       "type": "imports"
     },
     {
-      "source": "module:components/line/ContactSettingsModal.tsx",
-      "target": "module:registry/contact-settings-categories.ts",
+      "source": "module:components/public/PublicPriceTable.tsx",
+      "target": "module:components/public/LineContactButton.tsx",
+      "type": "imports"
+    },
+    {
+      "source": "module:components/public/PublicPriceTable.tsx",
+      "target": "module:core/public-catalog/policy.ts",
       "type": "imports"
     },
     {
@@ -55053,6 +55468,11 @@
     {
       "source": "module:core/policy/scope.ts",
       "target": "module:registry/permissions.json.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:core/public-catalog/structured-data.ts",
+      "target": "module:core/public-catalog/policy.ts",
       "type": "imports"
     },
     {
@@ -56206,6 +56626,31 @@
       "type": "imports"
     },
     {
+      "source": "module:engines/canonical/internal-credit-evidence.ts",
+      "target": "module:engines/canonical/document-write.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:engines/canonical/internal-credit-evidence.ts",
+      "target": "module:engines/canonical/inbound-write.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:engines/canonical/internal-credit-evidence.ts",
+      "target": "module:engines/documents/engine.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:engines/canonical/internal-credit-evidence.ts",
+      "target": "module:gateway/document-artifact-storage.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:engines/canonical/internal-credit-evidence.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:engines/canonical/payment-write.ts",
       "target": "module:services/supabase/queries.ts",
       "type": "imports"
@@ -56812,6 +57257,11 @@
     },
     {
       "source": "module:engines/integration-gateway/adapters/line.ts",
+      "target": "module:engines/integration-gateway/contracts/event.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:engines/integration-gateway/adapters/meta.ts",
       "target": "module:engines/integration-gateway/contracts/event.ts",
       "type": "imports"
     },
@@ -57488,6 +57938,31 @@
     {
       "source": "module:engines/workspace/snapshotStore.ts",
       "target": "module:registry/hardcode-governance/forbidden-hardcode-patterns.json.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:external-packages/semantic-preflight/src/index.ts",
+      "target": "module:external-packages/semantic-preflight/src/types.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:external-packages/semantic-preflight/src/index.ts",
+      "target": "module:external-packages/semantic-preflight/src/types.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:external-packages/semantic-preflight/src/index.ts",
+      "target": "module:external-packages/semantic-preflight/src/types.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:external-packages/semantic-preflight/test/semanticPreflightPackage.test.ts",
+      "target": "module:external-packages/semantic-preflight/src/index.js.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:external-packages/semantic-preflight/test/semanticPreflightPackage.test.ts",
+      "target": "module:external-packages/semantic-preflight/src/index.js.ts",
       "type": "imports"
     },
     {
@@ -59256,6 +59731,26 @@
       "type": "imports"
     },
     {
+      "source": "module:scripts/connect-channel-receive.test.ts",
+      "target": "module:engines/connectors/registry.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/connect-channel-receive.test.ts",
+      "target": "module:engines/integration-gateway/adapters/meta.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/connect-channel-receive.test.ts",
+      "target": "module:engines/integration-gateway/contracts/event.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/connect-channel-receive.test.ts",
+      "target": "module:local-runtime/connect-inbound.mjs.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:scripts/connect-core-acceptance-test.ts",
       "target": "module:app/api/admin/connectors/_lib/connectRuntime.ts",
       "type": "imports"
@@ -60041,6 +60536,16 @@
       "type": "imports"
     },
     {
+      "source": "module:scripts/internal-credit-evidence-integration-test.ts",
+      "target": "module:engines/canonical/internal-credit-evidence.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/internal-credit-evidence-integration-test.ts",
+      "target": "module:engines/documents/artifact.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:scripts/job-contract-cross-runtime-test.ts",
       "target": "module:app/api/admin/ide/_lib/canonicalJobTransportRuntime.ts",
       "type": "imports"
@@ -60278,6 +60783,16 @@
     {
       "source": "module:scripts/place-discovery-test.ts",
       "target": "module:engines/place-discovery.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/public-catalog-policy-test.ts",
+      "target": "module:core/public-catalog/policy.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/public-catalog-policy-test.ts",
+      "target": "module:core/public-catalog/structured-data.ts",
       "type": "imports"
     },
     {
@@ -60561,6 +61076,26 @@
       "type": "imports"
     },
     {
+      "source": "module:scripts/semantic-preflight-package-integration-test.ts",
+      "target": "module:app/api/admin/ide/_lib/capabilityResolverRuntime.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/semantic-preflight-package-integration-test.ts",
+      "target": "module:app/api/admin/ide/_lib/contextPlannerRuntime.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/semantic-preflight-package-integration-test.ts",
+      "target": "module:app/api/admin/ide/_lib/intentRuntime.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/semantic-preflight-package-integration-test.ts",
+      "target": "module:external-packages/semantic-preflight/src/index.ts",
+      "type": "imports"
+    },
+    {
       "source": "module:scripts/settings-real-wiring-test.ts",
       "target": "module:app/api/admin/ide/_lib/artifactRuntime.ts",
       "type": "imports"
@@ -60678,6 +61213,11 @@
     {
       "source": "module:scripts/tool-scope-test.ts",
       "target": "module:core/policy/scope.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:scripts/transaction-status-authority.test.ts",
+      "target": "module:engines/transactions/state-machine.ts",
       "type": "imports"
     },
     {
@@ -60937,22 +61477,12 @@
     },
     {
       "source": "module:scripts/workspace-tool-bindings-test.tsx",
-      "target": "module:app/workspace/BusinessWorkspace.tsx",
-      "type": "imports"
-    },
-    {
-      "source": "module:scripts/workspace-tool-bindings-test.tsx",
       "target": "module:app/workspace/_lib/businessTools.ts",
       "type": "imports"
     },
     {
       "source": "module:scripts/workspace-tool-bindings-test.tsx",
       "target": "module:app/workspace/_lib/toolBindings.ts",
-      "type": "imports"
-    },
-    {
-      "source": "module:scripts/workspace-tool-bindings-test.tsx",
-      "target": "module:app/workspace/_lib/workspaceAppearance.ts",
       "type": "imports"
     },
     {
@@ -61107,6 +61637,16 @@
     },
     {
       "source": "module:services/knowledge/client.ts",
+      "target": "module:services/supabase/queries.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:services/public-catalog/reader.ts",
+      "target": "module:core/public-catalog/policy.ts",
+      "type": "imports"
+    },
+    {
+      "source": "module:services/public-catalog/reader.ts",
       "target": "module:services/supabase/queries.ts",
       "type": "imports"
     },
@@ -63312,9 +63852,9 @@
     }
   ],
   "summary": {
-    "total_nodes": 1722,
-    "total_edges": 5094,
-    "modules": 1323,
+    "total_nodes": 1735,
+    "total_edges": 5144,
+    "modules": 1336,
     "layers": 9,
     "commands": 99,
     "events": 60,
@@ -63323,10 +63863,10 @@
     "drivers": 11,
     "connector_stages": 5,
     "module_health": {
-      "total": 1323,
-      "ok": 1323,
+      "total": 1336,
+      "ok": 1334,
       "broken": 0,
-      "unused": 0,
+      "unused": 2,
       "unregistered": 0
     },
     "registry_completeness_pct": 0.92,
@@ -63338,7 +63878,7 @@
     "unknown_field_counts": {
       "nodes_with_unknown_source_file": 82,
       "nodes_with_unknown_status": 159,
-      "nodes_with_unknown_provider": 1698
+      "nodes_with_unknown_provider": 1711
     },
     "unknown_dimensions": [
       "ai_model_registry",

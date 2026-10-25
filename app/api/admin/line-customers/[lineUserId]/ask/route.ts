@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
+import { runWithDataScope } from "@/core/authority/data-scope-context"
+import { resolveSessionDataScope } from "@/engines/authority/session-scope"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { resolveMaterial, type MaterialTypeRow } from "@/engines/material-resolver"
 import { tryQuoteMaterialPrice } from "@/engines/quote-price"
@@ -93,11 +95,14 @@ export async function POST(req: NextRequest, { params }: Params) {
   // entirely for this contact's financial documents instead of relying on
   // AI name-matching against whatever the question text says.
   const companyId = (link as any)?.company_id ?? null
-  const result = await runCognitivePipeline(
-    question,
-    contextLines.join("\n"),
-    lineUserId,
-    companyId ? { id: String(companyId), name: companyName ?? "" } : null,
+  const scope = await resolveSessionDataScope(auth)
+  const result = await runWithDataScope(scope, () =>
+    runCognitivePipeline(
+      question,
+      contextLines.join("\n"),
+      lineUserId,
+      companyId ? { id: String(companyId), name: companyName ?? "" } : null,
+    ),
   )
   return NextResponse.json(result)
 }

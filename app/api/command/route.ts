@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/core/auth/requireAuth";
+import { ADMIN_TIER } from "@/core/auth/session";
+import { runWithDataScope } from "@/core/authority/data-scope-context";
+import { resolveSessionDataScope } from "@/engines/authority/session-scope";
 import { runCognitivePipeline } from "@/cognitive/pipeline";
 import { getDisplayState, setDisplayState, type DisplayState } from "@/services/supabase/state-cache";
 
@@ -8,11 +11,14 @@ type PipelineResult = Awaited<ReturnType<typeof runCognitivePipeline>>;
 // Real, live security fix (TASK-001, registry/CHANGELOG.json DNA-000070): this
 // route was completely unauthenticated — any unauthenticated request could
 // trigger the real cognitive command pipeline (runCognitivePipeline), which
-// can perform real business actions. requireAuth() with no arguments defaults
-// to ANY_AUTHENTICATED (any real logged-in role) — the same default the
-// function itself declares, not a narrower guess with no evidence behind it.
+// can perform real business actions.
+//
+// STEP 1 (2026-10-25): the previous guard accepted ANY authenticated role,
+// including `customer`, while the pipeline dispatches tenant-wide reads
+// (partner.list/debt.*). This route is a control surface, so it now requires
+// the admin tier AND runs the pipeline inside the caller's verified DataScope.
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth();
+  const auth = await requireAuth(ADMIN_TIER);
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -20,7 +26,8 @@ export async function POST(request: NextRequest) {
     let state: DisplayState;
 
     if (body.userCommand) {
-      const result = await runCognitivePipeline(body.userCommand);
+      const scope = await resolveSessionDataScope(auth);
+      const result = await runWithDataScope(scope, () => runCognitivePipeline(body.userCommand));
       state = toDisplayState(result);
     } else if (body.command) {
       state = { activeView: body.command, data: body.payload || {} };

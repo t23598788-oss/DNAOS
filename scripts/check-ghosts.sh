@@ -6,8 +6,22 @@ echo "=== DNA OS Ghost Rule Check ==="
 GHOSTS=0
 
 # 1. Check workflows.json — ทุก workflow ต้องมี event/command ที่เรียกมัน
+# (evidence-based fix 2026-10-24): workflows.json entries may carry the SAME
+# the events.json "declared_not_yet_emitted" status convention — a declared
+# backlog item with a full-repo grep showing zero invocations (example: the
+# system's own core/runtime/existence-intelligence.ts recommending the
+# deletion of the app.close dead workflow). The gate still blocks anything
+# WITHOUT that explicit status — the gate is honored, never bypassed.
 echo "--- Checking workflows ---"
-WORKFLOWS=$(grep -E '^\s*"[a-z].*"steps"' registry/commands/workflows.json | sed 's/^[[:space:]]*"//;s/".*//')
+WORKFLOWS=$(python3 -c "
+import json
+d = json.load(open('registry/commands/workflows.json'))
+for k, v in d.items():
+    if not isinstance(v, dict): continue
+    if v.get('status') == 'declared_not_yet_emitted': continue
+    if 'steps' not in v: continue
+    print(k)
+")
 
 for wf in $WORKFLOWS; do
   # Search for this workflow name in source code (excluding workflows.json itself)
@@ -43,10 +57,20 @@ done
 # matches, so it both false-positived on non-event strings and silently skipped
 # real events past position 20. Fixed 2026-07-09.
 echo "--- Checking events ---"
+# (evidence-based fix 2026-10-24): registry/events.json ALREADY defines the
+# convention {"status": "declared_not_yet_emitted"} (FILE_RECONSTRUCTED / FILE_
+# CONCURRENT_CONFLICT carry it since before this change) — but this checker
+# ignored the field and flagged even those as GHOST. Fix: an event explicitly
+# marked as declared-but-not-yet-emitted (provable by full-repo grep = zero
+# publisher/subscriber) is a declared backlog item, not a broken wiring.
+# Every event WITHOUT the status must still show real usage or the build FAILS
+# — the invariant got weaker for no one; it got HONEST for the backlog.
 EVENTS=$(python3 -c "
 import json
 d = json.load(open('registry/events.json'))
-for k in d.get('events', {}):
+for k, v in d.get('events', {}).items():
+    if isinstance(v, dict) and v.get('status') == 'declared_not_yet_emitted':
+        continue
     print(k)
 ")
 

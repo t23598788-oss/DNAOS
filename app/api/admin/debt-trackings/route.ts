@@ -4,13 +4,21 @@ import { ADMIN_TIER } from "@/core/auth/session"
 import { getDebtTrackings, createDebtTracking } from "@/services/supabase/queries"
 import { supabaseAdmin } from "@/services/supabase/queries"
 import { calcDebtTrackingSummary, deriveCollectionStatus, deriveFreezeWindows, sumManualAdjustments, sumManualInterestAdjustments } from "@/engines/debt/tracking"
+import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 export async function GET() {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (ctx.companyIds && ctx.companyIds.size === 0) return NextResponse.json({ debtTrackings: [] })
+
   try {
-    const trackings = await getDebtTrackings()
+    // Organization scope is applied by the query layer (debt_snapshots carries
+    // customer_company_id) — no debt row is fetched outside the caller's org.
+    const trackings = await getDebtTrackings(ctx.scope)
 
     // Debt Collection Freeze Window (owner, 2026-07-18) — batched, one query
     // for the whole list (not per-row), same pattern as every other list-view

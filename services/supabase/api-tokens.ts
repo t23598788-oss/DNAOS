@@ -10,9 +10,22 @@ import { createClient } from "@supabase/supabase-js";
 // Exported (2026-08-04, AI Connection Stage 1) so services/ai-connection/*
 // reuses this exact client construction instead of duplicating it — same
 // service-role posture, one definition.
+export class MissingServiceRoleKeyError extends Error {
+  constructor() {
+    super("SUPABASE_SERVICE_ROLE_KEY is not set — api_tokens table is unreachable");
+    this.name = "MissingServiceRoleKeyError";
+  }
+}
+
 export function serviceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Fail LOUD but typed (2026-10-24 real-incident fix): when the service-role
+  // key is absent (local dev without .env.local secret, drained runtime), the
+  // old `!` hand-fed `undefined` into createClient which threw an opaque
+  // error the caller surfaced to AI clients as a raw 500. Now the ONE miss
+  // is a typed, catchable error every route can translate into a clean 503.
+  if (!url || !key) throw new MissingServiceRoleKeyError();
   return createClient(url, key, { auth: { persistSession: false } });
 }
 
@@ -149,4 +162,39 @@ export async function revokeApiToken(id: string, email: string): Promise<void> {
     .eq("user_email", email); // guard: เจ้าของเท่านั้น
 
   if (error) throw new Error(error.message);
+}
+
+/**
+ * Token → caller PROFILE ROLE (server-side authority, 2026-10-24).
+ *
+ * พิสูจน์แล้วจาก source เดิม: POST /api/admin/api-tokens ใช้ requireAuth(ADMIN_TIER)
+ * และ createApiToken(auth.email, …) — token ถูกออกให้อีเมลเจ้าของตัวเองเท่านั้น
+ * ดังนั้น caller ของ token ที่ถูกต้องต้องมี profiles row และ role อยู่ใน admin tier
+ * เสมอ แต่เดิม /api/v1/query ไม่เคยตรวจข้อนี้เลย: ถ้า profiles.role ของอีเมลนั้น
+ * ถูกลดสิทธิ์ภายหลัง (ผ่าน /admin/users) หรือ profile ถูกลบ token ยังคงอ่าน
+ * ข้อมูลธุรกิจทุก command ต่อไปได้ = ช่องโหว่สิทธิ์ข้ามองค์กร จึงบังคับที่นี่
+ * (canonical reader เดิม — serviceClient + profiles select; ไม่สร้าง engine ใหม่)
+ */
+export async function getApiTokenCallerRole(email: string): Promise<string | null> {
+  const profile = await getApiTokenCallerProfile(email);
+  return profile?.role ?? null;
+}
+
+/**
+ * The token's canonical profile (id + current role). Used to build the read
+ * scope — the role alone is not enough once reads are organization-scoped
+ * (STEP 1, 2026-10-25). Missing profile ⇒ null ⇒ no scope ⇒ DENY.
+ */
+export async function getApiTokenCallerProfile(
+  email: string,
+): Promise<{ id: string; role: string | null } | null> {
+  const { data, error } = await serviceClient()
+    .from("profiles")
+    .select("id, role")
+    .ilike("email", email)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data?.id) return null;
+  return { id: String(data.id), role: (data.role as string | null) ?? null };
 }

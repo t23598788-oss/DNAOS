@@ -68,7 +68,9 @@
       "purpose": "Root Domain UI Conversion: Server Component gate for \"/\" — calls requireAuthPage(ADMIN_TIER) then renders OperationalWorkspace.tsx. \"/\" is the Owner Control Center now, not a public landing page.",
       "purpose_th": "Root Domain UI Conversion: จุดตรวจสิทธิ์ (Server Component) ของ \"/\" — เรียก requireAuthPage(ADMIN_TIER) แล้ว render OperationalWorkspace.tsx เพราะ \"/\" กลายเป็น Owner Control Center แล้ว ไม่ใช่หน้าเว็บสาธารณะ",
       "exports": [
-        "RootPage"
+        "PublicHomePage",
+        "metadata",
+        "revalidate"
       ],
       "status": "active"
     },
@@ -2378,7 +2380,10 @@
         "ALLOWED_API_TOKEN_SCOPES",
         "ApiToken",
         "ApiTokenScope",
+        "MissingServiceRoleKeyError",
         "createApiToken",
+        "getApiTokenCallerProfile",
+        "getApiTokenCallerRole",
         "listTokensForEmail",
         "revokeApiToken",
         "serviceClient",
@@ -2458,7 +2463,8 @@
         "SUPABASE_TABLES",
         "SYSTEM_LINKS",
         "SystemLinkGroup",
-        "SystemLinkItem"
+        "SystemLinkItem",
+        "appBaseUrl"
       ],
       "status": "active"
     },
@@ -2495,6 +2501,7 @@
         "getReceipts",
         "getTransactionById",
         "getTransactions",
+        "getVisibleCompanyIds",
         "supabase",
         "supabaseAdmin",
         "updateDebtTracking"
@@ -3767,16 +3774,6 @@
       "purpose_th": "หน้าสาธารณะแสดงรายชื่อ Portal จริงจาก portals.json",
       "exports": [
         "ProductsPage"
-      ],
-      "status": "active"
-    },
-    "app/products/loading.tsx": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "Loading skeleton for the Products page.",
-      "purpose_th": "skeleton ระหว่างโหลดหน้า Products",
-      "exports": [
-        "Loading"
       ],
       "status": "active"
     },
@@ -11453,6 +11450,11 @@
         "ContextFileEntry",
         "ContextPlan",
         "ContextPlannerError",
+        "RuntimeEvidenceClassification",
+        "SemanticPreflight",
+        "SemanticPreflightCapability",
+        "SemanticPreflightDependency",
+        "SemanticPreflightRuntimeEvidence",
         "__debugContextPlanCount",
         "approveContextPlan",
         "buildContextPlan",
@@ -13793,15 +13795,16 @@
       "purpose": "Canonical transaction write model — full-chain creation (company→site→project→group→order) and validated document linking, no half chains.",
       "purpose_th": "โมเดลเขียนธุรกรรมตาม canonical — สร้างสายครบ (บริษัท→ไซต์→โครงการ→กลุ่มเอกสาร→งาน) และผูกเอกสารแบบตรวจสอบได้ ไม่มีสายครึ่งเดียว",
       "exports": [
-        "TransactionContext",
         "ChainValidation",
-        "validateTransactionChain",
-        "createTransaction",
         "LinkResolution",
-        "resolveOrderForDocument",
+        "TransactionContext",
+        "changeTransactionStatus",
+        "createTransaction",
         "linkDocumentToTransaction",
         "linkDocumentWithValidation",
-        "changeTransactionStatus"
+        "orderNoFor",
+        "resolveOrderForDocument",
+        "validateTransactionChain"
       ],
       "status": "active"
     },
@@ -15995,6 +15998,478 @@
         "POST"
       ],
       "status": "active"
+    },
+    "scripts/semantic-preflight-package-integration-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Package-to-Core integration regression. The package receives no registry,",
+      "purpose_th": "Package-to-Core integration regression. The package receives no registry,",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/internal-credit-evidence-integration-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Isolated contract test. It validates orchestration, not DB/Storage persistence.",
+      "purpose_th": "Isolated contract test. It validates orchestration, not DB/Storage persistence.",
+      "exports": [],
+      "status": "active"
+    },
+    "engines/canonical/internal-credit-evidence.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Credit evidence orchestration. It does not write payment/debt authority.",
+      "purpose_th": "Credit evidence orchestration. It does not write payment/debt authority.",
+      "exports": [
+        "CreditAgreementInput",
+        "CreditAgreementRecord",
+        "CreditEvidenceDocumentResult",
+        "CreditSlipClassification",
+        "InternalCreditEvidenceDeps",
+        "ReviewStatus",
+        "createCreditAgreement",
+        "createCreditAgreementInStore",
+        "createInternalCreditEvidenceDocument",
+        "createInternalCreditEvidenceDocumentInStore"
+      ],
+      "status": "active"
+    },
+    "app/register/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "PUBLIC REGISTRATION (required re-add, 2026-10-24): the system is now",
+      "purpose_th": "PUBLIC REGISTRATION (required re-add, 2026-10-24): the system is now",
+      "exports": [
+        "RegisterPage"
+      ],
+      "status": "active"
+    },
+    "app/sitemap.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/sitemap.xml — server-rendered (Next.js MetadataRoute), no database read.",
+      "purpose_th": "/sitemap.xml — server-rendered (Next.js MetadataRoute), no database read.",
+      "exports": [
+        "dynamic",
+        "sitemap"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "app/robots.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/robots.txt — server-rendered (Next.js MetadataRoute).",
+      "purpose_th": "/robots.txt — server-rendered (Next.js MetadataRoute).",
+      "exports": [
+        "dynamic",
+        "robots"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "scripts/public-catalog-policy-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "public-catalog-policy:test — OFFLINE policy tests, no database, no network.",
+      "purpose_th": "public-catalog-policy:test — OFFLINE policy tests, no database, no network.",
+      "exports": [
+        "invalidatePublicCatalog"
+      ],
+      "status": "active"
+    },
+    "core/public-catalog/structured-data.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "JSON-LD builder for public catalog items — PURE, no I/O.",
+      "purpose_th": "JSON-LD builder for public catalog items — PURE, no I/O.",
+      "exports": [
+        "buildCatalogJsonLd"
+      ],
+      "status": "active"
+    },
+    "core/public-catalog/policy.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Public catalog policy — PURE functions, no I/O, no database access.",
+      "purpose_th": "Public catalog policy — PURE functions, no I/O, no database access.",
+      "exports": [
+        "CatalogFacet",
+        "CatalogFacets",
+        "CatalogType",
+        "DEFAULT_CURRENCY",
+        "PLATFORM_OWNER",
+        "ProcurementMode",
+        "PublicCatalogItem",
+        "PublicCatalogView",
+        "PublicField",
+        "PublicPrice",
+        "PublicationRecord",
+        "PublicationStatus",
+        "SourceFacts",
+        "SourceTable",
+        "buildFacets",
+        "hasField",
+        "isLive",
+        "matchesArea",
+        "matchesQuery",
+        "ownerAccepted",
+        "pitOwnerKey",
+        "sortByNewest",
+        "toPublicItem",
+        "toPublicView"
+      ],
+      "status": "active"
+    },
+    "app/products/catalog/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/products/catalog — public listing, SERVER RENDERED, no login.",
+      "purpose_th": "/products/catalog — public listing, SERVER RENDERED, no login.",
+      "exports": [
+        "PublicCatalogPage",
+        "metadata",
+        "revalidate"
+      ],
+      "status": "active"
+    },
+    "app/products/[slug]/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/products/[slug] — public detail page, SERVER RENDERED, no login.",
+      "purpose_th": "/products/[slug] — public detail page, SERVER RENDERED, no login.",
+      "exports": [
+        "PublicProductPage",
+        "generateMetadata",
+        "revalidate"
+      ],
+      "status": "active"
+    },
+    "app/api/public/products/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET /api/public/products — public, read-only, no login.",
+      "purpose_th": "GET /api/public/products — public, read-only, no login.",
+      "exports": [
+        "GET",
+        "OPTIONS"
+      ],
+      "status": "active"
+    },
+    "app/api/public/products/[slug]/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET /api/public/products/:slug — public detail, read-only, no login.",
+      "purpose_th": "GET /api/public/products/:slug — public detail, read-only, no login.",
+      "exports": [
+        "GET",
+        "OPTIONS"
+      ],
+      "status": "active"
+    },
+    "services/public-catalog/reader.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Public catalog reader — the ONLY server-side path that turns business rows",
+      "purpose_th": "Public catalog reader — the ONLY server-side path that turns business rows",
+      "exports": [
+        "PUBLIC_CACHE_SECONDS",
+        "PublicCatalogQuery",
+        "PublicCatalogResult",
+        "allowRequest",
+        "invalidatePublicCatalog",
+        "readPublicCatalog",
+        "readPublicItem"
+      ],
+      "status": "active"
+    },
+    "components/public/LineContactButton.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "LINE OA contact button (2026-10-24 public entry pass).",
+      "purpose_th": "LINE OA contact button (2026-10-24 public entry pass).",
+      "exports": [
+        "LineContactButton",
+        "LineContactButtonProps"
+      ],
+      "status": "active"
+    },
+    "app/admin/operations/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Owner Control Center — relocated (2026-10-24, unified public entry pass).",
+      "purpose_th": "Owner Control Center — relocated (2026-10-24, unified public entry pass).",
+      "exports": [
+        "AdminOperationsPage",
+        "dynamic"
+      ],
+      "status": "active"
+    },
+    "components/public/PublicPriceTable.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Public price table (2026-10-24) — columns required by the owner:",
+      "purpose_th": "Public price table (2026-10-24) — columns required by the owner:",
+      "exports": [
+        "PublicPriceTable",
+        "PublicPriceTableProps"
+      ],
+      "status": "active"
+    },
+    "scripts/revenue-metering-audit-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "REVENUE / METERING AUDIT TEST (WAVE 4, 2026-10-25) — offline only.",
+      "purpose_th": "REVENUE / METERING AUDIT TEST (WAVE 4, 2026-10-25) — offline only.",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/public-catalog-publish-e2e.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "public-catalog-e2e — ONE real price, from its source row to the public reader.",
+      "purpose_th": "public-catalog-e2e — ONE real price, from its source row to the public reader.",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/public-catalog-authority-audit.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "public-catalog-authority-audit — READ-ONLY inspection of the REAL database.",
+      "purpose_th": "public-catalog-authority-audit — READ-ONLY inspection of the REAL database.",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/ai-data-scope-live-check.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "STEP 5 — LIVE READ-ONLY CHECK (2026-10-25).",
+      "purpose_th": "STEP 5 — LIVE READ-ONLY CHECK (2026-10-25).",
+      "exports": [],
+      "status": "active"
+    },
+    "services/authority/admin-read-scope.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Admin-route read scope (STEP 1b, owner 2026-10-25).",
+      "purpose_th": "Admin-route read scope (STEP 1b, owner 2026-10-25).",
+      "exports": [
+        "AdminReadScope",
+        "denyUnscoped",
+        "filterRowsByCompany",
+        "isCompanyVisible",
+        "notFound",
+        "requireAdminReadScope",
+        "resolveAdminReadScope"
+      ],
+      "status": "active"
+    },
+    "engines/authority/session-scope.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "DataScope resolution for the two real actor kinds (STEP 1, 2026-10-25):",
+      "purpose_th": "DataScope resolution for the two real actor kinds (STEP 1, 2026-10-25):",
+      "exports": [
+        "ownerBridgeDataScope",
+        "resolveSessionDataScope",
+        "resolveTokenDataScope"
+      ],
+      "status": "active"
+    },
+    "engines/authority/load.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Authority context loader (WAVE 3, 2026-10-25 · STEP 1 hardening, 2026-10-25)",
+      "purpose_th": "Authority context loader (WAVE 3, 2026-10-25 · STEP 1 hardening, 2026-10-25)",
+      "exports": [
+        "AuthorityLoaderDb",
+        "AuthorityQueryChain",
+        "AuthorityQueryResult",
+        "LoadedAuthority",
+        "OrganizationDecision",
+        "OrganizationMembership",
+        "OrganizationScopeReason",
+        "SessionAuthorityInput",
+        "assertRequestedOrganizationAllowed",
+        "loadAuthorityContext",
+        "loadOrganizationIds",
+        "loadOrganizationMembership",
+        "loadResourceOrganizationId",
+        "loadScopeGrants"
+      ],
+      "status": "active"
+    },
+    "engines/canonical/material-price-write.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Central material-price authority (WAVE 2, extended WAVE 3 2026-10-25).",
+      "purpose_th": "Central material-price authority (WAVE 2, extended WAVE 3 2026-10-25).",
+      "exports": [
+        "ApplyMaterialPriceInput",
+        "ApplyMaterialPriceResult",
+        "ApplyPriceAtomicInput",
+        "ApplyPriceAtomicResult",
+        "PriceWriteDeps",
+        "SellerOfferAtomicInput",
+        "SellerOfferAtomicResult",
+        "SellerOfferInput",
+        "SellerOfferResult",
+        "applyMaterialPrice",
+        "recordSellerOffer"
+      ],
+      "status": "active"
+    },
+    "core/public-catalog/geography.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Province / district resolution from the supplier's own address text — PURE.",
+      "purpose_th": "Province / district resolution from the supplier's own address text — PURE.",
+      "exports": [
+        "ParsedArea",
+        "matchesParsedArea",
+        "parseAreaFromAddress"
+      ],
+      "status": "active"
+    },
+    "core/public-catalog/authority.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Public catalog authority — WHO may publish WHAT. Pure functions, no I/O.",
+      "purpose_th": "Public catalog authority — WHO may publish WHAT. Pure functions, no I/O.",
+      "exports": [
+        "ADMIN_TIER_ROLES",
+        "OperatorRole",
+        "OwnershipRule",
+        "RESOURCE_OWNERSHIP",
+        "ResourceWitness",
+        "VerifiedIdentity",
+        "WriterDecision",
+        "WriterDenial",
+        "identityIsLinkedOwner",
+        "ownershipCensus",
+        "publicSlugFor",
+        "publicationOwnerAccepted",
+        "resolveWriter",
+        "witnessForPitMaterial",
+        "witnessWithoutOwner"
+      ],
+      "status": "active"
+    },
+    "core/authority/rights.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Four SEPARATE data rights (owner directive 2026-10-25, STEP 4).",
+      "purpose_th": "Four SEPARATE data rights (owner directive 2026-10-25, STEP 4).",
+      "exports": [
+        "DATA_RIGHTS",
+        "DataRight",
+        "DataRightInput",
+        "RightActor",
+        "RightDecision",
+        "RightFieldSet",
+        "RightResource",
+        "resolveDataRight",
+        "resolveDiscoveryRight",
+        "resolveInternalReadRight",
+        "resolvePricePublicationRight",
+        "resolveTransactionRight",
+        "rightEvidence",
+        "scopeGrantsRight"
+      ],
+      "status": "active"
+    },
+    "core/authority/resolve.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Central authority resolver (WAVE 2, 2026-10-25) — PURE, no I/O.",
+      "purpose_th": "Central authority resolver (WAVE 2, 2026-10-25) — PURE, no I/O.",
+      "exports": [
+        "AUTHORITY_ACTIONS",
+        "ActorContext",
+        "AuthorityAction",
+        "AuthorityDecision",
+        "ResolveAuthorityInput",
+        "ResourceKind",
+        "ResourceRef",
+        "ScopeGrant",
+        "authorityEvidence",
+        "resolveAuthority"
+      ],
+      "status": "active"
+    },
+    "core/authority/data-scope.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Data access scope — WHO a server-side data read is allowed to see.",
+      "purpose_th": "Data access scope — WHO a server-side data read is allowed to see.",
+      "exports": [
+        "DataScope",
+        "DataScopeMode",
+        "NO_DATA_SCOPE",
+        "PLATFORM_ROLES",
+        "TENANT_SCOPED_READ_COMMANDS",
+        "isTenantScopedRead",
+        "organizationDataScope",
+        "platformDataScope",
+        "resolveDataScope",
+        "scopeCanReadTenantData",
+        "scopeCoversOrganization"
+      ],
+      "status": "active"
+    },
+    "core/authority/data-scope-context.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Request-scoped data access scope (STEP 1, 2026-10-25).",
+      "purpose_th": "Request-scoped data access scope (STEP 1, 2026-10-25).",
+      "exports": [
+        "currentDataScope",
+        "runWithDataScope"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/_shared/connect-price.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Connect price-offer transport (WAVE 2, 2026-10-25) — the provider tier's ONLY",
+      "purpose_th": "Connect price-offer transport (WAVE 2, 2026-10-25) — the provider tier's ONLY",
+      "exports": [
+        "ConnectSellerOfferResult",
+        "sendConnectSellerOffer"
+      ],
+      "status": "active"
+    },
+    "app/products/catalog/loading.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/products/catalog/loading.tsx",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/products/catalog/loading.tsx",
+      "exports": [
+        "Loading"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/publications/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST/GET /api/admin/publications — per-item publication permission.",
+      "purpose_th": "POST/GET /api/admin/publications — per-item publication permission.",
+      "exports": [
+        "GET",
+        "POST",
+        "dynamic"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/connect/material-price/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/internal/connect/material-price — Connect price boundary (WAVE 2).",
+      "purpose_th": "POST /api/internal/connect/material-price — Connect price boundary (WAVE 2).",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
@@ -16385,6 +16860,20 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "กล่องรับเข้า — ขวาบนของ Workspace (handoff workspace-reference.html:"
+    },
+    {
+      "path": "core/public-catalog/reader.ts",
+      "retired_at": "2026-10-24T15:28:16.967Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "Public catalog reader — the ONLY server-side path that turns business rows"
+    },
+    {
+      "path": "app/products/loading.tsx",
+      "retired_at": "2026-10-25T00:25:22.202Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "skeleton ระหว่างโหลดหน้า Products"
     }
   ]
 }

@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { runWithDataScope } from "@/core/authority/data-scope-context"
+import { ownerBridgeDataScope } from "@/engines/authority/session-scope"
 import { runCognitivePipeline } from "@/cognitive/pipeline"
 
 type PipelineResult = Awaited<ReturnType<typeof runCognitivePipeline>>
@@ -25,9 +27,14 @@ export async function POST(req: Request) {
   if (!body?.userCommand) {
     return NextResponse.json({ error: "ไม่มี userCommand" }, { status: 400 })
   }
+  const userCommand = body.userCommand
+  const contactContext = body.contactContext ?? null
 
   try {
-    const result = await runCognitivePipeline(body.userCommand, body.contactContext ?? null)
+    // Owner-only, secret-gated bridge: explicit platform scope + reason.
+    const result = await runWithDataScope(ownerBridgeDataScope(), () =>
+      runCognitivePipeline(userCommand, contactContext),
+    )
     return NextResponse.json({ ok: true, reply: toReplyText(result) })
   } catch {
     return NextResponse.json(

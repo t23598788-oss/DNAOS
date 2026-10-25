@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { SUPER_ADMIN_ONLY } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 const TABLES = [
   "companies",
@@ -19,6 +20,16 @@ const TABLES = [
 export async function GET() {
   const auth = await requireAuth(SUPER_ADMIN_ONLY)
   if (auth instanceof NextResponse) return auth
+
+  // A full export is platform data by definition — an organization-scoped
+  // profile must not receive every company's rows just because it can read
+  // its own. (Same rule as finance-summary.)
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (ctx.companyIds !== null) {
+    return NextResponse.json({ error: "การสำรองข้อมูลทั้งระบบต้องใช้สิทธิ์ระดับแพลตฟอร์ม" }, { status: 403 })
+  }
 
   const results: Record<string, unknown[]> = {}
   const errors: string[] = []
@@ -62,6 +73,13 @@ export async function GET() {
 export async function POST() {
   const auth = await requireAuth(SUPER_ADMIN_ONLY)
   if (auth instanceof NextResponse) return auth
+
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (ctx.companyIds !== null) {
+    return NextResponse.json({ error: "สถิติการสำรองข้อมูลทั้งระบบต้องใช้สิทธิ์ระดับแพลตฟอร์ม" }, { status: 403 })
+  }
 
   const stats: Record<string, number> = {}
   const errors: string[] = []

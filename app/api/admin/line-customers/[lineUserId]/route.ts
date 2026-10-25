@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -14,7 +15,23 @@ export async function GET(_req: Request, { params }: Params) {
   if (auth instanceof NextResponse) return auth
 
   const { lineUserId } = await params
+
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+
   const db = supabase()
+
+  // Scope is decided by the explicit link, before any message is read: a
+  // contact linked to another organization's company must look non-existent.
+  if (ctx.companyIds !== null) {
+    const { data: scopeLink } = await db
+      .from("company_line_links")
+      .select("company_id")
+      .eq("line_user_id", lineUserId)
+      .maybeSingle()
+    if (!isCompanyVisible(ctx, scopeLink?.company_id)) return notFound()
+  }
 
   const { data: rawMessages, error } = await db
     .from("line_events")
@@ -37,13 +54,12 @@ export async function GET(_req: Request, { params }: Params) {
   let documents: unknown[] = []
   let debt: unknown = null
 
-  // Match by direct link first — a real person can have more than one LINE
-  // account (e.g. ช่างมิก added a second LINE account 2026-07-10, same
-  // company เคที), so this looks up via company_line_links, not a single
-  // column. Only fall back to name matching if no direct link exists.
+  // Match ONLY by an explicit link — a real person can have more than one LINE
+  // account, so the link table is the identity edge. STEP 2 (2026-10-25): the
+  // old exact-name fallback was removed; a LINE display name is not identity and
+  // could resolve to a different company.
   const { data: link } = await db.from("company_line_links").select("companies(id, name, tax_id, phone)").eq("line_user_id", lineUserId).maybeSingle()
-  const linkedCompany = (link as any)?.companies ?? null
-  const company = linkedCompany ?? (lineName ? (await db.from("companies").select("id, name, tax_id, phone").eq("name", lineName).maybeSingle()).data : null)
+  const company = (link as any)?.companies ?? null
 
   if (company) {
     const [{ data: invoices }, { data: standalone }, { data: debtRow }] = await Promise.all([

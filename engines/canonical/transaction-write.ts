@@ -12,6 +12,7 @@
  *     a validation error and the caller writes NOTHING (no half chain, no orphan doc)
  * transaction↔document linkage stays the existing `customer_order_id` FK.
  */
+import { createHash } from "crypto";
 import { supabaseAdmin } from "@/services/supabase/queries";
 import { recordCanonicalAudit } from "@/engines/canonical/audit";
 
@@ -103,11 +104,28 @@ export async function validateTransactionChain(ctx: TransactionContext): Promise
   return { ok: canDerive, missing, resolved };
 }
 
+/**
+ * Deterministic order number for an idempotent command (WAVE 2 §06).
+ *
+ * The database enforces `customer_orders.order_no` UNIQUE, so deriving the
+ * number from the caller's key means a retried/redelivered command can only
+ * ever produce the SAME order. Without a key the legacy timestamp shape is kept.
+ * Exported so the mapping itself can be proven offline (pure, no I/O).
+ */
+export function orderNoFor(
+  idempotencyKey: string | null | undefined,
+  stamps: { dateStr: string; stamp: string },
+): string {
+  const key = idempotencyKey?.trim();
+  if (!key) return `ORD-${stamps.dateStr}-${stamps.stamp}`;
+  return `ORD-IDEM-${createHash("sha256").update(key).digest("hex").slice(0, 16)}`;
+}
+
 /** Create the full chain. Site is mandatory (the repo already requires it for orders). */
 export async function createTransaction(
   ctx: TransactionContext,
   actor: string,
-  options?: { createMissingChain?: boolean },
+  options?: { createMissingChain?: boolean; idempotencyKey?: string | null },
 ) {
   const db = supabaseAdmin();
   if (!ctx.customer_company_id || !ctx.customer_site_id) {
@@ -116,7 +134,30 @@ export async function createTransaction(
   const validation = await validateTransactionChain(ctx);
   if (!validation.ok) throw new Error(`TRANSACTION_CONTEXT_INCOMPLETE: ${validation.missing.join(", ")}`);
 
+  // WAVE 2 — idempotency (owner §06). A command may carry a key; the order number
+  // is then DERIVED from that key and `customer_orders.order_no` is UNIQUE in the
+  // database, so a redelivered/retried command can never create a second order.
+  // Without a key the legacy timestamp behaviour is unchanged.
+  const idemKey = options?.idempotencyKey?.trim() || null;
   const { stamp, dateStr } = stamps();
+  const orderNo = orderNoFor(idemKey, { dateStr, stamp });
+
+  if (idemKey) {
+    const { data: replay } = await db
+      .from("customer_orders")
+      .select("*")
+      .eq("order_no", orderNo)
+      .maybeSingle();
+    if (replay) {
+      return {
+        order: replay as Record<string, unknown>,
+        project_id: (replay.project_id as string | null) ?? null,
+        document_group_id: (replay.document_group_id as string | null) ?? null,
+        idempotent_replay: true,
+      };
+    }
+  }
+
   const title = (ctx.title ?? "").trim() || "งานใหม่";
   let projectId = validation.resolved.project_id ?? null;
   let groupId = validation.resolved.document_group_id ?? null;
@@ -161,7 +202,6 @@ export async function createTransaction(
     throw new Error("TRANSACTION_CONTEXT_INCOMPLETE: ขาด project/document_group และไม่อนุญาตให้สร้างครึ่งเดียว");
   }
 
-  const orderNo = `ORD-${dateStr}-${stamp}`;
   const { data: order, error: orderErr } = await db
     .from("customer_orders")
     .insert({
@@ -177,7 +217,21 @@ export async function createTransaction(
     })
     .select("id, order_no, status, customer_company_id, created_at")
     .single();
-  if (orderErr) throw new Error(`สร้างธุรกรรมไม่สำเร็จ: ${orderErr.message}`);
+  if (orderErr) {
+    // A concurrent duplicate lost the unique race — return the winner instead of failing.
+    if ((orderErr as { code?: string }).code === "23505" && idemKey) {
+      const { data: winner } = await db.from("customer_orders").select("*").eq("order_no", orderNo).maybeSingle();
+      if (winner) {
+        return {
+          order: winner as Record<string, unknown>,
+          project_id: (winner.project_id as string | null) ?? null,
+          document_group_id: (winner.document_group_id as string | null) ?? null,
+          idempotent_replay: true,
+        };
+      }
+    }
+    throw new Error(`สร้างธุรกรรมไม่สำเร็จ: ${orderErr.message}`);
+  }
 
   await recordCanonicalAudit({
     action: "transaction.created",
@@ -188,7 +242,7 @@ export async function createTransaction(
     new_value: { order_no: orderNo, project_id: projectId, document_group_id: groupId, customer_site_id: ctx.customer_site_id },
   });
 
-  return { order: order as Record<string, unknown>, project_id: projectId, document_group_id: groupId };
+  return { order: order as Record<string, unknown>, project_id: projectId, document_group_id: groupId, idempotent_replay: false };
 }
 
 export interface LinkResolution {

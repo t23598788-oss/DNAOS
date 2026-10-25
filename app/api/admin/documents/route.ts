@@ -14,6 +14,7 @@ import { getCanonicalDocumentRows } from "@/services/canonical/document-list"
 import { resolveOrderForDocument } from "@/engines/canonical/transaction-write"
 import { createDocument } from "@/engines/canonical/document-write"
 import { buildBusinessJob, executeBusinessJob } from "@/engines/jobs/business-job-adapter"
+import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 import { runBusinessAcceptance } from "@/app/api/admin/ide/_lib/businessAcceptanceRuntime"
 import { recordBusinessJobProgress } from "@/app/api/admin/ide/_lib/businessJobProgressRuntime"
 
@@ -30,6 +31,11 @@ async function resolveOrder(opts: { partnerId: string; transactionId: string | n
 export async function GET(req: NextRequest) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
+
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (ctx.companyIds && ctx.companyIds.size === 0) return NextResponse.json({ documents: [] })
 
   const { searchParams } = new URL(req.url)
   const type = searchParams.get("type") as DocumentType | null
@@ -48,6 +54,7 @@ export async function GET(req: NextRequest) {
       .range(from, from + perPage - 1)
 
     if (search) q = q.ilike("invoice_no", `%${search}%`)
+    if (ctx.companyIds) q = q.in("customer_company_id", [...ctx.companyIds])
 
     const { data, error } = await q
     if (error) {
@@ -85,6 +92,7 @@ export async function GET(req: NextRequest) {
     .range(from, from + perPage - 1)
 
   if (search) q = q.ilike("document_no", `%${search}%`)
+  if (ctx.companyIds) q = q.in("customer_company_id", [...ctx.companyIds])
 
   const { data, error } = await q
   if (error) {
@@ -118,6 +126,14 @@ export async function POST(req: NextRequest) {
   if (auth instanceof NextResponse) return auth
 
   const draft: DocumentDraftInput = await req.json()
+
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (draft.partnerId && !isCompanyVisible(ctx, draft.partnerId)) return notFound()
+  if (!draft.partnerId && ctx.scope.mode === "organization") {
+    return NextResponse.json({ error: "ต้องเลือกคู่ค้าในองค์กรก่อนออกเอกสาร" }, { status: 400 })
+  }
 
   if (!draft.type || !DOC_LABELS[draft.type]) {
     return NextResponse.json({ error: "type ไม่ถูกต้อง" }, { status: 400 })

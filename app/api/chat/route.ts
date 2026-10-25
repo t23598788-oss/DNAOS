@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/core/auth/requireAuth";
 import { ADMIN_TIER } from "@/core/auth/session";
+import { runWithDataScope } from "@/core/authority/data-scope-context";
+import { resolveSessionDataScope } from "@/engines/authority/session-scope";
 import { runCognitivePipeline } from "@/cognitive/pipeline";
 import { buildChatResult } from "./_lib/resultContract";
 import type { ChatResult } from "./_lib/chatResultTypes";
@@ -31,11 +33,17 @@ export async function POST(request: Request) {
     // for identity entirely (see runCognitiveCore's knownCustomer handling).
     const { message, sessionKey, knownCustomerId, knownCustomerName } = await request.json();
     const rawMessage = String(message ?? "");
-    const response = await runCognitivePipeline(
-      rawMessage,
-      null,
-      sessionKey ?? null,
-      knownCustomerId ? { id: String(knownCustomerId), name: String(knownCustomerName ?? "") } : null,
+    // STEP 1: the pipeline's tenant reads run under THIS caller's scope; an
+    // admin without organization evidence gets mode "none" and the scoped
+    // commands are denied instead of returning every company.
+    const scope = await resolveSessionDataScope(auth);
+    const response = await runWithDataScope(scope, () =>
+      runCognitivePipeline(
+        rawMessage,
+        null,
+        sessionKey ?? null,
+        knownCustomerId ? { id: String(knownCustomerId), name: String(knownCustomerName ?? "") } : null,
+      ),
     );
     // RESPONSE CONTRACT (owner 2026-09-25): แนบ result ทุกครั้ง — structured
     // (finance/document/timeline/table) มาจาก canonical reader จึง "แทนที่"

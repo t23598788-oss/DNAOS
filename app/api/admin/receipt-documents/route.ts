@@ -4,6 +4,7 @@ import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { resolvePaymentDocumentLink } from "@/engines/transactions/document-link"
 import { recordInboundSource, linkInboundSource, type InboundChannel } from "@/engines/canonical/inbound-write"
+import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 const ALLOWED_CHANNELS: InboundChannel[] = ["line", "upload", "email", "bank", "drive"]
 
@@ -20,6 +21,18 @@ export async function POST(req: Request) {
   const channel = body.channel as InboundChannel
   if (!ALLOWED_CHANNELS.includes(channel)) {
     return NextResponse.json({ error: `channel ต้องเป็นหนึ่งใน ${ALLOWED_CHANNELS.join(", ")}`, code: "INBOUND_CHANNEL_INVALID" }, { status: 400 })
+  }
+  // Organization scope (WAVE 2): a slip is only visible when its company is.
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  const companyId: string | null = body.customer_company_id ?? body.link?.customer_company_id ?? null
+  if (companyId && !isCompanyVisible(ctx, companyId)) return notFound()
+  if (!companyId && ctx.companyIds !== null) {
+    return NextResponse.json(
+      { error: "ต้องระบุ customer_company_id ในองค์กรของท่าน", code: "INBOUND_COMPANY_REQUIRED" },
+      { status: 400 },
+    )
   }
   if (!body.media_path || typeof body.media_path !== "string") {
     return NextResponse.json({ error: "ต้องระบุ media_path ของต้นฉบับจริง", code: "INBOUND_MEDIA_REQUIRED" }, { status: 400 })
@@ -82,18 +95,25 @@ export async function GET(_req: Request) {
   if (auth instanceof NextResponse) return auth
 
   const db = supabase()
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (ctx.companyIds && ctx.companyIds.size === 0) return NextResponse.json({ items: [] })
   // Real incident found 2026-07-24 (บจก. เคที คอนสตรัคชั่น, ฿5,000 slip):
   // ocr-classify.ts treats "payment_advice" as an equally real incoming-
   // payment type alongside "transfer_slip" (same business_category/workflow
   // in its own DOCUMENT_TYPE_PROFILE) — this list only showed transfer_slip,
   // so a real payment classified as payment_advice never appeared here at
   // all, invisible to any human review.
-  const { data: docs, error } = await db
+  let docsQuery = db
     .from("receipt_documents")
     .select("id, amount, transaction_datetime, document_date, customer_company_id, sender_name, reference_number, status, verification_level, created_at, error_th")
     .in("document_type", ["transfer_slip", "payment_advice"])
     .eq("status", "ai_read")
-    .order("created_at", { ascending: false })
+  // Organization scope in SQL: an out-of-scope slip never leaves the database,
+  // and unattributed (NULL company) slips stay platform-only.
+  if (ctx.companyIds) docsQuery = docsQuery.in("customer_company_id", [...ctx.companyIds])
+  const { data: docs, error } = await docsQuery.order("created_at", { ascending: false })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   const companyIds = [...new Set((docs ?? []).map((d) => d.customer_company_id).filter(Boolean))] as string[]

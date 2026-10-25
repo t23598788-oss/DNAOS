@@ -4,15 +4,24 @@ import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { getTransactionMoneySummaries } from "@/services/canonical/transaction-list"
 import { createTransaction } from "@/engines/canonical/transaction-write"
+import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 export async function GET(req: NextRequest) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (ctx.companyIds && ctx.companyIds.size === 0) return NextResponse.json({ transactions: [] })
+
   const { searchParams } = new URL(req.url)
   const pendingOnly = searchParams.get("pending") === "1"
   const partnerId = searchParams.get("partner_id")
   const txType = searchParams.get("tx_type")
+
+  // A partner filter is a request, not a permission: it can only narrow.
+  if (partnerId && !isCompanyVisible(ctx, partnerId)) return NextResponse.json({ transactions: [] })
 
   let query = supabase()
     .from("customer_orders")
@@ -21,6 +30,7 @@ export async function GET(req: NextRequest) {
 
   if (pendingOnly) query = query.neq("status", "PAID")
   if (partnerId) query = query.eq("customer_company_id", partnerId)
+  if (ctx.companyIds) query = query.in("customer_company_id", [...ctx.companyIds])
 
   const { data, error } = await query
   if (error) {
@@ -68,8 +78,12 @@ export async function POST(req: NextRequest) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+
   const body = await req.json()
-  const { partner_id, title, tx_type = "sale", site_id } = body
+  const { partner_id, title, tx_type = "sale", site_id, idempotency_key } = body
 
   if (!partner_id) {
     return NextResponse.json({ error: "ต้องระบุ partner_id" }, { status: 400 })
@@ -77,6 +91,7 @@ export async function POST(req: NextRequest) {
   if (!site_id) {
     return NextResponse.json({ error: "ต้องระบุไซต์งาน (site_id) — งานทุกงานต้องผูกกับสถานที่จัดส่งจริง" }, { status: 400 })
   }
+  if (!isCompanyVisible(ctx, partner_id)) return notFound()
 
   // PHASE D3/D9 — one canonical chain builder: company → site → project →
   // document_group → order, validated against real rows before anything is written.
@@ -90,6 +105,8 @@ export async function POST(req: NextRequest) {
         title: typeof title === "string" ? title : null,
       },
       auth.email,
+      // WAVE 2 — a client-supplied key makes the create command replay-safe.
+      { idempotencyKey: typeof idempotency_key === "string" ? idempotency_key : null },
     )
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "สร้างงานไม่สำเร็จ"

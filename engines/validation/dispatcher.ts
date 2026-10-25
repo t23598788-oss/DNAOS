@@ -23,6 +23,8 @@ import { calcCost } from "@/engines/cost";
 import { loadCompanySettings } from "@/core/config/company-settings";
 import registry from "@/registry/command-registry.json";
 import { classify, type Classification } from "@/engines/governance/hardcode-decision-engine";
+import { isTenantScopedRead, scopeCanReadTenantData, NO_DATA_SCOPE, type DataScope } from "@/core/authority/data-scope";
+import { currentDataScope } from "@/core/authority/data-scope-context";
 
 // ── Types ──
 
@@ -47,41 +49,45 @@ interface CommandDef {
 // ── Query Constraints ──
 // command → ฟังก์ชันดึงข้อมูลที่ใส่ filter ถูกต้องตามกฎ
 
-type QueryFn = (payload: Record<string, unknown>) => Promise<unknown>;
+/** Every tenant read receives the request's verified scope; none may widen it. */
+type QueryFn = (payload: Record<string, unknown>, scope: DataScope) => Promise<unknown>;
 
 const QUERY_MAP: Record<string, QueryFn> = {
   // GetCurrentDebt(partnerId) — the one business capability for a single
   // customer's debt (owner, 2026-07-17, Architecture Correction). AI must
   // call this by name; it must never know getCurrentDebt()/
   // calcDebtTrackingSummary()/calcDebtFull() exist underneath.
-  "debt.current":     async (p) => {
+  "debt.current":     async (p, scope) => {
     const partnerId = String(p.partner_id ?? "");
     if (!partnerId) throw new Error("ต้องระบุ partner_id");
+    // Scope is proven BEFORE the debt reader runs — an out-of-scope partner
+    // never reaches the financial snapshot at all.
+    await getPartnerById(partnerId, scope);
     return getCurrentDebt(partnerId);
   },
-  "debt.list":        async () => getOpenDebts(),
-  "debt.all":         async () => getAllDebts(),
-  "debt.trackings":   async () => getDebtTrackings(),
-  "invoice.list":     async () => getDocuments("invoice"),
-  "invoice.latest":   async () => getLatestInvoice(),
-  "document.list":    async () => getDocuments(),
-  "document.boq":     async () => getDocuments("boq"),
-  "document.po":      async () => getDocuments("purchase_order"),
-  "document.do":      async () => getDocuments("delivery_order"),
-  "document.receipt":  async () => getReceipts(),
+  "debt.list":        async (_p, scope) => getOpenDebts(scope),
+  "debt.all":         async (_p, scope) => getAllDebts(scope),
+  "debt.trackings":   async (_p, scope) => getDebtTrackings(scope),
+  "invoice.list":     async (_p, scope) => getDocuments("invoice", scope),
+  "invoice.latest":   async (_p, scope) => getLatestInvoice(scope),
+  "document.list":    async (_p, scope) => getDocuments(undefined, scope),
+  "document.boq":     async (_p, scope) => getDocuments("boq", scope),
+  "document.po":      async (_p, scope) => getDocuments("purchase_order", scope),
+  "document.do":      async (_p, scope) => getDocuments("delivery_order", scope),
+  "document.receipt":  async (_p, scope) => getReceipts(scope),
   "draft.list":       async () => getPendingDrafts(),
-  "job.list":         async () => getJobs(),
-  "job.active":       async () => getJobs("IN_PROGRESS"),
-  "partner.list":     async () => getPartnersWithDocumentSummary(),
+  "job.list":         async (_p, scope) => getJobs(undefined, scope),
+  "job.active":       async (_p, scope) => getJobs("IN_PROGRESS", scope),
+  "partner.list":     async (_p, scope) => getPartnersWithDocumentSummary(scope),
   // FindPartner(keyword) — was inlined in cognitive/executor's
   // resolveIdentity() as a raw getPartners() + client-side filter (owner,
   // 2026-07-17, Architecture Correction: no direct service calls from AI
   // code). "partner.find" was already declared in command-registry.json
   // with no handler — this fills that gap rather than creating a new name.
-  "partner.find":     async (p) => {
+  "partner.find":     async (p, scope) => {
     const keyword = String(p.keyword ?? "").trim().toLowerCase();
     if (!keyword) return [];
-    const partners = await getPartners();
+    const partners = await getPartners(scope);
     return partners.filter((x) => String(x.name ?? "").toLowerCase().includes(keyword));
   },
   // GenerateMaterialQuote(raw_input, quantity, customer_id) — was inlined in
@@ -90,7 +96,7 @@ const QUERY_MAP: Record<string, QueryFn> = {
   // (owner, 2026-07-17, Architecture Correction). DNA OS coordinates
   // Material Resolver + Customer GPS + Pricing Engine internally and
   // returns one business response; AI never sees those three engines.
-  "material.quote":   async (p) => {
+  "material.quote":   async (p, scope) => {
     const rawInput = String(p.raw_input ?? "");
     const quantity = Number(p.quantity ?? 0);
     const customerId = String(p.customer_id ?? "");
@@ -103,7 +109,7 @@ const QUERY_MAP: Record<string, QueryFn> = {
     }
 
     if (!customerId) return { matched: true, material_name: match.matched.name, error: "no_customer_id" };
-    const gps = await getCustomerGps(customerId);
+    const gps = await getCustomerGps(customerId, scope);
     if (!gps) return { matched: true, material_name: match.matched.name, error: "no_gps" };
 
     const quote = await tryQuoteMaterialPrice(match.matched.name, quantity, gps);
@@ -146,12 +152,12 @@ const QUERY_MAP: Record<string, QueryFn> = {
       total_price: quote.unitPrice * quantity + transportCost,
     };
   },
-  "partner.timeline": async (p) => {
+  "partner.timeline": async (p, scope) => {
     const partnerId = String(p.partner_id ?? "");
     if (!partnerId) throw new Error("ต้องระบุ partner_id");
     const [docs, events] = await Promise.all([
-      getDocumentsByPartner(partnerId),
-      getBusinessEventsByPartner(partnerId),
+      getDocumentsByPartner(partnerId, scope),
+      getBusinessEventsByPartner(partnerId, scope),
     ]);
     const summary = buildPartnerSummary(
       { id: partnerId, name: "", partner_type_label: null, phone: null },
@@ -164,10 +170,10 @@ const QUERY_MAP: Record<string, QueryFn> = {
   // PartnerProfile(partnerId) — owner, 2026-07-17, Invoice Preview
   // Redesign. Wraps the existing getPartnerById() (services/supabase/
   // queries.ts:564), which had zero AI-facing callers before this.
-  "partner.profile":  async (p) => {
+  "partner.profile":  async (p, scope) => {
     const partnerId = String(p.partner_id ?? "");
     if (!partnerId) throw new Error("ต้องระบุ partner_id");
-    return getPartnerById(partnerId);
+    return getPartnerById(partnerId, scope);
   },
   // InvoiceItems(partnerId) — owner, 2026-07-17, Invoice Preview Redesign.
   // Scoped to debt-priced documents (invoice/billing/receipt) — material-
@@ -286,6 +292,7 @@ export async function dispatch(
   command: string,
   payload: Record<string, unknown> = {},
   confirmed = false,
+  accessScope?: DataScope,
 ): Promise<DispatchResult> {
   const def = commands[command];
 
@@ -296,6 +303,22 @@ export async function dispatch(
       data: null,
       requires_confirmation: false,
       violations: [`command "${command}" ไม่อยู่ใน registry — Shadow Command ถูกปฏิเสธ`],
+    };
+  }
+
+  // STEP 1 (2026-10-25): a tenant read without a verified scope is DENIED,
+  // never "unfiltered". The scope comes from the request boundary (session or
+  // API token), never from the command payload.
+  const scope = accessScope ?? currentDataScope();
+  if (isTenantScopedRead(command) && !scopeCanReadTenantData(scope)) {
+    return {
+      ok: false,
+      command,
+      data: null,
+      requires_confirmation: false,
+      violations: [
+        `DATA_SCOPE_REQUIRED: "${command}" อ่านข้อมูลธุรกิจได้เฉพาะเมื่อมี scope ที่ยืนยันแล้ว (session/org หรือ platform owner) — ตรวจ ${scope?.reason ?? "NO_VERIFIED_ACTOR"}`,
+      ],
     };
   }
 
@@ -322,7 +345,7 @@ export async function dispatch(
   const queryFn = QUERY_MAP[command];
   if (queryFn) {
     try {
-      const data = await queryFn(payload);
+      const data = await queryFn(payload, scope ?? NO_DATA_SCOPE);
       return { ok: true, command, data, requires_confirmation: false, violations: [], hardcode_warnings };
     } catch (err) {
       return {

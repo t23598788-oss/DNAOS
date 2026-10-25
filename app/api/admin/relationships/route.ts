@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase, getPartners } from "@/services/supabase/queries"
+import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 // Architecture Migration Phase 1 (2026-07-13, owner-directed): the
 // relationship list is rooted at `companies` — every real company gets a
@@ -14,10 +15,16 @@ export async function GET() {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
-  const db = supabase()
-  const companies = await getPartners()
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
 
-  const { data: links } = await db.from("company_line_links").select("company_id, line_user_id")
+  const db = supabase()
+  const companies = await getPartners(ctx.scope)
+
+  let linksQuery = db.from("company_line_links").select("company_id, line_user_id")
+  if (ctx.companyIds) linksQuery = linksQuery.in("company_id", [...ctx.companyIds])
+  const { data: links } = await linksQuery
   const lineUserIdsByCompany = new Map<string, string[]>()
   const companyIdByLineUserId = new Map<string, string>()
   for (const l of links ?? []) {
@@ -61,20 +68,9 @@ export async function GET() {
     }
   }
 
-  // Fallback match by exact LINE display name === company name, same rule
-  // the old contact-rooted list used, only for LINE accounts not already
-  // covered by a real company_line_links row.
-  const companyByName = new Map(companies.map((c) => [c.name, c]))
-  for (const a of activityByLineUserId.values()) {
-    if (companyIdByLineUserId.has(a.line_user_id)) continue
-    const match = a.line_name ? companyByName.get(a.line_name) : null
-    if (match) {
-      companyIdByLineUserId.set(a.line_user_id, match.id)
-      const arr = lineUserIdsByCompany.get(match.id) ?? []
-      arr.push(a.line_user_id)
-      lineUserIdsByCompany.set(match.id, arr)
-    }
-  }
+  // STEP 2 (2026-10-25): identity is the explicit link only. The display-name
+  // fallback that used to live here could attach a contact — and its debt — to
+  // a different company that merely shared the name.
 
   const allCompanyIds = companies.map((c) => c.id)
   const { data: debts } = allCompanyIds.length
@@ -114,7 +110,8 @@ export async function GET() {
   // company_line_links row is created automatically here — only the
   // read/display side changes; matching remains a deliberate human action
   // (see POST .../match).
-  const unmatchedContacts = Array.from(activityByLineUserId.values())
+  // A contact with no company is unattributed data: platform-only.
+  const unmatchedContacts = (ctx.companyIds === null ? Array.from(activityByLineUserId.values()) : [])
     .filter((a) => !companyIdByLineUserId.has(a.line_user_id))
     .map((a) => ({
       relationship_id: a.line_user_id,

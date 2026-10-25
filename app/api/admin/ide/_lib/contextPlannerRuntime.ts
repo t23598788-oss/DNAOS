@@ -13,6 +13,7 @@ import path from "path";
 import { WORKSPACE_ROOT, isExcludedName } from "./fsSecurity";
 import { createOperationsArtifact } from "./artifactRuntime";
 import type { CapabilityResolutionReport } from "./capabilityResolverRuntime";
+import { getDependents } from "@/engines/workspace/dependencyRegistry";
 
 const ROOT = WORKSPACE_ROOT;
 function sha256Hex(data: string): string { return createHash("sha256").update(data).digest("hex"); }
@@ -21,6 +22,46 @@ export interface ContextFileEntry {
   path: string;
   reason: string;
   sizeBytes: number;
+}
+
+export type RuntimeEvidenceClassification = "VERIFIED_LIVE" | "CONFIGURED" | "SOURCE_REFERENCE" | "UNKNOWN";
+
+export interface SemanticPreflightCapability {
+  capabilityId: string;
+  ownerModule: string;
+  exportName: string;
+  mutability: string;
+  status: string;
+  authority: "FROZEN_CAPABILITY_REGISTRY";
+}
+
+export interface SemanticPreflightDependency {
+  ownerModule: string;
+  dependent: string;
+  target: string;
+  kind: string;
+  source: "auto-dependency-graph" | "infra-dependency-graph";
+}
+
+export interface SemanticPreflightRuntimeEvidence {
+  classification: RuntimeEvidenceClassification;
+  relationship: string;
+  evidence: string;
+}
+
+export interface SemanticPreflight {
+  status: "READY" | "UNKNOWN";
+  capabilityAuthority: {
+    registry: "registry/capability-registry.json";
+    frozen: boolean;
+    capabilities: SemanticPreflightCapability[];
+  };
+  dependencies: SemanticPreflightDependency[];
+  runtimeEvidence: SemanticPreflightRuntimeEvidence[];
+  authorityBoundaries: string[];
+  constraints: string[];
+  unknowns: string[];
+  sourceFingerprint: string;
 }
 
 export interface ContextPlan {
@@ -34,6 +75,7 @@ export interface ContextPlan {
   requiredContracts: string[];
   requiredTests: string[];
   requiredEvidence: string[];
+  semanticPreflight: SemanticPreflight;
   tokenEstimate: number;
   sizeBytes: number;
   sourceFingerprint: string;
@@ -59,10 +101,242 @@ function evictOld(ownerId: string) {
 
 const MAX_INCLUDED_FILES = 40; // real, hard scope-too-broad guard — never "the whole repo"
 
-interface ArchBookNode { id: string; internal_dependencies?: string[] }
+interface ArchBookNode { id: string; internal_dependencies?: string[]; runtime_entry_point?: boolean }
+
+interface ModuleRegistryRecord {
+  owner?: string;
+  layer?: string;
+  purpose?: string;
+  purpose_th?: string;
+  exports?: string[];
+  status?: string;
+}
+
+interface DependencyGraphEdge {
+  source: string;
+  target: string;
+  kind: string;
+  confidence?: number;
+  evidence?: Array<{ kind?: string; file?: string; detail?: string }>;
+}
+
+interface UnknownSourceDiscovery {
+  candidates: { file: string; reason: string }[];
+  runtimeEvidence: SemanticPreflightRuntimeEvidence[];
+  unknowns: string[];
+}
+
+interface CapabilityAuthorityRecord {
+  CapabilityId: string;
+  OwnerModule: string;
+  ExportName: string;
+  Mutability: string;
+  Status: string;
+}
+
+interface ArchifyRuntimeMap {
+  evidence_policy?: Record<RuntimeEvidenceClassification, string>;
+  edges?: Array<{
+    from?: string;
+    to?: string;
+    via?: string;
+    classification?: RuntimeEvidenceClassification;
+    evidence?: string;
+    source?: string;
+    note?: string;
+  }>;
+}
 
 function loadArchitectureBook(): { nodes: ArchBookNode[] } | null {
   try { return JSON.parse(readFileSync(path.join(ROOT, "registry/architecture-book.json"), "utf-8")); } catch { return null; }
+}
+
+function loadModuleRegistry(): { modules: Record<string, ModuleRegistryRecord> } | null {
+  try { return JSON.parse(readFileSync(path.join(ROOT, "registry/module-registry.json"), "utf-8")); } catch { return null; }
+}
+
+function loadAutoDependencyGraph(): { edges: DependencyGraphEdge[] } | null {
+  try { return JSON.parse(readFileSync(path.join(ROOT, "registry/auto-dependency-graph.json"), "utf-8")); } catch { return null; }
+}
+
+function sourceSearchTerms(intentKeywords: string[]): { primary: string[]; semantic: string[] } {
+  const primary = [...new Set(intentKeywords.map((term) => term.trim().toLowerCase()).filter((term) => /^[a-z0-9]+$/.test(term) && term.length >= 3))];
+  const semantic = new Set(intentKeywords.map((term) => term.trim().toLowerCase()).filter((term) => term.length >= 3));
+  // Mechanical intent vocabulary for source context only — not a Capability
+  // Resolver, not a capability declaration, and never an execution decision.
+  // It lets existing English source metadata be searched from the Owner's Thai
+  // operational wording without fabricating a runtime relationship.
+  if (intentKeywords.some((term) => /ตรวจระบบ/.test(term))) semantic.add("observe");
+  if (intentKeywords.some((term) => /รับข้อความ/.test(term))) {
+    for (const term of ["inbound", "webhook", "message", "received"]) semantic.add(term);
+  }
+  return { primary, semantic: [...semantic] };
+}
+
+/**
+ * UNKNOWN capability fallback: compose source evidence already declared by the
+ * Module Registry and Architecture Book. This is deliberately not a second
+ * Capability Resolver: it never selects a capability, changes the frozen
+ * registry, or grants a Worker write scope. The auto dependency graph is
+ * consulted only to report whether an Architecture Book relationship has
+ * separately generated edge evidence; a missing generated edge stays UNKNOWN.
+ */
+function discoverUnknownSources(intentKeywords: string[], enabled: boolean): UnknownSourceDiscovery {
+  if (!enabled) return { candidates: [], runtimeEvidence: [], unknowns: [] };
+
+  const { primary, semantic } = sourceSearchTerms(intentKeywords);
+  const moduleRegistry = loadModuleRegistry();
+  const architectureBook = loadArchitectureBook();
+  const dependencyGraph = loadAutoDependencyGraph();
+  const unknowns: string[] = [];
+  if (!moduleRegistry) unknowns.push("UNKNOWN: Module Registry is unavailable; no UNKNOWN-capability source discovery was inferred.");
+  if (!architectureBook) unknowns.push("UNKNOWN: Architecture Book is unavailable; no source dependency relationship was inferred.");
+  if (!dependencyGraph) unknowns.push("UNKNOWN: auto-dependency-graph.json is unavailable; generated dependency confirmation was not inferred.");
+  if (!moduleRegistry || !architectureBook) return { candidates: [], runtimeEvidence: [], unknowns };
+
+  const nodes = new Map<string, ArchBookNode>(architectureBook.nodes.map((node) => [node.id, node]));
+  const rankedSeeds: { file: string; semanticMatches: string[]; score: number }[] = [];
+  for (const [file, record] of Object.entries(moduleRegistry.modules)) {
+      const node = nodes.get(`module:${file}`);
+      if (record.status !== "active" || !node) continue;
+      const sourceMetadata = [file, record.purpose, record.purpose_th, ...(record.exports ?? [])].filter(Boolean).join(" ").toLowerCase();
+      if (primary.length > 0 && !primary.every((term) => sourceMetadata.includes(term))) continue;
+      const semanticMatches = semantic.filter((term) => sourceMetadata.includes(term));
+      if (semanticMatches.length > 0) rankedSeeds.push({ file, semanticMatches, score: semanticMatches.length + (node.runtime_entry_point ? 1 : 0) });
+  }
+  rankedSeeds.sort((a, b) => b.score - a.score || a.file.localeCompare(b.file));
+  const strongestScore = rankedSeeds[0]?.score ?? 0;
+  const seeds = rankedSeeds.filter((candidate) => candidate.score === strongestScore).map((candidate) => candidate.file);
+
+  if (seeds.length === 0) {
+    unknowns.push(`UNKNOWN: no active Module Registry entry and Architecture Book node matched the unresolved intent terms: ${semantic.join(", ") || "(none)"}.`);
+    return { candidates: [], runtimeEvidence: [], unknowns };
+  }
+
+  const candidates = seeds.map((file) => ({
+    file,
+    reason: `UNKNOWN-capability source discovery: active Module Registry metadata/path matched strongest unresolved intent meaning term(s) ${rankedSeeds.find((candidate) => candidate.file === file)?.semanticMatches.join(", ")} and has a real Architecture Book module node`,
+  }));
+  const runtimeEvidence: SemanticPreflightRuntimeEvidence[] = seeds.map((file) => ({
+    classification: "SOURCE_REFERENCE",
+    relationship: `unresolved intent -> ${file}`,
+    evidence: `Active registry/module-registry.json entry plus registry/architecture-book.json module:${file}; source exists on disk is checked before inclusion.`,
+  }));
+  const seen = new Set(seeds);
+
+  for (const source of seeds) {
+    const node = nodes.get(`module:${source}`);
+    for (const dependencyId of node?.internal_dependencies ?? []) {
+      const target = dependencyId.replace(/^module:/, "");
+      if (seen.has(target) || !moduleRegistry.modules[target] || moduleRegistry.modules[target].status !== "active") continue;
+      if (!target.startsWith("engines/integration-gateway/")) continue;
+      seen.add(target);
+      const graphEdge = dependencyGraph?.edges.find((edge) => edge.source === `module:${source}` && edge.target === `module:${target}`);
+      const graphEvidence = graphEdge
+        ? ` Separately confirmed by registry/auto-dependency-graph.json (${graphEdge.kind}, confidence=${graphEdge.confidence ?? "UNKNOWN"}).`
+        : " UNKNOWN: no matching generated dependency-graph edge was found; this relationship is source-reference evidence from the Architecture Book only.";
+      candidates.push({ file: target, reason: `UNKNOWN-capability source discovery: direct Architecture Book dependency of ${source}.${graphEvidence}` });
+      runtimeEvidence.push({
+        classification: "SOURCE_REFERENCE",
+        relationship: `${source} -> ${target}`,
+        evidence: `registry/architecture-book.json declares module:${target} as an internal dependency of module:${source}.${graphEvidence}`,
+      });
+    }
+  }
+
+  unknowns.push("UNKNOWN: source discovery proves registered source references only; it does not prove external webhook delivery, event-bus persistence, or runtime health.");
+  return { candidates, runtimeEvidence, unknowns };
+}
+
+function loadArchifyRuntimeMap(): ArchifyRuntimeMap | null {
+  try {
+    return JSON.parse(readFileSync(path.join(ROOT, "reports/archify-runtime-relationship-map/production-runtime-relationship-map.json"), "utf-8")) as ArchifyRuntimeMap;
+  } catch {
+    return null;
+  }
+}
+
+/** Read-time composition only. This neither writes a registry nor treats the
+ * Archify report as a resolver: every relationship remains classified with its
+ * recorded evidence level, and missing data remains UNKNOWN. */
+function buildSemanticPreflight(
+  capabilityResolution: CapabilityResolutionReport,
+  capabilities: CapabilityAuthorityRecord[],
+  frozen: boolean,
+  unknownSourceDiscovery: UnknownSourceDiscovery,
+): SemanticPreflight {
+  const selected = capabilityResolution.selected
+    .map((match) => capabilities.find((capability) => capability.CapabilityId === match.capabilityId))
+    .filter((capability): capability is CapabilityAuthorityRecord => !!capability);
+  const dependencies = selected.flatMap((capability) => getDependents(capability.OwnerModule).map((edge) => ({
+    ownerModule: capability.OwnerModule,
+    dependent: edge.source,
+    target: edge.target,
+    kind: edge.kind,
+    source: edge.source_generated === "infra-dependency-graph" ? ("infra-dependency-graph" as const) : ("auto-dependency-graph" as const),
+  })));
+  const map = loadArchifyRuntimeMap();
+  const runtimeEvidence: SemanticPreflightRuntimeEvidence[] = [...unknownSourceDiscovery.runtimeEvidence];
+  const unknowns: string[] = [...unknownSourceDiscovery.unknowns];
+
+  if (capabilityResolution.overallClass === "UNKNOWN" && capabilityResolution.selected.length === 0) {
+    unknowns.push("UNKNOWN: Capability Resolver selected no frozen capability; source discovery is read-only context evidence and does not change capability authority.");
+  }
+
+  if (!map) {
+    unknowns.push("UNKNOWN: Archify Runtime Relationship Map is unavailable; no runtime relationship was inferred.");
+  } else {
+    for (const edge of map.edges ?? []) {
+      const edgeText = [edge.from, edge.to, edge.via, edge.source, edge.evidence, edge.note].filter(Boolean).join(" ");
+      if (!selected.some((capability) => edgeText.includes(capability.OwnerModule))) continue;
+      runtimeEvidence.push({
+        classification: edge.classification ?? "UNKNOWN",
+        relationship: `${edge.from ?? "UNKNOWN"} -> ${edge.to ?? "UNKNOWN"}${edge.via ? ` via ${edge.via}` : ""}`,
+        evidence: edge.evidence ?? edge.source ?? edge.note ?? "No evidence detail was recorded.",
+      });
+    }
+    if (runtimeEvidence.length === 0) {
+      unknowns.push("UNKNOWN: Archify contains no runtime edge directly attributable to the selected capability OwnerModule(s); no runtime ownership or traffic relationship was inferred.");
+    }
+  }
+
+  const authorityBoundaries = [
+    `Capability ownership is read from frozen registry/capability-registry.json (frozen=${frozen}).`,
+    "Dependency impact is read through engines/workspace/dependencyRegistry.ts, which composes auto-dependency-graph.json with infra-dependency-graph.json.",
+    "Any external connector Run remains gated by core/connector-loader.ts#requireConnector() and the Connect -> Register -> Test -> Enable -> Run lifecycle; this read-only preflight never bypasses or invokes that gate.",
+  ];
+  const constraints = [
+    "No registry, database, controller, or canonical writer is created by Semantic Preflight.",
+    "Owner approval and existing Context Plan scope gates remain required before a Worker receives context or any file change executes.",
+    "Post-change verification remains the existing execute -> review -> test flow.",
+  ];
+  const sourceFingerprint = sha256Hex(JSON.stringify({
+    capabilityIds: selected.map((capability) => capability.CapabilityId), frozen,
+    dependencies: dependencies.map((dependency) => `${dependency.dependent}->${dependency.target}:${dependency.source}`),
+    runtimeEvidence: runtimeEvidence.map((evidence) => `${evidence.classification}:${evidence.relationship}`),
+    unknowns,
+  }));
+  return {
+    status: unknowns.length > 0 ? "UNKNOWN" : "READY",
+    capabilityAuthority: {
+      registry: "registry/capability-registry.json",
+      frozen,
+      capabilities: selected.map((capability) => ({
+        capabilityId: capability.CapabilityId,
+        ownerModule: capability.OwnerModule,
+        exportName: capability.ExportName,
+        mutability: capability.Mutability,
+        status: capability.Status,
+        authority: "FROZEN_CAPABILITY_REGISTRY",
+      })),
+    },
+    dependencies,
+    runtimeEvidence,
+    authorityBoundaries,
+    constraints,
+    unknowns,
+    sourceFingerprint,
+  };
 }
 
 /** Real, dependency-graph-driven expansion — for every real OwnerModule
@@ -91,14 +365,20 @@ export function buildContextPlan(
 ): ContextPlan {
   // Resolve real OwnerModule paths for selected capabilities via the same
   // real registry the resolver already loaded — never a second lookup source.
-  const registry = JSON.parse(readFileSync(path.join(ROOT, "registry/capability-registry.json"), "utf-8")) as { capabilities: { CapabilityId: string; OwnerModule: string }[] };
+  const registry = JSON.parse(readFileSync(path.join(ROOT, "registry/capability-registry.json"), "utf-8")) as { frozen: boolean; capabilities: CapabilityAuthorityRecord[] };
   const capById = new Map(registry.capabilities.map((c) => [c.CapabilityId, c]));
+  const unknownSourceDiscovery = discoverUnknownSources(
+    capabilityResolution.intentKeywords,
+    capabilityResolution.overallClass === "UNKNOWN" && capabilityResolution.selected.length === 0 && changedFiles.length === 0,
+  );
+  const semanticPreflight = buildSemanticPreflight(capabilityResolution, registry.capabilities, registry.frozen, unknownSourceDiscovery);
 
   const candidates: { file: string; reason: string }[] = [];
   for (const m of capabilityResolution.selected) {
     const cap = capById.get(m.capabilityId);
     if (cap) candidates.push({ file: cap.OwnerModule, reason: `real OwnerModule of selected Capability ${m.capabilityId}` });
   }
+  candidates.push(...unknownSourceDiscovery.candidates);
   for (const f of changedFiles) candidates.push({ file: f, reason: "real, already-changed file in this Workspace Session's Change Set" });
 
   const ownerModuleFiles = candidates.map((c) => c.file);
@@ -135,7 +415,9 @@ export function buildContextPlan(
     contextPlanId, workspaceSessionId, includedFiles, excludedFiles, forbiddenPaths,
     permittedReadScope, permittedWriteScope,
     requiredContracts: capabilityResolution.selected.map((m) => m.capabilityId),
-    requiredTests: [], requiredEvidence: ["real Capability Resolution Report", "real Change Set (if any files are being written)"],
+    requiredTests: ["existing Workspace execute -> review -> test flow"],
+    requiredEvidence: ["real Capability Resolution Report", "real Dependency Registry impact analysis", "Archify Runtime Relationship Map evidence classifications (or explicit UNKNOWN)", "real Change Set (if any files are being written)"],
+    semanticPreflight,
     tokenEstimate, sizeBytes, sourceFingerprint, approved: false, approvedAt: null,
     createdAt: new Date().toISOString(), ownerId, actor, artifactIds: [],
   };
@@ -192,6 +474,15 @@ export function buildMinimalContextPlan(
     contextPlanId, workspaceSessionId, includedFiles, excludedFiles, forbiddenPaths,
     permittedReadScope: includedFiles.map((f) => f.path), permittedWriteScope,
     requiredContracts: [], requiredTests: [], requiredEvidence: ["real Job Contract (minimum-context path — no Capability Resolver, no dependency-graph expansion)"],
+    semanticPreflight: {
+      status: "UNKNOWN",
+      capabilityAuthority: { registry: "registry/capability-registry.json", frozen: true, capabilities: [] },
+      dependencies: [], runtimeEvidence: [],
+      authorityBoundaries: ["Job Contract minimum-context flow does not perform Capability Resolution or dependency-graph expansion."],
+      constraints: ["No runtime relationship was inferred for this minimum-context path."],
+      unknowns: ["UNKNOWN: Job Contract minimum-context path intentionally bypasses Semantic Preflight because no Capability Resolution exists."],
+      sourceFingerprint: sha256Hex("job-contract-minimum-context-semantic-preflight-unknown"),
+    },
     tokenEstimate, sizeBytes, sourceFingerprint, approved: false, approvedAt: null,
     createdAt: new Date().toISOString(), ownerId, actor, artifactIds: [],
   };

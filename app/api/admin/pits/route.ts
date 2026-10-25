@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { parseAreaFromAddress } from "@/core/public-catalog/geography"
 
 // Real pit/quarry inventory that the pricing engines (engines/distance.ts,
 // engines/cost.ts) actually read from — pit_profiles + pit_materials joined
@@ -20,8 +21,10 @@ export async function GET() {
     db.from("pit_profiles")
       .select("id, pit_name, address, latitude, longitude, deleted_at, line_user_id")
       .order("pit_name"),
+    // `id` is included so the publication writer (app/api/admin/publications)
+    // can grant per-price publication permission from this same control room.
     db.from("pit_materials")
-      .select("pit_profile_id, material_type_id, price")
+      .select("id, pit_profile_id, material_type_id, price")
       .is("deleted_at", null),
     db.from("material_types").select("id, name"),
   ])
@@ -32,25 +35,22 @@ export async function GET() {
   }
 
   const materialNameById = new Map((materialTypes ?? []).map((m) => [m.id, m.name]))
-  const materialsByPit = new Map<string, { material_type_id: string; name: string; price: number }[]>()
+  const materialsByPit = new Map<string, { id: string; material_type_id: string; name: string; price: number }[]>()
   for (const pm of pitMaterials ?? []) {
     const name = materialNameById.get(pm.material_type_id)
     if (!name) continue
     const list = materialsByPit.get(pm.pit_profile_id) ?? []
-    list.push({ material_type_id: pm.material_type_id, name, price: Number(pm.price) })
+    list.push({ id: pm.id, material_type_id: pm.material_type_id, name, price: Number(pm.price) })
     materialsByPit.set(pm.pit_profile_id, list)
   }
 
-  const provinceOf = (addr: string | null) => {
-    const m = (addr ?? "").match(/จ\.?\s*([ก-๙]+)/)
-    return m ? m[1] : null
-  }
-
+  // One parser, shared with the public reader (core/public-catalog/geography)
+  // — the control room and the public table can never disagree on จังหวัด.
   const result = (pits ?? []).map((p) => ({
     id: p.id,
     name: p.pit_name,
     address: p.address,
-    province: provinceOf(p.address),
+    province: parseAreaFromAddress(p.address).province,
     lat: p.latitude && Number(p.latitude) !== 0 ? Number(p.latitude) : null,
     lng: p.longitude && Number(p.longitude) !== 0 ? Number(p.longitude) : null,
     materials: materialsByPit.get(p.id) ?? [],

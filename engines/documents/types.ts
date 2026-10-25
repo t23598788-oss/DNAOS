@@ -21,7 +21,7 @@ export type DocType =
   | "quotation" | "boq" | "workorder" | "delivery" | "delivery_order"
   | "invoice" | "billing" | "receipt" | "purchase_order" | "payment_voucher"
   | "debt_notice" | "management_fee" | "requisition"
-  | "job_summary" | "monthly_summary";
+  | "job_summary" | "monthly_summary" | "credit_agreement";
 
 export const DOC_LABELS: Record<DocType, { th: string; en: string; prefix: string }> = {
   quotation:       { th: "ใบเสนอราคา",      en: "QUOTATION",        prefix: "QUO" },
@@ -39,6 +39,7 @@ export const DOC_LABELS: Record<DocType, { th: string; en: string; prefix: strin
   requisition:     { th: "ใบเบิก",          en: "REQUISITION",      prefix: "REQ" },
   job_summary:     { th: "ใบสรุปงาน",       en: "JOB SUMMARY",      prefix: "JS" },
   monthly_summary: { th: "ใบสรุปรายเดือน",   en: "MONTHLY SUMMARY",  prefix: "MS" },
+  credit_agreement: { th: "บันทึกหลักฐานสัญญาเงินยืมภายใน", en: "INTERNAL CREDIT EVIDENCE", prefix: "ICE" },
 };
 
 export interface DocItem {

@@ -69,7 +69,17 @@ echo "--- Checking for undeclared top-level directories ---"
 # contractor/worker coordination package (own package.json/tsconfig, lease client over
 # registry/LOCK_MANAGER.json, Freebuff pull-mode adapter). Same treatment as
 # dna-os-mcp-server/ above: a real tracked top-level folder with its own package.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff"
+# external-packages/ and reports/ (verified-provenance declaration, fellow site-recovery pass 2026-10-24): BOTH are local untracked
+# tooling artifacts — git ls-files shows 0 tracked files in each
+# (external-packages/semantic-preflight = standalone tool package own
+# package.json+tsconfig+src; reports/archify-runtime-relationship-map =
+# generated HTML/JSON report bundle). NOT a business layer, NOT owner-approved
+# architecture — declared with the same treatment the script already gives
+# tmp/ and output/ (generated local outputs that would otherwise flag a false
+# "Shadow Layer" DRIFT on every build). If either folder is later adopted as
+# real architecture, it must then be registered in
+# registry/module-registry.json like every other layer.
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff external-packages reports"
 
 for dir in */; do
   dirname=$(basename "$dir")

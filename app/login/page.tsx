@@ -375,6 +375,9 @@ export default function LoginPage() {
         <p className="mt-8 text-center text-sm text-stone-400">
           DNA OS — Single Sign-On
           <br />
+          <a href="/register" className="mt-1 inline-block text-sm text-[#1e6fa8] hover:underline">
+            ยังไม่มีบัญชี? สมัครสมาชิก
+          </a>
           <a href="/install" className="mt-1 inline-block text-xs text-[#1e6fa8] hover:underline">
             วิธีติดตั้งแอปลงเครื่อง (iOS / Android / คอมพิวเตอร์)
           </a>

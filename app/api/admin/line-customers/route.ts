@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 // Cross-reference view: every distinct LINE contact, their message history,
 // and — where the LINE display name matches a real company/partner record —
@@ -13,12 +14,28 @@ export async function GET() {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (ctx.companyIds && ctx.companyIds.size === 0) return NextResponse.json({ contacts: [] })
+
   const db = supabase()
 
-  const { data: events, error } = await db
+  // Organization scope narrows the message read itself: only LINE accounts
+  // explicitly linked to an in-scope company are fetched at all.
+  let eventsQuery = db
     .from("line_events")
     .select("id, line_user_id, line_name, line_picture, raw_type, raw_text, created_at")
-    .order("created_at", { ascending: true })
+  if (ctx.companyIds) {
+    const { data: scopedLinks } = await db
+      .from("company_line_links")
+      .select("line_user_id")
+      .in("company_id", [...ctx.companyIds])
+    const linkedIds = [...new Set((scopedLinks ?? []).map((l) => l.line_user_id as string))]
+    if (linkedIds.length === 0) return NextResponse.json({ contacts: [] })
+    eventsQuery = eventsQuery.in("line_user_id", linkedIds)
+  }
+  const { data: events, error } = await eventsQuery.order("created_at", { ascending: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
@@ -56,25 +73,21 @@ export async function GET() {
 
   const contacts = Array.from(byUser.values())
   const lineUserIds = contacts.map((c) => c.line_user_id)
-  const names = contacts.map((c) => c.line_name).filter((n): n is string => !!n)
 
-  // Match by direct link first (owner-confirmed — a real person can have
-  // MORE THAN ONE LINE account, e.g. ช่างมิก added a second LINE account
-  // 2026-07-10, so this is a many-links-to-one-company table, not a single
-  // column) — only fall back to matching by exact display name if no direct
-  // link exists.
+  // STEP 2 (2026-10-25): identity is the explicit link only. A LINE display
+  // name is NOT identity — the old exact-name fallback could attach a contact
+  // (and its debt figures) to a different company that happened to share the
+  // name.
+  let linksQuery = db.from("company_line_links").select("line_user_id, company_id, companies(id, name, tax_id, phone)")
+  if (ctx.companyIds) linksQuery = linksQuery.in("company_id", [...ctx.companyIds])
   const { data: links } = lineUserIds.length
-    ? await db.from("company_line_links").select("line_user_id, companies(id, name, tax_id, phone)").in("line_user_id", lineUserIds)
-    : { data: [] }
-  const { data: namedCompanies } = names.length
-    ? await db.from("companies").select("id, name, tax_id, phone").in("name", names)
+    ? await linksQuery.in("line_user_id", lineUserIds)
     : { data: [] }
 
   const companyByLineUserId = new Map(
     (links ?? []).filter((l: any) => l.companies).map((l: any) => [l.line_user_id as string, l.companies])
   )
-  const companyByName = new Map((namedCompanies ?? []).map((c) => [c.name, c]))
-  const allCompanyIds = [...companyByLineUserId.values(), ...(namedCompanies ?? [])].map((c: any) => c.id)
+  const allCompanyIds = [...companyByLineUserId.values()].map((c: any) => c.id)
 
   const { data: debts } = allCompanyIds.length
     ? await db.from("company_debt_current").select("company_id, ledger_outstanding, ledger_event_count, snapshot_collection_state, snapshot_days_overdue").in("company_id", allCompanyIds)
@@ -103,9 +116,15 @@ export async function GET() {
     : { data: [] }
   const pendingByUserId = new Set((pendingDrafts ?? []).map((d) => d.line_user_id))
 
-  const result = contacts
+  // An unmatched contact has no company — that is unattributed data and stays
+  // platform-only, same as the relationships list.
+  const scopedContacts = ctx.companyIds === null
+    ? contacts
+    : contacts.filter((c) => companyByLineUserId.has(c.line_user_id))
+
+  const result = scopedContacts
     .map((c) => {
-      const company = companyByLineUserId.get(c.line_user_id) ?? (c.line_name ? companyByName.get(c.line_name) : null)
+      const company = companyByLineUserId.get(c.line_user_id) ?? null
       const debt = company ? debtByCompanyId.get(company.id) : null
       return {
         ...c,

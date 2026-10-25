@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { runWithDataScope } from "@/core/authority/data-scope-context"
+import { ownerBridgeDataScope } from "@/engines/authority/session-scope"
 import { runCognitivePipeline } from "@/cognitive/pipeline"
 import { supabaseAdmin } from "@/services/supabase/queries"
 
@@ -32,6 +34,10 @@ export async function POST(req: Request) {
   if (!body?.lineUserId || !body?.commandText) {
     return NextResponse.json({ error: "ไม่มี lineUserId หรือ commandText" }, { status: 400 })
   }
+  // Narrowed locals are captured for the scope callback (TS loses narrowing
+  // inside a closure).
+  const lineUserId = body.lineUserId
+  const commandText = body.commandText
 
   try {
     // sessionKey = lineUserId (owner, 2026-07-31 fix): keeps the owner's LINE
@@ -40,7 +46,11 @@ export async function POST(req: Request) {
     // process-wide singleton. This route is owner-only (see text.ts's
     // caller), so contactContext is left null — no extra free-text facts
     // needed here.
-    const result = await runCognitivePipeline(body.commandText, null, body.lineUserId)
+    // Owner-only, secret-gated bridge: the ONE explicit platform scope, with a
+    // distinct evidence reason (not an implicit widening of any user session).
+    const result = await runWithDataScope(ownerBridgeDataScope(), () =>
+      runCognitivePipeline(commandText, null, lineUserId),
+    )
     const navigateUrl = "navigate_url" in result ? result.navigate_url ?? null : null
     const workspace = "workspace" in result ? result.workspace ?? null : null
 
