@@ -28,7 +28,7 @@
 | Worktree status | clean | `git status --porcelain` |
 | GitHub `main` | `b06f7baa183c31b535dd0d135808b781bf02132c` | `git ls-remote github refs/heads/main` |
 | GitHub `release/20261025` | `b06f7baa183c31b535dd0d135808b781bf02132c` | `git ls-remote github refs/heads/release/20261025` |
-| Railway Production deployment | `b06f7baa183c31b535dd0d135808b781bf02132c` | `railway deployment list --environment production --json` |
+| Railway Production deployment | `b06f7baa183c31b535dd0d135808b781bf02132c` → ต่อมา `8429b9e0729a2d3c24fbc2b26b501d874a2e2577` (docs-only บน b06f7baa — ซอร์สโค้ดเหมือนเดิม) | `railway deployment list --environment production --json` |
 
 → **SHA ครบ 4 ตำแหน่งตรงกันทุกตัวอักษร** — Release SHA อยู่บน Production ที่ยืนยันจาก metadata ของ deployment โดยตรง (ไม่ใช่การเดาจาก HTTP เพียงอย่างเดียว)
 
@@ -38,11 +38,13 @@
 |---|---|---|---|---|
 | `6c462554-d6f9-4e5b-9576-bc5f24aa108a` | 2026-10-25T00:58:13 | `5ef43df4` | **FAILED** | build รอบแรกไม่ผ่าน — หลักฐาน root cause ที่เก็บไว้ตามรายงานก่อน |
 | `0801d276-29ac-4836-a055-7b85a928ca6e` | 2026-10-25T01:27:32 | `83e8bdb8` | REMOVED | deploy ได้แต่ถูก replace ด้วยรอบล่าสุด |
-| **`0efc8f15-d6d9-4e46-8373-e065d05ec589`** | **2026-10-25T01:32:56** | **`b06f7baa`** | **SUCCESS** | **deployment ปัจจุบัน** · Runtime V2 · region `iad` · imageDigest `sha256:ec187941…616cd80` |
+| **`0efc8f15-d6d9-4e46-8373-e065d05ec589`** | **2026-10-25T01:32:56** | **`b06f7baa`** | **SUCCESS** (ถูก replace รอบถัดไป) | **deployment ของ Release SHA** · Runtime V2 · region `iad` · imageDigest `sha256:ec187941…616cd80` |
+| `46281568-1c7f-4f66-8c0a-d8ded1a5b738` | 2026-10-25T02:01:18 | `8429b9e0` | SUCCESS | **deployment ปัจจุบัน** — docs-only (รายงานฉบับนี้) ทับซอร์สเดิมเด่นจาก `b06f7baa` เท่านั้น |
 
 - `railway status`: `Services: ---------------DNA-OS ● Online · https://dna-os-production.up.railway.app` — Service Online ตาม deployment ที่สำเร็จ
 - `railway logs --deployment 0efc8f15…` (runtime): `npm run start → next start ✓ Ready in 87ms` — boot สำเร็จ ไม่มี error วิกฤต
 - `railway whoami`: `Logged in as t23598788@gmail.com` — การยืนยันตัวตนทำผ่าน `railway login` อย่างเป็นทางการ
+- รายงานฉบับนี้ (commit `8429b9e0` — เอกสารเพียงไฟล์เดียว ไม่แตะซอร์สโค้ด) ถูก push ขึ้น main และ Railway auto-deploy ได้ตามปกติเป็น deployment `46281568…` = **SUCCESS** (2026-10-25T02:01:18Z) — ตรวจหลัง deploy แล้ว Prod probe ทุกจุดยังตอบเหมือนเดิม (`/`, `/api/public/products`, `/products/catalog` = 200 · `/api/admin/pulse` = 401) — ซอฟต์แวร์ที่ผู้ใช้เห็นบน Production จึงเทียบชุดรหัสเดิม `b06f7baa` เสมอ
 
 ### 2.3 Public URLs — Probe จริง (HTTP code ณ ตอนอัปเดต)
 
@@ -121,7 +123,7 @@
 
 | หัวข้อ | ผล | ผู้รับผิดชอบ | หลักฐาน |
 |---|---|---|---|
-| Release → Production deploy | PASS | Buffy + Railway (ผ่าน CLI หลังเจ้าของ login) | deployment `0efc8f15` = `b06f7baa` |
+| Release → Production deploy | PASS | Buffy + Railway (ผ่าน CLI หลังเจ้าของ login) | deployment `0efc8f15` = `b06f7baa` (Release) → `46281568` = `8429b9e0` (docs-only รอบปัจจุบัน) |
 | UI/แบรนด์ถูกต้อง (ก่อน/หลัง) | PASS | Buffy | screenshot `prod-after-*.png` เทียบ `final-desktop.png` และเทียบก่อน `prod-home-redirect.png` |
 | API / สิทธิ์ไม่รั่วไหล | PASS | Buffy | probe ตาราง 2.3 (admin guard 401) |
 | `dnaos.dev` cutover DNS | ค้างอยู่กับเจ้าของ | เจ้าของ (domain provider) | dig → `69.46.46.102` |
