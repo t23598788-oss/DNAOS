@@ -1,0 +1,533 @@
+[ai-relay] start → https://dnaos.dev · ollama → http://127.0.0.1:11434 (token=keychain)
+[ai-relay] start → https://dna-os-deadboard-production.up.railway.app · ollama → http://127.0.0.1:11434 (token=keychain)
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792241789451-adic5sv9 model=qwen3:8b prompt_len=33
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792241806269-w5muduvg model=qwen3:8b prompt_len=37
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792241821702-5f2n2d6x model=qwen3:8b prompt_len=38
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792241966222-c4mags8p model=qwen3:8b prompt_len=33
+[ai-relay] OLLAMA_INFERENCE id=olar-1792241966222-c4mags8p model=qwen3:8b ms=28535
+[ai-relay] RESPONSE_RETURNED id=olar-1792241966222-c4mags8p bytes=36
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792242015395-6zhob0hl model=qwen3:8b prompt_len=37
+[ai-relay] OLLAMA_INFERENCE id=olar-1792242015395-6zhob0hl model=qwen3:8b ms=9224
+[ai-relay] RESPONSE_RETURNED id=olar-1792242015395-6zhob0hl bytes=66
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792242040290-ucn5b0bc model=qwen3:8b prompt_len=38
+[ai-relay] OLLAMA_INFERENCE id=olar-1792242040290-ucn5b0bc model=qwen3:8b ms=11588
+[ai-relay] RESPONSE_RETURNED id=olar-1792242040290-ucn5b0bc bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792246119078-5hfvyjfk model=qwen3:8b prompt_len=795
+[ai-relay] OLLAMA_INFERENCE id=olar-1792246119078-5hfvyjfk model=qwen3:8b ms=24848
+[ai-relay] RESPONSE_RETURNED id=olar-1792246119078-5hfvyjfk bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792246145759-dnhjwz8l model=qwen3:8b prompt_len=12
+[ai-relay] OLLAMA_INFERENCE id=olar-1792246145759-dnhjwz8l model=qwen3:8b ms=10578
+[ai-relay] RESPONSE_RETURNED id=olar-1792246145759-dnhjwz8l bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792247503682-aeg4tuxk model=qwen3:8b prompt_len=35
+[ai-relay] OLLAMA_INFERENCE id=olar-1792247503682-aeg4tuxk model=qwen3:8b ms=29970
+[ai-relay] RESPONSE_RETURNED id=olar-1792247503682-aeg4tuxk bytes=36
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792247791792-7p63g11q model=qwen3:8b prompt_len=55
+[ai-relay] OLLAMA_INFERENCE id=olar-1792247791792-7p63g11q model=qwen3:8b ms=10140
+[ai-relay] RESPONSE_RETURNED id=olar-1792247791792-7p63g11q bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792247854870-s5a956ci model=qwen3:8b prompt_len=793
+[ai-relay] OLLAMA_INFERENCE id=olar-1792247854870-s5a956ci model=qwen3:8b ms=10006
+[ai-relay] RESPONSE_RETURNED id=olar-1792247854870-s5a956ci bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792247867462-7zaol5tw model=qwen3:8b prompt_len=10
+[ai-relay] OLLAMA_INFERENCE id=olar-1792247867462-7zaol5tw model=qwen3:8b ms=2691
+[ai-relay] RESPONSE_RETURNED id=olar-1792247867462-7zaol5tw bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250065513-kx86m4uk model=qwen3:8b prompt_len=820
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250065513-kx86m4uk model=qwen3:8b ms=20468
+[ai-relay] RESPONSE_RETURNED id=olar-1792250065513-kx86m4uk bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250087691-3bm4v96v model=qwen3:8b prompt_len=44
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250087691-3bm4v96v model=qwen3:8b ms=16234
+[ai-relay] RESPONSE_RETURNED id=olar-1792250087691-3bm4v96v bytes=41
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250105457-56legaoz model=qwen3:8b prompt_len=37
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250105457-56legaoz model=qwen3:8b ms=16645
+[ai-relay] RESPONSE_RETURNED id=olar-1792250105457-56legaoz bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250145614-oqjxsudm model=qwen3:8b prompt_len=835
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250145614-oqjxsudm model=qwen3:8b ms=7535
+[ai-relay] RESPONSE_RETURNED id=olar-1792250145614-oqjxsudm bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250154664-tufe4nmp model=qwen3:8b prompt_len=59
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250154664-tufe4nmp model=qwen3:8b ms=15169
+[ai-relay] RESPONSE_RETURNED id=olar-1792250154664-tufe4nmp bytes=112
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250171454-vbd55mbd model=qwen3:8b prompt_len=52
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250171454-vbd55mbd model=qwen3:8b ms=14281
+[ai-relay] RESPONSE_RETURNED id=olar-1792250171454-vbd55mbd bytes=220
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250199524-3smo77nt model=qwen3:8b prompt_len=37
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250199524-3smo77nt model=qwen3:8b ms=7890
+[ai-relay] RESPONSE_RETURNED id=olar-1792250199524-3smo77nt bytes=66
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250344880-h844kft2 model=qwen3:8b prompt_len=820
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250344880-h844kft2 model=qwen3:8b ms=10943
+[ai-relay] RESPONSE_RETURNED id=olar-1792250344880-h844kft2 bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250357566-noeugx0r model=qwen3:8b prompt_len=44
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250357566-noeugx0r model=qwen3:8b ms=15929
+[ai-relay] RESPONSE_RETURNED id=olar-1792250357566-noeugx0r bytes=41
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250374494-8cil233m model=qwen3:8b prompt_len=37
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250374494-8cil233m model=qwen3:8b ms=11916
+[ai-relay] RESPONSE_RETURNED id=olar-1792250374494-8cil233m bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250400174-2rdca9c3 model=qwen3:8b prompt_len=835
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250400174-2rdca9c3 model=qwen3:8b ms=4957
+[ai-relay] RESPONSE_RETURNED id=olar-1792250400174-2rdca9c3 bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250406191-gfom5lib model=qwen3:8b prompt_len=59
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250406191-gfom5lib model=qwen3:8b ms=14897
+[ai-relay] RESPONSE_RETURNED id=olar-1792250406191-gfom5lib bytes=112
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250422463-ewtnrmr0 model=qwen3:8b prompt_len=52
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250422463-ewtnrmr0 model=qwen3:8b ms=14561
+[ai-relay] RESPONSE_RETURNED id=olar-1792250422463-ewtnrmr0 bytes=220
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792250456426-y6o9smfc model=qwen3:8b prompt_len=37
+[ai-relay] OLLAMA_INFERENCE id=olar-1792250456426-y6o9smfc model=qwen3:8b ms=8253
+[ai-relay] RESPONSE_RETURNED id=olar-1792250456426-y6o9smfc bytes=66
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792252786693-7uahtx3w model=qwen3:8b prompt_len=820
+[ai-relay] OLLAMA_INFERENCE id=olar-1792252786693-7uahtx3w model=qwen3:8b ms=19416
+[ai-relay] RESPONSE_RETURNED id=olar-1792252786693-7uahtx3w bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792252807511-hntasnf4 model=qwen3:8b prompt_len=44
+[ai-relay] OLLAMA_INFERENCE id=olar-1792252807511-hntasnf4 model=qwen3:8b ms=15719
+[ai-relay] RESPONSE_RETURNED id=olar-1792252807511-hntasnf4 bytes=41
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792252824741-qsk764rq model=qwen3:8b prompt_len=37
+[ai-relay] OLLAMA_INFERENCE id=olar-1792252824741-qsk764rq model=qwen3:8b ms=16164
+[ai-relay] RESPONSE_RETURNED id=olar-1792252824741-qsk764rq bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792252859813-xtebey8y model=qwen3:8b prompt_len=835
+[ai-relay] OLLAMA_INFERENCE id=olar-1792252859813-xtebey8y model=qwen3:8b ms=7538
+[ai-relay] RESPONSE_RETURNED id=olar-1792252859813-xtebey8y bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792252869233-rn6r3vpl model=qwen3:8b prompt_len=59
+[ai-relay] OLLAMA_INFERENCE id=olar-1792252869233-rn6r3vpl model=qwen3:8b ms=15275
+[ai-relay] RESPONSE_RETURNED id=olar-1792252869233-rn6r3vpl bytes=112
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792252885968-ta905w27 model=qwen3:8b prompt_len=52
+[ai-relay] OLLAMA_INFERENCE id=olar-1792252885968-ta905w27 model=qwen3:8b ms=14589
+[ai-relay] RESPONSE_RETURNED id=olar-1792252885968-ta905w27 bytes=220
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792252921538-5mil71dt model=qwen3:8b prompt_len=37
+[ai-relay] OLLAMA_INFERENCE id=olar-1792252921538-5mil71dt model=qwen3:8b ms=8205
+[ai-relay] RESPONSE_RETURNED id=olar-1792252921538-5mil71dt bytes=66
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792252972001-v6ggwa5g model=qwen3:8b prompt_len=805
+[ai-relay] OLLAMA_INFERENCE id=olar-1792252972001-v6ggwa5g model=qwen3:8b ms=19644
+[ai-relay] RESPONSE_RETURNED id=olar-1792252972001-v6ggwa5g bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792252992959-z9130u6l model=qwen3:8b prompt_len=29
+[ai-relay] OLLAMA_INFERENCE id=olar-1792252992959-z9130u6l model=qwen3:8b ms=16655
+[ai-relay] RESPONSE_RETURNED id=olar-1792252992959-z9130u6l bytes=153
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792253010686-47nxjw9l model=qwen3:8b prompt_len=22
+[ai-relay] OLLAMA_INFERENCE id=olar-1792253010686-47nxjw9l model=qwen3:8b ms=6128
+[ai-relay] RESPONSE_RETURNED id=olar-1792253010686-47nxjw9l bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792253034250-eevvboy4 model=qwen3:8b prompt_len=40
+[ai-relay] OLLAMA_INFERENCE id=olar-1792253034250-eevvboy4 model=qwen3:8b ms=10593
+[ai-relay] RESPONSE_RETURNED id=olar-1792253034250-eevvboy4 bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792253225837-bxw65v2u model=qwen3:8b prompt_len=25
+[ai-relay] OLLAMA_INFERENCE id=olar-1792253225837-bxw65v2u model=qwen3:8b ms=11726
+[ai-relay] RESPONSE_RETURNED id=olar-1792253225837-bxw65v2u bytes=36
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792253281013-aj8k49ci model=qwen3:8b prompt_len=27
+[ai-relay] OLLAMA_INFERENCE id=olar-1792253281013-aj8k49ci model=qwen3:8b ms=8954
+[ai-relay] RESPONSE_RETURNED id=olar-1792253281013-aj8k49ci bytes=66
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792253305647-nl2uzqqo model=qwen3:8b prompt_len=33
+[ai-relay] OLLAMA_INFERENCE id=olar-1792253305647-nl2uzqqo model=qwen3:8b ms=11363
+[ai-relay] RESPONSE_RETURNED id=olar-1792253305647-nl2uzqqo bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792255138166-59zoqcqd model=qwen3:8b prompt_len=823
+[ai-relay] OLLAMA_INFERENCE id=olar-1792255138166-59zoqcqd model=qwen3:8b ms=23631
+[ai-relay] RESPONSE_RETURNED id=olar-1792255138166-59zoqcqd bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792255164001-uw2ep3ej model=qwen3:8b prompt_len=47
+[ai-relay] OLLAMA_INFERENCE id=olar-1792255164001-uw2ep3ej model=qwen3:8b ms=19468
+[ai-relay] RESPONSE_RETURNED id=olar-1792255164001-uw2ep3ej bytes=71
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792255184883-7k9xc60k model=qwen3:8b prompt_len=40
+[ai-relay] OLLAMA_INFERENCE id=olar-1792255184883-7k9xc60k model=qwen3:8b ms=14231
+[ai-relay] RESPONSE_RETURNED id=olar-1792255184883-7k9xc60k bytes=68
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792255833792-k3hymxb5 model=qwen3:8b prompt_len=793
+[ai-relay] OLLAMA_INFERENCE id=olar-1792255833792-k3hymxb5 model=qwen3:8b ms=22916
+[ai-relay] RESPONSE_RETURNED id=olar-1792255833792-k3hymxb5 bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792255858836-3ih9u0jj model=qwen3:8b prompt_len=17
+[ai-relay] OLLAMA_INFERENCE id=olar-1792255858836-3ih9u0jj model=qwen3:8b ms=10973
+[ai-relay] RESPONSE_RETURNED id=olar-1792255858836-3ih9u0jj bytes=84
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792255871337-1c31zp17 model=qwen3:8b prompt_len=10
+[ai-relay] OLLAMA_INFERENCE id=olar-1792255871337-1c31zp17 model=qwen3:8b ms=15458
+[ai-relay] RESPONSE_RETURNED id=olar-1792255871337-1c31zp17 bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792255898470-v7wkju1j model=qwen3:8b prompt_len=789
+[ai-relay] OLLAMA_INFERENCE id=olar-1792255898470-v7wkju1j model=qwen3:8b ms=17410
+[ai-relay] RESPONSE_RETURNED id=olar-1792255898470-v7wkju1j bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792255917574-h7o1bt0v model=qwen3:8b prompt_len=13
+[ai-relay] OLLAMA_INFERENCE id=olar-1792255917574-h7o1bt0v model=qwen3:8b ms=20694
+[ai-relay] RESPONSE_RETURNED id=olar-1792255917574-h7o1bt0v bytes=209
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792255939351-zr60z5uy model=qwen3:8b prompt_len=6
+[ai-relay] OLLAMA_INFERENCE id=olar-1792255939351-zr60z5uy model=qwen3:8b ms=8067
+[ai-relay] RESPONSE_RETURNED id=olar-1792255939351-zr60z5uy bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792256716045-k23okfkj model=qwen3:8b prompt_len=25
+[ai-relay] OLLAMA_INFERENCE id=olar-1792256716045-k23okfkj model=qwen3:8b ms=24128
+[ai-relay] RESPONSE_RETURNED id=olar-1792256716045-k23okfkj bytes=36
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792256873484-cm3rz0f9 model=qwen3:8b prompt_len=33
+[ai-relay] OLLAMA_INFERENCE id=olar-1792256873484-cm3rz0f9 model=qwen3:8b ms=13383
+[ai-relay] RESPONSE_RETURNED id=olar-1792256873484-cm3rz0f9 bytes=41
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792256922042-88x402l6 model=qwen3:8b prompt_len=808
+[ai-relay] OLLAMA_INFERENCE id=olar-1792256922042-88x402l6 model=qwen3:8b ms=11354
+[ai-relay] RESPONSE_RETURNED id=olar-1792256922042-88x402l6 bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792256934884-zt4qc6mi model=qwen3:8b prompt_len=32
+[ai-relay] OLLAMA_INFERENCE id=olar-1792256934884-zt4qc6mi model=qwen3:8b ms=15402
+[ai-relay] RESPONSE_RETURNED id=olar-1792256934884-zt4qc6mi bytes=52
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792256945856-x23jmfu5 model=qwen3:8b prompt_len=25
+[ai-relay] OLLAMA_INFERENCE id=olar-1792256945856-x23jmfu5 model=qwen3:8b ms=10259
+[ai-relay] RESPONSE_RETURNED id=olar-1792256945856-x23jmfu5 bytes=36
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792256951366-cel7t7sw model=qwen3:8b prompt_len=25
+[ai-relay] OLLAMA_INFERENCE id=olar-1792256951366-cel7t7sw model=qwen3:8b ms=10648
+[ai-relay] RESPONSE_RETURNED id=olar-1792256951366-cel7t7sw bytes=66
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792257778879-qn57ijuw model=qwen3:8b prompt_len=793
+[ai-relay] OLLAMA_INFERENCE id=olar-1792257778879-qn57ijuw model=qwen3:8b ms=17552
+[ai-relay] RESPONSE_RETURNED id=olar-1792257778879-qn57ijuw bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792257798028-2nc7yfh4 model=qwen3:8b prompt_len=17
+[ai-relay] OLLAMA_INFERENCE id=olar-1792257798028-2nc7yfh4 model=qwen3:8b ms=11559
+[ai-relay] RESPONSE_RETURNED id=olar-1792257798028-2nc7yfh4 bytes=52
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792257810656-6udkhi5k model=qwen3:8b prompt_len=10
+[ai-relay] OLLAMA_INFERENCE id=olar-1792257810656-6udkhi5k model=qwen3:8b ms=11542
+[ai-relay] RESPONSE_RETURNED id=olar-1792257810656-6udkhi5k bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792257860683-x2srly5j model=qwen3:8b prompt_len=813
+[ai-relay] OLLAMA_INFERENCE id=olar-1792257860683-x2srly5j model=qwen3:8b ms=8190
+[ai-relay] RESPONSE_RETURNED id=olar-1792257860683-x2srly5j bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792257870617-msg2dgok model=qwen3:8b prompt_len=37
+[ai-relay] OLLAMA_INFERENCE id=olar-1792257870617-msg2dgok model=qwen3:8b ms=34982
+[ai-relay] RESPONSE_RETURNED id=olar-1792257870617-msg2dgok bytes=505
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792257907065-dkrau74p model=qwen3:8b prompt_len=30
+[ai-relay] OLLAMA_INFERENCE id=olar-1792257907065-dkrau74p model=qwen3:8b ms=19275
+[ai-relay] RESPONSE_RETURNED id=olar-1792257907065-dkrau74p bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792257947568-93yxvgrl model=qwen3:8b prompt_len=808
+[ai-relay] OLLAMA_INFERENCE id=olar-1792257947568-93yxvgrl model=qwen3:8b ms=11056
+[ai-relay] RESPONSE_RETURNED id=olar-1792257947568-93yxvgrl bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792257959988-xu6f0wcu model=qwen3:8b prompt_len=32
+[ai-relay] OLLAMA_INFERENCE id=olar-1792257959988-xu6f0wcu model=qwen3:8b ms=26627
+[ai-relay] RESPONSE_RETURNED id=olar-1792257959988-xu6f0wcu bytes=162
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792257987668-7ozuu8vk model=qwen3:8b prompt_len=25
+[ai-relay] OLLAMA_INFERENCE id=olar-1792257987668-7ozuu8vk model=qwen3:8b ms=9428
+[ai-relay] RESPONSE_RETURNED id=olar-1792257987668-7ozuu8vk bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792258020098-nrngwstv model=qwen3:8b prompt_len=806
+[ai-relay] OLLAMA_INFERENCE id=olar-1792258020098-nrngwstv model=qwen3:8b ms=15181
+[ai-relay] RESPONSE_RETURNED id=olar-1792258020098-nrngwstv bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792258036523-7ykxm9a6 model=qwen3:8b prompt_len=30
+[ai-relay] OLLAMA_INFERENCE id=olar-1792258036523-7ykxm9a6 model=qwen3:8b ms=22559
+[ai-relay] RESPONSE_RETURNED id=olar-1792258036523-7ykxm9a6 bytes=112
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792258060486-5u0vs1kh model=qwen3:8b prompt_len=23
+[ai-relay] OLLAMA_INFERENCE id=olar-1792258060486-5u0vs1kh model=qwen3:8b ms=11049
+[ai-relay] RESPONSE_RETURNED id=olar-1792258060486-5u0vs1kh bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792258460431-phriti28 model=qwen3:8b prompt_len=837
+[ai-relay] OLLAMA_INFERENCE id=olar-1792258460431-phriti28 model=qwen3:8b ms=20625
+[ai-relay] RESPONSE_RETURNED id=olar-1792258460431-phriti28 bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792258482202-n1aticxb model=qwen3:8b prompt_len=61
+[ai-relay] OLLAMA_INFERENCE id=olar-1792258482202-n1aticxb model=qwen3:8b ms=12509
+[ai-relay] RESPONSE_RETURNED id=olar-1792258482202-n1aticxb bytes=112
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792258496018-g6ka5s4e model=qwen3:8b prompt_len=54
+[ai-relay] OLLAMA_INFERENCE id=olar-1792258496018-g6ka5s4e model=qwen3:8b ms=16852
+[ai-relay] RESPONSE_RETURNED id=olar-1792258496018-g6ka5s4e bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792258555377-k8pj18jo model=qwen3:8b prompt_len=819
+[ai-relay] OLLAMA_INFERENCE id=olar-1792258555377-k8pj18jo model=qwen3:8b ms=16153
+[ai-relay] RESPONSE_RETURNED id=olar-1792258555377-k8pj18jo bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792258572989-mkv1qt7w model=qwen3:8b prompt_len=43
+[ai-relay] OLLAMA_INFERENCE id=olar-1792258572989-mkv1qt7w model=qwen3:8b ms=19386
+[ai-relay] RESPONSE_RETURNED id=olar-1792258572989-mkv1qt7w bytes=100
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792258593505-p0f8cnpv model=qwen3:8b prompt_len=36
+[ai-relay] OLLAMA_INFERENCE id=olar-1792258593505-p0f8cnpv model=qwen3:8b ms=25127
+[ai-relay] RESPONSE_RETURNED id=olar-1792258593505-p0f8cnpv bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792259690994-8hwzfoa3 model=qwen3:8b prompt_len=10
+[ai-relay] OLLAMA_INFERENCE id=olar-1792259690994-8hwzfoa3 model=qwen3:8b ms=23183
+[ai-relay] RESPONSE_RETURNED id=olar-1792259690994-8hwzfoa3 bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792259715719-d1br92r8 model=qwen3:8b prompt_len=17
+[ai-relay] OLLAMA_INFERENCE id=olar-1792259715719-d1br92r8 model=qwen3:8b ms=11934
+[ai-relay] RESPONSE_RETURNED id=olar-1792259715719-d1br92r8 bytes=52
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792259761948-wgjncjrg model=qwen3:8b prompt_len=30
+[ai-relay] OLLAMA_INFERENCE id=olar-1792259761948-wgjncjrg model=qwen3:8b ms=18186
+[ai-relay] RESPONSE_RETURNED id=olar-1792259761948-wgjncjrg bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792259781809-tdrhzc9o model=qwen3:8b prompt_len=37
+[ai-relay] OLLAMA_INFERENCE id=olar-1792259781809-tdrhzc9o model=qwen3:8b ms=36798
+[ai-relay] RESPONSE_RETURNED id=olar-1792259781809-tdrhzc9o bytes=505
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792259835167-llqfbb3z model=qwen3:8b prompt_len=25
+[ai-relay] OLLAMA_INFERENCE id=olar-1792259835167-llqfbb3z model=qwen3:8b ms=10737
+[ai-relay] RESPONSE_RETURNED id=olar-1792259835167-llqfbb3z bytes=62
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792259857855-vo305uim model=qwen3:8b prompt_len=23
+[ai-relay] OLLAMA_INFERENCE id=olar-1792259857855-vo305uim model=qwen3:8b ms=13275
+[ai-relay] RESPONSE_RETURNED id=olar-1792259857855-vo305uim bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792259873112-kz1v2oks model=qwen3:8b prompt_len=30
+[ai-relay] OLLAMA_INFERENCE id=olar-1792259873112-kz1v2oks model=qwen3:8b ms=25090
+[ai-relay] RESPONSE_RETURNED id=olar-1792259873112-kz1v2oks bytes=175
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792260001915-gxmzbaem model=qwen3:8b prompt_len=44
+[ai-relay] OLLAMA_INFERENCE id=olar-1792260001915-gxmzbaem model=qwen3:8b ms=12649
+[ai-relay] RESPONSE_RETURNED id=olar-1792260001915-gxmzbaem bytes=60
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792260204347-a9vp4sur model=qwen3:8b prompt_len=41
+[ai-relay] OLLAMA_INFERENCE id=olar-1792260204347-a9vp4sur model=qwen3:8b ms=23259
+[ai-relay] RESPONSE_RETURNED id=olar-1792260204347-a9vp4sur bytes=60
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792260420518-dr279g0f model=qwen3:8b prompt_len=10
+[ai-relay] OLLAMA_INFERENCE id=olar-1792260420518-dr279g0f model=qwen3:8b ms=15519
+[ai-relay] RESPONSE_RETURNED id=olar-1792260420518-dr279g0f bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792260437499-olpyhe1c model=qwen3:8b prompt_len=17
+[ai-relay] OLLAMA_INFERENCE id=olar-1792260437499-olpyhe1c model=qwen3:8b ms=12082
+[ai-relay] RESPONSE_RETURNED id=olar-1792260437499-olpyhe1c bytes=52
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792260482080-5q4g82zt model=qwen3:8b prompt_len=30
+[ai-relay] OLLAMA_INFERENCE id=olar-1792260482080-5q4g82zt model=qwen3:8b ms=8396
+[ai-relay] RESPONSE_RETURNED id=olar-1792260482080-5q4g82zt bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792260492277-ewp3o0bp model=qwen3:8b prompt_len=37
+[ai-relay] OLLAMA_INFERENCE id=olar-1792260492277-ewp3o0bp model=qwen3:8b ms=34303
+[ai-relay] RESPONSE_RETURNED id=olar-1792260492277-ewp3o0bp bytes=505
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792260548279-xhnqoivf model=qwen3:8b prompt_len=25
+[ai-relay] OLLAMA_INFERENCE id=olar-1792260548279-xhnqoivf model=qwen3:8b ms=11950
+[ai-relay] RESPONSE_RETURNED id=olar-1792260548279-xhnqoivf bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792260561760-horom280 model=qwen3:8b prompt_len=32
+[ai-relay] OLLAMA_INFERENCE id=olar-1792260561760-horom280 model=qwen3:8b ms=23315
+[ai-relay] RESPONSE_RETURNED id=olar-1792260561760-horom280 bytes=219
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792260602474-xq6872jh model=qwen3:8b prompt_len=23
+[ai-relay] OLLAMA_INFERENCE id=olar-1792260602474-xq6872jh model=qwen3:8b ms=13745
+[ai-relay] RESPONSE_RETURNED id=olar-1792260602474-xq6872jh bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792260618252-pvhip3p5 model=qwen3:8b prompt_len=30
+[ai-relay] OLLAMA_INFERENCE id=olar-1792260618252-pvhip3p5 model=qwen3:8b ms=38200
+[ai-relay] RESPONSE_RETURNED id=olar-1792260618252-pvhip3p5 bytes=175
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792262764843-5kye62pl model=qwen3:8b prompt_len=17
+[ai-relay] OLLAMA_INFERENCE id=olar-1792262764843-5kye62pl model=qwen3:8b ms=28907
+[ai-relay] RESPONSE_RETURNED id=olar-1792262764843-5kye62pl bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792262795393-me5sb09s model=qwen3:8b prompt_len=24
+[ai-relay] OLLAMA_INFERENCE id=olar-1792262795393-me5sb09s model=qwen3:8b ms=19463
+[ai-relay] RESPONSE_RETURNED id=olar-1792262795393-me5sb09s bytes=53
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792262842913-5s1tk7mj model=qwen3:8b prompt_len=23
+[ai-relay] OLLAMA_INFERENCE id=olar-1792262842913-5s1tk7mj model=qwen3:8b ms=8181
+[ai-relay] RESPONSE_RETURNED id=olar-1792262842913-5s1tk7mj bytes=41
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792262866907-473mhkou model=qwen3:8b prompt_len=8
+[ai-relay] OLLAMA_INFERENCE id=olar-1792262866907-473mhkou model=qwen3:8b ms=14752
+[ai-relay] RESPONSE_RETURNED id=olar-1792262866907-473mhkou bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792262883632-0h4k92hi model=qwen3:8b prompt_len=15
+[ai-relay] OLLAMA_INFERENCE id=olar-1792262883632-0h4k92hi model=qwen3:8b ms=26471
+[ai-relay] RESPONSE_RETURNED id=olar-1792262883632-0h4k92hi bytes=63
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792262925430-0317j7lu model=qwen3:8b prompt_len=7
+[ai-relay] OLLAMA_INFERENCE id=olar-1792262925430-0317j7lu model=qwen3:8b ms=43533
+[ai-relay] RESPONSE_RETURNED id=olar-1792262925430-0317j7lu bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792262970464-xl5ozud1 model=qwen3:8b prompt_len=14
+[ai-relay] OLLAMA_INFERENCE id=olar-1792262970464-xl5ozud1 model=qwen3:8b ms=19541
+[ai-relay] RESPONSE_RETURNED id=olar-1792262970464-xl5ozud1 bytes=62
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792263004657-ya7nlak0 model=qwen3:8b prompt_len=8
+[ai-relay] OLLAMA_INFERENCE id=olar-1792263004657-ya7nlak0 model=qwen3:8b ms=19181
+[ai-relay] RESPONSE_RETURNED id=olar-1792263004657-ya7nlak0 bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792263025606-1g2vzgkz model=qwen3:8b prompt_len=15
+[ai-relay] OLLAMA_INFERENCE id=olar-1792263025606-1g2vzgkz model=qwen3:8b ms=23734
+[ai-relay] RESPONSE_RETURNED id=olar-1792263025606-1g2vzgkz bytes=40
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792263061014-bz7sfhrh model=qwen3:8b prompt_len=3
+[ai-relay] OLLAMA_INFERENCE id=olar-1792263061014-bz7sfhrh model=qwen3:8b ms=19753
+[ai-relay] RESPONSE_RETURNED id=olar-1792263061014-bz7sfhrh bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792263083074-untw7os9 model=qwen3:8b prompt_len=10
+[ai-relay] OLLAMA_INFERENCE id=olar-1792263083074-untw7os9 model=qwen3:8b ms=24303
+[ai-relay] RESPONSE_RETURNED id=olar-1792263083074-untw7os9 bytes=40
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792263124243-0wftdvx7 model=qwen3:8b prompt_len=2
+[ai-relay] OLLAMA_INFERENCE id=olar-1792263124243-0wftdvx7 model=qwen3:8b ms=16043
+[ai-relay] RESPONSE_RETURNED id=olar-1792263124243-0wftdvx7 bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792263142581-4vxa4y1m model=qwen3:8b prompt_len=9
+[ai-relay] OLLAMA_INFERENCE id=olar-1792263142581-4vxa4y1m model=qwen3:8b ms=20329
+[ai-relay] RESPONSE_RETURNED id=olar-1792263142581-4vxa4y1m bytes=107
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792263181540-y8s69s3l model=qwen3:8b prompt_len=34
+[ai-relay] OLLAMA_INFERENCE id=olar-1792263181540-y8s69s3l model=qwen3:8b ms=17741
+[ai-relay] RESPONSE_RETURNED id=olar-1792263181540-y8s69s3l bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792263202192-r1jh6l33 model=qwen3:8b prompt_len=41
+[ai-relay] OLLAMA_INFERENCE id=olar-1792263202192-r1jh6l33 model=qwen3:8b ms=29619
+[ai-relay] RESPONSE_RETURNED id=olar-1792263202192-r1jh6l33 bytes=117
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792263244283-l4v6gpk2 model=qwen3:8b prompt_len=30
+[ai-relay] OLLAMA_INFERENCE id=olar-1792263244283-l4v6gpk2 model=qwen3:8b ms=9730
+[ai-relay] RESPONSE_RETURNED id=olar-1792263244283-l4v6gpk2 bytes=41
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792263291226-o0b4djfc model=qwen3:8b prompt_len=31
+[ai-relay] OLLAMA_INFERENCE id=olar-1792263291226-o0b4djfc model=qwen3:8b ms=8061
+[ai-relay] RESPONSE_RETURNED id=olar-1792263291226-o0b4djfc bytes=41
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792281592361-tsky3yuu model=qwen3:8b prompt_len=12
+[ai-relay] OLLAMA_INFERENCE id=olar-1792281592361-tsky3yuu model=qwen3:8b ms=43806
+[ai-relay] RESPONSE_RETURNED id=olar-1792281592361-tsky3yuu bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792281637789-8hwdhnkd model=qwen3:8b prompt_len=19
+[ai-relay] OLLAMA_INFERENCE id=olar-1792281637789-8hwdhnkd model=qwen3:8b ms=17655
+[ai-relay] RESPONSE_RETURNED id=olar-1792281637789-8hwdhnkd bytes=10
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792281706752-kynuyw96 model=qwen3:8b prompt_len=22
+[ai-relay] OLLAMA_INFERENCE id=olar-1792281706752-kynuyw96 model=qwen3:8b ms=18055
+[ai-relay] RESPONSE_RETURNED id=olar-1792281706752-kynuyw96 bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792281726863-htlq92dl model=qwen3:8b prompt_len=29
+[ai-relay] OLLAMA_INFERENCE id=olar-1792281726863-htlq92dl model=qwen3:8b ms=18170
+[ai-relay] RESPONSE_RETURNED id=olar-1792281726863-htlq92dl bytes=25
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792281793322-d2knkg2r model=qwen3:8b prompt_len=84
+[ai-relay] OLLAMA_INFERENCE id=olar-1792281793322-d2knkg2r model=qwen3:8b ms=26554
+[ai-relay] RESPONSE_RETURNED id=olar-1792281793322-d2knkg2r bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792281822026-a4bsw64z model=qwen3:8b prompt_len=91
+[ai-relay] OLLAMA_INFERENCE id=olar-1792281822026-a4bsw64z model=qwen3:8b ms=40518
+[ai-relay] RESPONSE_RETURNED id=olar-1792281822026-a4bsw64z bytes=110
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792289613993-yr5mslve model=qwen3:8b prompt_len=6
+[ai-relay] OLLAMA_INFERENCE id=olar-1792289613993-yr5mslve model=qwen3:8b ms=42773
+[ai-relay] RESPONSE_RETURNED id=olar-1792289613993-yr5mslve bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792289658756-087ggfea model=qwen3:8b prompt_len=13
+[ai-relay] OLLAMA_INFERENCE id=olar-1792289658756-087ggfea model=qwen3:8b ms=18009
+[ai-relay] RESPONSE_RETURNED id=olar-1792289658756-087ggfea bytes=19
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792289662101-wp8ot3ln model=qwen3:8b prompt_len=15
+[ai-relay] OLLAMA_INFERENCE id=olar-1792289662101-wp8ot3ln model=qwen3:8b ms=22048
+[ai-relay] RESPONSE_RETURNED id=olar-1792289662101-wp8ot3ln bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792289701337-myo8i5hn model=qwen3:8b prompt_len=22
+[ai-relay] OLLAMA_INFERENCE id=olar-1792289701337-myo8i5hn model=qwen3:8b ms=30421
+[ai-relay] RESPONSE_RETURNED id=olar-1792289701337-myo8i5hn bytes=121
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792290023466-w0ro3oxc model=qwen3:8b prompt_len=27
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792290080133-ok9gn9su model=qwen3:8b prompt_len=34
+[ai-relay] OLLAMA_INFERENCE id=olar-1792290080133-ok9gn9su model=qwen3:8b ms=22152
+[ai-relay] RESPONSE_RETURNED id=olar-1792290080133-ok9gn9su bytes=114
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792342172266-vhvz1xvy model=qwen3:8b prompt_len=6
+[ai-relay] OLLAMA_INFERENCE id=olar-1792342172266-vhvz1xvy model=qwen3:8b ms=47145
+[ai-relay] RESPONSE_RETURNED id=olar-1792342172266-vhvz1xvy bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792342221597-8ysjd9p7 model=qwen3:8b prompt_len=13
+[ai-relay] OLLAMA_INFERENCE id=olar-1792342221597-8ysjd9p7 model=qwen3:8b ms=20877
+[ai-relay] RESPONSE_RETURNED id=olar-1792342221597-8ysjd9p7 bytes=19
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792343716807-btdy8qbq model=qwen3:8b prompt_len=800
+[ai-relay] OLLAMA_INFERENCE id=olar-1792343716807-btdy8qbq model=qwen3:8b ms=35551
+[ai-relay] RESPONSE_RETURNED id=olar-1792343716807-btdy8qbq bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792343754620-vxrzrmwq model=qwen3:8b prompt_len=17
+[ai-relay] OLLAMA_INFERENCE id=olar-1792343754620-vxrzrmwq model=qwen3:8b ms=36331
+[ai-relay] RESPONSE_RETURNED id=olar-1792343754620-vxrzrmwq bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792345997950-ib6bw91d model=qwen3:8b prompt_len=804
+[ai-relay] OLLAMA_INFERENCE id=olar-1792345997950-ib6bw91d model=qwen3:8b ms=30212
+[ai-relay] RESPONSE_RETURNED id=olar-1792345997950-ib6bw91d bytes=17
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792346030072-ngxuonxs model=qwen3:8b prompt_len=21
+[ai-relay] OLLAMA_INFERENCE id=olar-1792346030072-ngxuonxs model=qwen3:8b ms=24966
+[ai-relay] RESPONSE_RETURNED id=olar-1792346030072-ngxuonxs bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792349181494-qip2ul0c model=qwen3:8b prompt_len=102
+[ai-relay] OLLAMA_INFERENCE id=olar-1792349181494-qip2ul0c model=qwen3:8b ms=34179
+[ai-relay] RESPONSE_RETURNED id=olar-1792349181494-qip2ul0c bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792349250886-3sxuillw model=qwen3:8b prompt_len=102
+[ai-relay] OLLAMA_INFERENCE id=olar-1792349250886-3sxuillw model=qwen3:8b ms=15468
+[ai-relay] RESPONSE_RETURNED id=olar-1792349250886-3sxuillw bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792412342612-ynnnly6d model=qwen3:8b prompt_len=6
+[ai-relay] OLLAMA_INFERENCE id=olar-1792412342612-ynnnly6d model=qwen3:8b ms=32026
+[ai-relay] RESPONSE_RETURNED id=olar-1792412342612-ynnnly6d bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792412376459-9ssg46p7 model=qwen3:8b prompt_len=13
+[ai-relay] OLLAMA_INFERENCE id=olar-1792412376459-9ssg46p7 model=qwen3:8b ms=22244
+[ai-relay] RESPONSE_RETURNED id=olar-1792412376459-9ssg46p7 bytes=84
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413006273-iigi5cs4 model=qwen3:8b prompt_len=43
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413006273-iigi5cs4 model=qwen3:8b ms=92034
+[ai-relay] RESPONSE_RETURNED id=olar-1792413006273-iigi5cs4 bytes=56
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413064255-7xjqzn3l model=qwen3:8b prompt_len=50
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413064255-7xjqzn3l model=qwen3:8b ms=35179
+[ai-relay] RESPONSE_RETURNED id=olar-1792413064255-7xjqzn3l bytes=20
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413134876-z69puwmo model=qwen3:8b prompt_len=43
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413134876-z69puwmo model=qwen3:8b ms=50239
+[ai-relay] RESPONSE_RETURNED id=olar-1792413134876-z69puwmo bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413187468-ur6jbq5d model=qwen3:8b prompt_len=50
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413187468-ur6jbq5d model=qwen3:8b ms=37549
+[ai-relay] RESPONSE_RETURNED id=olar-1792413187468-ur6jbq5d bytes=86
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413239693-5undbhfm model=qwen3:8b prompt_len=43
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413239693-5undbhfm model=qwen3:8b ms=32737
+[ai-relay] RESPONSE_RETURNED id=olar-1792413239693-5undbhfm bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413274825-zo8bm2zp model=qwen3:8b prompt_len=50
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413274825-zo8bm2zp model=qwen3:8b ms=37733
+[ai-relay] RESPONSE_RETURNED id=olar-1792413274825-zo8bm2zp bytes=86
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413328449-1ft8ptj0 model=qwen3:8b prompt_len=43
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413328449-1ft8ptj0 model=qwen3:8b ms=30905
+[ai-relay] RESPONSE_RETURNED id=olar-1792413328449-1ft8ptj0 bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413362510-khxcnem2 model=qwen3:8b prompt_len=50
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413362510-khxcnem2 model=qwen3:8b ms=26106
+[ai-relay] RESPONSE_RETURNED id=olar-1792413362510-khxcnem2 bytes=86
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413399137-8u3k7b1n model=qwen3:8b prompt_len=43
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413399137-8u3k7b1n model=qwen3:8b ms=32506
+[ai-relay] RESPONSE_RETURNED id=olar-1792413399137-8u3k7b1n bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413433375-wela3163 model=qwen3:8b prompt_len=50
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413433375-wela3163 model=qwen3:8b ms=44140
+[ai-relay] RESPONSE_RETURNED id=olar-1792413433375-wela3163 bytes=86
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413493628-a3lpazcy model=qwen3:8b prompt_len=43
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413493628-a3lpazcy model=qwen3:8b ms=27318
+[ai-relay] RESPONSE_RETURNED id=olar-1792413493628-a3lpazcy bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413522817-1rm2g7zh model=qwen3:8b prompt_len=50
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413522817-1rm2g7zh model=qwen3:8b ms=27501
+[ai-relay] RESPONSE_RETURNED id=olar-1792413522817-1rm2g7zh bytes=86
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413566041-altda7i4 model=qwen3:8b prompt_len=43
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413566041-altda7i4 model=qwen3:8b ms=31243
+[ai-relay] RESPONSE_RETURNED id=olar-1792413566041-altda7i4 bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413599023-zxvsw1tn model=qwen3:8b prompt_len=50
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413599023-zxvsw1tn model=qwen3:8b ms=27998
+[ai-relay] RESPONSE_RETURNED id=olar-1792413599023-zxvsw1tn bytes=86
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413640286-eoasytz5 model=qwen3:8b prompt_len=43
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413640286-eoasytz5 model=qwen3:8b ms=30925
+[ai-relay] RESPONSE_RETURNED id=olar-1792413640286-eoasytz5 bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413673290-rqguuuhm model=qwen3:8b prompt_len=50
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413673290-rqguuuhm model=qwen3:8b ms=39670
+[ai-relay] RESPONSE_RETURNED id=olar-1792413673290-rqguuuhm bytes=86
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413728246-48qmd9l3 model=qwen3:8b prompt_len=43
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413728246-48qmd9l3 model=qwen3:8b ms=33635
+[ai-relay] RESPONSE_RETURNED id=olar-1792413728246-48qmd9l3 bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413764000-9l8kico9 model=qwen3:8b prompt_len=50
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413764000-9l8kico9 model=qwen3:8b ms=29039
+[ai-relay] RESPONSE_RETURNED id=olar-1792413764000-9l8kico9 bytes=86
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413773491-dzesopua model=qwen3:8b prompt_len=19
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413773491-dzesopua model=qwen3:8b ms=15633
+[ai-relay] RESPONSE_RETURNED id=olar-1792413773491-dzesopua bytes=35
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413806669-l7sbp6fe model=qwen3:8b prompt_len=44
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413806669-l7sbp6fe model=qwen3:8b ms=30711
+[ai-relay] RESPONSE_RETURNED id=olar-1792413806669-l7sbp6fe bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413843587-nym26kgb model=qwen3:8b prompt_len=51
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413843587-nym26kgb model=qwen3:8b ms=45037
+[ai-relay] RESPONSE_RETURNED id=olar-1792413843587-nym26kgb bytes=86
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413904143-g2z8gm93 model=qwen3:8b prompt_len=33
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413904143-g2z8gm93 model=qwen3:8b ms=31629
+[ai-relay] RESPONSE_RETURNED id=olar-1792413904143-g2z8gm93 bytes=55
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413950930-m8zxcpsx model=qwen3:8b prompt_len=33
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413950930-m8zxcpsx model=qwen3:8b ms=29731
+[ai-relay] RESPONSE_RETURNED id=olar-1792413950930-m8zxcpsx bytes=55
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792413998433-if48whb3 model=qwen3:8b prompt_len=33
+[ai-relay] OLLAMA_INFERENCE id=olar-1792413998433-if48whb3 model=qwen3:8b ms=24468
+[ai-relay] RESPONSE_RETURNED id=olar-1792413998433-if48whb3 bytes=55
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414038038-wycfbbp5 model=qwen3:8b prompt_len=33
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414038038-wycfbbp5 model=qwen3:8b ms=24311
+[ai-relay] RESPONSE_RETURNED id=olar-1792414038038-wycfbbp5 bytes=55
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414077871-krdqnynh model=qwen3:8b prompt_len=33
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414077871-krdqnynh model=qwen3:8b ms=32067
+[ai-relay] RESPONSE_RETURNED id=olar-1792414077871-krdqnynh bytes=55
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414126537-eay6jmjk model=qwen3:8b prompt_len=33
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414126537-eay6jmjk model=qwen3:8b ms=36388
+[ai-relay] RESPONSE_RETURNED id=olar-1792414126537-eay6jmjk bytes=55
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414177213-zg6ysywz model=qwen3:8b prompt_len=33
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414177213-zg6ysywz model=qwen3:8b ms=18003
+[ai-relay] RESPONSE_RETURNED id=olar-1792414177213-zg6ysywz bytes=55
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414208392-we1plnci model=qwen3:8b prompt_len=33
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414208392-we1plnci model=qwen3:8b ms=23779
+[ai-relay] RESPONSE_RETURNED id=olar-1792414208392-we1plnci bytes=55
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414249632-cbt7ndu0 model=qwen3:8b prompt_len=33
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414249632-cbt7ndu0 model=qwen3:8b ms=22373
+[ai-relay] RESPONSE_RETURNED id=olar-1792414249632-cbt7ndu0 bytes=55
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414288096-q1kf1gif model=qwen3:8b prompt_len=34
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414288096-q1kf1gif model=qwen3:8b ms=25504
+[ai-relay] RESPONSE_RETURNED id=olar-1792414288096-q1kf1gif bytes=55
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414326471-4pvplydr model=qwen3:8b prompt_len=35
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414326471-4pvplydr model=qwen3:8b ms=16053
+[ai-relay] RESPONSE_RETURNED id=olar-1792414326471-4pvplydr bytes=35
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414359146-j8r83blh model=qwen3:8b prompt_len=35
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414359146-j8r83blh model=qwen3:8b ms=19334
+[ai-relay] RESPONSE_RETURNED id=olar-1792414359146-j8r83blh bytes=35
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414392216-kyz10d5h model=qwen3:8b prompt_len=35
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414392216-kyz10d5h model=qwen3:8b ms=19195
+[ai-relay] RESPONSE_RETURNED id=olar-1792414392216-kyz10d5h bytes=35
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414422232-26jh6aqq model=qwen3:8b prompt_len=35
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414422232-26jh6aqq model=qwen3:8b ms=43878
+[ai-relay] RESPONSE_RETURNED id=olar-1792414422232-26jh6aqq bytes=35
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414479050-pdu9piv4 model=qwen3:8b prompt_len=35
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414479050-pdu9piv4 model=qwen3:8b ms=24788
+[ai-relay] RESPONSE_RETURNED id=olar-1792414479050-pdu9piv4 bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414519129-jl0986qn model=qwen3:8b prompt_len=35
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414519129-jl0986qn model=qwen3:8b ms=16240
+[ai-relay] RESPONSE_RETURNED id=olar-1792414519129-jl0986qn bytes=35
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414552414-n4ih01pb model=qwen3:8b prompt_len=35
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414552414-n4ih01pb model=qwen3:8b ms=22259
+[ai-relay] RESPONSE_RETURNED id=olar-1792414552414-n4ih01pb bytes=35
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414591008-ewpn4a31 model=qwen3:8b prompt_len=35
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414591008-ewpn4a31 model=qwen3:8b ms=19449
+[ai-relay] RESPONSE_RETURNED id=olar-1792414591008-ewpn4a31 bytes=35
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414624223-y31ro950 model=qwen3:8b prompt_len=35
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414624223-y31ro950 model=qwen3:8b ms=22630
+[ai-relay] RESPONSE_RETURNED id=olar-1792414624223-y31ro950 bytes=35
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414663107-i5e1f6in model=qwen3:8b prompt_len=36
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414663107-i5e1f6in model=qwen3:8b ms=18221
+[ai-relay] RESPONSE_RETURNED id=olar-1792414663107-i5e1f6in bytes=35
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414867106-018na7gv model=qwen3:8b prompt_len=17
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414867106-018na7gv model=qwen3:8b ms=16098
+[ai-relay] RESPONSE_RETURNED id=olar-1792414867106-018na7gv bytes=41
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792414964406-4tvhumrm model=qwen3:8b prompt_len=35
+[ai-relay] OLLAMA_INFERENCE id=olar-1792414964406-4tvhumrm model=qwen3:8b ms=17902
+[ai-relay] RESPONSE_RETURNED id=olar-1792414964406-4tvhumrm bytes=97
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792415056069-5o63gb2p model=qwen3:8b prompt_len=127
+[ai-relay] OLLAMA_INFERENCE id=olar-1792415056069-5o63gb2p model=qwen3:8b ms=26567
+[ai-relay] RESPONSE_RETURNED id=olar-1792415056069-5o63gb2p bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792415084824-gdbvrulm model=qwen3:8b prompt_len=134
+[ai-relay] OLLAMA_INFERENCE id=olar-1792415084824-gdbvrulm model=qwen3:8b ms=47392
+[ai-relay] RESPONSE_RETURNED id=olar-1792415084824-gdbvrulm bytes=201
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792450704533-e8nzonfs model=qwen3:8b prompt_len=12
+[ai-relay] OLLAMA_INFERENCE id=olar-1792450704533-e8nzonfs model=qwen3:8b ms=36968
+[ai-relay] RESPONSE_RETURNED id=olar-1792450704533-e8nzonfs bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792450743532-ds21kqly model=qwen3:8b prompt_len=19
+[ai-relay] OLLAMA_INFERENCE id=olar-1792450743532-ds21kqly model=qwen3:8b ms=15466
+[ai-relay] RESPONSE_RETURNED id=olar-1792450743532-ds21kqly bytes=59
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792451159066-w908vpe1 model=qwen3:8b prompt_len=28
+[ai-relay] OLLAMA_INFERENCE id=olar-1792451159066-w908vpe1 model=qwen3:8b ms=24697
+[ai-relay] RESPONSE_RETURNED id=olar-1792451159066-w908vpe1 bytes=30
+[ai-relay] start → https://dna-os-deadboard-production.up.railway.app · ollama → http://127.0.0.1:11434 (token=keychain)
+[ai-relay] models: ollama=[qwen3:8b, qwen2.5-coder:1.5b] mlx=[]
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792475888300-mxhhita0 model=qwen3:8b prompt_len=16
+[ai-relay] OLLAMA_INFERENCE id=olar-1792475888300-mxhhita0 model=qwen3:8b ms=33380
+[ai-relay] RESPONSE_RETURNED id=olar-1792475888300-mxhhita0 via=ollama bytes=30
+[ai-relay] LOCAL_AI_REQUEST_RECEIVED id=olar-1792475923308-5fg1ufzv model=qwen3:8b prompt_len=23
+[ai-relay] OLLAMA_INFERENCE id=olar-1792475923308-5fg1ufzv model=qwen3:8b ms=15559
+[ai-relay] RESPONSE_RETURNED id=olar-1792475923308-5fg1ufzv via=ollama bytes=59

@@ -1,0 +1,170 @@
+{
+ "report": [
+  {
+   "case": "G-ตาราง(in-progress)",
+   "input": "งานที่กำลังทำตอนนี้มีอะไร",
+   "http": 200,
+   "request_id": "olar-1792253225837-bxw65v2u",
+   "ai_status": "AI_OK",
+   "command": "job.active",
+   "result_type": "table",
+   "result_status": "OK",
+   "database": "services/supabase/queries#getJobs (jobs IN_PROGRESS)",
+   "dispatcher": {
+    "command": "job.active",
+    "ok": true,
+    "violations": [],
+    "requires_confirmation": false,
+    "code": "OK",
+    "surface": "chat",
+    "hardcode_warnings": 0
+   },
+   "stayed_on_screen": true,
+   "display_evidence": true,
+   "screen_excerpt": "JOB.ACTIVE — อ่านจาก CANONICAL DISPATCHER (ไม่มีรายการ) | สถานะ | ไม่มีรายการ",
+   "final_status": "DISPLAY_PASS"
+  },
+  {
+   "case": "H-เอกสารพรีวิว",
+   "input": "สร้างใบเสนอราคาให้ บจก. เคที คอนสตรัคชั่น ปูนซีเมนต์ 20 ถุง ราคาถุงละ 95 บาท พรีวิวให้ดูก่อน",
+   "http": 200,
+   "request_id": null,
+   "ai_status": "SKIPPED",
+   "command": null,
+   "result_type": "document",
+   "result_status": null,
+   "database": null,
+   "dispatcher": null,
+   "stayed_on_screen": true,
+   "display_evidence": true,
+   "screen_excerpt": "ใบเสนอราคา QT-20260724-DEMO1 — สรุปข้อมูลจาก VERSION SNAPSHOT (ไม่ใช่ไฟล์ต้นฉบับ) | เปิดเต็ม | พิมพ์ / PDF",
+   "final_status": "DISPLAY_PASS"
+  },
+  {
+   "case": "I-NOT_FOUND",
+   "input": "ยอดหนี้ของ ช.ทวัฒชัยการช่าง",
+   "http": 200,
+   "request_id": "olar-1792253281013-aj8k49ci",
+   "ai_status": "AI_OK",
+   "command": "debt.current",
+   "result_type": "table",
+   "result_status": "NOT_FOUND",
+   "database": "engines/debt/tracking#getCurrentDebt (debt_snapshots + debt_events — canonical reader เดิม)",
+   "dispatcher": {
+    "command": "debt.current",
+    "ok": true,
+    "violations": [],
+    "requires_confirmation": false,
+    "code": "OK",
+    "surface": "chat",
+    "hardcode_warnings": 0
+   },
+   "stayed_on_screen": true,
+   "display_evidence": true,
+   "screen_excerpt": "ยอดหนี้ของ \"ช.ธวัชชัยการช่าง\" | บริษัท\tเลขที่เอกสาร\tยอดหนี้ (คงชำระ)\tสถานะ | ช.ธวัชชัยการช่าง\t—\t—\tNOT_FOUND — ไม่มีข้อมูลหนี้ค้างของบริษัทนี้ในระบบ",
+   "final_status": "DISPLAY_PASS"
+  },
+  {
+   "case": "F2-PermissionDenied(ซ้ำยืนยัน)",
+   "input": "โอนเงินให้ลูกหนี้ 5,000 บาท ทันที",
+   "http": 200,
+   "request_id": "olar-1792253305647-nl2uzqqo",
+   "ai_status": "AI_UNRESOLVED",
+   "command": null,
+   "result_type": "text",
+   "result_status": null,
+   "database": null,
+   "dispatcher": null,
+   "stayed_on_screen": true,
+   "display_evidence": true,
+   "screen_excerpt": "ช.ธวัชชัยการช่าง\t—\t—\tNOT_FOUND — ไม่มีข้อมูลหนี้ค้างของบริษัทนี้ในระบบ | โอนเงินให้ลูกหนี้ 5,000 บาท ทันที | ดูหนี้ของใครครับ",
+   "final_status": "DISPLAY_PASS"
+  }
+ ],
+ "audit_j": [
+  {
+   "id": "8bcc2c56-c347-421d-a3af-24ad0215488a",
+   "entity_type": "ai_invocation",
+   "entity_id": "olar-1792253305647-nl2uzqqo",
+   "created_at": "2026-10-17T16:08:38.222",
+   "new_value": "{\"value\":null,\"evidence\":{\"evidenceId\":\"evidence-1792253305647-6m0tpxaz\",\"capability\":\"intent.classify\",\"effect\":\"classification\",\"provider\":\"ollama\",\"sessionId\":\"u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:workspace-shell\",\"origin\":\"chat.local_ai_intent_bridge\",\"status\":\"completed\",\"output_bytes\":30,\"error\":null,\"occurredAt\":\"2026-10-17T16:08:25.647Z\"}}"
+  },
+  {
+   "id": "6b5b924a-d210-45a0-a0d2-5c7780f03130",
+   "entity_type": "ai_invocation",
+   "entity_id": "olar-1792253281013-aj8k49ci",
+   "created_at": "2026-10-17T16:08:11.12",
+   "new_value": "{\"value\":null,\"evidence\":{\"evidenceId\":\"evidence-1792253281013-l4ozmwlu\",\"capability\":\"intent.classify\",\"effect\":\"classification\",\"provider\":\"ollama\",\"sessionId\":\"u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:workspace-shell\",\"origin\":\"chat.local_ai_intent_bridge\",\"status\":\"completed\",\"output_bytes\":66,\"error\":null,\"occurredAt\":\"2026-10-17T16:08:01.013Z\"}}"
+  },
+  {
+   "id": "5cb87162-12b1-47e8-b9ce-cbf53a4d30b5",
+   "entity_type": "ai_invocation",
+   "entity_id": "olar-1792253225837-bxw65v2u",
+   "created_at": "2026-10-17T16:07:19.068",
+   "new_value": "{\"value\":null,\"evidence\":{\"evidenceId\":\"evidence-1792253225837-2hlmcbav\",\"capability\":\"intent.classify\",\"effect\":\"classification\",\"provider\":\"ollama\",\"sessionId\":\"u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:workspace-shell\",\"origin\":\"chat.local_ai_intent_bridge\",\"status\":\"completed\",\"output_bytes\":36,\"error\":null,\"occurredAt\":\"2026-10-17T16:07:05.837Z\"}}"
+  },
+  {
+   "id": "235ea423-9446-42c1-826e-18163f2b3f60",
+   "entity_type": "ai_invocation",
+   "entity_id": "olar-1792253034250-eevvboy4",
+   "created_at": "2026-10-17T16:04:06.582",
+   "new_value": "{\"value\":null,\"evidence\":{\"evidenceId\":\"evidence-1792253034250-lag11emg\",\"capability\":\"intent.classify\",\"effect\":\"classification\",\"provider\":\"ollama\",\"sessionId\":\"u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:workspace-shell\",\"origin\":\"chat.local_ai_intent_bridge\",\"status\":\"completed\",\"output_bytes\":30,\"error\":null,\"occurredAt\":\"2026-10-17T16:03:54.251Z\"}}"
+  },
+  {
+   "id": "fa701713-dc6b-4d07-ac6d-5b28d3d2bed6",
+   "entity_type": "ai_invocation",
+   "entity_id": "olar-1792253010686-47nxjw9l",
+   "created_at": "2026-10-17T16:03:38.523",
+   "new_value": "{\"value\":null,\"evidence\":{\"evidenceId\":\"evidence-1792253010686-dp0vkm1z\",\"capability\":\"intent.classify\",\"effect\":\"classification\",\"provider\":\"ollama\",\"sessionId\":\"u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:workspace-shell\",\"origin\":\"chat.local_ai_intent_bridge\",\"status\":\"completed\",\"output_bytes\":30,\"error\":null,\"occurredAt\":\"2026-10-17T16:03:30.686Z\"}}"
+  },
+  {
+   "id": "b1136553-6d76-4ce1-9b00-ab1537757138",
+   "entity_type": "ai_invocation",
+   "entity_id": "ai-1792252992683-f6nga6qb",
+   "created_at": "2026-10-17T16:03:30.686",
+   "new_value": "{\"value\":null,\"evidence\":{\"evidenceId\":\"evidence-1792252992683-o4prg6pd\",\"capability\":\"conversation.answer\",\"effect\":\"draft\",\"provider\":\"ollama\",\"sessionId\":\"u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:workspace-shell\",\"origin\":\"cognitive/pipeline.answerWithAi\",\"status\":\"completed\",\"output_bytes\":153,\"error\":null,\"occurredAt\":\"2026-10-17T16:03:12.684Z\"}}"
+  },
+  {
+   "id": "d589294a-5156-483d-a5be-d09297d2fd2a",
+   "entity_type": "ai_invocation",
+   "entity_id": "ai-1792252971290-marperfj",
+   "created_at": "2026-10-17T16:03:12.683",
+   "new_value": "{\"value\":null,\"evidence\":{\"evidenceId\":\"evidence-1792252971290-kxgvn4mk\",\"capability\":\"intent.classify\",\"effect\":\"classification\",\"provider\":\"ollama\",\"sessionId\":\"u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:workspace-shell\",\"origin\":\"cognitive/pipeline.classifyIntentViaAi\",\"status\":\"completed\",\"output_bytes\":17,\"error\":null,\"occurredAt\":\"2026-10-17T16:02:51.291Z\"}}"
+  },
+  {
+   "id": "13762fb0-a9d6-4ed8-a9ce-e7977f9ed47f",
+   "entity_type": "ai_invocation",
+   "entity_id": "olar-1792252921538-5mil71dt",
+   "created_at": "2026-10-17T16:02:11.407",
+   "new_value": "{\"value\":null,\"evidence\":{\"evidenceId\":\"evidence-1792252921538-6w5ur78a\",\"capability\":\"intent.classify\",\"effect\":\"classification\",\"provider\":\"ollama\",\"sessionId\":\"u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:workspace-shell\",\"origin\":\"chat.local_ai_intent_bridge\",\"status\":\"completed\",\"output_bytes\":66,\"error\":null,\"occurredAt\":\"2026-10-17T16:02:01.538Z\"}}"
+  },
+  {
+   "id": "eca2f746-56ea-4d25-9efb-a9a3615967a5",
+   "entity_type": "ai_invocation",
+   "entity_id": "olar-1792252885968-ta905w27",
+   "created_at": "2026-10-17T16:01:42.596",
+   "new_value": "{\"value\":null,\"evidence\":{\"evidenceId\":\"evidence-1792252885968-2ovqmc88\",\"capability\":\"intent.classify\",\"effect\":\"classification\",\"provider\":\"ollama\",\"sessionId\":\"u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:workspace-shell\",\"origin\":\"chat.local_ai_intent_bridge\",\"status\":\"completed\",\"output_bytes\":220,\"error\":null,\"occurredAt\":\"2026-10-17T16:01:25.969Z\"}}"
+  },
+  {
+   "id": "650fe8c9-49d5-45d2-8a6f-6f9510c89bbc",
+   "entity_type": "ai_invocation",
+   "entity_id": "ai-1792252868900-fqsa5a29",
+   "created_at": "2026-10-17T16:01:25.968",
+   "new_value": "{\"value\":null,\"evidence\":{\"evidenceId\":\"evidence-1792252868900-q9y4qxwh\",\"capability\":\"conversation.answer\",\"effect\":\"draft\",\"provider\":\"ollama\",\"sessionId\":\"u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:workspace-shell\",\"origin\":\"cognitive/pipeline.answerWithAi\",\"status\":\"completed\",\"output_bytes\":112,\"error\":null,\"occurredAt\":\"2026-10-17T16:01:08.900Z\"}}"
+  },
+  {
+   "id": "e5026d3e-0053-43e8-8336-46e27d07ae14",
+   "entity_type": "ai_invocation",
+   "entity_id": "ai-1792252859120-oilxg5ut",
+   "created_at": "2026-10-17T16:01:08.899",
+   "new_value": "{\"value\":null,\"evidence\":{\"evidenceId\":\"evidence-1792252859120-tpvc0304\",\"capability\":\"intent.classify\",\"effect\":\"classification\",\"provider\":\"ollama\",\"sessionId\":\"u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:workspace-shell\",\"origin\":\"cognitive/pipeline.classifyIntentViaAi\",\"status\":\"completed\",\"output_bytes\":17,\"error\":null,\"occurredAt\":\"2026-10-17T16:00:59.120Z\"}}"
+  },
+  {
+   "id": "1d9c42c5-1a7d-4496-b1b3-cfb8de7fef63",
+   "entity_type": "ai_invocation",
+   "entity_id": "olar-1792252824741-qsk764rq",
+   "created_at": "2026-10-17T16:00:43.141",
+   "new_value": "{\"value\":null,\"evidence\":{\"evidenceId\":\"evidence-1792252824741-qotqd5tm\",\"capability\":\"intent.classify\",\"effect\":\"classification\",\"provider\":\"ollama\",\"sessionId\":\"u:c8cf2d52-f08a-4c71-8976-a5a8ea53641e:workspace-shell\",\"origin\":\"chat.local_ai_intent_bridge\",\"status\":\"completed\",\"output_bytes\":30,\"error\":null,\"occurredAt\":\"2026-10-17T16:00:24.741Z\"}}"
+  }
+ ]
+}

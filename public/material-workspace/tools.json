@@ -1,0 +1,252 @@
+[
+  {
+    "label": "ไฟล์",
+    "route": "/admin/storage",
+    "group": "เครื่องมือเดิม"
+  },
+  {
+    "label": "เอกสาร",
+    "route": "/admin/create-document",
+    "group": "เครื่องมือเดิม"
+  },
+  {
+    "label": "LINE",
+    "route": "/admin/line-customers",
+    "group": "เครื่องมือเดิม"
+  },
+  {
+    "label": "การเงิน",
+    "route": "/admin/finance",
+    "group": "เครื่องมือเดิม"
+  },
+  {
+    "label": "GPS",
+    "route": "/admin/equipment",
+    "group": "เครื่องมือเดิม"
+  },
+  {
+    "label": "งาน",
+    "route": "/admin/jobs",
+    "group": "เครื่องมือเดิม"
+  },
+  {
+    "label": "รายชื่อ",
+    "route": "/admin/partners",
+    "group": "เครื่องมือเดิม"
+  },
+  {
+    "label": "สแกน / AI",
+    "route": "/admin/receipts",
+    "group": "เครื่องมือเดิม"
+  },
+  {
+    "label": "ความสัมพันธ์",
+    "route": "/admin/relationships",
+    "group": "เครื่องมือเดิม"
+  },
+  {
+    "label": "รายการเอกสาร",
+    "route": "/admin/transactions",
+    "group": "เครื่องมือเดิม"
+  },
+  {
+    "label": "ลูกหนี้",
+    "route": "/admin/debt-tracking",
+    "group": "เครื่องมือเดิม"
+  },
+  {
+    "label": "ศูนย์ควบคุมทรัพยากร",
+    "route": "/admin/pits",
+    "group": "เครื่องมือเดิม"
+  },
+  {
+    "label": "ประวัติ / หลักฐาน",
+    "route": "/admin/event-inbox",
+    "group": "เครื่องมือเดิม"
+  },
+  {
+    "label": "ผู้ใช้และสิทธิ์",
+    "route": "/admin/users",
+    "group": "ระบบและการตั้งค่า"
+  },
+  {
+    "label": "Connect / ผู้ให้บริการ",
+    "route": "/admin/connectors",
+    "group": "ระบบและการตั้งค่า"
+  },
+  {
+    "label": "Connections & Credentials",
+    "route": "/admin/settings",
+    "group": "ระบบและการตั้งค่า"
+  },
+  {
+    "label": "อุปกรณ์ที่จับคู่ (Device Connector)",
+    "route": "/admin/devices",
+    "group": "ระบบและการตั้งค่า"
+  },
+  {
+    "label": "งานและความสามารถ",
+    "route": "/admin/engine-explorer",
+    "group": "ระบบและการตั้งค่า"
+  },
+  {
+    "label": "สำรองและกู้คืน",
+    "route": "/admin/backup",
+    "group": "ระบบและการตั้งค่า"
+  },
+  {
+    "label": "Admin",
+    "route": "/admin",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Api Explorer",
+    "route": "/admin/api-explorer",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Api Tokens",
+    "route": "/admin/api-tokens",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Dbd",
+    "route": "/admin/dbd",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Debt Notice",
+    "route": "/admin/debt-notice",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Delivery Order",
+    "route": "/admin/delivery-order",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Deploy",
+    "route": "/admin/deploy",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Dev Loop",
+    "route": "/admin/dev-loop",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Dna",
+    "route": "/admin/dna",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Ide",
+    "route": "/admin/ide",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Invoice",
+    "route": "/admin/invoice",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Create",
+    "route": "/admin/jobs/create",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Line Profiles",
+    "route": "/admin/line-profiles",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Login",
+    "route": "/admin/login",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Notifications",
+    "route": "/admin/notifications",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Payment Voucher",
+    "route": "/admin/payment-voucher",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Pending",
+    "route": "/admin/pending",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Purchase Order",
+    "route": "/admin/purchase-order",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Quotation Queue",
+    "route": "/admin/quotation-queue",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Reader",
+    "route": "/admin/reader",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Receipt",
+    "route": "/admin/receipt",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "System Config",
+    "route": "/admin/system-config",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Traces",
+    "route": "/admin/traces",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Ui Gallery",
+    "route": "/admin/ui-gallery",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Assistants",
+    "route": "/admin/ui-gallery/assistants",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Business Display",
+    "route": "/admin/ui-gallery/business-display",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Compare",
+    "route": "/admin/ui-gallery/compare",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Lab",
+    "route": "/admin/ui-gallery/lab",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Preview",
+    "route": "/admin/ui-gallery/preview",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Visual Review",
+    "route": "/admin/ui-gallery/visual-review",
+    "group": "หน้าจอเพิ่มเติม"
+  },
+  {
+    "label": "Workspace",
+    "route": "/admin/workspace",
+    "group": "หน้าจอเพิ่มเติม"
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "url": "http://localhost:3001/workspace?materialSurface=chat",
+  "background_authority": "rgb(253, 251, 248)",
+  "text_color_authority": "rgb(54, 51, 47)",
+  "q_timeline": {
+    "present": false,
+    "entries": 0,
+    "questions": 0,
+    "answers": 0,
+    "width": null,
+    "left": null,
+    "gap": null,
+    "direction": null,
+    "alignItems": null
+  },
+  "question_style": null,
+  "answer_style": null,
+  "bubbles_left": [
+    1150
+  ],
+  "h_overflow": false,
+  "compose": {
+    "present": true,
+    "button_count": 3,
+    "textarea_multiline": "pre-wrap",
+    "form_box": {
+      "x": 65,
+      "w": 1310
+    }
+  },
+  "doc_result": null,
+  "text_sample": null
+}

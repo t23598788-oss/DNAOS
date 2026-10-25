@@ -1,0 +1,127 @@
+{
+ "tag": "AFTER2",
+ "report": [
+  {
+   "case": "1-สนทนา",
+   "input": "สวัสดีครับ",
+   "http": 200,
+   "req_id": "olar-1792260420518-dr279g0f",
+   "ai_status": "AI_UNRESOLVED",
+   "command": null,
+   "sent_at": 1792260410190,
+   "resp_at": 1792260451275,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 41085,
+   "text_head": "สวัสดีครับ ยินดีต้อนรับครับ ช่วยเหลืออะไรได้ไหมครับ?",
+   "on_screen": true,
+   "win_start": 1792260410190,
+   "win_end": 1792260451275
+  },
+  {
+   "case": "2-ความสามารถ",
+   "input": "คุณทำอะไรได้บ้าง",
+   "http": 200,
+   "req_id": null,
+   "ai_status": "SKIPPED",
+   "command": null,
+   "sent_at": 1792260454180,
+   "resp_at": 1792260467407,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 13227,
+   "text_head": "เปิดหน้าลูกค้า 1 รายให้แล้วครับ ต้องการดูรายไหนเป็นพิเศษไหมครับ?",
+   "on_screen": false,
+   "win_start": 1792260454180,
+   "win_end": 1792260467407
+  },
+  {
+   "case": "3-อธิบายระบบ",
+   "input": "อธิบายระบบ DNA OS อย่างละเอียด",
+   "http": 200,
+   "req_id": "olar-1792260482080-5q4g82zt",
+   "ai_status": "AI_UNRESOLVED",
+   "command": null,
+   "sent_at": 1792260470007,
+   "resp_at": 1792260527997,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 57990,
+   "text_head": "ระบบ DNA OS เป็นระบบปฏิบัติการที่ออกแบบมาเพื่อช่วยเหลือเจ้าของธุรกิจวัสดุก่อสร้าง จ.ขอนแก่น ในการจัดการงานต่างๆ ผ่านการสั่งงานด้วยคำสั่งง่าย เช่น \"เปิด [ชื่อแอป",
+   "on_screen": true,
+   "win_start": 1792260470007,
+   "win_end": 1792260527997
+  },
+  {
+   "case": "4-อธิบายAI",
+   "input": "ช่วยอธิบายเรื่อง AI หน่อย",
+   "http": 200,
+   "req_id": "olar-1792260548279-xhnqoivf",
+   "ai_status": "AI_UNRESOLVED",
+   "command": null,
+   "sent_at": 1792260530640,
+   "resp_at": 1792260586163,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 55523,
+   "text_head": "AI คือเทคโนโลยีที่ช่วยให้เครื่องจักรหรือระบบทำงานแบบอัตโนมัติ ช่วยจัดการงานต่างๆ ได้คล่องแคล่ว แต่ DNA OS เป็นระบบเฉพาะของเจ้าของธุรกิจวัสดุก่อสร้าง จ.ขอนแก่น ท",
+   "on_screen": true,
+   "win_start": 1792260530640,
+   "win_end": 1792260586163
+  },
+  {
+   "case": "5-ต่อเนื่อง",
+   "input": "อธิบายเรื่องเมื่อกี้ต่อ",
+   "http": 200,
+   "req_id": "olar-1792260602474-xq6872jh",
+   "ai_status": "AI_UNRESOLVED",
+   "command": null,
+   "sent_at": 1792260588807,
+   "resp_at": 1792260657845,
+   "first_feedback_ms": null,
+   "first_add_ms": null,
+   "first_ai_add_ms": null,
+   "total_ms": 69038,
+   "text_head": "เมื่อกี้ต่อ หมายถึงช่วงเวลาที่ผ่านมาไม่นาน เช่น 1-2 ชั่วโมง ใช้บอกเหตุการณ์ที่เกิดขึ้นล่าสุดแต่ไม่ใช่ \"ตอนนี้\" เช่น \"ฉันกินข้าวเมื่อกี้ต่อ\" = \"ฉันกินข้าวเมื่อไม",
+   "on_screen": true,
+   "win_start": 1792260588807,
+   "win_end": 1792260657845
+  }
+ ],
+ "counts": [
+  {
+   "msg": "1-สนทนา",
+   "calls_audit": 0,
+   "detail": []
+  },
+  {
+   "msg": "2-ความสามารถ",
+   "calls_audit": 0,
+   "detail": []
+  },
+  {
+   "msg": "3-อธิบายระบบ",
+   "calls_audit": 0,
+   "detail": []
+  },
+  {
+   "msg": "4-อธิบายAI",
+   "calls_audit": 0,
+   "detail": []
+  },
+  {
+   "msg": "5-ต่อเนื่อง",
+   "calls_audit": 0,
+   "detail": []
+  }
+ ],
+ "ollama_log": {
+  "before": 79,
+  "after": 87,
+  "delta": 8
+ }
+}
