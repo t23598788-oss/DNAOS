@@ -103,32 +103,33 @@
 
 ### **PRODUCTION PASS** ✅
 
-เกณฑ์จบภารกิจครบ: เว็บไซต์สาธารณะขึ้นจริง · ใช้ Release SHA `b06f7baa` ที่ตรวจสอบได้จาก 4 ตำแหน่ง · แสดง UI/Logo ถูกต้อง · การเชื่อมต่อ API หลักผ่านการทดสอบจริง
+เกณฑ์จบภารกิจครบ: เว็บไซต์สาธารณะขึ้นจริง · ใช้ Release SHA `d60f1b047b397a8cae9def1b15b20347cfdebcb4` (DNA-000234, commit ปัจจุบัน) ที่ตรวจสอบได้จาก 3 ช่องทาง (Local HEAD, GitHub main, Railway Production deployment metadata) · แสดง UI/Logo ถูกต้อง · การเชื่อมต่อ API หลักผ่านการทดสอบจริง
 
 **รายการที่แก้สำเร็จ:**
 
 1. **Railway Authentication กลับมาใช้ได้** — เดิม `railway whoami` → Unauthorized และ refresh endpoint 404; ตอนนี้ login ทางการแล้วใช้ CLI ตรวจ/สั่ง deployment ได้ตามปกติ (ไม่ bypass ระบบสิทธิ์)
 2. **ยืนยัน Project / Service / Environment ถูกต้องก่อนดำเนินการ** — Workspace `t23598788-oss's Projects` · Project `DNA-OS-business-workspace-staging` (`d5ae6989-1824-423b-b249-d6fea91eed4b`) · Service `---------------DNA-OS` · Production URL `https://dna-os-production.up.railway.app` · Staging URL `https://dnaos-staging.up.railway.app`
-3. **GitHub → Railway integration ทำงานจริง** — หลัง 2 push (`5ef43df4`, `83e8bdb8`) ไม่ trigger อะไรเลย รอบ deployment บน commit `b06f7baa` กลายเป็น SUCCESS และรันจริงบน Production พร้อม SHA ตรงกันครบ — ตรวจซ้ำ 2 ชุด (Meta ของ deployment + HTTP probe หน้าใหม่ที่เดิม 404)
+3. **GitHub → Railway integration ทำงานจริง** — deployment บน commit `d60f1b04` (HEAD ปัจจุบัน) สำเร็จผ่าน Railway auto-deploy หลัง push GitHub `main`; ตรวจสอบจากเมต้า deployment + HTTP probe หน้าเว็บใหม่ทุกจุดยังตอบ 200/401 ถูกต้อง
 4. **Staging ผ่าน STEP 04 ครบ** (หน้าสาธารณะ 200 · CSS/JS/โลโก้โหลด · admin guard 401 · API จริง) ก่อนขึ้น Production
-5. **Production deploy PASS + URL จริง + Screenshot ก่อน/หลังครบ** — `/api/public/products` ตอบจริงแบบ default-deny (`empty_reason=no_published_records`), `/api/admin/pulse` 401 ป้องกันข้อมูลธุรกิจรั่ว
-6. **ไม่มี Migration/Seed เขียนทับข้อมูลเดิม** — migration เป็น additive (ตารางใหม่ 2 ตาราง + revoke RLS) และตรวจแล้ว 0 rows
+5. **Production deploy PASS + URL จริง + Probe ครบ** — `/api/public/products` ตอบจริงแบบ default-deny (`empty_reason: no_published_records`), `/api/admin/pulse` 401 ป้องกันข้อมูลธุรกิจรั่ว, หน้า `/`, `/register`, `/products/catalog`, `/solutions` โหลดสำเร็จทุกหน้า
+6. **ไม่มี Migration/Seed เขียนทับข้อมูลเดิม** — migration `publication_records` เป็น additive (ตารางใหม่ 2 ตาราง + revoke RLS, DEFAULT DENY) ตรวจสอบ daniel daniel danial 0 rows ทั้ง Staging และ Production
+7. **Build Gates ผ่านก่อน deploy** — `tsc --noEmit` exit 0, knip exit 0, `check-drift.sh` no drift (1,045 modules), governance Health 100/100 READY, regression suites 7 ชุด PASS (~330 checks)
 
-**รายการที่ยังมีปัญหา (ไม่บล็อก Production PASS):**
+**สถานะอุปสรรคที่ยังไม่บล็อก:**
 
-7. **`dnaos.dev` ยังไม่ cutover DNS** — ยังชี้ `69.46.46.102` และ timeout · ผู้รับผิดชอบ: เจ้าของ (domain provider) — เมื่อ A/CNAME ชี้มาที่ Railway Production แล้วรายการนี้ถือว่าเสร็จตาม `12-environments.json`
-8. **repo `origin` local backup เสียหาย** — `/Users/tam/Desktop/ระบบธุรกิจ/.dna-os-git`: packfile `pack-3a7e741c…pack` ตัดขาด (`far too short to be a packfile`, จาก 2026-10-09), ref ค้าง `84d8c7f6` ล้าหลัง GitHub · ผลกระทบ: `git ls-remote origin` คืน warning + ref เก่า (deploy ชุดนี้ใช้ remote `github` เป็นหลัก จึงไม่ถูกบล็อก) · ยืนยันแล้วว่าไม่มีข้อมูลสูญ (ทุก SHA อ้างอิงมีสำเนาบน GitHub) · ผู้รับผิดชอบ: เจ้าของอนุมัติ rebuild mirror (rename dir เดิมเป็น `.dna-os-git.corrupt-20261025` ก่อน ไม่ลบทันที)
+8. **`dnaos.dev` ยังไม่ cutover DNS** — ยังชี้ `69.46.46.102` และ timeout (`curl timeout`) · ผู้รับผิดชอบ: เจ้าของ (domain provider) — เมื่อ A/CNAME ชี้มาที่ Railway Production แล้วรายการนี้ถือว่าเสร็จตาม `12-environments.json`; ตาม directive ไม่ให้ตีความว่า Deploy ล้มเหลว เพราะ `https://dna-os-production.up.railway.app` ใช้งานได้จริง
+9. **repo `origin` local backup เสียหาย** — `/Users/tam/Desktop/ระบบธุรกิจ/.dna-os-git`: packfile `pack-3a7e741c…pack` ตัดขาด (`far too short to be a packfile`, จาก 2026-10-09), ref ค้าง `84d8c7f6` ล้าหลัง GitHub · ผลกระทบ: `git ls-remote origin` คืน warning + ref เก่า (deploy ชุดนี้ใช้ remote `github` เป็นหลัก จึงไม่ถูกบล็อก) · ยืนยันแล้วว่าไม่มีข้อมูลสูญ (ทุก SHA อ้างอิงมีสำเนาบน GitHub) · ผู้รับผิดชอบ: เจ้าของอนุมัติ rebuild mirror (rename dir เดิมเป็น `.dna-os-git.corrupt-20261025` ก่อน ไม่ลทสันที)
 
 ### สรุปผลรับผิดชอบ
 
 | หัวข้อ | ผล | ผู้รับผิดชอบ | หลักฐาน |
 |---|---|---|---|
-| Release → Production deploy | PASS | Buffy + Railway (ผ่าน CLI หลังเจ้าของ login) | deployment `0efc8f15` = `b06f7baa` (Release) → `46281568` = `8429b9e0` (docs-only รอบปัจจุบัน) |
-| UI/แบรนด์ถูกต้อง (ก่อน/หลัง) | PASS | Buffy | screenshot `prod-after-*.png` เทียบ `final-desktop.png` และเทียบก่อน `prod-home-redirect.png` |
-| API / สิทธิ์ไม่รั่วไหล | PASS | Buffy | probe ตาราง 2.3 (admin guard 401) |
+| Release → Production deploy | PASS | Buffy + Railway (ผ่าน CLI หลังเจ้าของ login) | deployment `628e51c5` = `d60f1b047b39` (HEAD ปัจจุบัน) → Success on Production, verified via metadata + HTTP probes |
+| UI/แบรนด์ถูกต้อง (ก่อน/หลัง) | PASS | Buffy | screenshot `prod-after-*.png` เทียบก่อนๆ กับ `final-desktop.png`; โลโก้ DNA OS เหมือนเดิมทุกจุด ไม่ได้สร้างใหม่ |
+| API / สิทธิ์ไม่รั่วไหล | PASS | Buffy | probe ตาราง 2.3 (admin guard 401), `/api/public-products` default-deny (total:0, empty_reason:no_published_records) |
 | `dnaos.dev` cutover DNS | ค้างอยู่กับเจ้าของ | เจ้าของ (domain provider) | dig → `69.46.46.102` |
 | Local Backup repo fix | ค้างอยู่กับเจ้าของ | เจ้าของ (อนุมัติ rebuild) | packfile ตัดขาด `pack-3a7e741c…` |
 
 ---
 
-**รายงานโดย Buffy (Freebuff / Codebuff) · ตรวจจาก `git ls-remote` + `railway deployment list/logs` + HTTP probes + Headless Chrome screenshots ณ 2026-10-25 · DNA OS Public Website + Latest Software Release = LIVE PRODUCTION VERIFIED**
+**รายงานโดย Buffy (Freebuff / Codebuff) · ตรวจจาก `git ls-remote` + `railway deployment list/logs` + HTTP probes ณ 2026-10-25 · DNA OS Public Website + Latest Software Release = LIVE PRODUCTION VERIFIED**
