@@ -65,21 +65,39 @@ echo "--- Checking for undeclared top-level directories ---"
 # presentation layer (shell/navigation/table/viewer/form/primitives) built for the new
 # Business Workspace; it is a UI layer above app/, not business logic of its own, and it
 # is registered in registry/module-registry.json like every other layer.
+# NOTE (2026-10-25, DNA-000230 reconciliation): an intermediate wip commit (5806c269)
+# accidentally REPLACED this allowlist, dropping the earlier declarations (architecture/
+# from 34840dce; connections/ + assets/ from 83eb397c) while adding external-packages/
+# and reports/ — the wip version's own note claimed those two were untracked, but they
+# now hold tracked content too. This file merges BOTH declaration sets; provenance
+# comments below are restored verbatim from 83eb397c where possible.
 # dna-os-contractor/ (owner-approved contractor adapter, 2026-09-23) — the standalone
 # contractor/worker coordination package (own package.json/tsconfig, lease client over
 # registry/LOCK_MANAGER.json, Freebuff pull-mode adapter). Same treatment as
 # dna-os-mcp-server/ above: a real tracked top-level folder with its own package.
-# external-packages/ and reports/ (verified-provenance declaration, fellow site-recovery pass 2026-10-24): BOTH are local untracked
-# tooling artifacts — git ls-files shows 0 tracked files in each
-# (external-packages/semantic-preflight = standalone tool package own
-# package.json+tsconfig+src; reports/archify-runtime-relationship-map =
-# generated HTML/JSON report bundle). NOT a business layer, NOT owner-approved
-# architecture — declared with the same treatment the script already gives
-# tmp/ and output/ (generated local outputs that would otherwise flag a false
-# "Shadow Layer" DRIFT on every build). If either folder is later adopted as
-# real architecture, it must then be registered in
+# external-packages/ (semantic-preflight tool package, own package.json+tsconfig+src;
+# tracked content as of 2026-10-25 — 7 files) and reports/ (generated report bundles;
+# tracked content as of 2026-10-25 — 45 files) — declared with the same treatment the
+# script already gives tmp/ and output/ (generated/local outputs that would otherwise
+# flag a false "Shadow Layer" DRIFT on every build). If either folder is later adopted
+# as real architecture, it must then be registered in
 # registry/module-registry.json like every other layer.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff external-packages reports"
+# architecture/ (BATCH 3, repository-authority-phase1 ace8cda, 2026-10-08) — the frozen
+# declarative repository.manifest.json of the Nine-Repo Architecture Contract Phase 1
+# (data-only, no code reads it; declares which repository owns which authority so the
+# boundaries are reviewable). Real tracked content — declared rather than flagged as a
+# "Shadow Layer" every run. RESTORED 2026-10-25: the wip snapshot 5806c269 accidentally
+# dropped the declarations made in 83eb397c/34840dce, flagging real tracked folders.
+# connections/ (owner mission 2026-10-10, RESTORE LINE WEBHOOK/CONNECT) — the Connect
+# workspace folder (same shape as dna-os-step2's tracked connections/ tree); declared
+# here even though this worktree has no connections/ dir at HEAD so the check is
+# future-proof for worktrees that do (same treatment, NOT a business logic layer).
+# assets/ (owner mission 2026-10-10, FINANCIAL DOCUMENT IMAGE & PREVIEW, 83eb397c) —
+# holds the OFL-licensed Noto Sans Thai TTFs that engines/documents/artifact.ts
+# installs into the fontconfig user dir before SVG→PNG render (the production
+# container ships zero fonts; real tofu incident). Data-only folder, no code imports
+# it directly. RESTORED 2026-10-25 for the same reason as architecture/ above.
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff architecture connections assets external-packages reports"
 
 for dir in */; do
   dirname=$(basename "$dir")

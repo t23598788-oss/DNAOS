@@ -69,7 +69,9 @@
     "app/workspace/_lib/businessTools.ts",
     "app/workspace/_lib/jobDisplayModel.ts",
     "public/sw.js",
-    "device-connector/dnaos-device.mjs"
+    "device-connector/dnaos-device.mjs",
+    "core/authority/rights.ts",
+    "external-packages/semantic-preflight/**"
   ],
   "workspaces": {
     "dna-os-mcp-server": {

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T00:38:51.492Z",
+  "generated_at": "2026-10-25T00:57:51.271Z",
   "version": 1,
   "nodes": [
     {
@@ -13698,170 +13698,170 @@
         {
           "name": "getOpenDebts",
           "kind": "function",
-          "line_start": 127,
-          "line_end": 151
+          "line_start": 144,
+          "line_end": 168
         },
         {
           "name": "getAllDebts",
           "kind": "function",
-          "line_start": 153,
-          "line_end": 174
+          "line_start": 170,
+          "line_end": 191
         },
         {
           "name": "getDebtTrackings",
           "kind": "function",
-          "line_start": 178,
-          "line_end": 206
+          "line_start": 208,
+          "line_end": 237
         },
         {
           "name": "createDebtTracking",
           "kind": "function",
-          "line_start": 208,
-          "line_end": 230
+          "line_start": 239,
+          "line_end": 261
         },
         {
           "name": "getDebtTrackingById",
           "kind": "function",
-          "line_start": 232,
-          "line_end": 250
+          "line_start": 263,
+          "line_end": 281
         },
         {
           "name": "updateDebtTracking",
           "kind": "function",
-          "line_start": 258,
-          "line_end": 276
+          "line_start": 289,
+          "line_end": 307
         },
         {
           "name": "deleteDebtTracking",
           "kind": "function",
-          "line_start": 278,
-          "line_end": 284
+          "line_start": 309,
+          "line_end": 315
         },
         {
           "name": "canonicalDocumentType",
           "kind": "function",
-          "line_start": 298,
-          "line_end": 300
+          "line_start": 329,
+          "line_end": 331
         },
         {
           "name": "documentTypeVariants",
           "kind": "function",
-          "line_start": 302,
-          "line_end": 304
+          "line_start": 333,
+          "line_end": 335
         },
         {
           "name": "getDocumentTypeCounts",
           "kind": "function",
-          "line_start": 308,
-          "line_end": 330
+          "line_start": 339,
+          "line_end": 361
         },
         {
           "name": "getDocuments",
           "kind": "function",
-          "line_start": 334,
-          "line_end": 374
+          "line_start": 365,
+          "line_end": 405
         },
         {
           "name": "getLatestInvoice",
           "kind": "function",
-          "line_start": 376,
-          "line_end": 397
+          "line_start": 407,
+          "line_end": 428
         },
         {
           "name": "getFirstInvoiceForPartner",
           "kind": "function",
-          "line_start": 399,
-          "line_end": 432
+          "line_start": 430,
+          "line_end": 463
         },
         {
           "name": "getReceipts",
           "kind": "function",
-          "line_start": 434,
-          "line_end": 454
+          "line_start": 479,
+          "line_end": 500
         },
         {
           "name": "getPartnerByName",
           "kind": "function",
-          "line_start": 467,
-          "line_end": 481
+          "line_start": 513,
+          "line_end": 527
         },
         {
           "name": "getDebtsByCustomerName",
           "kind": "function",
-          "line_start": 485,
-          "line_end": 509
+          "line_start": 531,
+          "line_end": 555
         },
         {
           "name": "getJobs",
           "kind": "function",
-          "line_start": 535,
-          "line_end": 561
+          "line_start": 595,
+          "line_end": 621
         },
         {
           "name": "getPartners",
           "kind": "function",
-          "line_start": 565,
-          "line_end": 576
+          "line_start": 625,
+          "line_end": 636
         },
         {
           "name": "getDebtorPartners",
           "kind": "function",
-          "line_start": 578,
-          "line_end": 588
+          "line_start": 638,
+          "line_end": 648
         },
         {
           "name": "getMaterialTypes",
           "kind": "function",
-          "line_start": 592,
-          "line_end": 603
+          "line_start": 652,
+          "line_end": 663
         },
         {
           "name": "getCustomerGps",
           "kind": "function",
-          "line_start": 610,
-          "line_end": 659
+          "line_start": 670,
+          "line_end": 719
         },
         {
           "name": "getPartnerById",
           "kind": "function",
-          "line_start": 663,
-          "line_end": 673
+          "line_start": 723,
+          "line_end": 733
         },
         {
           "name": "getDocumentsByPartner",
           "kind": "function",
-          "line_start": 675,
-          "line_end": 695
+          "line_start": 735,
+          "line_end": 755
         },
         {
           "name": "getBusinessEventsByPartner",
           "kind": "function",
-          "line_start": 697,
-          "line_end": 716
+          "line_start": 757,
+          "line_end": 776
         },
         {
           "name": "getTransactions",
           "kind": "function",
-          "line_start": 720,
-          "line_end": 753
+          "line_start": 780,
+          "line_end": 813
         },
         {
           "name": "getTransactionById",
           "kind": "function",
-          "line_start": 755,
-          "line_end": 801
+          "line_start": 815,
+          "line_end": 861
         },
         {
           "name": "getPartnersWithDocumentSummary",
           "kind": "function",
-          "line_start": 803,
-          "line_end": 865
+          "line_start": 863,
+          "line_end": 925
         },
         {
           "name": "getPendingDrafts",
           "kind": "function",
-          "line_start": 869,
-          "line_end": 871
+          "line_start": 929,
+          "line_end": 931
         }
       ],
       "import_sites": [
@@ -34157,13 +34157,13 @@
           "name": "POST",
           "kind": "function",
           "line_start": 16,
-          "line_end": 105
+          "line_end": 108
         },
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 116,
-          "line_end": 200
+          "line_start": 119,
+          "line_end": 203
         }
       ],
       "import_sites": [
@@ -92626,8 +92626,8 @@
         {
           "name": "handleDocumentList",
           "kind": "function",
-          "line_start": 145,
-          "line_end": 179
+          "line_start": 186,
+          "line_end": 220
         }
       ],
       "import_sites": [
