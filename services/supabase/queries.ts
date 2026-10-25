@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { type DataScope } from "@/core/authority/data-scope";
 
 let _client: SupabaseClient | null = null;
 let _adminClient: SupabaseClient | null = null;
@@ -19,6 +20,58 @@ export function supabaseAdmin(): SupabaseClient {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
   _adminClient = createClient(url, key, { auth: { persistSession: false } });
   return _adminClient;
+}
+
+/**
+ * Company ids this read scope may see.
+ *   null  = platform scope -> no restriction
+ *   Set   = exact tenant companies (empty Set = nothing visible)
+ * Never returns null for a non-platform scope: an unknown scope is "none", and
+ * "none" must never turn into "no filter".
+ */
+async function scopedCompanyIds(scope?: DataScope): Promise<Set<string> | null> {
+  if (!scope || scope.mode === "platform") return null;
+  if (scope.mode !== "organization" || scope.organizationIds.length === 0) return new Set();
+  const { data, error } = await supabaseAdmin()
+    .from("companies")
+    .select("id")
+    .in("organization_id", scope.organizationIds);
+  if (error) throw new Error(error.message);
+  return new Set((data ?? []).map((row: { id: string }) => String(row.id)));
+}
+
+/** Public accessor for route-level org filtering (STEP 1b, admin UI). */
+export async function getVisibleCompanyIds(scope?: DataScope): Promise<Set<string> | null> {
+  return scopedCompanyIds(scope);
+}
+
+function keepCompanyRows<T extends { partner_id?: string | null }>(rows: T[], allowed: Set<string> | null): T[] {
+  if (!allowed) return rows;
+  return rows.filter((row) => Boolean(row.partner_id) && allowed.has(String(row.partner_id)));
+}
+
+/** Debt rows carry only invoice_id — resolve the owning company before filtering. */
+async function filterDebtRowsByScope<T extends { invoice_id: string }>(
+  rows: T[],
+  allowed: Set<string> | null,
+): Promise<T[]> {
+  if (!allowed) return rows;
+  if (allowed.size === 0 || rows.length === 0) return [];
+  const ids = [...new Set(rows.map((row) => row.invoice_id).filter(Boolean))];
+  const { data, error } = await supabaseAdmin()
+    .from("invoices")
+    .select("id, customer_company_id")
+    .in("id", ids);
+  if (error) throw new Error(error.message);
+  // Supabase rows come back untyped ({ [key: string]: any }); the explicit
+  // param annotation is what keeps the mapping type-checked instead of `any`.
+  const owner = new Map(
+    (data ?? []).map((row: { id: string; customer_company_id: string | null }) => [
+      String(row.id),
+      String(row.customer_company_id ?? ""),
+    ]),
+  );
+  return rows.filter((row) => allowed.has(owner.get(String(row.invoice_id)) ?? ""));
 }
 
 // ---- HELPERS: map new schema → old interface ----
@@ -78,7 +131,17 @@ function mapStandaloneToDocument(d: any) {
 
 // ---- INVOICE DEBTS (ดึงจาก invoices ที่ยังไม่ paid) ----
 
-export async function getOpenDebts() {
+type InvoicePaymentRow = {
+  invoice_id: string;
+  invoice_no: string | null;
+  receivable_amount: number | null;
+  receivable_basis: string | null;
+  paid_amount: number | null;
+  outstanding: number | null;
+  derived_status: string | null;
+};
+
+export async function getOpenDebts(scope?: DataScope) {
   // PHASE E5.2 — reads the canonical views: the receivable comes from
   // invoice_payment_summary (persisted net_payable/gross + allocation-derived paid),
   // never from re-deriving it out of `total_amount`. `current_interest_amount` stays
@@ -89,7 +152,8 @@ export async function getOpenDebts() {
     .not("derived_status", "in", '("VOID","PAID")')
     .gt("outstanding", 0);
   if (error) throw new Error(error.message);
-  return (data ?? []).map((d: any) => ({
+  const visible = await filterDebtRowsByScope((data ?? []) as InvoicePaymentRow[], await scopedCompanyIds(scope));
+  return visible.map((d) => ({
     id: d.invoice_id,
     document_id: d.invoice_id,
     document_number: d.invoice_no,
@@ -103,7 +167,7 @@ export async function getOpenDebts() {
   }));
 }
 
-export async function getAllDebts() {
+export async function getAllDebts(scope?: DataScope) {
   // PHASE E5.2 — same canonical view as getOpenDebts (all statuses, VOID included so
   // the history stays complete). Amounts are the persisted receivable + allocation-derived
   // paid amount; nothing is recomputed from `total_amount`.
@@ -111,8 +175,9 @@ export async function getAllDebts() {
     .from("invoice_payment_summary")
     .select("invoice_id, invoice_no, receivable_amount, receivable_basis, paid_amount, outstanding, derived_status");
   if (error) throw new Error(error.message);
-  return (data ?? []).map((d: any) => ({
-    id: d.invoice_id,
+  const visible = await filterDebtRowsByScope((data ?? []) as InvoicePaymentRow[], await scopedCompanyIds(scope));
+  return visible.map((d) => (
+    { id: d.invoice_id,
     document_id: d.invoice_id,
     document_number: d.invoice_no,
     principal_amount: Number(d.receivable_amount ?? 0),
@@ -127,19 +192,37 @@ export async function getAllDebts() {
 
 // ---- DEBT TRACKINGS (ดึงจาก debt_snapshots) ----
 
-export async function getDebtTrackings() {
+type DebtSnapshotRow = {
+  id: string;
+  customer_company_id: string | null;
+  total_outstanding: number | null;
+  overdue_amount: number | null;
+  collection_state: string | null;
+  debt_start_at: string | null;
+  freeze_from: string | null;
+  freeze_until: string | null;
+  created_at: string | null;
+  companies: { id: string; name: string; phone: string; tax_id?: string } | null;
+};
+
+export async function getDebtTrackings(scope?: DataScope) {
   const { data, error } = await supabaseAdmin()
     .from("debt_snapshots")
     .select("id, customer_company_id, total_outstanding, overdue_amount, collection_state, debt_start_at, created_at, freeze_from, freeze_until, companies(id, name, phone, tax_id)")
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
-  return (data ?? []).map((d: any) => ({
+  const rows = (data ?? []) as unknown as DebtSnapshotRow[];
+  const allowed = await scopedCompanyIds(scope);
+  const visible = allowed
+    ? rows.filter((d) => Boolean(d.customer_company_id) && allowed.has(String(d.customer_company_id)))
+    : rows;
+  return visible.map((d) => ({
     id: d.id,
-    partner_id: d.customer_company_id,
+    partner_id: d.customer_company_id ?? "",
     customer_name: d.companies?.name ?? d.customer_company_id ?? "",
     principal_amount: Number(d.total_outstanding ?? 0),
     fee_rate: 0,
-    interest_start_at: d.debt_start_at ?? d.created_at,
+    interest_start_at: d.debt_start_at ?? d.created_at ?? "",
     // Debt Collection Freeze Window (owner, 2026-07-18) — was silently
     // dropped here, so /admin/debt-tracking showed stale un-frozen numbers
     // (61 days interest / 31 days penalty) while every other consumer
@@ -279,8 +362,9 @@ export async function getDocumentTypeCounts(): Promise<{ counts: Record<string, 
 
 // ---- DOCUMENTS (mapped from invoices + standalone_documents) ----
 
-export async function getDocuments(docType?: string) {
+export async function getDocuments(docType?: string, scope?: DataScope) {
   const canonical = docType ? canonicalDocumentType(docType) : null;
+  const allowed = await scopedCompanyIds(scope);
 
   if (!canonical || canonical === "invoice") {
     const { data, error } = await supabaseAdmin()
@@ -288,7 +372,7 @@ export async function getDocuments(docType?: string) {
       .select("id, invoice_no, invoice_status, customer_company_id, customer_order_id, invoice_date, total_amount, paid_amount, reference_no, created_at, companies(id, name)")
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    const invoiceDocs = (data ?? []).map(mapInvoiceToDocument);
+    const invoiceDocs = keepCompanyRows((data ?? []).map(mapInvoiceToDocument), allowed);
     if (canonical === "invoice") return invoiceDocs;
 
     // ดึง standalone_documents ด้วยถ้าไม่ระบุ type
@@ -302,7 +386,7 @@ export async function getDocuments(docType?: string) {
       .select("id, document_no, document_type, document_date, customer_company_id, total_amount, reference_no, created_at, customer_order_id, companies!standalone_documents_customer_company_id_fkey(id, name)")
       .order("created_at", { ascending: false });
     if (sdErr) throw new Error(sdErr.message);
-    const standaloneDocs = (sdData ?? []).map(mapStandaloneToDocument);
+    const standaloneDocs = keepCompanyRows((sdData ?? []).map(mapStandaloneToDocument), allowed);
     return [...invoiceDocs, ...standaloneDocs].sort((a, b) =>
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
@@ -317,16 +401,18 @@ export async function getDocuments(docType?: string) {
     .eq("document_type", canonical)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
-  return (data ?? []).map(mapStandaloneToDocument);
+  return keepCompanyRows((data ?? []).map(mapStandaloneToDocument), allowed);
 }
 
-export async function getLatestInvoice() {
-  const { data, error } = await supabaseAdmin()
+export async function getLatestInvoice(scope?: DataScope) {
+  const allowed = await scopedCompanyIds(scope);
+  if (allowed && allowed.size === 0) return null;
+  let query = supabaseAdmin()
     .from("invoices")
     .select("id, invoice_no, invoice_status, customer_company_id, total_amount, paid_amount, invoice_date, created_at, companies(name, phone)")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order("created_at", { ascending: false });
+  if (allowed) query = query.in("customer_company_id", [...allowed]);
+  const { data, error } = await query.limit(1).maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) return null;
   return {
@@ -376,14 +462,33 @@ export async function getFirstInvoiceForPartner(partnerId?: string | null, custo
   };
 }
 
-export async function getReceipts() {
+// ---- PARTNER RECEIPT HISTORY (invoices marked PAID) ----
+
+type PartnerInvoiceRow = {
+  id: string;
+  customer_company_id: string | null;
+  invoice_no: string | null;
+  receipt_no: string | null;
+  total_amount: number | null;
+  invoice_date: string | null;
+  created_at: string | null;
+  invoice_status: string;
+  companies: { name: string } | null;
+};
+
+export async function getReceipts(scope?: DataScope) {
   const { data, error } = await supabaseAdmin()
     .from("invoices")
-    .select("id, invoice_no, invoice_status, total_amount, invoice_date, receipt_no, created_at, companies(name)")
+    .select("id, invoice_no, invoice_status, customer_company_id, total_amount, invoice_date, receipt_no, created_at, companies(name)")
     .eq("invoice_status", "PAID")
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
-  return (data ?? []).map((d: any) => ({
+  const allowed = await scopedCompanyIds(scope);
+  const rows = (data ?? []) as unknown as PartnerInvoiceRow[];
+  const visible = allowed
+    ? rows.filter((d) => Boolean(d.customer_company_id) && allowed.has(String(d.customer_company_id)))
+    : rows;
+  return visible.map((d) => ({
     id: d.id,
     document_number: d.receipt_no ?? d.invoice_no,
     status: "paid",
@@ -405,15 +510,17 @@ export async function getReceipts() {
 
 // ---- PARTNER BY NAME (fuzzy match) ----
 
-export async function getPartnerByName(name: string) {
+export async function getPartnerByName(name: string, scope?: DataScope) {
   const needle = name.trim().toLowerCase();
   if (!needle) return null;
-  const { data, error } = await supabaseAdmin()
+  const allowed = await scopedCompanyIds(scope);
+  if (allowed && allowed.size === 0) return null;
+  let query = supabaseAdmin()
     .from("companies")
     .select("id, name, type, phone, address, tax_id, email, created_at")
-    .ilike("name", `%${needle}%`)
-    .limit(1)
-    .maybeSingle();
+    .ilike("name", `%${needle}%`);
+  if (allowed) query = query.in("id", [...allowed]);
+  const { data, error } = await query.limit(1).maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) return null;
   return mapCompanyToPartner(data);
@@ -421,21 +528,25 @@ export async function getPartnerByName(name: string) {
 
 // ---- DEBTS BY CUSTOMER NAME ----
 
-export async function getDebtsByCustomerName(name: string) {
+export async function getDebtsByCustomerName(name: string, scope?: DataScope) {
   const needle = name.trim().toLowerCase();
   if (!needle) return { invoiceDebts: [] as Awaited<ReturnType<typeof getOpenDebts>>, debtTrackings: [] as Awaited<ReturnType<typeof getDebtTrackings>> };
 
-  const { data: companies } = await supabaseAdmin()
+  const allowed = await scopedCompanyIds(scope);
+  if (allowed && allowed.size === 0) return { invoiceDebts: [], debtTrackings: [] };
+  let companyQuery = supabaseAdmin()
     .from("companies")
     .select("id, name")
     .ilike("name", `%${needle}%`);
+  if (allowed) companyQuery = companyQuery.in("id", [...allowed]);
+  const { data: companies } = await companyQuery;
 
   if (!companies?.length) return { invoiceDebts: [], debtTrackings: [] };
   const companyIds = companies.map((c: any) => c.id);
 
   const [allDebts, allTrackings] = await Promise.all([
-    getOpenDebts(),
-    getDebtTrackings(),
+    getOpenDebts(scope),
+    getDebtTrackings(scope),
   ]);
 
   const invoiceDebts = allDebts.filter((d: any) => companyIds.includes(d.document_id));
@@ -467,7 +578,21 @@ export async function getDebtsByCustomerName(name: string) {
 // jobs to companies/partners (PostgREST relationship resolution returns
 // PGRST200 for every candidate), so `partner_id` is returned as the canonical
 // reference and `partners` stays null instead of a guessed client-side join.
-export async function getJobs(status?: string) {
+// Explicit row annotation — Supabase select returns untyped rows and the
+// mapping below must keep type-checked access instead of `any`.
+type JobRow = {
+  id: string;
+  partner_id?: string | null;
+  project_name: string | null;
+  job_status: string | null;
+  contact_name: string | null;
+  distance_km: number | null;
+  required_quantity: number | null;
+  delivered_quantity: number | null;
+  created_at: string | null;
+};
+
+export async function getJobs(status?: string, scope?: DataScope) {
   let query = supabaseAdmin()
     .from("jobs")
     .select("id, project_name, job_status, partner_id, contact_name, distance_km, required_quantity, delivered_quantity, created_at")
@@ -479,7 +604,9 @@ export async function getJobs(status?: string) {
   }
   const { data, error } = await query;
   if (error) throw new Error(error.message);
-  return (data ?? []).map((j: any) => ({
+  const allowed = await scopedCompanyIds(scope);
+  const rows = keepCompanyRows((data ?? []) as JobRow[], allowed);
+  return rows.map((j) => ({
     id: j.id,
     project_name: j.project_name ?? "-",
     job_status: j.job_status ?? "-",
@@ -495,16 +622,20 @@ export async function getJobs(status?: string) {
 
 // ---- PARTNERS (companies) ----
 
-export async function getPartners() {
-  const { data, error } = await supabaseAdmin()
+export async function getPartners(scope?: DataScope) {
+  const allowed = await scopedCompanyIds(scope);
+  if (allowed && allowed.size === 0) return [];
+  let query = supabaseAdmin()
     .from("companies")
     .select("id, name, type, phone, address, tax_id, email, created_at")
     .order("name");
+  if (allowed) query = query.in("id", [...allowed]);
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapCompanyToPartner);
 }
 
-export async function getDebtorPartners() {
+export async function getDebtorPartners(scope?: DataScope) {
   const { data: invoices, error } = await supabaseAdmin()
     .from("invoices")
     .select("customer_company_id")
@@ -512,7 +643,7 @@ export async function getDebtorPartners() {
   if (error) throw new Error(error.message);
 
   const partnerIds = new Set((invoices ?? []).map((d: any) => d.customer_company_id).filter(Boolean) as string[]);
-  const partners = await getPartners();
+  const partners = await getPartners(scope);
   return partners.filter((p) => partnerIds.has(p.id));
 }
 
@@ -536,8 +667,10 @@ export async function getMaterialTypes() {
 // never guesses a location). Same join path as the client-side "last known
 // location" logic in app/admin/line-customers/page.tsx, done server-side:
 // companies -> company_line_links -> most recent line_events location.
-export async function getCustomerGps(customerId: string): Promise<{ lat: number; lng: number } | null> {
+export async function getCustomerGps(customerId: string, scope?: DataScope): Promise<{ lat: number; lng: number } | null> {
   if (!customerId) return null
+  const allowed = await scopedCompanyIds(scope)
+  if (allowed && !allowed.has(customerId)) return null
   const db = supabaseAdmin()
   const { data: link } = await db
     .from("company_line_links")
@@ -587,7 +720,9 @@ export async function getCustomerGps(customerId: string): Promise<{ lat: number;
 
 // ---- PARTNER TIMELINE ----
 
-export async function getPartnerById(id: string) {
+export async function getPartnerById(id: string, scope?: DataScope) {
+  const allowed = await scopedCompanyIds(scope);
+  if (allowed && !allowed.has(id)) throw new Error("PARTNER_NOT_IN_SCOPE");
   const { data, error } = await supabaseAdmin()
     .from("companies")
     .select("id, name, type, phone, address, tax_id, email, created_at")
@@ -597,7 +732,9 @@ export async function getPartnerById(id: string) {
   return mapCompanyToPartner(data);
 }
 
-export async function getDocumentsByPartner(partnerId: string) {
+export async function getDocumentsByPartner(partnerId: string, scope?: DataScope) {
+  const allowed = await scopedCompanyIds(scope);
+  if (allowed && !allowed.has(partnerId)) return [];
   const { data, error } = await supabaseAdmin()
     .from("invoices")
     .select("id, invoice_no, invoice_status, total_amount, invoice_date, created_at, customer_order_id")
@@ -617,7 +754,9 @@ export async function getDocumentsByPartner(partnerId: string) {
   }));
 }
 
-export async function getBusinessEventsByPartner(partnerId: string) {
+export async function getBusinessEventsByPartner(partnerId: string, scope?: DataScope) {
+  const allowed = await scopedCompanyIds(scope);
+  if (allowed && !allowed.has(partnerId)) return [];
   const { data, error } = await supabaseAdmin()
     .from("business_events")
     .select("id, event_type, event_date, title, description, metadata, created_at, transaction_id")
@@ -721,13 +860,13 @@ export async function getTransactionById(id: string) {
   };
 }
 
-export async function getPartnersWithDocumentSummary() {
+export async function getPartnersWithDocumentSummary(scope?: DataScope) {
   // PHASE E5.2 — canonical sources: receivables from invoice_payment_summary
   // (persisted net/gross per document) and received amounts from
   // payment_allocations. The old version summed `total_amount` and subtracted the
   // always-zero `paid_amount`, so every partner looked fully outstanding.
   const [partners, summaries, allocations] = await Promise.all([
-    getPartners(),
+    getPartners(scope),
     supabaseAdmin()
       .from("invoice_payment_summary")
       .select("invoice_id, receivable_amount, paid_amount, outstanding")

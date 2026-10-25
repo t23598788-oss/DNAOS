@@ -1,0 +1,140 @@
+{
+  "change_order": {
+    "issued_by": "owner (ข้อความสั่งงาน 2026-10-25)",
+    "scope": "ติดตั้งเฉพาะ publication registry ที่ผ่านการตรวจ + เผยแพร่ราคาจริง 1 รายการ + วัดเวลาเปลี่ยนแปลงราคา",
+    "window": "2026-10-24T18:05Z–18:15Z (UTC) บน project xeytcavxejhyzxwevgto (Production)",
+    "not_in_scope": [
+      "supabase/migrations/20261024000001_public_signup_never_bootstrap_super_admin.sql — NOT applied",
+      "migration อื่นที่ยังค้างใน remote ทั้งหมด — NOT applied",
+      "ไม่มี deploy ขึ้น production (ทดสอบหน้าเว็บบน local next dev ที่ชี้ DB จริง)"
+    ]
+  },
+
+  "migration_preflight": {
+    "file": "supabase/migrations/20261024000002_public_publication_registry.sql",
+    "statement_census": {
+      "create_table": 2,
+      "create_index": 3,
+      "alter_table_enable_rls": 2,
+      "revoke": 2,
+      "drop_or_truncate_or_delete": 0,
+      "alter_other_tables": 0
+    },
+    "name_collisions_before_apply": { "relations": 0, "indexes": 0, "constraints": 0, "functions": 0 },
+    "rehearsal": {
+      "method": "BEGIN; <migration>; checks; ROLLBACK;",
+      "tables_created": true,
+      "rls_records": true,
+      "rls_events": true,
+      "anon_select": false,
+      "auth_select": false,
+      "svc_select": true,
+      "svc_insert": true,
+      "svc_events_insert": true,
+      "policies_on_new_tables": 0,
+      "indexes_created": 7,
+      "existing_tables_changed": 0,
+      "row_counts_during_rehearsal": { "pit_materials": 41, "pit_profiles": 96, "profiles": 3 },
+      "after_rollback_tables_present": false
+    },
+    "verdict": "additive เท่านั้น — ไม่มีคำสั่งแตะตารางเดิม, ไม่มีชื่อชน, ซ้อมแล้วย้อนกลับได้จริง"
+  },
+
+  "applied": {
+    "at": "ก่อน 2026-10-24T18:12:38Z (UTC) — เวลาของแถว publication แรกที่เขียนหลัง apply)",
+    "method": "supabase db query --linked -f (BEGIN … COMMIT wrapper)",
+    "tables": ["public.publication_records", "public.publication_events"],
+    "post_apply": {
+      "records_table_present": true,
+      "events_table_present": true,
+      "anon_can_read": false,
+      "service_role_can_read": true,
+      "publication_rows": 0,
+      "existing_row_counts": { "pit_materials": 41, "pit_profiles": 96, "profiles": 3 }
+    },
+    "existing_row_counts_unchanged": true
+  },
+
+  "test_item": {
+    "price_row_id": "3c9f332b-cede-4ec5-8a2a-34e579a9907b",
+    "material": "ดินถม",
+    "price_thb": 50,
+    "owner": {
+      "organization": "pit_profiles",
+      "id": "36e4b0c9-611d-49db-aacb-852ac18d5d0f",
+      "name": "เมฆบ่อดิน _ DNA OS",
+      "owner_key": "pit:36e4b0c9-611d-49db-aacb-852ac18d5d0f",
+      "operator_identity": "5004cf38-e437-472a-b8aa-ac84dc4702b5",
+      "operator_identity_exists_in_auth_users": false,
+      "consequence": "เจ้าของระดับผู้ประกอบการยังตรวจสอบไม่ได้ → ใช้สิทธิ์ publication.admin (super_admin) เท่านั้น"
+    },
+    "authority": {
+      "recorded_authorized_by": "owner:change-order-2026-10-25",
+      "authority_tier": "super_admin (registry/permissions.json role_tiers.admin_tier)",
+      "accounts_with_authority": ["t23598788@gmail.com", "dnaos.tech@gmail.com"],
+      "verified_by": null,
+      "verified_by_note": "ไม่มีการอ้างว่ามนุษย์ตรวจราคาแล้ว — ป้าย 'ยืนยันราคาเมื่อ …' จะไม่ขึ้น"
+    }
+  },
+
+  "publication": {
+    "publication_record_id": "59bc4af2-091c-475e-99cc-90e2ac130af0",
+    "status": "published",
+    "public_slug": "mat-36e4b0c9-3c9f332b",
+    "public_url": "/products/mat-36e4b0c9-3c9f332b",
+    "allowed_public_fields": ["name", "price", "supplier_name", "service_area"],
+    "published_at": "2026-10-24T18:12:38.53Z",
+    "expires_at": "2027-01-22T18:12:38.532Z",
+    "writer": "scripts/public-catalog-publish-e2e.ts --apply (เขียนแถวเดียวกับ app/api/admin/publications)",
+    "admin_route_read_check": "GET /api/admin/publications ด้วย session จริง → 200, เห็น 1 รายการ",
+    "admin_route_publish_not_used": "ไม่ได้กด publish ผ่าน route เพราะ route บันทึก verified_by = บัญชีที่ล็อกอิน การกดแทนเจ้าของจะเป็นการอ้างการตรวจสอบที่ไม่จริง"
+  },
+
+  "writer_to_website_test": {
+    "writer": "POST /api/admin/pits/:pitId/materials (writer ราคาเดิมของระบบ)",
+    "path": "writer → pit_materials → publication_records → services/public-catalog/reader → /api/public/products + /products/[slug]",
+    "steps": [
+      {
+        "step": "baseline publish 50",
+        "at": "2026-10-24T18:12:38Z",
+        "api": "GET /api/public/products → 200, item 1, price 50",
+        "page": "GET /products/mat-36e4b0c9-3c9f332b → 200, แสดง 50.00 / ดินถม / เมฆบ่อดิน _ DNA OS / 'ยังไม่ได้รับการยืนยันราคา'"
+      },
+      {
+        "step": "price change 50 → 55 via existing writer",
+        "writer_commit_at": "2026-10-24T18:13:39.683Z",
+        "api_visible_after_s": 0.5,
+        "page_visible_after_s": 1.1
+      },
+      {
+        "step": "restore 55 → 50 via existing writer",
+        "writer_commit_at": "2026-10-24T18:13:42.295Z",
+        "page_visible_after_s": 0.5,
+        "api_visible_after_s": 59.4,
+        "api_note": "ชน 60s in-process memo ของ reader (PUBLIC_CACHE_SECONDS) — ไม่ใช่ความผิดพลาด แต่เป็นเพดานที่ออกแบบไว้"
+      }
+    ],
+    "measured": {
+      "detail_page_latency_s": [0.5, 1.1],
+      "list_api_latency_s": [0.5, 59.4],
+      "list_api_cache_seconds": 60
+    },
+    "final_source_state": {
+      "price": 50,
+      "updated_at": "2026-10-24T18:13:42.902Z"
+    }
+  },
+
+  "evidence_chain": {
+    "permission_row": "publication_records.id = 59bc4af2-091c-475e-99cc-90e2ac130af0 (evidence jsonb: price_at_publish=50, authorized_by=owner:change-order-2026-10-25)",
+    "permission_event": "publication_events.id = 961197be-4515-4fef-ab67-021017214094 (null→published, actor owner:change-order-2026-10-25, created_at 2026-10-24T18:12:38.53Z, backfilled=true)",
+    "source_row": "pit_materials.id = 3c9f332b-cede-4ec5-8a2a-34e579a9907b (price 50 restored, updated_at 2026-10-24T18:13:42.902Z)"
+  },
+
+  "limitations": [
+    "writer ราคาเดิม (app/api/admin/pits/[pitId]/materials) ไม่มีตาราง audit ของตัวเอง — ร่องรอยการเปลี่ยน 50→55→50 มาจาก pit_materials.updated_at + บันทึกชุดนี้ ไม่ใช่ audit row ใน DB",
+    "event ของรอบ publish ถูกเติมย้อนหลัง (backfilled=true) เพราะสคริปต์รอบนั้นยังไม่เขียน event; สคริปต์ถูกแก้ให้เขียน event แล้วสำหรับรอบถัดไป",
+    "ทดสอบหน้าเว็บบน local next dev ที่ใช้ DB จริง — production deployment ยังไม่มี route /products/* (404) จนกว่าจะ deploy",
+    "ผู้ประกอบการ (เจ้าของบ่อ) ยังไม่มีตัวตนที่ยืนยันได้ (0/3 pit_profiles.user_id ที่มีอยู่ resolves กับ auth.users) → ยังไม่มี operator writer"
+  ]
+}

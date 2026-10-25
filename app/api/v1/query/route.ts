@@ -16,7 +16,10 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { randomUUID } from "crypto"
-import { validateApiToken } from "@/services/supabase/api-tokens"
+import { validateApiToken, getApiTokenCallerProfile, MissingServiceRoleKeyError } from "@/services/supabase/api-tokens"
+import { runWithDataScope } from "@/core/authority/data-scope-context"
+import { resolveTokenDataScope } from "@/engines/authority/session-scope"
+import permissions from "@/registry/permissions.json"
 import { dispatch } from "@/engines/validation/dispatcher"
 import commandRegistry from "@/registry/command-registry.json"
 import capabilityRegistry from "@/registry/capability-registry.json"
@@ -92,7 +95,53 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const tokenRecord = await validateApiToken(trimmedToken, requestId)
+  // PART 1 (ปิดช่องโหว่ข้ามองค์กร, 2026-10-24): token ที่ถูกต้องต้อง resolve
+  // ไปยัง profiles.role อยู่ใน admin tier เสมอ (ตรรกะเดียวกับการออก token:
+  // /api/admin/api-tokens ใช้ requireAuth(ADMIN_TIER) + createApiToken(auth.email))
+  // ตรวจ activate ล่าสุดผ่าน server ทุก request — ไม่ยืนยัน client cookie/state.
+  // MissingServiceRoleKeyError → 503 (env provisioning problem, honest ตามเดิม).
+  let tokenRecord
+  let callerProfile: { id: string; role: string | null } | null = null
+  const callerRole = (): string | null => callerProfile?.role ?? null
+  try {
+    tokenRecord = await validateApiToken(trimmedToken, requestId)
+    if (tokenRecord) {
+      callerProfile = await getApiTokenCallerProfile(tokenRecord.user_email)
+    }
+  } catch (err) {
+    if (err instanceof MissingServiceRoleKeyError) {
+      return NextResponse.json(
+        { ok: false, error: "ระบบ token ยังไม่พร้อมใช้งาน (SUPABASE_SERVICE_ROLE_KEY ยังไม่ได้ตั้งค่าบนเซิร์ฟเวอร์) — แจ้งผู้ดูแลระบบ", request_id: requestId },
+        { status: 503, headers: corsHeaders() }
+      )
+    }
+    throw err
+  }
+
+  console.log("[api/v1/query][diag]", JSON.stringify({
+    request_id: requestId,
+    token_valid: !!tokenRecord,
+    // shape-only universal info — never logs email/token, ไม่มี secret
+    caller_role_present: callerRole() !== null,
+    caller_role: callerRole(),
+  }))
+
+  // บังคับสิทธิ์ระดับ Management ที่ฝั่ง Server — token ได้สิทธิ์จาก profiles.role
+  // ปัจจุบันเท่านั้น (role ถูกแก้เมื่อไร ผลทันทีที่ request ถัดไป)
+  const adminTier = permissions.role_tiers.admin_tier as string[]
+  if (tokenRecord && !callerRole()) {
+    return NextResponse.json(
+      { ok: false, error: "token ไม่ผูกกับบัญชีผู้ใช้ในระบบอีกต่อไป (ไม่มี membership) — ร้องขอ token ใหม่ที่ /admin/api-tokens", request_id: requestId },
+      { status: 403, headers: corsHeaders() }
+    )
+  }
+  if (tokenRecord && callerRole() && !adminTier.includes(callerRole() as string)) {
+    return NextResponse.json(
+      { ok: false, error: "role ของบัญชีผู้ถือ token ไม่มีสิทธิ์ใช้ /api/v1/query — ผู้บริหารระบบใช้ผ่าน /admin UI เท่านั้น", request_id: requestId },
+      { status: 403, headers: corsHeaders() }
+    )
+  }
+
   if (!tokenRecord) {
     return NextResponse.json(
       { ok: false, error: "token ไม่ถูกต้องหรือถูก revoke แล้ว", request_id: requestId },
@@ -123,7 +172,10 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Dispatch ── (ผ่าน Dispatcher ซึ่งตรวจ registry + rule 72)
-  const result = await dispatch(rawCommand, args, false)
+  // STEP 1: the token's profile decides the read scope. A tenant admin token
+  // can no longer read another organization's companies/debts.
+  const scope = await resolveTokenDataScope(callerProfile)
+  const result = await runWithDataScope(scope, () => dispatch(rawCommand, args, false))
 
   if (!result.ok) {
     const status = result.requires_confirmation ? 403 : 400

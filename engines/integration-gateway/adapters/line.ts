@@ -38,6 +38,10 @@ export const EVIDENCE_KEYS: readonly string[] = [
   "webhook_event_id",
   "event_type",
   "source_type",
+  // WAVE 2 — the provider-side identity of the sender. Without it a LINE event
+  // could not be attributed downstream at all (Meta already kept sender_id),
+  // which made "who sent this" unanswerable from the central event.
+  "sender_id",
   "message_type",
   "has_media",
   "is_redelivery",
@@ -104,6 +108,8 @@ export function normalizeLineWebhook(payload: unknown): { events: GatewayEvent[]
         webhook_event_id: raw?.webhookEventId ?? null,
         event_type: eventType,
         source_type: raw?.source?.type ?? null,
+        // Identity as a VALUE for evidence/attribution — never as authority.
+        sender_id: raw?.source?.userId ?? null,
         message_type: messageType,
         has_media: messageType === "image" || messageType === "file" || messageType === "audio" || messageType === "video",
         is_redelivery: raw?.deliveryContext?.isRedelivery === true,

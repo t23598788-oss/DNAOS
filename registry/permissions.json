@@ -236,11 +236,9 @@
       "employee"
     ]
   },
-  "capability_access_note": "Authority for each BUSINESS TOOL in the Application Workspace (/workspace). Read only by core/navigation/resolveCapabilityAccess.ts — no component may hardcode a role list (same rule as route_access/api_access above). DEFAULT IS DENY: a tool key that is not listed here is not shown. Every role set below mirrors the authority of the existing plane the tool's data/actions already come from, verified from source, not invented: /api/admin/* + /api/document + /api/chat all call requireAuth(ADMIN_TIER) and registry route_access '/admin' is the same three roles — so all 14 declared tools are admin-tier today. When a tool genuinely gains a wider plane (e.g. a partner-visible screen), update THIS registry, never the component. Roles here are a filter on presentation only; the server routes keep their own requireAuth() check — this registry never replaces an API guard.",
-  "public_routes": [
-    "/",
-    "/login",
+  "capability_access_note": "Authority for each BUSINESS TOOL in the Application Workspace (/workspace). Read only by core/navigation/resolveCapabilityAccess.ts — no component may hardcode a role list (same rule as route_access/api_access above). DEFAULT IS DENY: a tool key that is not listed here is not shown. Every role set below mirrors the authority of the existing plane the tool's data/actions already come from, verified from source, not invented: /api/admin/* + /api/document + /api/chat all call requireAuth(ADMIN_TIER) and registry route_access '/admin' is the same three roles — so all 14 declared tools are admin-tier today. When a tool genuinely gains a wider plane (e.g. a partner-visible screen), update THIS registry, never the component. Roles here are a filter on presentation only; the server routes keep their own requireAuth() check — this registry never replaces an API guard.",  "public_routes": ["/", "/login", "/register",
     "/products",
+    "/products/catalog",
     "/solutions",
     "/marketplace",
     "/ai-services",

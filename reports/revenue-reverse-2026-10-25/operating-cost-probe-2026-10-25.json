@@ -1,0 +1,528 @@
+{
+  "generated_at": "2026-10-24T22:06:16.611Z",
+  "project_ref": "xeytcavxejhyzxwevgto",
+  "schema": {
+    "table_count": 118,
+    "attribution_columns": {
+      "destructive_action_log": [
+        "actor"
+      ],
+      "invoices": [
+        "customer_company_id"
+      ],
+      "subscription_services": [
+        "email_source"
+      ],
+      "connect_external_accounts": [
+        "external_account_id"
+      ],
+      "driver_equipment_permissions": [
+        "line_user_id"
+      ],
+      "connect_external_identities": [
+        "company_id"
+      ],
+      "bank_notifications": [
+        "sender_account_masked",
+        "receiving_account_masked",
+        "receiving_account_name"
+      ],
+      "api_tokens": [
+        "user_email"
+      ],
+      "workspace_lock_conflicts": [
+        "requested_by_actor",
+        "held_by_actor"
+      ],
+      "storage_reclaim_plans": [
+        "created_by"
+      ],
+      "debt_snapshots": [
+        "customer_company_id"
+      ],
+      "conversation_states": [
+        "line_user_id"
+      ],
+      "print_jobs": [
+        "line_user_id"
+      ],
+      "document_references_inverse": [
+        "created_by"
+      ],
+      "publication_events": [
+        "actor"
+      ],
+      "owner_qr_login_sessions": [
+        "approved_by_auth_user_id"
+      ],
+      "supabase_billing_events": [
+        "email_subject",
+        "email_received_at"
+      ],
+      "document_canonical": [
+        "customer_company_id"
+      ],
+      "integration_gateway_events": [
+        "requires_owner_approval"
+      ],
+      "standalone_documents": [
+        "customer_company_id",
+        "partner_company_id"
+      ],
+      "audit_logs": [
+        "actor_user_id",
+        "company_id",
+        "user_agent"
+      ],
+      "entity_registry": [
+        "line_user_id"
+      ],
+      "line_profiles": [
+        "line_user_id",
+        "company_id"
+      ],
+      "connect_identity_current": [
+        "company_id"
+      ],
+      "workspace_locks": [
+        "holder_actor"
+      ],
+      "identity_memberships": [
+        "account_id"
+      ],
+      "driver_profiles": [
+        "user_id",
+        "line_user_id"
+      ],
+      "storage_scan_runs": [
+        "actor"
+      ],
+      "line_events": [
+        "line_user_id"
+      ],
+      "customer_sites": [
+        "customer_company_id"
+      ],
+      "bank_statement_transactions": [
+        "account_number"
+      ],
+      "receipt_documents": [
+        "customer_company_id",
+        "sender_account_number",
+        "receiving_account_number",
+        "receiving_account_name"
+      ],
+      "document_artifacts": [
+        "created_by"
+      ],
+      "partners": [
+        "bank_account_number",
+        "bank_account_name",
+        "created_by",
+        "pit_profile_id"
+      ],
+      "dev_loop_sessions": [
+        "owner"
+      ],
+      "org_members": [
+        "user_id"
+      ],
+      "partner_payable_requests": [
+        "partner_company_id",
+        "partner_line_user_id",
+        "owner_notified_at",
+        "owner_acknowledged_at",
+        "bank_email_verified"
+      ],
+      "owner_passkey_credentials": [
+        "auth_user_id",
+        "owner_identity_id"
+      ],
+      "connectors": [
+        "created_by_admin_id"
+      ],
+      "pending_authorizations": [
+        "company_id",
+        "claimant_line_user_id",
+        "responsible_line_user_id"
+      ],
+      "document_references": [
+        "created_by"
+      ],
+      "ai_tasks": [
+        "line_user_id",
+        "owner_user_id"
+      ],
+      "jobs": [
+        "pit_profile_id",
+        "created_by"
+      ],
+      "line_sessions": [
+        "line_user_id"
+      ],
+      "document_versions": [
+        "created_by"
+      ],
+      "storage_actions": [
+        "actor"
+      ],
+      "owner_auth_audit_log": [
+        "owner_identity_id"
+      ],
+      "organizations": [
+        "created_by"
+      ],
+      "company_line_links": [
+        "company_id",
+        "line_user_id"
+      ],
+      "profiles": [
+        "email"
+      ],
+      "line_outbound_drafts": [
+        "line_user_id",
+        "company_id"
+      ],
+      "identities": [
+        "auth_user_id",
+        "email"
+      ],
+      "document_groups": [
+        "customer_company_id"
+      ],
+      "pit_materials": [
+        "pit_profile_id"
+      ],
+      "customer_orders": [
+        "customer_company_id"
+      ],
+      "company_expenses": [
+        "submitted_by_line_user_id",
+        "submitted_by_name",
+        "submitted_by_role"
+      ],
+      "business_events": [
+        "source_line_user_id"
+      ],
+      "pit_price_requests": [
+        "pit_profile_id",
+        "line_user_id"
+      ],
+      "publication_records": [
+        "organization_owner"
+      ],
+      "company_debt_current": [
+        "company_id"
+      ],
+      "user_line_auth": [
+        "user_id",
+        "line_user_id"
+      ],
+      "inbound_source_links": [
+        "created_by"
+      ],
+      "line_customer_memory": [
+        "line_user_id"
+      ],
+      "debt_events": [
+        "customer_company_id",
+        "created_by"
+      ],
+      "github_sync_paths": [
+        "created_by_admin_id"
+      ],
+      "owner_devices": [
+        "owner_identity_id"
+      ],
+      "receipt_documents_bank_line": [
+        "account_number"
+      ],
+      "projects": [
+        "customer_company_id"
+      ],
+      "line_conversation_controls": [
+        "line_user_id"
+      ],
+      "material_source_evidence": [
+        "match_pit_profile_id"
+      ],
+      "pit_profiles": [
+        "user_id",
+        "owner_type",
+        "bank_account_number",
+        "line_user_id"
+      ],
+      "companies": [
+        "email",
+        "bank_account_no",
+        "line_user_id"
+      ],
+      "live_commands": [
+        "line_user_id"
+      ],
+      "identity_account_workspaces": [
+        "account_id"
+      ]
+    },
+    "tables_without_attribution_count": 44,
+    "table_names": [
+      "app_configs",
+      "destructive_action_log",
+      "invoices",
+      "subscription_services",
+      "job_vehicle_pricings",
+      "connect_external_accounts",
+      "voice_wake_events",
+      "driver_equipment_permissions",
+      "github_sync_log",
+      "connect_external_identities",
+      "bank_notifications",
+      "api_tokens",
+      "file_existence_registry",
+      "workspace_lock_conflicts",
+      "storage_reclaim_plans",
+      "debt_snapshots",
+      "evidence_requests",
+      "conversation_states",
+      "storage_classifications",
+      "facility_types",
+      "print_jobs",
+      "ai_connection_status",
+      "document_references_inverse",
+      "kv_cache",
+      "publication_events",
+      "geometry_columns",
+      "owner_qr_login_sessions",
+      "supabase_billing_events",
+      "document_canonical",
+      "integration_gateway_events",
+      "architecture_drift_events",
+      "payment_allocations",
+      "standalone_documents",
+      "audit_logs",
+      "entity_registry",
+      "line_profiles",
+      "equipment_telemetry_pings",
+      "worker_usage_events",
+      "connect_identity_current",
+      "workspace_locks",
+      "identity_memberships",
+      "driver_profiles",
+      "storage_scan_runs",
+      "line_events",
+      "invoice_payment_summary",
+      "customer_sites",
+      "bank_statement_transactions",
+      "receipt_documents",
+      "storage_threshold_events",
+      "document_artifacts",
+      "partners",
+      "dev_loop_sessions",
+      "dev_loop_registry_proposals",
+      "standalone_document_items",
+      "resource_migration_blocks",
+      "org_members",
+      "resource_transactions",
+      "partner_payable_requests",
+      "vehicle_types",
+      "owner_passkey_credentials",
+      "geography_columns",
+      "connectors",
+      "pending_authorizations",
+      "document_references",
+      "storage_evidence",
+      "ai_tasks",
+      "jobs",
+      "line_sessions",
+      "document_versions",
+      "invoice_items",
+      "storage_actions",
+      "owner_auth_audit_log",
+      "organizations",
+      "line_channels",
+      "company_line_links",
+      "file_snapshots",
+      "profiles",
+      "line_outbound_drafts",
+      "maintenance_tickets",
+      "equipment_assets",
+      "identities",
+      "transactions",
+      "integration_gateway_proposals",
+      "document_groups",
+      "spatial_ref_sys",
+      "pit_materials",
+      "dev_loop_check_results",
+      "customer_orders",
+      "company_expenses",
+      "business_events",
+      "line_draft_documents",
+      "connector_webhook_events",
+      "pit_price_requests",
+      "resource_migration_plans",
+      "publication_records",
+      "storage_resources",
+      "schema_change_log",
+      "company_debt_current",
+      "user_line_auth",
+      "document_versions_next",
+      "inbound_source_links",
+      "dev_loop_evidence_events",
+      "line_customer_memory",
+      "debt_events",
+      "github_sync_paths",
+      "match_queue",
+      "owner_devices",
+      "receipt_documents_bank_line",
+      "projects",
+      "material_types",
+      "line_conversation_controls",
+      "material_source_evidence",
+      "fuel_price_log",
+      "pit_profiles",
+      "companies",
+      "live_commands",
+      "system_health_status",
+      "identity_account_workspaces"
+    ]
+  },
+  "accounts": {
+    "total_auth_users": 3,
+    "users": [
+      {
+        "account": "acct_8de1e3b9",
+        "created_at": "2026-10-15T10:04:19.399128Z",
+        "last_sign_in_at": "2026-10-18T15:43:23.945454Z",
+        "email_confirmed": true,
+        "banned_until": null,
+        "provider": "email",
+        "role_claim": "authenticated",
+        "has_email": true,
+        "has_phone": false
+      },
+      {
+        "account": "acct_39cbd71c",
+        "created_at": "2026-07-08T17:12:23.841369Z",
+        "last_sign_in_at": "2026-10-24T18:23:32.457504Z",
+        "email_confirmed": true,
+        "banned_until": null,
+        "provider": "email",
+        "role_claim": "authenticated",
+        "has_email": true,
+        "has_phone": false
+      },
+      {
+        "account": "acct_2d06e2d6",
+        "created_at": "2026-07-08T16:51:40.788937Z",
+        "last_sign_in_at": "2026-10-19T13:19:59.091754Z",
+        "email_confirmed": true,
+        "banned_until": null,
+        "provider": "email",
+        "role_claim": "authenticated",
+        "has_email": true,
+        "has_phone": false
+      }
+    ],
+    "profiles": [
+      {
+        "account": "acct_39cbd71c",
+        "role": "super_admin",
+        "created_at": "2026-07-08T17:12:23.841069+00:00",
+        "updated_at": "2026-07-13T20:53:17.207069+00:00"
+      },
+      {
+        "account": "acct_2d06e2d6",
+        "role": "super_admin",
+        "created_at": "2026-07-08T16:51:40.788629+00:00",
+        "updated_at": "2026-07-08T16:51:40.788629+00:00"
+      },
+      {
+        "account": "acct_8de1e3b9",
+        "role": "customer",
+        "created_at": "2026-10-15T10:04:19.393957+00:00",
+        "updated_at": "2026-10-15T10:04:19.393957+00:00"
+      }
+    ],
+    "auth_without_profile": 0,
+    "profile_without_auth": 0
+  },
+  "attribution": {
+    "probe": {
+      "audit_logs.actor_user_id": {
+        "rows": 4846,
+        "with_actor": 9,
+        "unattributed": 4837
+      },
+      "api_tokens.user_id": "COLUMN_NOT_IN_SCHEMA",
+      "documents.created_by": "COLUMN_NOT_IN_SCHEMA",
+      "standalone_documents.created_by": "COLUMN_NOT_IN_SCHEMA",
+      "business_events.created_by": "COLUMN_NOT_IN_SCHEMA",
+      "ai_tasks.created_by": "COLUMN_NOT_IN_SCHEMA",
+      "worker_usage_events.user_id": "COLUMN_NOT_IN_SCHEMA",
+      "storage_resources.owner_id": "COLUMN_NOT_IN_SCHEMA",
+      "company_expenses.submitted_by_line_user_id": {
+        "rows": 149,
+        "with_actor": 4,
+        "unattributed": 145
+      },
+      "line_events.line_user_id": {
+        "rows": 952,
+        "with_actor": 952,
+        "unattributed": 0
+      },
+      "connect_external_identities.profile_id": "COLUMN_NOT_IN_SCHEMA"
+    }
+  },
+  "storage": {
+    "buckets": [
+      {
+        "name": "attachments",
+        "public": false,
+        "file_size_limit": null,
+        "created_at": "2026-07-07T16:51:54.205Z"
+      }
+    ],
+    "storage_resources_columns": [
+      "id",
+      "scan_run_id",
+      "path",
+      "size_bytes",
+      "sha256",
+      "modified_at",
+      "state",
+      "created_at"
+    ],
+    "storage_resources_by_group": {
+      "unknown": {
+        "rows": 93,
+        "bytes": 193166499256
+      }
+    },
+    "storage_resources_rows_scanned": 93,
+    "storage_resources_total_bytes": 193166499256,
+    "storage_objects_via_rest": "NOT_EXPOSED",
+    "note": "size figures come from the storage_resources metadata table, not from the object store billing meter"
+  },
+  "problems": [
+    "jobs rows → HTTP 400"
+  ],
+  "runtime": {
+    "jobs": {
+      "total": 0,
+      "by_status": {},
+      "first": null,
+      "last": null
+    },
+    "supabase_billing": {
+      "rows": 1,
+      "usd": 39.51,
+      "thb": 1325.83,
+      "events": [
+        {
+          "status": "owner_notified",
+          "at": "2026-07-27T00:21:12+00:00"
+        }
+      ]
+    }
+  }
+}

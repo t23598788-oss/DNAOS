@@ -2,17 +2,21 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase, getDebtorPartners, getPartnersWithDocumentSummary } from "@/services/supabase/queries"
+import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 export async function GET(req: NextRequest) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
 
   const debtorsOnly = req.nextUrl.searchParams.get("debtorsOnly") === "true"
   const withSummary = req.nextUrl.searchParams.get("withSummary") === "true"
 
   if (debtorsOnly) {
     try {
-      const partners = await getDebtorPartners()
+      const partners = await getDebtorPartners(ctx.scope)
       return NextResponse.json({ partners })
     } catch (e: unknown) {
       console.error("[partners] list query failed:", e instanceof Error ? e.message : e)
@@ -22,7 +26,7 @@ export async function GET(req: NextRequest) {
 
   if (withSummary) {
     try {
-      const partners = await getPartnersWithDocumentSummary()
+      const partners = await getPartnersWithDocumentSummary(ctx.scope)
       return NextResponse.json({ partners })
     } catch (e: unknown) {
       console.error("[partners] list query failed:", e instanceof Error ? e.message : e)
@@ -30,10 +34,13 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const { data, error } = await supabase()
+  if (ctx.companyIds && ctx.companyIds.size === 0) return NextResponse.json({ partners: [] })
+  let query = supabase()
     .from("companies")
     .select("id, name, type, phone, address, tax_id, email")
     .order("name")
+  if (ctx.companyIds) query = query.in("id", [...ctx.companyIds])
+  const { data, error } = await query
 
   if (error) {
     console.error("[partners] list query failed:", error.message)

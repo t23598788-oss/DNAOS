@@ -90,7 +90,17 @@ const leaked = events.flatMap((e) => Object.keys(e.evidence).filter((k) => !EVID
 check("A4 evidence uses only whitelisted keys", leaked.length === 0, leaked.join(","));
 const serialized = JSON.stringify(events.map((e) => e.evidence));
 check("A4 customer message text never enters evidence", !serialized.includes("สั่งปูน"));
-check("A4 provider user id never enters evidence", !serialized.includes("\"U1\""));
+// WAVE 3 correction (2026-10-25): the original blanket ban on the provider user
+// id contradicted the canonical requirement that a transport keeps the sender's
+// provider identity (Meta already did; WAVE 2 aligned LINE). The id is identity,
+// NOT authority and NOT content. The precise rule is: it may travel only under
+// the whitelisted `sender_id` key, and no profile-like data may accompany it.
+check(
+  "A4 provider sender id travels only as sender_id (identity, not content)",
+  events.every((e) => e.evidence.sender_id === "U1" || e.evidence.sender_id === "U2") &&
+    events.every((e) => Object.keys(e.evidence).filter((k) => k === "sender_id").length <= 1),
+);
+check("A4 no display name / phone / picture leaks into evidence", !/display_?name|phone|picture/i.test(serialized));
 check("A4 no token/secret/signature field leaks into evidence", !/token|secret|signature/i.test(serialized));
 
 // ── A7 — Connect Core registration ─────────────────────────────────────────

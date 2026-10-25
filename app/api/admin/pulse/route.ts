@@ -9,36 +9,52 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 export async function GET() {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
   try {
+    const ctx = await resolveAdminReadScope(auth)
+    const denied = denyUnscoped(ctx)
+    if (denied) return denied
+
     const today = new Date().toISOString().split("T")[0]
 
+    // Organization scope (WAVE 2): the dashboard's "everything" is really
+    // "everything this caller may see". Empty company set ⇒ nothing at all.
+    if (ctx.companyIds && ctx.companyIds.size === 0) {
+      return NextResponse.json({
+        metrics: { todayRevenue: 0, activeJobs: 0, pendingDocs: 0 },
+        activeJobs: [],
+        pendingDocs: [],
+        recentDocs: [],
+        generatedAt: new Date().toISOString(),
+      })
+    }
+
+    const invoicesQuery = supabase()
+      .from("invoices")
+      .select("id, invoice_no, invoice_status, total_amount, invoice_date, created_at, customer_company_id, companies!invoices_customer_company_id_fkey(id, name)")
+      .order("created_at", { ascending: false })
+      .limit(30)
+    const ordersQuery = supabase()
+      .from("customer_orders")
+      .select("id, order_no, status, created_at, updated_at, customer_company_id, companies!customer_orders_customer_company_id_fkey(id, name)")
+      .not("status", "in", '("PAID","CANCELLED")')
+      .order("updated_at", { ascending: false })
+      .limit(20)
+    const standaloneQuery = supabase()
+      .from("standalone_documents")
+      .select("id, document_type, document_no, document_date, created_at, customer_company_id, total_amount, companies!standalone_documents_customer_company_id_fkey(id, name)")
+      .order("created_at", { ascending: false })
+      .limit(20)
+
     const [invoicesRes, ordersRes, standaloneRes] = await Promise.all([
-      // ใบแจ้งหนี้ทั้งหมด
-      supabase()
-        .from("invoices")
-        .select("id, invoice_no, invoice_status, total_amount, invoice_date, created_at, customer_company_id, companies!invoices_customer_company_id_fkey(id, name)")
-        .order("created_at", { ascending: false })
-        .limit(30),
-
-      // งาน (customer_orders) ที่ยังเปิดอยู่
-      supabase()
-        .from("customer_orders")
-        .select("id, order_no, status, created_at, updated_at, customer_company_id, companies!customer_orders_customer_company_id_fkey(id, name)")
-        .not("status", "in", '("PAID","CANCELLED")')
-        .order("updated_at", { ascending: false })
-        .limit(20),
-
-      // standalone_documents (receipts, quotations, etc.)
-      supabase()
-        .from("standalone_documents")
-        .select("id, document_type, document_no, document_date, created_at, customer_company_id, total_amount, companies!standalone_documents_customer_company_id_fkey(id, name)")
-        .order("created_at", { ascending: false })
-        .limit(20),
+      ctx.companyIds ? invoicesQuery.in("customer_company_id", [...ctx.companyIds]) : invoicesQuery,
+      ctx.companyIds ? ordersQuery.in("customer_company_id", [...ctx.companyIds]) : ordersQuery,
+      ctx.companyIds ? standaloneQuery.in("customer_company_id", [...ctx.companyIds]) : standaloneQuery,
     ])
 
     const invoices = invoicesRes.data ?? []

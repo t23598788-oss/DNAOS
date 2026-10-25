@@ -17,11 +17,15 @@ import { LOCAL_UI_REVIEW_HEADER, isLocalReviewRequest } from "@/core/auth/devRev
 const PROTECTED_PAGE_PREFIXES = ["/admin", "/business", "/user", "/partner", "/account", "/workspace-preview", "/business-workspace-template"];
 // Exact-match only, never startsWith — "/" as a PREFIX would match every
 // route in the app (every pathname starts with "/"), locking out /login,
-// /api/*, /liff, /oauth, everything. Root Domain UI Conversion (owner,
-// 2026-08-05): "/" is now the Owner Control Center (real System
-// Health/Database/Costs data, see app/page.tsx), no longer a public landing
-// page — gated the same way /admin is, but scoped to exactly this one path.
-const PROTECTED_EXACT_PAGES = ["/"];
+// /api/*, /liff, /oauth, everything.
+//
+// UNIFIED PUBLIC ENTRY (owner, 2026-10-24): "/" is the PUBLIC business entry
+// again — visitors who only want to search prices must never be asked to log
+// in. The Owner Control Center that used to live here moved to
+// /admin/operations (still ADMIN_TIER, still behind this /admin prefix), so
+// no internal data became public with this change. The list stays (empty) so
+// the exact-match mechanism itself is preserved for future gated singletons.
+const PROTECTED_EXACT_PAGES: string[] = [];
 const PROTECTED_API_PREFIXES = ["/api/admin", "/api/document", "/api/action", "/api/explain"];
 const PAGE_EXEMPTIONS = ["/admin/login"];
 

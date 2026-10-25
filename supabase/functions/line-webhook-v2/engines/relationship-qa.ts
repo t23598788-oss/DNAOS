@@ -50,25 +50,29 @@ export function isDebtInquiry(text: string): boolean {
   return DEBT_KEYWORDS.some((k) => text.includes(k))
 }
 
+// STEP 2 (owner directive 2026-10-25): company identity comes ONLY from a
+// VERIFIED relationship (`connect_external_identities.trust_level = verified`).
+// The old fallback matched `companies.name` against the LINE display name — a
+// customer could set their display name to another company's name and receive
+// that company's debt answer. Name equality is not identity; it is removed.
 async function findMatchedCompany(supabase: any, userId: string): Promise<{ id: string; name: string } | null> {
-  // Direct link first — a real person can have more than one LINE account
-  // (e.g. ช่างมิก added a second LINE account 2026-07-10, same company เคที),
-  // so this looks up via company_line_links, not a single companies column.
-  const { data: link } = await supabase
-    .from("company_line_links").select("companies(id, name)").eq("line_user_id", userId).maybeSingle()
-  const linked = (link as any)?.companies ?? null
-  if (linked) return linked
+  const { data: identities } = await supabase
+    .from("connect_external_identities")
+    .select("company_id")
+    .eq("provider", "line")
+    .eq("external_subject_id", userId)
+    .eq("trust_level", "verified")
+    .not("company_id", "is", null)
+    .limit(2)
 
-  // Fall back to exact name match against whatever LINE display name we've
-  // captured for this contact.
-  const { data: known } = await supabase
-    .from("line_events").select("line_name").eq("line_user_id", userId)
-    .not("line_name", "is", null).limit(1).maybeSingle()
-  if (!known?.line_name) return null
+  // Missing OR ambiguous (two verified companies) ⇒ no match. Never guess.
+  if (!Array.isArray(identities) || identities.length !== 1) return null
+  const companyId = identities[0]?.company_id
+  if (!companyId) return null
 
-  const { data: byName } = await supabase
-    .from("companies").select("id, name").eq("name", known.line_name).maybeSingle()
-  return byName ?? null
+  const { data: company } = await supabase
+    .from("companies").select("id, name").eq("id", companyId).maybeSingle()
+  return company ?? null
 }
 
 // Zero/no debt is safe to say immediately — it's a negative claim, nothing to

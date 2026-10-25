@@ -1,0 +1,516 @@
+{
+  "generated_at": "2026-10-24T21:35:33.297Z",
+  "project_ref": "xeytcavxejhyzxwevgto",
+  "tables": {
+    "profiles": 3,
+    "companies": 86,
+    "connect_external_identities": 12,
+    "company_line_links": 10,
+    "customer_orders": 2,
+    "projects": 3,
+    "customer_sites": 5,
+    "invoices": 43,
+    "invoice_items": 90,
+    "standalone_documents": 8,
+    "document_versions": 123,
+    "document_artifacts": 46,
+    "business_events": 214,
+    "jobs": 18,
+    "transactions": 0,
+    "debt_events": 22,
+    "receipt_documents": 495,
+    "payment_allocations": 4,
+    "document_canonical": 51,
+    "company_expenses": 149,
+    "partner_payable_requests": 1,
+    "subscription_services": 825,
+    "supabase_billing_events": 1,
+    "line_events": 952,
+    "integration_gateway_events": 34,
+    "worker_usage_events": 104,
+    "ai_tasks": 385,
+    "api_tokens": 4,
+    "pit_profiles": 96,
+    "pit_materials": 41,
+    "material_types": 11,
+    "vehicle_types": 8,
+    "equipment_assets": 0,
+    "resource_transactions": 0,
+    "match_queue": 0,
+    "storage_resources": 93,
+    "storage_evidence": 71,
+    "storage_scan_runs": 27,
+    "fee_contracts": null,
+    "fee_charges": null,
+    "revenue_recognitions": null
+  },
+  "aggregates": {
+    "profiles": {
+      "total": 3,
+      "by_role": {
+        "super_admin": 2,
+        "customer": 1
+      },
+      "first_created": "2026-07-08T16:51:40.788629+00:00",
+      "last_created": "2026-10-15T10:04:19.393957+00:00"
+    },
+    "connect_identities": {
+      "total": 12,
+      "by_provider": {
+        "line": 12
+      },
+      "by_role": {
+        "supplier": 3,
+        "manager": 3,
+        "employee": 2,
+        "null": 1,
+        "customer": 1,
+        "external": 2
+      },
+      "by_trust": {
+        "verified": 8,
+        "null": 1,
+        "unverified": 3
+      },
+      "distinct_companies": 10
+    },
+    "companies": {
+      "total": 86,
+      "by_type": {
+        "CORE": 1,
+        "CUSTOMER": 84,
+        "SUPPLIER": 1
+      },
+      "by_status": {
+        "ACTIVE": 86
+      },
+      "individual": 6
+    },
+    "customer_orders": {
+      "total": 2,
+      "distinct_customers": 2,
+      "by_status": {
+        "PAID": 2
+      },
+      "by_month": {
+        "2026-07": 2
+      },
+      "first": "2026-07-10T14:12:37.255",
+      "last": "2026-07-24T15:58:01.07"
+    },
+    "invoices": {
+      "total": 43,
+      "distinct_customers": 3,
+      "gmv_total": 217289.32,
+      "paid_amount_column_total": 0,
+      "by_status": {
+        "VOID": 40,
+        "SENT": 3
+      },
+      "gmv_by_month": {
+        "2026-09": 53936.64,
+        "2026-07": 92560.84,
+        "2026-10": 70791.84
+      },
+      "customers_with_multiple_months": 1,
+      "first": "2026-07-17T00:00:00",
+      "last": "2026-10-20T00:00:00"
+    },
+    "payment_allocations": {
+      "total": 4,
+      "amount_total": 49257.8,
+      "by_kind": {
+        "principal": 3,
+        "penalty": 1
+      },
+      "by_month": {
+        "2026-07": 5000,
+        "2026-08": 34257.8,
+        "2026-10": 10000
+      },
+      "distinct_receipts": 3,
+      "targets": {
+        "invoice": 0,
+        "standalone": 0,
+        "debt_event": 4
+      },
+      "paying_companies": 2
+    },
+    "receipt_documents": {
+      "total": 495,
+      "amount_total": 1518138.22,
+      "by_type": {
+        "transfer_slip": 445,
+        "other": 17,
+        "site_photo": 8,
+        "product_photo": 5,
+        "receipt": 2,
+        "invoice": 2,
+        "tax_invoice": 5,
+        "government_document": 1,
+        "fuel_bill": 5,
+        "payment_advice": 5
+      },
+      "by_status": {
+        "ai_read": 492,
+        "confirmed": 3
+      }
+    },
+    "business_events": {
+      "total": 214,
+      "by_type": {
+        "แจ้งชำระเงิน": 162,
+        "line_chat": 6,
+        "สอบถามทั่วไป": 10,
+        "สั่งซื้อ": 4,
+        "ขอราคา": 21,
+        "อื่นๆ": 3,
+        "inquiry": 1,
+        "ส่งพิกัด": 2,
+        "ส่งเอกสาร": 2,
+        "แจ้งข้อมูลการชำระเงิน": 3
+      },
+      "by_status": {
+        "awaiting_payment_date": 143,
+        "new": 32,
+        "superseded": 2,
+        "quoted": 16,
+        "job_created": 2,
+        "ready_to_quote": 2,
+        "confirmed": 8,
+        "sent": 3,
+        "awaiting_info": 5,
+        "awaiting_payment": 1
+      },
+      "by_month": {
+        "2026-07": 84,
+        "2026-08": 88,
+        "2026-10": 42
+      }
+    },
+    "company_expenses": {
+      "total": 149,
+      "amount_total": 50072.95,
+      "pre_vat_total": 8411.21,
+      "vat_total": 588.79,
+      "by_type": {
+        "tax_invoice": 3,
+        "fuel_bill": 1,
+        "subscription": 145
+      },
+      "by_month": {
+        "2023-10": 1,
+        "2022-07": 1,
+        "2026-01": 1,
+        "2026-05": 1,
+        "2026-08": 126,
+        "2026-09": 19
+      }
+    },
+    "subscription_services": {
+      "total": 825,
+      "by_provider": {
+        "Google": 213,
+        "Vercel": 173,
+        "OpenAI": 32,
+        "Anthropic": 40,
+        "RunPod": 46,
+        "GitHub": 265,
+        "Apple": 31,
+        "Hostinger": 25
+      },
+      "by_currency": {
+        "THB": 749,
+        "USD": 76
+      },
+      "by_cycle": {
+        "null": 763,
+        "monthly": 35,
+        "usage": 26,
+        "yearly": 1
+      },
+      "amount_by_currency": {
+        "THB": 30026.63,
+        "USD": 4846.32
+      }
+    },
+    "supabase_billing_events": {
+      "total": 1,
+      "usd_total": 39.51,
+      "thb_total": 1325.83,
+      "by_status": {
+        "owner_notified": 1
+      }
+    },
+    "partner_payables": {
+      "total": 1,
+      "amount_total": 1325.83,
+      "by_status": {
+        "pending": 1
+      }
+    },
+    "resource_transactions": {
+      "total": 0,
+      "cost_total": 0,
+      "price_total": 0,
+      "by_resource": {}
+    },
+    "worker_usage_events": {
+      "total": 104,
+      "input_tokens": 102499,
+      "output_tokens": 30272,
+      "total_tokens": 132771,
+      "token_source": {
+        "UNKNOWN": 21,
+        "PROVIDER_REPORTED": 83
+      },
+      "by_status": {
+        "FAILED": 21,
+        "SUCCEEDED": 83
+      },
+      "by_provider": {
+        "runpod": 91,
+        "execid-test-stub": 12,
+        "cpuram-sample-stub": 1
+      },
+      "by_service": {
+        "classify_image": 1,
+        "handle_text": 1,
+        "benchmark:handle_text": 40,
+        "benchmark:classify_image": 49,
+        "code.generate": 13
+      },
+      "latency_ms_total": 3621667,
+      "first": "2026-08-14T03:30:21.56945+00:00",
+      "last": "2026-08-15T08:29:43.61541+00:00"
+    },
+    "integration_gateway_events": {
+      "total": 34,
+      "by_provider": {
+        "supabase": 2,
+        "vscode": 20,
+        "railway": 1,
+        "line": 11
+      },
+      "by_capability": {
+        "database.health.observed": 1,
+        "database.migration.observed": 1,
+        "automation.command.proposed": 19,
+        "transitional_layer.removal_proposed": 1,
+        "connect.approval.requested": 1,
+        "message.received": 11
+      },
+      "first": "2026-08-04T17:13:07.256+00:00",
+      "last": "2026-10-18T02:20:21.008+00:00"
+    },
+    "line_events": {
+      "total": 952,
+      "by_type": {
+        "follow": 12,
+        "text": 607,
+        "message": 22,
+        "unfollow": 2,
+        "flex": 179,
+        "location": 24,
+        "image": 86,
+        "postback": 10,
+        "file": 10
+      },
+      "by_status": {
+        "archived": 103,
+        "processed": 414,
+        "new": 434,
+        "reviewed": 1
+      },
+      "by_direction": {
+        "in": 583,
+        "out": 369
+      },
+      "by_month": {
+        "2026-06": 246,
+        "2026-07": 425,
+        "2026-08": 192,
+        "2026-10": 89
+      }
+    },
+    "ai_tasks": {
+      "total": 385,
+      "by_kind": {
+        "classify_image": 54,
+        "handle_text": 65,
+        "owner_cline_command": 266
+      },
+      "by_status": {
+        "pending": 47,
+        "done": 128,
+        "failed": 210
+      },
+      "first": "2026-07-25T09:26:03.06737+00:00",
+      "last": "2026-10-20T05:57:57.122521+00:00"
+    },
+    "api_tokens": {
+      "total": 4,
+      "revoked": 1,
+      "used": 3,
+      "by_scope": {
+        "[\"read\"]": 4
+      }
+    },
+    "document_versions": {
+      "total": 123,
+      "by_status": {
+        "active": 85,
+        "void": 38
+      }
+    },
+    "document_artifacts": {
+      "total": 46,
+      "by_kind": {
+        "image": 41,
+        "pdf": 5
+      },
+      "size_bytes_total": 284139
+    },
+    "storage_resources": {
+      "total": 93,
+      "size_bytes_total": 193166499256
+    },
+    "pit_profiles": {
+      "total": 96,
+      "with_owner_profile": 15,
+      "without_owner_profile": 81,
+      "open": 26
+    },
+    "pit_materials": {
+      "total": 41,
+      "priced": 41,
+      "distinct_materials": 6
+    },
+    "resource_counts": {
+      "material_types": 11,
+      "vehicle_types": 8,
+      "equipment_assets": 0,
+      "customer_sites": 5,
+      "projects": 3,
+      "match_queue": 0
+    },
+    "invoices_live": {
+      "total": 3,
+      "gmv_total": 42192.07,
+      "by_month": {
+        "2026-07": 42192.07
+      },
+      "distinct_customers": 1,
+      "linked_to_order": 0,
+      "void_total": 40
+    },
+    "standalone_documents_live": {
+      "total": 7,
+      "gmv_total": 60300.94,
+      "distinct_customers": 3
+    },
+    "document_canonical_live": {
+      "total": 10,
+      "gross_total": 102493.01,
+      "by_kind": {
+        "invoice": 3,
+        "standalone_document": 7
+      }
+    },
+    "debt_events": {
+      "total": 22,
+      "amount_total": 1677838.89,
+      "by_type": {
+        "debt_closed": 1,
+        "receipt_received": 3,
+        "interest_penalty_received": 2,
+        "debt_started": 11,
+        "promise_to_pay": 1,
+        "collection_paused": 1,
+        "manual_adjustment": 3
+      },
+      "distinct_companies": 11
+    },
+    "debt_snapshots": {
+      "total": 11,
+      "outstanding_total": 1573657.01,
+      "overdue_total": 1581015.15,
+      "by_state": {
+        "CLOSED": 2,
+        "OVERDUE": 9
+      }
+    },
+    "customer_lifecycle": {
+      "active_companies": 13,
+      "transacting_companies": 3,
+      "retained_companies_2plus_months": 3,
+      "active_by_month": {
+        "2026-07": 3,
+        "2026-05": 4,
+        "2026-08": 3,
+        "2026-10": 1,
+        "2026-02": 1,
+        "2022-05": 2,
+        "2023-05": 1,
+        "2026-04": 1,
+        "2026-03": 1,
+        "2025-09": 1
+      }
+    },
+    "subscription_by_month": {
+      "2026-08": {
+        "rows": 561,
+        "THB": 23562.63,
+        "USD": 4059.56
+      },
+      "2026-09": {
+        "rows": 264,
+        "THB": 6464,
+        "USD": 786.78
+      }
+    },
+    "expenses_by_month": {
+      "2023-10": {
+        "rows": 1,
+        "amount": 700,
+        "pre_vat": 0,
+        "vat": 0
+      },
+      "2022-07": {
+        "rows": 1,
+        "amount": 3500,
+        "pre_vat": 0,
+        "vat": 0
+      },
+      "2026-01": {
+        "rows": 1,
+        "amount": 2000,
+        "pre_vat": 0,
+        "vat": 0
+      },
+      "2026-05": {
+        "rows": 1,
+        "amount": 9000,
+        "pre_vat": 8411.21,
+        "vat": 588.79
+      },
+      "2026-08": {
+        "rows": 126,
+        "amount": 27622.19,
+        "pre_vat": 0,
+        "vat": 0
+      },
+      "2026-09": {
+        "rows": 19,
+        "amount": 7250.78,
+        "pre_vat": 0,
+        "vat": 0
+      }
+    }
+  },
+  "problems": [
+    "fee_contracts → HTTP 404",
+    "fee_charges → HTTP 404",
+    "revenue_recognitions → HTTP 404"
+  ]
+}

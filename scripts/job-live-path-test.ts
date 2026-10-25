@@ -127,11 +127,18 @@ async function main() {
     "getJobs() must be scoped with .is(\"deleted_at\", null) so soft-deleted jobs never surface",
   );
 
-  // 3 · job.list keeps routing to the existing getJobs()
-  assert.ok(/"job\.list":\s*async \(\) => getJobs\(\)/.test(dispatcher), "job.list must still call the existing getJobs()");
+  // 3 · job.list keeps routing to the existing getJobs() — now under the
+  // caller's verified data scope (STEP 1, 2026-10-25), never an unscoped read.
+  assert.ok(
+    /"job\.list":\s*async \(_p, scope\) => getJobs\(undefined, scope\)/.test(dispatcher),
+    "job.list must still call the existing getJobs() under the request scope",
+  );
 
   // 4 · job.active semantics unchanged (IN_PROGRESS, already declared in the registry)
-  assert.ok(/"job\.active":\s*async \(\) => getJobs\("IN_PROGRESS"\)/.test(dispatcher), "job.active must keep its existing IN_PROGRESS semantic");
+  assert.ok(
+    /"job\.active":\s*async \(_p, scope\) => getJobs\("IN_PROGRESS", scope\)/.test(dispatcher),
+    "job.active must keep its existing IN_PROGRESS semantic, scoped",
+  );
   const registry = JSON.parse(read("registry/command-registry.json")) as {
     commands: Record<string, { output?: string; description?: string; description_th?: string }>;
   };

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/core/auth/requireAuth";
 import { ADMIN_TIER } from "@/core/auth/session";
+import { runWithDataScope } from "@/core/authority/data-scope-context";
+import { resolveSessionDataScope } from "@/engines/authority/session-scope";
 import { runCognitivePipeline } from "@/cognitive/pipeline";
 import { buildChatResult } from "./_lib/resultContract";
 import type { ChatResult } from "./_lib/chatResultTypes";
@@ -75,28 +77,21 @@ export async function POST(request: Request) {
     // for identity entirely (see runCognitiveCore's knownCustomer handling).
     const { message, sessionKey, knownCustomerId, knownCustomerName, relationshipId, documentContext } = await request.json();
     const rawMessage = String(message ?? "");
-    // gatewayContext + memory session (owner 2026-10-08 fix): BOTH are derived
-    // server-side from the authenticated user that just passed
-    // requireAuth(ADMIN_TIER) — never a client-invented identity, and never a
-    // shared bucket: every real user gets `u:<auth.id>:<their own key>`, so two
-    // people (or two tabs of different users) can never land in the same
-    // cognitive memory (คห้ามใช้ __default__ ร่วมระหว่างผู้ใช้).
+    const scope = await resolveSessionDataScope(auth);
     const memorySessionKey = `u:${auth.id}:${sessionKey ? String(sessionKey) : "chat"}`;
     const gatewayContext = {
       ownerId: auth.email,
       sessionId: request.headers.get("x-dna-session") ?? memorySessionKey,
     };
-    const response = await runCognitivePipeline(
-      rawMessage,
-      null,
-      memorySessionKey,
-      knownCustomerId ? { id: String(knownCustomerId), name: String(knownCustomerName ?? "") } : null,
-      gatewayContext,
-      // OWNER WORKSPACE AI TOOL INTEGRATION (2026-10-11): transport ให้ Cline
-      // (ทำงานบนเครื่องที่มี cline binary — Mac เจ้าของ · ไม่มี binary อย่าง
-      // Railway → clineWorker fail-closed null ในไม่กี่ ms พฤติกรรมเดิมเหมือนเดิม
-      // DNA-000218: ไม่มี local binary → task queue ไป Railway cline-worker (ai_tasks)
-      { origin: new URL(request.url).origin, cookie: request.headers.get("cookie"), userId: auth.id },
+    const response = await runWithDataScope(scope, () =>
+      runCognitivePipeline(
+        rawMessage,
+        null,
+        memorySessionKey,
+        knownCustomerId ? { id: String(knownCustomerId), name: String(knownCustomerName ?? "") } : null,
+        gatewayContext,
+        { origin: new URL(request.url).origin, cookie: request.headers.get("cookie"), userId: auth.id },
+      ),
     );
     // RESPONSE CONTRACT (owner 2026-09-25): แนบ result ทุกครั้ง — structured
     // (finance/document/timeline/table) มาจาก canonical reader จึง "แทนที่"

@@ -1,31 +1,77 @@
 import { NextRequest, NextResponse } from "next/server"
 import { supabaseAdmin, canonicalDocumentType } from "@/services/supabase/queries"
 import { getCanonicalDocumentRows } from "@/services/canonical/document-list"
+import type { AdminReadScope } from "@/app/api/admin/_lib/read-scope"
+
+// Explicit row annotations — Supabase select returns untyped rows and every
+// mapping below must stay type-checked instead of `any`.
+type InvoiceRow = {
+  id: string
+  invoice_no: string | null
+  invoice_status: string | null
+  customer_company_id: string | null
+  total_amount: number | null
+  reference_no: string | null
+  invoice_date: string | null
+  created_at: string | null
+  companies: { id: string; name: string; phone: string } | null
+}
+
+type StandaloneRow = {
+  id: string
+  document_no: string | null
+  document_type: string | null
+  status: string | null
+  customer_company_id: string | null
+  total_amount: number | null
+  reference_no: string | null
+  document_date: string | null
+  created_at: string | null
+  companies: { id: string; name: string; phone: string } | null
+}
+
+type DocumentRow = {
+  id: string
+  document_type: string
+  document_number: string
+  status: string
+  partner_id: string | null
+  party_name: string
+  net_amount: number
+  reference_number: string | null
+  issue_date: string | null
+  created_at: string | null
+  partners: { id: string; name: string; phone: string } | null
+}
 
 // DOCUMENT LIST + SEARCH (owner mission 2026-10-10, FINANCIAL DOCUMENT MANAGEMENT).
 // ค้นได้ทั้งเลขเอกสาร/ชื่อบริษัท + วันที่ + ประเภท + สถานะ + จำนวนเงิน + เลขอ้างอิง
 // และบอก presence ของ Artifact (ไฟล์ PDF/PNG ใน Storage จริงไหม) ทุกแถว —
 // ทุก query อ่านจาก canonical tables เดิม ไม่มีตาราง/ engine ใหม่ และไม่เขียนอะไรเลย
 
-const rows: any[] = []
-
 // ค้นชื่อบริษัท → ได้ ids ไปกรองด้วย .in() (คอลัมน์ตารางหลัก) เพราะ PostgREST
 // .or() ไม่รองรับ embedded resource (companies.name) — ดู Railway log:
-// "failed to parse logic tree (...companies.name.ilike...)"
-async function companyIdsByName(term: string): Promise<string[]> {
+// "failed to parse logic_tree (...companies.name.ilike...)"
+// Organization scope: the name search can only ever return companies the
+// caller may see, so it cannot act as an existence oracle for other tenants.
+async function companyIdsByName(term: string, allowed: Set<string> | null): Promise<string[]> {
   if (!term) return []
-  const { data } = await supabaseAdmin().from("companies").select("id").ilike("name", `%${term}%`).limit(50)
+  let q = supabaseAdmin().from("companies").select("id").ilike("name", `%${term}%`).limit(50)
+  if (allowed) q = q.in("id", [...allowed])
+  const { data } = await q
   return (data ?? []).map((c: { id: string }) => c.id)
 }
 
-async function loadInvoices(params: URLSearchParams, term: string, coIds: string[], perPage: number) {
+async function loadInvoices(params: URLSearchParams, term: string, coIds: string[], perPage: number, rows: DocumentRow[], allowed: Set<string> | null) {
   const canonical = params.get("type") && params.get("type") !== "all" ? canonicalDocumentType(params.get("type")!) : null
   if (canonical && canonical !== "invoice") return
+  if (allowed && allowed.size === 0) return
   let q = supabaseAdmin()
     .from("invoices")
     .select("id, invoice_no, invoice_status, customer_company_id, customer_order_id, total_amount, reference_no, invoice_date, created_at, companies!invoices_customer_company_id_fkey(id, name, phone)")
     .order("created_at", { ascending: false })
     .range(0, perPage * 2 - 1)
+  if (allowed) q = q.in("customer_company_id", [...allowed])
   if (term) {
     const parts = [`invoice_no.ilike.%${term}%`]
     if (coIds.length) parts.push(`customer_company_id.in.(${coIds.join(",")})`)
@@ -48,7 +94,7 @@ async function loadInvoices(params: URLSearchParams, term: string, coIds: string
     console.error("[documents] invoices list query failed:", error.message)
     return
   }
-  for (const d of (data ?? []) as any[]) {
+  for (const d of (data ?? []) as unknown as InvoiceRow[]) {
     rows.push({
       id: d.id, document_type: "invoice", document_number: d.invoice_no ?? "",
       status: d.invoice_status?.toLowerCase() ?? "draft", partner_id: d.customer_company_id ?? null,
@@ -60,16 +106,18 @@ async function loadInvoices(params: URLSearchParams, term: string, coIds: string
 }
 
 
-async function loadStandalone(params: URLSearchParams, term: string, coIds: string[], perPage: number) {
+async function loadStandalone(params: URLSearchParams, term: string, coIds: string[], perPage: number, rows: DocumentRow[], allowed: Set<string> | null) {
   const typeParam = params.get("type") ?? ""
   const canonical = typeParam && typeParam !== "all" ? canonicalDocumentType(typeParam) : null
   if (canonical && canonical === "invoice") return
+  if (allowed && allowed.size === 0) return
   let q = supabaseAdmin()
     .from("standalone_documents")
     .select("id, document_no, document_type, customer_company_id, customer_order_id, total_amount, reference_no, document_date, created_at, companies!standalone_documents_customer_company_id_fkey(id, name, phone)")
     .order("created_at", { ascending: false })
     .range(0, perPage * 2 - 1)
   if (canonical) q = q.eq("document_type", canonical)
+  if (allowed) q = q.in("customer_company_id", [...allowed])
   if (term) {
     const parts = [`document_no.ilike.%${term}%`]
     if (coIds.length) parts.push(`customer_company_id.in.(${coIds.join(",")})`)
@@ -92,7 +140,7 @@ async function loadStandalone(params: URLSearchParams, term: string, coIds: stri
     console.error("[documents] standalone_documents list query failed:", error.message)
     return
   }
-  for (const d of (data ?? []) as any[]) {
+  for (const d of (data ?? []) as unknown as StandaloneRow[]) {
     rows.push({
       id: d.id, document_type: d.document_type ?? canonical ?? "", document_number: d.document_no ?? "",
       status: d.status ?? "draft", partner_id: d.customer_company_id ?? null,
@@ -106,7 +154,7 @@ async function loadStandalone(params: URLSearchParams, term: string, coIds: stri
 // ARTIFACT PRESENCE: แถวบอกว่ามีไฟล์ PDF/PNG เก็บใน Storage จริงไหม —
 // document_versions (invoice_id/standalone_document_id) → document_artifacts
 // (kind/sha256/produced_by เป็น column ตรง ไม่มี payload) — read-only
-async function attachArtifacts(pageRows: any[]) {
+async function attachArtifacts(pageRows: DocumentRow[]) {
   const artifactMap = new Map<string, { present: boolean; produced_by: string | null; pdf: boolean; png: boolean }>()
   if (pageRows.length === 0) return artifactMap
   const inList = pageRows.map((r) => r.id).join(",")
@@ -135,7 +183,7 @@ async function attachArtifacts(pageRows: any[]) {
   return artifactMap
 }
 
-export async function handleDocumentList(req: NextRequest): Promise<NextResponse> {
+export async function handleDocumentList(req: NextRequest, scope: AdminReadScope): Promise<NextResponse> {
   const { searchParams } = new URL(req.url)
   const search = (searchParams.get("search") ?? "").trim()
   // PostgREST or() ต้องปราศจาก , % ( ) — ใช้เป็น term กลางทั้งสองตาราง
@@ -144,9 +192,16 @@ export async function handleDocumentList(req: NextRequest): Promise<NextResponse
   const perPage = Math.min(200, Number(searchParams.get("perPage") ?? 50))
   const from = (page - 1) * perPage
 
-  rows.length = 0
-  const coIds = await companyIdsByName(term)
-  await Promise.all([loadInvoices(searchParams, term, coIds, perPage), loadStandalone(searchParams, term, coIds, perPage)])
+  // Per-request accumulator (was a module-level array: two concurrent admin
+  // reads could interleave each other's rows, which under organization scope
+  // would leak one tenant's documents into another's response).
+  const rows: DocumentRow[] = []
+  const allowed = scope.companyIds
+  const coIds = await companyIdsByName(term, allowed)
+  await Promise.all([
+    loadInvoices(searchParams, term, coIds, perPage, rows, allowed),
+    loadStandalone(searchParams, term, coIds, perPage, rows, allowed),
+  ])
   rows.sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
   const pageRows = rows.slice(from, from + perPage)
   const artifactMap = await attachArtifacts(pageRows)
@@ -157,7 +212,7 @@ export async function handleDocumentList(req: NextRequest): Promise<NextResponse
   // PHASE C7 — canonical financials attached to each list row (unchanged path)
   const canon = await getCanonicalDocumentRows(withArtifacts.map((d: { id: string }) => d.id))
   return NextResponse.json({
-    documents: withArtifacts.map((d: any) => ({ ...d, canonical: canon.get(d.id) ?? null })),
+    documents: withArtifacts.map((d) => ({ ...d, canonical: canon.get(d.id) ?? null })),
     page,
     per_page: perPage,
     total: rows.length,

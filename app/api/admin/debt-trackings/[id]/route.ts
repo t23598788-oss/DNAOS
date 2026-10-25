@@ -4,6 +4,7 @@ import { ADMIN_TIER } from "@/core/auth/session"
 import { getDebtTrackingById, updateDebtTracking, deleteDebtTracking, getFirstInvoiceForPartner } from "@/services/supabase/queries"
 import { calcDebtTrackingSummary, deriveCollectionStatus, sumManualAdjustments, sumManualInterestAdjustments } from "@/engines/debt/tracking"
 import { supabaseAdmin } from "@/services/supabase/queries"
+import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -12,8 +13,16 @@ export async function GET(_req: NextRequest, { params }: Params) {
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params
+
+  // Organization scope (WAVE 2): the debt record belongs to a company; an
+  // out-of-scope id reads as non-existent, and its events/invoices are not read.
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+
   try {
     const tracking = await getDebtTrackingById(id)
+    if (!isCompanyVisible(ctx, tracking.partner_id)) return notFound()
     const firstInvoice = await getFirstInvoiceForPartner(tracking.partner_id, tracking.customer_name)
     const { data: events } = await supabaseAdmin().from("debt_events")
       .select("event_type, occurred_at, amount")

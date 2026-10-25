@@ -31,6 +31,7 @@ export interface AIContextPackage {
   writeScope: string[];
   expectedOutputSchema: string;
   requiredContracts: string[];
+  semanticPreflight: ContextPlan["semanticPreflight"];
   cost: { amount: number | null; currency: string | null; note: string };
   isolationCheck: { isolated: true; reason: string };
   createdAt: string;
@@ -85,6 +86,7 @@ export function buildAIContextPackage(
     writeScope: contextPlan.permittedWriteScope,
     expectedOutputSchema: workerType === "CODE_WORKER" ? "ProposedChange[]" : workerType === "REVIEW_WORKER" ? "ReviewFindings" : "structured text",
     requiredContracts: contextPlan.requiredContracts,
+    semanticPreflight: contextPlan.semanticPreflight,
     cost: { amount: null, currency: null, note: worker.costModel },
     isolationCheck: { isolated: true, reason: `real contextFingerprint is keyed to workspaceSessionId "${contextPlan.workspaceSessionId}" — no cross-session merge is possible by construction` },
     createdAt: new Date().toISOString(),

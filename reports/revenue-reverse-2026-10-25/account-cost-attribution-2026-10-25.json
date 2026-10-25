@@ -1,0 +1,402 @@
+{
+  "generated_at": "2026-10-24T22:17:45.725Z",
+  "project_ref": "xeytcavxejhyzxwevgto",
+  "memberships": {
+    "org_members": [
+      {
+        "account": "acct_39cbd71c",
+        "has_org": true,
+        "role": "owner"
+      },
+      {
+        "account": "acct_2d06e2d6",
+        "has_org": true,
+        "role": "admin"
+      }
+    ],
+    "identity_memberships": [
+      {
+        "account": "acct_eed24c45",
+        "role": "super_admin"
+      },
+      {
+        "account": "acct_f810279c",
+        "role": "platform_owner"
+      }
+    ]
+  },
+  "creation_attribution": {
+    "document_versions_by_actor": {
+      "acct_f74ee940": 13,
+      "acct_895adfe5": 109,
+      "acct_938ea3f3": 1
+    },
+    "document_artifacts_by_actor": {
+      "acct_895adfe5": 36,
+      "acct_938ea3f3": 10
+    },
+    "jobs_by_actor": {
+      "error": 400
+    },
+    "ai_tasks_by_owner": {
+      "null": 119,
+      "acct_2d06e2d6": 265,
+      "acct_39cbd71c": 1
+    },
+    "ai_tasks_line_identity_present": {
+      "has_line_identity": 385
+    },
+    "ai_tasks_by_month_kind_status": {
+      "2026-08|classify_image|pending": 5,
+      "2026-07|handle_text|done": 19,
+      "2026-07|classify_image|done": 28,
+      "2026-08|handle_text|pending": 27,
+      "2026-10|handle_text|pending": 15,
+      "2026-07|handle_text|failed": 3,
+      "2026-10|owner_cline_command|failed": 207,
+      "2026-08|classify_image|done": 21,
+      "2026-08|handle_text|done": 1,
+      "2026-10|owner_cline_command|done": 59
+    },
+    "business_events_last": "2026-10-24T02:00:07.94686+00:00"
+  },
+  "audit": {
+    "rows_sampled": 4848,
+    "with_actor": 9,
+    "without_actor": 4839,
+    "coverage_pct": 0.19,
+    "actors": {
+      "acct_fe989368": 5,
+      "acct_94936f06": 2,
+      "acct_39cbd71c": 2
+    },
+    "attributed_actions": [
+      {
+        "account": "acct_fe989368",
+        "entity": "line_session",
+        "action": "LINE_LOGIN",
+        "at": "2026-05-24T09:20:57.076",
+        "has_company": false
+      },
+      {
+        "account": "acct_fe989368",
+        "entity": "line_identity",
+        "action": "LINE_LOGIN_FAILED",
+        "at": "2026-05-24T11:50:14.363",
+        "has_company": false
+      },
+      {
+        "account": "acct_fe989368",
+        "entity": "line_identity",
+        "action": "LINE_LOGIN_FAILED",
+        "at": "2026-05-24T11:56:53.452",
+        "has_company": false
+      },
+      {
+        "account": "acct_fe989368",
+        "entity": "line_session",
+        "action": "LINE_LOGIN",
+        "at": "2026-05-24T19:28:38.702",
+        "has_company": false
+      },
+      {
+        "account": "acct_fe989368",
+        "entity": "line_session",
+        "action": "LINE_LOGIN",
+        "at": "2026-05-25T03:48:40.212",
+        "has_company": false
+      },
+      {
+        "account": "acct_94936f06",
+        "entity": "line_session",
+        "action": "LINE_LOGIN",
+        "at": "2026-05-24T19:16:11.609",
+        "has_company": false
+      },
+      {
+        "account": "acct_94936f06",
+        "entity": "line_session",
+        "action": "LINE_LOGIN",
+        "at": "2026-05-25T03:48:14.719",
+        "has_company": false
+      },
+      {
+        "account": "acct_39cbd71c",
+        "entity": "pit_profile",
+        "action": "updated",
+        "at": "2026-10-14T03:05:58.378",
+        "has_company": false
+      },
+      {
+        "account": "acct_39cbd71c",
+        "entity": "pit_profile",
+        "action": "deactivated",
+        "at": "2026-10-14T03:19:02.577",
+        "has_company": false
+      }
+    ],
+    "action_distribution": [
+      [
+        "connector|run",
+        4343
+      ],
+      [
+        "ai_invocation|ai.invocation",
+        155
+      ],
+      [
+        "document_artifact|artifact.created",
+        46
+      ],
+      [
+        "business_failure_bridge|PROVIDER_AUTH",
+        43
+      ],
+      [
+        "invoices|document.voided",
+        37
+      ],
+      [
+        "invoices|document.created",
+        36
+      ],
+      [
+        "invoices|document.issued",
+        36
+      ],
+      [
+        "connector|test_failed",
+        33
+      ],
+      [
+        "business_failure_bridge|INFRA_NOT_READY",
+        22
+      ],
+      [
+        "connector|register",
+        16
+      ],
+      [
+        "admin_session|ADMIN_LOGIN",
+        11
+      ],
+      [
+        "connector|test_passed",
+        11
+      ],
+      [
+        "line_identity|LINE_LOGIN_FAILED",
+        6
+      ],
+      [
+        "connector|enabled",
+        6
+      ],
+      [
+        "line_session|LINE_LOGIN",
+        5
+      ]
+    ]
+  },
+  "invoices": {
+    "rows_total": 825,
+    "rows_with_amount": 143,
+    "unique_invoice_keys": 97,
+    "by_month_provider": {
+      "2026-08|Google|THB": {
+        "raw_rows": 13,
+        "unique_invoices": 7,
+        "amount_raw": 8631.74,
+        "amount_unique": 2774.74
+      },
+      "2026-08|Vercel|THB": {
+        "raw_rows": 18,
+        "unique_invoices": 1,
+        "amount_raw": 90,
+        "amount_unique": 5
+      },
+      "2026-08|OpenAI|USD": {
+        "raw_rows": 3,
+        "unique_invoices": 3,
+        "amount_raw": 110.9,
+        "amount_unique": 110.9
+      },
+      "2026-08|Vercel|USD": {
+        "raw_rows": 23,
+        "unique_invoices": 15,
+        "amount_raw": 1727.47,
+        "amount_unique": 1247.47
+      },
+      "2026-08|Anthropic|USD": {
+        "raw_rows": 21,
+        "unique_invoices": 12,
+        "amount_raw": 1199.81,
+        "amount_unique": 774.81
+      },
+      "2026-08|OpenAI|THB": {
+        "raw_rows": 1,
+        "unique_invoices": 1,
+        "amount_raw": 653.27,
+        "amount_unique": 653.27
+      },
+      "2026-08|Apple|THB": {
+        "raw_rows": 19,
+        "unique_invoices": 13,
+        "amount_raw": 9582.97,
+        "amount_unique": 7248.97
+      },
+      "2026-08|Hostinger|THB": {
+        "raw_rows": 8,
+        "unique_invoices": 8,
+        "amount_raw": 4604.65,
+        "amount_unique": 4604.65
+      },
+      "2026-08|RunPod|USD": {
+        "raw_rows": 17,
+        "unique_invoices": 17,
+        "amount_raw": 571.38,
+        "amount_unique": 571.38
+      },
+      "2026-08|Hostinger|USD": {
+        "raw_rows": 1,
+        "unique_invoices": 1,
+        "amount_raw": 450,
+        "amount_unique": 450
+      },
+      "2026-09|Hostinger|THB": {
+        "raw_rows": 3,
+        "unique_invoices": 3,
+        "amount_raw": 1737,
+        "amount_unique": 1737
+      },
+      "2026-09|RunPod|USD": {
+        "raw_rows": 3,
+        "unique_invoices": 3,
+        "amount_raw": 1.27,
+        "amount_unique": 1.27
+      },
+      "2026-09|Google|THB": {
+        "raw_rows": 2,
+        "unique_invoices": 2,
+        "amount_raw": 3500,
+        "amount_unique": 3500
+      },
+      "2026-09|Vercel|USD": {
+        "raw_rows": 1,
+        "unique_invoices": 1,
+        "amount_raw": 1.5,
+        "amount_unique": 1.5
+      },
+      "2026-09|Anthropic|USD": {
+        "raw_rows": 3,
+        "unique_invoices": 3,
+        "amount_raw": 321,
+        "amount_unique": 321
+      },
+      "2026-09|Hostinger|USD": {
+        "raw_rows": 1,
+        "unique_invoices": 1,
+        "amount_raw": 450,
+        "amount_unique": 450
+      },
+      "2026-09|Google|USD": {
+        "raw_rows": 1,
+        "unique_invoices": 1,
+        "amount_raw": 0.01,
+        "amount_unique": 0.01
+      },
+      "2026-09|Apple|THB": {
+        "raw_rows": 3,
+        "unique_invoices": 3,
+        "amount_raw": 1227,
+        "amount_unique": 1227
+      },
+      "2026-09|GitHub|USD": {
+        "raw_rows": 1,
+        "unique_invoices": 1,
+        "amount_raw": 10,
+        "amount_unique": 10
+      },
+      "2026-09|OpenAI|USD": {
+        "raw_rows": 1,
+        "unique_invoices": 1,
+        "amount_raw": 3,
+        "amount_unique": 3
+      }
+    },
+    "status_values": [
+      "active"
+    ],
+    "next_billing_dates_present": 0
+  },
+  "worker_usage": {
+    "rows": 104,
+    "models": {
+      "qwen2.5vl:72b": 50,
+      "thawatchai": 41,
+      "stub-model": 13
+    },
+    "providers": {
+      "runpod": 91,
+      "execid-test-stub": 12,
+      "cpuram-sample-stub": 1
+    },
+    "run_context": {
+      "null": 91,
+      "TEST": 13
+    },
+    "telemetry_filled": {
+      "cpu_util_pct": 0,
+      "ram_used_pct": 0,
+      "gpu_util_pct": 0,
+      "vram_used_pct": 0,
+      "network_bytes_sent": 0,
+      "disk_bytes_read": 0
+    },
+    "latency_ms_total": 3621667,
+    "tokens_total": 132771,
+    "first": "2026-08-14T03:30:21.56945+00:00",
+    "last": "2026-08-15T08:29:43.61541+00:00"
+  },
+  "storage": {
+    "storage_resources_rows": 93,
+    "storage_resources_bytes": 193166499256,
+    "path_groups": {
+      "LOCAL_DISK:Users/tam/.npm": {
+        "rows": 21,
+        "bytes": 49257360951
+      },
+      "LOCAL_DISK:Users/tam/.cache": {
+        "rows": 16,
+        "bytes": 50728509818
+      },
+      "LOCAL_DISK:Users/tam/Library": {
+        "rows": 15,
+        "bytes": 25979470166
+      },
+      "LOCAL_DISK:Users/tam/Desktop": {
+        "rows": 36,
+        "bytes": 33617200020
+      },
+      "LOCAL_DISK:Users/tam/.ollama": {
+        "rows": 3,
+        "bytes": 33583956927
+      },
+      "LOCAL_DISK:root/.npm/": {
+        "rows": 2,
+        "bytes": 1374
+      }
+    },
+    "note": "paths resolve to the development machine's filesystem, not to a Supabase bucket",
+    "scan_runs": {
+      "total": 27,
+      "actors": {
+        "smoke-test": 6,
+        "scheduler": 12,
+        "migrate-ollama-cli": 3,
+        "owner-account": 6
+      },
+      "machines": 6
+    }
+  }
+}

@@ -1,3 +1,23 @@
+// Canonical absolute origin for THIS deployment (2026-10-24, public structured
+// data pass). Source of truth per registry/hardcode-governance/service-endpoint-
+// registry.json (SVC-VERCEL-DEPLOY-DOMAIN: "must_come_from: NEXT_PUBLIC_APP_URL",
+// forbidden_locations: "literal https://dnaos.dev in application code") — so the
+// host is NEVER hardcoded in a route/page; it is read from env here, once.
+// Returns null when the env is absent (local dev without .env.local entry) so
+// callers can omit the field entirely instead of inventing a domain: an empty
+// sitemap is honest, a fabricated hostname is not.
+export function appBaseUrl(): string | null {
+  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim()
+  if (!raw) return null
+  const withProtocol = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`
+  try {
+    const parsed = new URL(withProtocol)
+    return `${parsed.protocol}//${parsed.host}`
+  } catch {
+    return null
+  }
+}
+
 const SUPABASE_PROJECT_REF = "xeytcavxejhyzxwevgto"
 
 function supabaseTableQuery(table: string) {

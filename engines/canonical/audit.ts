@@ -35,6 +35,12 @@ export const CANONICAL_AUDIT_ACTIONS = [
   // BATCH 40 (owner 2026-10-08) — payment acknowledgement vocabulary,
   // appended additively (same rule as the D3 additions above)
   "receipt.acknowledged",
+  // WAVE 2 (2026-10-25) — central price authority. A seller's quote reply is
+  // an OFFER (evidence), never a central price change: the two are separate
+  // actions so an audit reader can always tell them apart.
+  "price.offer_recorded",
+  "price.updated",
+  "price.created",
 ] as const;
 
 export type CanonicalAuditAction = (typeof CANONICAL_AUDIT_ACTIONS)[number];

@@ -69,21 +69,17 @@ echo "--- Checking for undeclared top-level directories ---"
 # contractor/worker coordination package (own package.json/tsconfig, lease client over
 # registry/LOCK_MANAGER.json, Freebuff pull-mode adapter). Same treatment as
 # dna-os-mcp-server/ above: a real tracked top-level folder with its own package.
-# architecture/ (BATCH 3, repository-authority-phase1 ace8cda, 2026-10-08) — the frozen
-# declarative repository.manifest.json of the Nine-Repo Architecture Contract Phase 1
-# (data-only, no code reads it; declares which repository owns which authority so the
-# boundaries are reviewable). Same treatment as the folders above: real tracked content,
-# declared rather than flagged as a "Shadow Layer" every run.
-# connections/ (owner mission 2026-10-10, RESTORE LINE WEBHOOK/CONNECT) — the Connect
-# workspace folder holding the real google-workspace connection package (same shape as
-# dna-os-step2's tracked connections/ tree, referenced by CAPABILITY_BOX_RUNTIME_INVENTORY).
-# Declared here so an existing real folder stops failing deploy-gate as Shadow Layer —
-# same treatment as the folders above, NOT a new layer of business logic.
-# assets/ (owner mission 2026-10-10, FINANCIAL DOCUMENT IMAGE & PREVIEW) — holds the
-# OFL-licensed Noto Sans Thai TTFs that engines/documents/artifact.ts installs into
-# the fontconfig user dir before SVG→PNG render (the production container ships zero
-# fonts; real tofu incident). Data-only folder, no code imports it directly.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff architecture connections assets"
+# external-packages/ and reports/ (verified-provenance declaration, fellow site-recovery pass 2026-10-24): BOTH are local untracked
+# tooling artifacts — git ls-files shows 0 tracked files in each
+# (external-packages/semantic-preflight = standalone tool package own
+# package.json+tsconfig+src; reports/archify-runtime-relationship-map =
+# generated HTML/JSON report bundle). NOT a business layer, NOT owner-approved
+# architecture — declared with the same treatment the script already gives
+# tmp/ and output/ (generated local outputs that would otherwise flag a false
+# "Shadow Layer" DRIFT on every build). If either folder is later adopted as
+# real architecture, it must then be registered in
+# registry/module-registry.json like every other layer.
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff external-packages reports"
 
 for dir in */; do
   dirname=$(basename "$dir")

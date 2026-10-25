@@ -3,6 +3,7 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { resolvePresentationTemplate } from "@/engines/presentation/template-resolver"
+import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 type Params = { params: Promise<{ relationshipId: string }> }
 
@@ -20,6 +21,14 @@ export async function GET(_req: Request, { params }: Params) {
   if (auth instanceof NextResponse) return auth
 
   const { relationshipId } = await params
+
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  // An unmatched LINE contact (platform-only) has a non-company relationship id;
+  // an organization scope must not reach it.
+  if (!isCompanyVisible(ctx, relationshipId)) return notFound()
+
   const db = supabase()
 
   const { data: company, error: companyError } = await db

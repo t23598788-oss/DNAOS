@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { runWithDataScope } from "@/core/authority/data-scope-context"
+import { ownerBridgeDataScope } from "@/engines/authority/session-scope"
 import { runCognitivePipeline } from "@/cognitive/pipeline"
 
 type PipelineResult = Awaited<ReturnType<typeof runCognitivePipeline>>
@@ -25,16 +27,15 @@ export async function POST(req: Request) {
   if (!body?.userCommand) {
     return NextResponse.json({ error: "ไม่มี userCommand" }, { status: 400 })
   }
+  const userCommand = body.userCommand
+  const contactContext = body.contactContext ?? null
 
   try {
-    // Server-derived, channel-scoped memory key (owner 2026-10-08): this bridge
-    // authenticates with a shared secret, so its identity is the CHANNEL (plus
-    // userId when the edge function provides one) — never the shared
-    // `__default__` bucket that other users could also land in.
-    const result = await runCognitivePipeline(
-      body.userCommand,
-      body.contactContext ?? null,
-      `channel:openclaw:${body.userId && body.userId.trim() ? body.userId.trim() : "shared"}`,
+    // Owner-only, secret-gated bridge: explicit platform scope + reason, with a
+    // channel-scoped memory key (never the shared __default__ bucket).
+    const memoryKey = `channel:openclaw:${body.userId && body.userId.trim() ? body.userId.trim() : "shared"}`;
+    const result = await runWithDataScope(ownerBridgeDataScope(), () =>
+      runCognitivePipeline(userCommand, contactContext, memoryKey),
     )
     return NextResponse.json({ ok: true, reply: toReplyText(result) })
   } catch {

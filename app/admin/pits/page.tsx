@@ -4,9 +4,19 @@ import { Fragment, useState, useEffect, useMemo, useCallback } from "react"
 import Link from "next/link"
 
 interface PitMaterial {
+  id: string
   material_type_id: string
   name: string
   price: number
+}
+
+interface Publication {
+  id: string
+  source_table: string
+  source_record_id: string
+  status: "draft" | "published" | "expired" | "withdrawn"
+  public_url: string | null
+  expires_at: string | null
 }
 
 interface Pit {
@@ -54,13 +64,71 @@ export default function PitsPage() {
   const [quoteSending, setQuoteSending] = useState(false)
   const [quoteMessage, setQuoteMessage] = useState<string | null>(null)
 
+  // Per-item publication permission (owner task 2026-10-25). A price goes on the
+  // public website ONLY when its own publication_records row exists — see
+  // app/api/admin/publications/route.ts. No price is public by default.
+  const [publications, setPublications] = useState<Record<string, Publication>>({})
+  const [publishDays, setPublishDays] = useState<string>("90")
+  const [publishingId, setPublishingId] = useState<string | null>(null)
+  const [pubNotice, setPubNotice] = useState<string | null>(null)
+  const [pubUnavailable, setPubUnavailable] = useState<string | null>(null)
+
+  const loadPublications = useCallback(async () => {
+    const res = await fetch("/api/admin/publications")
+    if (res.status === 409) {
+      const d = await res.json().catch(() => ({}))
+      setPubUnavailable(d.error ?? "ตาราง publication_records ยังไม่มีในฐานข้อมูลจริง")
+      return
+    }
+    const d = await res.json().catch(() => ({}))
+    setPubUnavailable(null)
+    const map: Record<string, Publication> = {}
+    for (const p of (d.publications ?? []) as Publication[]) {
+      map[`${p.source_table}:${p.source_record_id}`] = p
+    }
+    setPublications(map)
+  }, [])
+
+  const setPublication = async (material: PitMaterial, publish: boolean) => {
+    setPublishingId(material.id)
+    setPubNotice(null)
+    try {
+      const res = await fetch("/api/admin/publications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: publish ? "publish" : "withdraw",
+          source_table: "pit_materials",
+          source_record_id: material.id,
+          // publishing asserts the price was verified against the source row
+          confirm_facts: publish,
+          expires_in_days: publish && publishDays !== "none" ? Number(publishDays) : null,
+        }),
+      })
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setPubNotice(d.error ?? "อัปเดตสิทธิ์เผยแพร่ไม่สำเร็จ")
+        return
+      }
+      setPubNotice(
+        publish
+          ? `เผยแพร่ "${material.name}" ที่ ${material.price.toLocaleString()}฿ แล้ว → ${d.publication?.public_url ?? ""}`
+          : `ถอน "${material.name}" จากเว็บสาธารณะแล้ว`,
+      )
+      await loadPublications()
+    } finally {
+      setPublishingId(null)
+    }
+  }
+
   const load = useCallback(() => {
     setLoading(true)
     fetch("/api/admin/pits")
       .then((r) => r.json())
       .then((d) => { setPits(d.pits ?? []); setMaterialTypes(d.materialTypes ?? []) })
       .finally(() => setLoading(false))
-  }, [])
+    void loadPublications()
+  }, [loadPublications])
 
   useEffect(() => { load() }, [load])
 
@@ -213,6 +281,32 @@ export default function PitsPage() {
           </div>
         )}
 
+        {pubUnavailable && (
+          <div className="text-sm bg-stone-100 border border-stone-300 text-stone-700 rounded-lg px-4 py-3">
+            <strong>ยังกำหนดสิทธิ์เผยแพร่รายรายการไม่ได้:</strong> {pubUnavailable}
+          </div>
+        )}
+        {pubNotice && (
+          <div className="text-sm bg-sky-50 border border-sky-200 text-sky-900 rounded-lg px-4 py-3">{pubNotice}</div>
+        )}
+
+        <div className="flex flex-wrap items-center gap-2 text-xs text-stone-600">
+          <span className="font-medium">ระยะเวลาเผยแพร่เมื่อกด &quot;เผยแพร่&quot;:</span>
+          <select
+            value={publishDays}
+            onChange={(e) => setPublishDays(e.target.value)}
+            className="text-xs border border-stone-300 rounded-lg px-2 py-1.5 bg-white"
+          >
+            <option value="30">30 วัน</option>
+            <option value="90">90 วัน</option>
+            <option value="180">180 วัน</option>
+            <option value="none">ไม่กำหนดวันหมดอายุ</option>
+          </select>
+          <span className="text-stone-400">
+            ราคาที่ไม่ถูกเผยแพร่จะไม่ปรากฏบนเว็บสาธารณะเลย — แม้จะกรอกไว้ในระบบแล้ว
+          </span>
+        </div>
+
         <div className="grid md:grid-cols-2 gap-6">
           <div>
             <div className="text-xs font-bold text-stone-500 uppercase tracking-wide mb-2">กระจายตามจังหวัด</div>
@@ -297,9 +391,45 @@ export default function PitsPage() {
                       </td>
                       <td className="px-3 py-3">
                         {p.materials.length > 0 ? (
-                          <span className="text-stone-700 text-xs">
-                            {p.materials.map((m) => `${m.name} (${m.price.toLocaleString()}฿)`).join(", ")}
-                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {p.materials.map((m) => {
+                              const pub = publications[`pit_materials:${m.id}`]
+                              const live = pub?.status === "published"
+                              return (
+                                <span
+                                  key={m.id}
+                                  className={`inline-flex items-center gap-1 text-[11px] rounded-full border px-2 py-0.5 ${
+                                    live
+                                      ? "bg-emerald-50 text-emerald-800 border-emerald-300"
+                                      : "bg-white text-stone-700 border-stone-300"
+                                  }`}
+                                >
+                                  <span>
+                                    {m.name} ({m.price.toLocaleString()}฿)
+                                  </span>
+                                  <span className={`text-[10px] ${live ? "text-emerald-600" : "text-stone-400"}`}>
+                                    {live ? "● บนเว็บ" : "○ ส่วนตัว"}
+                                  </span>
+                                  <button
+                                    onClick={() => setPublication(m, !live)}
+                                    disabled={publishingId === m.id}
+                                    title={
+                                      live
+                                        ? "ถอนการเผยแพร่ — ราคาจะหายจากเว็บสาธารณะ"
+                                        : `เผยแพร่ราคานี้บนเว็บ (ยืนยันว่าราคา ${m.price.toLocaleString()}฿ ถูกต้องแล้ว)`
+                                    }
+                                    className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full border disabled:opacity-40 ${
+                                      live
+                                        ? "border-rose-300 text-rose-700 hover:bg-rose-50"
+                                        : "border-emerald-300 text-emerald-700 hover:bg-emerald-50"
+                                    }`}
+                                  >
+                                    {publishingId === m.id ? "…" : live ? "ถอน" : "เผยแพร่"}
+                                  </button>
+                                </span>
+                              )
+                            })}
+                          </div>
                         ) : (
                           <span className="text-stone-400 italic text-xs">ยังไม่มีราคา</span>
                         )}

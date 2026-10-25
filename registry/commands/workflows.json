@@ -1,6 +1,6 @@
 {
   "app.launch":        { "steps": ["OPEN_APP", "WAIT", "FOCUS_WINDOW"],                                                   "confirm": false },
-  "app.close":         { "steps": ["FOCUS_WINDOW", "PRESS_KEY:cmd+q"],                                                    "confirm": false },
+  "app.close":         { "steps": ["FOCUS_WINDOW", "PRESS_KEY:cmd+q"],                                                    "confirm": false, "status": "declared_not_yet_emitted" },
 
   "chat.read":         { "steps": ["FOCUS_WINDOW", "CAPTURE_WINDOW", "OCR_WINDOW"],                                       "confirm": false },
   "chat.summarize":    { "steps": ["FOCUS_WINDOW", "CAPTURE_WINDOW", "OCR_WINDOW", "SAVE_CONTEXT"],                        "confirm": false },

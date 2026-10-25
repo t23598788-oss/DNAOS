@@ -3,6 +3,7 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { resolveExternalIdentity, linkExternalIdentity } from "@/engines/connect/identity"
+import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 type Params = { params: Promise<{ relationshipId: string }> }
 
@@ -26,7 +27,12 @@ export async function POST(req: NextRequest, { params }: Params) {
   const body = await req.json().catch(() => ({}))
   const db = supabase()
 
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+
   let companyId: string | undefined = body.companyId
+  if (companyId && !isCompanyVisible(ctx, companyId)) return notFound()
 
   if (!companyId && body.newCompany?.name) {
     const { data: newCompany, error: createErr } = await db
@@ -36,6 +42,10 @@ export async function POST(req: NextRequest, { params }: Params) {
         phone: body.newCompany.phone || null,
         tax_id: body.newCompany.taxId || null,
         type: "customer",
+        // New records created by an organization admin belong to that
+        // organization. Platform-created rows stay unattributed (NULL), exactly
+        // like the existing dataset — no retroactive assignment happens here.
+        organization_id: ctx.scope.mode === "organization" ? ctx.scope.organizationIds[0] : null,
       })
       .select("id")
       .single()

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/core/auth/requireAuth";
+import { ADMIN_TIER } from "@/core/auth/session";
+import { runWithDataScope } from "@/core/authority/data-scope-context";
+import { resolveSessionDataScope } from "@/engines/authority/session-scope";
 import { runCognitivePipeline } from "@/cognitive/pipeline";
 import { getDisplayState, setDisplayState, type DisplayState } from "@/services/supabase/state-cache";
 
@@ -8,11 +11,14 @@ type PipelineResult = Awaited<ReturnType<typeof runCognitivePipeline>>;
 // Real, live security fix (TASK-001, registry/CHANGELOG.json DNA-000070): this
 // route was completely unauthenticated — any unauthenticated request could
 // trigger the real cognitive command pipeline (runCognitivePipeline), which
-// can perform real business actions. requireAuth() with no arguments defaults
-// to ANY_AUTHENTICATED (any real logged-in role) — the same default the
-// function itself declares, not a narrower guess with no evidence behind it.
+// can perform real business actions.
+//
+// STEP 1 (2026-10-25): the previous guard accepted ANY authenticated role,
+// including `customer`, while the pipeline dispatches tenant-wide reads
+// (partner.list/debt.*). This route is a control surface, so it now requires
+// the admin tier AND runs the pipeline inside the caller's verified DataScope.
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth();
+  const auth = await requireAuth(ADMIN_TIER);
   if (auth instanceof NextResponse) return auth;
 
   try {
@@ -20,14 +26,14 @@ export async function POST(request: NextRequest) {
     let state: DisplayState;
 
     if (body.userCommand) {
-      // Server-derived, user-scoped memory key (owner 2026-10-08): memory is
-      // keyed per authenticated user — never a shared default bucket.
-      // gatewayContext (owner mission 2026-10-10): same fix as the LINE bridge —
-      // without it answerWithAi() always answered "ไม่มี AI session context".
-      const result = await runCognitivePipeline(body.userCommand, null, `u:${auth.id}:command`, null, {
-        ownerId: auth.id,
-        sessionId: `u:${auth.id}:command`,
-      });
+      const scope = await resolveSessionDataScope(auth);
+      const memoryKey = `u:${auth.id}:command`;
+      const result = await runWithDataScope(scope, () =>
+        runCognitivePipeline(body.userCommand, null, memoryKey, null, {
+          ownerId: auth.id,
+          sessionId: memoryKey,
+        }),
+      );
       state = toDisplayState(result);
     } else if (body.command) {
       state = { activeView: body.command, data: body.payload || {} };

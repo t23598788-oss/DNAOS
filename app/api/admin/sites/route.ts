@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 // customer_sites — real delivery addresses. This was the missing piece
 // blocking Job creation entirely (customer_orders requires a customer_site_id,
@@ -13,6 +14,12 @@ export async function GET(req: NextRequest) {
 
   const companyId = req.nextUrl.searchParams.get("company_id")
   if (!companyId) return NextResponse.json({ error: "ต้องระบุ company_id" }, { status: 400 })
+
+  // Organization scope (WAVE 2): the query string is a request, not a grant.
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (!isCompanyVisible(ctx, companyId)) return notFound()
 
   const { data, error } = await supabase()
     .from("customer_sites")

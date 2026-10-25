@@ -18,6 +18,14 @@ export interface AuthedUser {
   identities?: LinkedIdentity[];
   /** THE profiles row for this human (=== id unless resolved via email fallback) */
   canonicalProfileId?: string;
+  /**
+   * How the canonical profile was resolved (STEP 1 authority separation):
+   * "id" = this auth user owns the profile row; "email" = matched by email,
+   * which is NOT proof of identity and therefore carries NO organization scope.
+   */
+  resolvedBy?: "id" | "email";
+  /** GoTrue-confirmed email for this session — organization scope requires it. */
+  emailConfirmed?: boolean;
 }
 
 export const ADMIN_TIER = permissions.role_tiers.admin_tier as AppRole[];
@@ -70,12 +78,20 @@ export async function getAuthedUser(): Promise<AuthedUser | null> {
 
   if (!ctx) return null;
 
+  // STEP 1: expose the session's verification state so authority loaders can
+  // refuse organization scope for unverified / email-fallback identities.
+  const confirmedAt = (user as { email_confirmed_at?: string | null; confirmed_at?: string | null }).email_confirmed_at
+    ?? (user as { confirmed_at?: string | null }).confirmed_at
+    ?? null;
+
   return {
     id: user.id,
     email: user.email ?? "",
     role: ctx.canonical.role as AppRole,
     identities: ctx.identities,
     canonicalProfileId: ctx.canonical.profileId,
+    resolvedBy: ctx.canonical.resolvedBy,
+    emailConfirmed: Boolean(confirmedAt),
   };
 }
 

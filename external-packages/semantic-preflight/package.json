@@ -1,0 +1,19 @@
+{
+  "name": "@dna-os/semantic-preflight",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Source package boundary for consuming a host-owned Semantic Preflight without copying the host's authority, registry, runtime map, connector lifecycle, or business rules.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "tsx test/semanticPreflightPackage.test.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.22.4",
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,34 +1,45 @@
-// Outbound Supplier RFQ — reply parser (owner, 2026-07-24, Autonomous Supply
-// Chain Orchestrator Step 3). The send side (app/api/admin/pits/[pitId]/
-// request-quote/route.ts) creates a pending pit_price_requests row and
-// pushes a real LINE text asking for a price; this is the matching read
-// side — the ONLY place a supplier's reply becomes a real pit_materials
-// price update. Narrow, specific match only (same "if no clear signal,
-// return null and let the caller fall through" pattern as payment-claim.ts/
-// payment-instructions.ts) — never touches a message unless the sender is a
-// KNOWN pit's line_user_id AND there's a real pending request waiting.
+// Outbound Supplier RFQ — reply parser (owner, 2026-07-24 · WAVE 2 rewrite, 2026-10-25).
+//
+// WAVE 2 CHANGE (central authority consolidation): this engine no longer writes
+// public.pit_materials at all. A seller's LINE reply is an OFFER with evidence —
+// not a central price change. The old code updated/inserted the published price
+// directly from a chat message, which made provider identity a de-facto price
+// authority (no scope check, no audit, no transaction).
+//
+// New contract — exactly one path:
+//   seller message → (this parser) → Connect bridge /api/internal/connect/material-price
+//     → engines/canonical/material-price-write.ts#recordSellerOffer
+//     → public.pit_price_requests (status=answered) + audit_logs(price.offer_recorded)
+//   The central price (pit_materials) only changes through applyMaterialPrice(),
+//   which requires owner/delegated authority (core/authority/resolve.ts).
+//
+// Fail-closed: bridge missing/rejecting = return null, NOTHING is written and the
+// seller is never told "บันทึกราคาแล้ว". Same "if no clear signal, return null"
+// discipline as payment-claim.ts / payment-instructions.ts.
+import { sendConnectSellerOffer } from "../../_shared/connect-price.ts";
 
-const PRICE_PATTERN = /(\d+(?:[.,]\d+)?)/
+const PRICE_PATTERN = /(\d+(?:[.,]\d+)?)/;
 
 export function extractPrice(text: string): number | null {
-  const match = text.match(PRICE_PATTERN)
-  if (!match) return null
-  const value = Number(match[1].replace(/,/g, ""))
-  return Number.isFinite(value) && value > 0 ? value : null
+  const match = text.match(PRICE_PATTERN);
+  if (!match) return null;
+  const value = Number(match[1].replace(/,/g, ""));
+  return Number.isFinite(value) && value > 0 ? value : null;
 }
 
 export async function trySupplierQuoteReply(
   supabase: any,
   lineUserId: string,
   text: string,
+  sourceMessageId: string | null = null,
 ): Promise<string | null> {
   const { data: pit } = await supabase
     .from("pit_profiles")
     .select("id, pit_name")
     .eq("line_user_id", lineUserId)
     .is("deleted_at", null)
-    .maybeSingle()
-  if (!pit) return null // not a known supplier — let the customer-side chain handle this message
+    .maybeSingle();
+  if (!pit) return null; // not a known seller LINE contact — customer-side chain handles it
 
   const { data: request } = await supabase
     .from("pit_price_requests")
@@ -37,43 +48,35 @@ export async function trySupplierQuoteReply(
     .eq("status", "pending")
     .order("created_at", { ascending: false })
     .limit(1)
-    .maybeSingle()
-  if (!request) return null // known supplier, but nothing was asked — don't guess what this message means
+    .maybeSingle();
+  if (!request) return null; // known seller, nothing was asked — never guess
 
-  const price = extractPrice(text)
-  if (!price) return null // no clear number in the reply — don't consume it, let it fall through honestly
+  const price = extractPrice(text);
+  if (!price) return null; // no clear number — do not consume the message
 
   const { data: material } = await supabase
-    .from("material_types").select("name").eq("id", request.material_type_id).maybeSingle()
+    .from("material_types")
+    .select("name")
+    .eq("id", request.material_type_id)
+    .maybeSingle();
 
-  await supabase
-    .from("pit_price_requests")
-    .update({ status: "answered", reply_text: text, reply_price: price, replied_at: new Date().toISOString(), updated_at: new Date().toISOString() })
-    .eq("id", request.id)
+  const offer = await sendConnectSellerOffer({
+    requestId: request.id,
+    price,
+    sourceMessageId,
+    replyText: text,
+    actor: "system:line:supplier-quote-reply",
+    // A redelivered LINE message must not record the same offer twice.
+    idempotencyKey: sourceMessageId ? `seller_offer:${request.id}:${sourceMessageId}` : null,
+  });
 
-  // Same check-then-update-or-insert pattern as
-  // app/api/admin/pits/[pitId]/materials/route.ts — pit_materials has no
-  // unique constraint on (pit_profile_id, material_type_id), so an upsert
-  // isn't safe here without one.
-  const { data: existing } = await supabase
-    .from("pit_materials")
-    .select("id")
-    .eq("pit_profile_id", pit.id)
-    .eq("material_type_id", request.material_type_id)
-    .is("deleted_at", null)
-    .limit(1)
-    .maybeSingle()
+  // No local fallback, no direct write: the offer either lands in the central
+  // writer with its audit row, or it is left for a human.
+  if (!offer.ok) return null;
 
-  if (existing) {
-    await supabase.from("pit_materials").update({ price, updated_at: new Date().toISOString() }).eq("id", existing.id)
-  } else {
-    await supabase.from("pit_materials").insert({
-      id: crypto.randomUUID(),
-      pit_profile_id: pit.id,
-      material_type_id: request.material_type_id,
-      price,
-    })
+  const materialName = material?.name ?? "";
+  if (offer.data?.already_recorded) {
+    return `ข้อเสนอราคา${materialName} ${price.toLocaleString()} บาทนี้ บันทึกไว้แล้วครับ รอเจ้าหน้าที่ตรวจสอบก่อนประกาศราคาครับ`;
   }
-
-  return `รับทราบครับ บันทึกราคา${material?.name ?? ""} ที่ ${price.toLocaleString()} บาท/ตัน เรียบร้อยแล้วครับ ขอบคุณครับ`
+  return `รับข้อเสนอราคา${materialName} ${price.toLocaleString()} บาทครับ — ส่งให้เจ้าหน้าที่ตรวจสอบก่อนประกาศเป็นราคากลางครับ`;
 }

@@ -7,6 +7,7 @@ import {
   getBusinessEventsByPartner,
 } from "@/services/supabase/queries"
 import { buildPartnerTimeline, buildPartnerSummary } from "@/engines/partner/timeline"
+import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 export async function GET(
   _req: NextRequest,
@@ -17,11 +18,16 @@ export async function GET(
 
   const { id } = await params
 
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (!isCompanyVisible(ctx, id)) return notFound()
+
   try {
     const [partner, docs, events] = await Promise.all([
-      getPartnerById(id),
-      getDocumentsByPartner(id),
-      getBusinessEventsByPartner(id),
+      getPartnerById(id, ctx.scope),
+      getDocumentsByPartner(id, ctx.scope),
+      getBusinessEventsByPartner(id, ctx.scope),
     ])
 
     const timeline = buildPartnerTimeline(docs, events)

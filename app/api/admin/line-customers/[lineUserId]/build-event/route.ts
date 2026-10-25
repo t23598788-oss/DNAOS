@@ -78,8 +78,6 @@ export async function POST(_req: Request, { params }: Params) {
     return NextResponse.json({ error: "ไม่มีข้อความใหม่ที่ยังไม่ถูกสร้างเป็น Event" }, { status: 400 })
   }
 
-  const lineName = unlinked.find((m) => m.line_name)?.line_name ?? allMessages?.find((m) => m.line_name)?.line_name ?? null
-
   // If merging into an awaiting event, feed the LLM the ORIGINAL messages
   // plus the new ones together, not just the new reply in isolation — "ทราย
   // หยาบ" on its own means nothing without the original "ทราย" request.
@@ -96,15 +94,14 @@ export async function POST(_req: Request, { params }: Params) {
 
   const { event } = result
 
-  // Direct link first (company_line_links — a person can have more than one
-  // LINE account) — only fall back to exact name match if no direct link.
+  // Direct link only (company_line_links — a person can have more than one
+  // LINE account). STEP 2 (2026-10-25): the exact-name fallback was removed, so
+  // an unlinked contact produces a partner-less event instead of one attached
+  // to a company that merely shares the display name.
   let partnerId: string | null = null
   const { data: link } = await db.from("company_line_links").select("company_id").eq("line_user_id", lineUserId).maybeSingle()
   if (link) {
     partnerId = link.company_id
-  } else if (lineName) {
-    const { data: company } = await db.from("companies").select("id").eq("name", lineName).maybeSingle()
-    partnerId = company?.id ?? null
   }
 
   let materialId: string | null = null

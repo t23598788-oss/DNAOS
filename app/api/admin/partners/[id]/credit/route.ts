@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -15,6 +16,11 @@ export async function GET(_req: NextRequest, { params }: Params) {
   if (auth instanceof NextResponse) return auth
 
   const { id: partnerId } = await params
+
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (!isCompanyVisible(ctx, partnerId)) return notFound()
 
   const [docsRes, allocRes, debtRes, txRes] = await Promise.all([
     supabase()

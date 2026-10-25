@@ -85,7 +85,9 @@ export async function handleText(ctx: HandlerContext): Promise<void> {
   // generic reply. Narrow match only (known pit + a real pending request +
   // a parseable number) — anything else returns null and falls through.
   if (ctx.userId) {
-    const supplierReply = await trySupplierQuoteReply(ctx.supabase, ctx.userId, text)
+    // WAVE 2: the provider message id is the offer's evidence + idempotency key
+    // (a redelivered webhook must not record the same seller offer twice).
+    const supplierReply = await trySupplierQuoteReply(ctx.supabase, ctx.userId, text, (msg as { id?: string }).id ?? null)
     if (supplierReply) {
       await ResponseGateway.replyText(ctx.replyToken, supplierReply)
       return

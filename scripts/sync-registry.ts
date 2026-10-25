@@ -183,9 +183,18 @@ async function syncRegistry() {
       // app source, flagging 88 real npm packages as UNREGISTERED modules.
       "**/node_modules/**",
       ".next/**",
+      // Standalone tool packages (verified-provenance ignore, 2026-10-24):
+      // external-packages/ holds SEPARATE npm-style packages (own
+      // package.json/tsconfig — checked: semantic-preflight), same class as
+      // the scripts/bank-statement-sync/node_modules case that had to be
+      // excluded below: scanning them as if they were main-app source
+      // auto-stubbed 2 false module entries whose only effect was a permanent
+      // UNREGISTERED drift at every build. Not app architecture — if adopted
+      // as one, register then, like every other layer.
       // Workspace trash (owner, 2026-08-05, /admin/ide Phase 3) — items
       // moved here can be arbitrary trashed source files (.ts/.tsx),
       // which would otherwise get flagged as new "unregistered" modules.
+      "external-packages/**",
       ".dnaos-trash/**",
       "**/*.d.ts",
       "**/*.test.ts",

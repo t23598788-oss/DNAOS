@@ -42,6 +42,33 @@ async function main() {
     assert(plan.includedFiles.some((f) => f.path === "engines/jobs/auto-create.ts"), "expected the real OwnerModule of the selected Capability to be included");
   });
 
+  await test("Semantic Preflight: the existing Context Plan composes frozen capability authority, existing dependencyRegistry impact, Archify classifications, and explicit UNKNOWNs without creating a parallel registry", () => {
+    const plan = buildContextPlan(randomUUID(), OWNER_A, TEST_ACTOR, resolution, []);
+    const preflight = plan.semanticPreflight;
+    assert(preflight.capabilityAuthority.registry === "registry/capability-registry.json", "expected the existing frozen capability registry to remain the capability authority");
+    assert(preflight.capabilityAuthority.frozen === true, "expected capability authority to report the real frozen registry state");
+    assert(preflight.capabilityAuthority.capabilities.some((capability) => capability.ownerModule === "engines/jobs/auto-create.ts"), "expected selected capability owner metadata from the real registry");
+    assert(preflight.authorityBoundaries.some((boundary) => boundary.includes("dependencyRegistry.ts")), "expected the existing dependencyRegistry.ts authority boundary");
+    assert(preflight.authorityBoundaries.some((boundary) => boundary.includes("requireConnector()")), "expected the existing Connect Run gate boundary, never a second connector path");
+    assert(preflight.runtimeEvidence.every((evidence) => ["VERIFIED_LIVE", "CONFIGURED", "SOURCE_REFERENCE", "UNKNOWN"].includes(evidence.classification)), "expected only the Archify evidence classification vocabulary");
+    assert(preflight.unknowns.length > 0 || preflight.runtimeEvidence.length > 0, "expected absent runtime evidence to remain explicit UNKNOWN rather than inferred");
+    assert(preflight.constraints.some((constraint) => constraint.includes("No registry, database, controller, or canonical writer")), "expected an explicit no-parallel-authority constraint");
+  });
+
+  await test("UNKNOWN source discovery: unresolved LINE inbound command with changedFiles=[] finds only real registered source references while Capability and runtime health remain UNKNOWN", () => {
+    const lineResolution = resolveCapabilities(intentFor("ตรวจระบบ LINE รับข้อความ"));
+    const plan = buildContextPlan(randomUUID(), OWNER_A, TEST_ACTOR, lineResolution, []);
+    const paths = plan.includedFiles.map((file) => file.path);
+    assert(lineResolution.overallClass === "UNKNOWN" && lineResolution.selected.length === 0, "expected frozen Capability Resolver to remain UNKNOWN with no selected capability");
+    assert(paths.includes("app/api/gateway/observe/line/route.ts"), "expected the real LINE inbound route discovered from existing Module Registry metadata");
+    assert(paths.includes("engines/integration-gateway/adapters/line.ts"), "expected the real LINE adapter discovered from existing Module Registry metadata");
+    assert(paths.includes("engines/integration-gateway/event-bus/bus.ts"), "expected the real Event Bus discovered through the existing Architecture Book dependency");
+    assert(paths.includes("engines/integration-gateway/contracts/event.ts"), "expected the real canonical GatewayEvent contract discovered through the existing Architecture Book dependency");
+    assert(plan.semanticPreflight.status === "UNKNOWN", "expected source references to preserve UNKNOWN until runtime delivery/health is proven");
+    assert(plan.semanticPreflight.runtimeEvidence.some((evidence) => evidence.relationship === "app/api/gateway/observe/line/route.ts -> engines/integration-gateway/event-bus/bus.ts"), "expected actual Architecture Book Route -> Event Bus evidence");
+    assert(plan.permittedWriteScope.length === 0 && plan.approved === false, "expected discovery to grant no write scope and no Worker approval");
+  });
+
   await test("Forbidden path exclusion: a real, existing secret-like path is never included even if artificially seeded as a changed file", () => {
     const plan = buildContextPlan(randomUUID(), OWNER_A, TEST_ACTOR, resolution, [".env.local", "some/path/.env"]);
     assert(!plan.includedFiles.some((f) => f.path === ".env.local"), "expected .env.local to be excluded, never included");

@@ -3,6 +3,7 @@ import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { buildFinancialStatements } from "@/engines/accounting/financial-statements"
+import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 // Finance Summary (owner request 2026-07-25): "ยังไม่เห็นกำไรและงบดุลบริษัทเลย"
 // — a real, honest cash-flow summary aggregated from the actual documents/
@@ -44,6 +45,19 @@ function expenseCategory(documentType: string, vendorName: string | null): strin
 export async function GET() {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
+
+  // Organization scope (WAVE 2): this summary is company-wide and has no
+  // company dimension of its own (canonical docs / expenses carry none), so a
+  // scoped profile cannot be shown a truthful subset — it must not see it.
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (ctx.companyIds !== null) {
+    return NextResponse.json(
+      { error: "สรุปการเงินระดับบริษัทต้องใช้สิทธิ์ระดับแพลตฟอร์ม", reason: ctx.scope.reason },
+      { status: 403 },
+    )
+  }
 
   const db = supabase()
 

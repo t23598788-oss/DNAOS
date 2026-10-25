@@ -10,6 +10,7 @@ import { DOC_LABELS, generateDoc } from "@/engines/documents/engine"
 import { loadCompanySettings } from "@/core/config/company-settings"
 import { getDocumentDetail } from "@/services/canonical/document-detail"
 import { updateDocumentDraft, voidDocument } from "@/engines/canonical/document-write"
+import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -138,6 +139,16 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
   // PHASE C7 — canonical detail is attached alongside the legacy payload (UI unchanged).
   const [invoice, standalone] = await Promise.all([findInvoice(id), findStandalone(id)])
+
+  // Organization scope (WAVE 2): a company-scoped profile may only open the
+  // documents of its own organization — the id in the URL is not authority.
+  const ctx = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(ctx)
+  if (denied) return denied
+  if (ctx.companyIds !== null) {
+    const companyId = invoice?.customer_company_id ?? standalone?.customer_company_id ?? null
+    if (!isCompanyVisible(ctx, companyId)) return notFound()
+  }
 
   if (invoice) {
     const items = await findInvoiceItems(invoice.id)

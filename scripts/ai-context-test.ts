@@ -88,6 +88,14 @@ async function main() {
     assert(JSON.stringify(pkg.writeScope) === JSON.stringify(plan.permittedWriteScope), "expected writeScope to exactly equal the real ContextPlan.permittedWriteScope");
   });
 
+  await test("Semantic Preflight lineage: the Worker package carries the exact read-time preflight from its approved Context Plan, including authority boundaries and explicit UNKNOWNs", () => {
+    const plan = approvedPlan(OWNER_A);
+    const pkg = buildAIContextPackage(plan, "CODE_WORKER", OWNER_A, TEST_ACTOR);
+    assert(JSON.stringify(pkg.semanticPreflight) === JSON.stringify(plan.semanticPreflight), "expected the package to carry the exact approved Context Plan Semantic Preflight without recomputation or scope expansion");
+    assert(pkg.semanticPreflight.authorityBoundaries.some((boundary) => boundary.includes("requireConnector()")), "expected the existing Connect Run gate to remain visible to the Worker before execution");
+    assert(pkg.semanticPreflight.unknowns.length > 0 || pkg.semanticPreflight.runtimeEvidence.length > 0, "expected runtime evidence to remain classified or explicitly UNKNOWN in the Worker package");
+  });
+
   await test("Provider state is not persisted as system truth: recordAIContextResult() only records evidence, never mutates workspaceSessionId/contextFingerprint", () => {
     const plan = approvedPlan(OWNER_A);
     const pkg = buildAIContextPackage(plan, "CODE_WORKER", OWNER_A, TEST_ACTOR);

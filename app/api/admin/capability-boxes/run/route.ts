@@ -19,6 +19,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/core/auth/requireAuth";
 import { ADMIN_TIER } from "@/core/auth/session";
+import { runWithDataScope } from "@/core/authority/data-scope-context";
+import { resolveSessionDataScope } from "@/engines/authority/session-scope";
 import { dispatch } from "@/engines/validation/dispatcher";
 import type { PresenterId } from "@/core/workspace/application";
 import { resolvePanelRenderModel } from "@/core/workspace/gateway/presenterMap";
@@ -73,7 +75,9 @@ export async function POST(req: NextRequest) {
   }
 
   const args = (body.args && typeof body.args === "object" ? body.args : {}) as Record<string, unknown>;
-  const result = await dispatch(boxId, args, false);
+  // Same dispatcher, same rule — the read runs under this admin's real scope.
+  const scope = await resolveSessionDataScope(auth);
+  const result = await runWithDataScope(scope, () => dispatch(boxId, args, false));
 
   // เฉพาะ presenterId ที่ caller ส่งมา (ต้องเป็นค่าที่ประกาศใน applicationRegistry) — ไม่เดาเอง
   const presenterId = typeof body.presenterId === "string" ? (body.presenterId as PresenterId) : null;
