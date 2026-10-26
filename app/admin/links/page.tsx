@@ -1,5 +1,10 @@
-"use client";
-
+/**
+ * Server-rendered operator surface (DNAOS-INFRASTRUCTURE-BOUNDARY-005):
+ * SYSTEM_LINKS ต้องไม่เดินทางผ่าน client bundle — หน้านี้เป็น static markup
+ * ที่ไม่ใช้ hook หรือ event ใด ๆ จึง render แบบ Server Component ได้เต็ม และ
+ * ค่าทั้งหมดจะถูกพ่นลง HTML เฉพาะ session ที่ middleware ยอมรับเท่านั้น
+ * (ลบเฉพาะ directive "use client" — ไม่แก้ logic/markup ตัวไหนเลย)
+ */
 import { SYSTEM_LINKS } from "@/config/system-links";
 
 export default function SystemLinksPage() {
