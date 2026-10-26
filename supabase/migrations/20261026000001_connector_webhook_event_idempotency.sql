@@ -12,9 +12,16 @@
 alter table public.connector_webhook_events
   add column if not exists event_key text;
 
-create unique index if not exists connector_webhook_events_connector_event_key
-  on public.connector_webhook_events (connector_id, event_key)
-  where event_key is not null;
+-- NOTE: this index must NOT be partial. `recordWebhookEvent` upserts with
+-- ON CONFLICT (connector_id, event_key), and Postgres cannot infer a partial
+-- index for that clause (first attempt was partial and every verified webhook
+-- answered 500 "no unique or exclusion constraint matching the ON CONFLICT
+-- specification" on the 2026-10-26 deploy). Legacy rows have event_key NULL and
+-- NULLs are distinct in a unique index, so no predicate is needed.
+drop index if exists public.connector_webhook_events_connector_event_key;
+
+create unique index connector_webhook_events_connector_event_key
+  on public.connector_webhook_events (connector_id, event_key);
 
 comment on column public.connector_webhook_events.event_key is
   'Idempotency key: provider event id (config.event_id_path) or sha256 of the verified raw body. Unique per connector.';
