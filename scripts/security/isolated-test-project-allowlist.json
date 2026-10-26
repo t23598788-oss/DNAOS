@@ -1,0 +1,5 @@
+{
+  "_doc": "Allowlist of resolved project_ref values where mutation-test fixtures (scripts/security/isolated-negative-authorization.test.ts --allow-mutations) may execute. Entries are added ONLY through code review of this file (independent of any environment variables). Every field below is required per entry: project_ref (exact supabase project ref), disposal_ve (how the project is destroyed after test runs), reviewed_at (ISO date of review), reviewer (who approved it). An empty list means FAIL-CLOSED: no project may run mutation tests. Never list production, staging with real business data, or shared/demo projects.",
+  "_fail_closed": true,
+  "refs": []
+}
