@@ -15,6 +15,7 @@ import { requireAuthPage } from "@/core/auth/requireAuthPage"
 import { ADMIN_TIER } from "@/core/auth/session"
 import OperationalWorkspace from "@/app/OperationalWorkspace"
 import ownerContext from "@/registry/owner-context.json"
+import archBook from "@/registry/architecture-book.json"
 import { buildOwnerDisplayDTO } from "./owner-context-dto"
 
 // Reads the live session cookie per request — never prerendered.
@@ -27,5 +28,18 @@ export default async function AdminOperationsPage() {
   // prop — a TypeScript interface does not filter anything — so the page
   // materializes an explicit minimal DTO server-side here.
   const ownerDisplay = buildOwnerDisplayDTO(ownerContext)
-  return <OperationalWorkspace ownerContext={ownerDisplay} />
+  // Perf 009 (summary-only DTO): the 3.9 MB architecture-book JSON is read
+  // server-side here (it was previously imported into the client workspace,
+  // then only tree-shaken by usage luck). The client receives exactly the
+  // five summary numbers the UI displays.
+  const archSummary = {
+    broken: Number(archBook.summary?.broken ?? 0),
+    ok: Number(archBook.summary?.ok ?? 0),
+    total: Number(archBook.summary?.total ?? 0),
+    unused: Number(archBook.summary?.unused ?? 0),
+    unregistered: Number(archBook.summary?.unregistered ?? 0),
+    version: typeof archBook.version === 'string' ? archBook.version : undefined,
+    generated_at: typeof archBook.generated_at === 'string' ? archBook.generated_at : undefined,
+  }
+  return <OperationalWorkspace ownerContext={ownerDisplay} archSummary={archSummary} />
 }

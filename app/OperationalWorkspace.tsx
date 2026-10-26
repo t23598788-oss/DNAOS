@@ -8,7 +8,6 @@ import businessCoverage from '@/registry/business-coverage.json';
 import connectorLifecycle from '@/registry/connector-lifecycle.json';
 import aiRegistry from '@/registry/AI_REGISTRY.json';
 import aiSessions from '@/registry/AI_SESSIONS.json';
-import archBook from '@/registry/architecture-book.json';
 import systemHealth from '@/DNA_OS_HEALTH.json';
 import { createBrowserSupabase } from '@/services/supabase/browser';
 import {
@@ -80,21 +79,35 @@ const WORKSPACE_NAV_HREFS = {
 // authenticated session (Directive 007 boundary, 2026-10-27). The host page
 // (app/admin/operations/page.tsx, server) reads it server-side only and passes
 // just the fields this UI displays.
+// Architecture-book (3.9 MB, 1416 module nodes) must not be imported into this
+// client bundle: the UI reads only summary.broken/ok/total. The server page
+// passes those three numbers (plus unused/unregistered for display safety) via
+// the archSummary prop (Perf directive 009, summary-only DTO).
+export interface ArchBookSummaryInput {
+  broken: number;
+  ok: number;
+  total: number;
+  unused: number;
+  unregistered: number;
+  version?: string;
+  generated_at?: string;
+}
+
 export interface OwnerContextInput {
   identity: { company: string; email: string };
   current_goals: { long_term: string };
   philosophy: { core: string };
 }
 
-export default function OperationalWorkspace({ ownerContext }: { ownerContext: OwnerContextInput }) {
+export default function OperationalWorkspace({ ownerContext, archSummary }: { ownerContext: OwnerContextInput; archSummary: ArchBookSummaryInput }) {
   return (
     <ThemeProvider>
-      <OperationalWorkspaceContent ownerContext={ownerContext} />
+      <OperationalWorkspaceContent ownerContext={ownerContext} archSummary={archSummary} />
     </ThemeProvider>
   );
 }
 
-function OperationalWorkspaceContent({ ownerContext }: { ownerContext: OwnerContextInput }) {
+function OperationalWorkspaceContent({ ownerContext, archSummary }: { ownerContext: OwnerContextInput; archSummary: ArchBookSummaryInput }) {
   const { theme } = useTheme();
   const e = elevation[theme];
   const ty = typography[theme];
@@ -262,8 +275,8 @@ function OperationalWorkspaceContent({ ownerContext }: { ownerContext: OwnerCont
                 source exists for a listed status, the tile reads "Checking…"
                 until the live query above resolves — never a guessed number. */}
             <dl className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-xl">
-              <StatusTile label="Runtime" value={(archBook as any).summary?.broken === 0 ? 'Healthy' : 'Needs Inspection'} tone={(archBook as any).summary?.broken === 0 ? 'success' : 'warning'} />
-              <StatusTile label="Registry" value={`${(archBook as any).summary?.ok ?? 0}/${(archBook as any).summary?.total ?? 0} OK`} tone="info" />
+              <StatusTile label="Runtime" value={archSummary.broken === 0 ? 'Healthy' : 'Needs Inspection'} tone={archSummary.broken === 0 ? 'success' : 'warning'} />
+              <StatusTile label="Registry" value={`${archSummary.ok}/${archSummary.total} OK`} tone="info" />
               <StatusTile label="Gateway" value={`${(arch.layers as any).gateway?.modules?.length ?? 0} modules`} tone="info" />
               <StatusTile
                 label="Database"
@@ -273,7 +286,7 @@ function OperationalWorkspaceContent({ ownerContext }: { ownerContext: OwnerCont
               />
               <StatusTile label="Connectors" value={`${connectorLifecycle.stages.length}-stage · ${arch.dynamic_registry.auth_types.length} auth types`} tone="info" />
               <StatusTile label="Workers" value={`${aiSessions.sessions.filter(s => s.status === 'working').length}/${aiRegistry.agents.length} active`} tone="info" />
-              <StatusTile label="Deployment" value={(archBook as any).summary?.broken === 0 ? 'Passing' : `${(archBook as any).summary?.broken} issue(s)`} tone={(archBook as any).summary?.broken === 0 ? 'success' : 'warning'} />
+              <StatusTile label="Deployment" value={archSummary.broken === 0 ? 'Passing' : `${archSummary.broken} issue(s)`} tone={archSummary.broken === 0 ? 'success' : 'warning'} />
               <StatusTile
                 label="System Health"
                 value={`${systemHealth.summary.passed}/${systemHealth.summary.total} checks · score ${systemHealth.governance_score}`}
@@ -314,13 +327,13 @@ function OperationalWorkspaceContent({ ownerContext }: { ownerContext: OwnerCont
 
             <div className={`mt-10 pt-6 border-t ${e.divider} flex flex-wrap gap-x-8 gap-y-4`}>
               <StatPill value={layerEntries.length} label="Layers" />
-              <StatPill value={(archBook as any).summary?.total ?? 0} label="Modules" />
+              <StatPill value={archSummary.total} label="Modules" />
               <StatPill value={`${coveredCount}/${domainEntries.length}`} label="Domains Covered" />
               <StatPill value={connectorLifecycle.stages.length} label="Stage Connector Lifecycle" />
             </div>
           </div>
 
-          <HeroArchitectureDiagram layerEntries={layerEntries} broken={(archBook as any).summary?.broken ?? 0} />
+          <HeroArchitectureDiagram layerEntries={layerEntries} broken={archSummary.broken} />
         </section>
 
         {/* System Reality Report — Owner Capability #57 (2026-08-10, STEP
@@ -367,8 +380,8 @@ function OperationalWorkspaceContent({ ownerContext }: { ownerContext: OwnerCont
             description="Real registry and deployment status — not a description of what the platform is."
           />
           <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <InfoCard icon={Layers} title="Registry Health" description={`${(archBook as any).summary?.ok ?? 0} operational, ${(archBook as any).summary?.unused ?? 0} dormant, ${(archBook as any).summary?.unregistered ?? 0} outside registry — of ${(archBook as any).summary?.total ?? 0} total.`} />
-            <InfoCard icon={Shield} title="Deployment Health" description={(archBook as any).summary?.broken === 0 ? 'All governance checks passing on the current build.' : `${(archBook as any).summary?.broken} module(s) currently need inspection.`} />
+            <InfoCard icon={Layers} title="Registry Health" description={`${archSummary.ok} operational, ${archSummary.unused} dormant, ${archSummary.unregistered} outside registry — of ${archSummary.total} total.`} />
+            <InfoCard icon={Shield} title="Deployment Health" description={archSummary.broken === 0 ? 'All governance checks passing on the current build.' : `${archSummary.broken} module(s) currently need inspection.`} />
             <InfoCard icon={Cable} title="Connected Systems" description={`${aiRegistry.agents.length} registered AI agents, ${connectorLifecycle.stages.length}-stage connector lifecycle. Full list in Connections below.`} />
           </div>
           {/* Moved from app/page.tsx (Dead Board, "Platform Overview" section) —
@@ -522,10 +535,10 @@ function OperationalWorkspaceContent({ ownerContext }: { ownerContext: OwnerCont
             rather than a fabricated value. */}
         <footer id="contact" className={`text-center py-16 border-t ${e.divider} space-y-1`}>
           <p className={`text-xs font-mono ${ty.description}`}>
-            Build: UNKNOWN (no build identifier imported) · Registry v{(archBook as any).version ?? 'UNKNOWN'} · Generated {(archBook as any).generated_at ? new Date((archBook as any).generated_at).toISOString() : 'UNKNOWN'}
+            Build: UNKNOWN (no build identifier imported) · Registry v{archSummary.version ?? 'UNKNOWN'} · Generated {archSummary.generated_at ? new Date(archSummary.generated_at).toISOString() : 'UNKNOWN'}
           </p>
           <p className={`text-xs font-mono ${ty.description}`}>
-            Runtime: {(archBook as any).summary?.broken === 0 ? 'Healthy' : 'Needs Inspection'} · Deployment: {(archBook as any).summary?.broken === 0 ? 'Passing' : `${(archBook as any).summary?.broken} issue(s)`}
+            Runtime: {archSummary.broken === 0 ? 'Healthy' : 'Needs Inspection'} · Deployment: {archSummary.broken === 0 ? 'Passing' : `${archSummary.broken} issue(s)`}
           </p>
           {/* Moved from app/page.tsx (Dead Board footer) — same fields
               (owner.identity.company, owner.identity.email), unchanged. */}
