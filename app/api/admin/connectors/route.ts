@@ -11,6 +11,7 @@ import { listConnectors, createConnector, runConnectorTest, redactConnector, red
 import { findContract } from "@/engines/connectors/registry"
 import { getLatestProposal } from "@/engines/integration-gateway/evidence/proposalStore"
 import { buildConnectRuntimeDeps } from "./_lib/connectRuntime"
+import { normalizeSignatureHeader } from "@/core/webhook-signature"
 
 export async function GET() {
   const auth = await requireAuth(ADMIN_TIER)
@@ -43,10 +44,22 @@ export async function POST(req: NextRequest) {
 
     const provider = typeof body.provider === "string" ? body.provider.trim().toLowerCase() : ""
 
+    // webhook ต้องประกาศชื่อ header ที่ใช้ตรวจลายเซ็น ไม่งั้นตรวจไม่ได้เลย →
+    // ปฏิเสธตั้งแต่ที่นี่ (fail-closed ตาม owner audit 2026-10-26, C3)
+    const signatureHeader = normalizeSignatureHeader(body.signature_header ?? body.config?.signature_header)
+    if (authType === "webhook" && !signatureHeader) {
+      return NextResponse.json(
+        { error: "SIGNATURE_HEADER_REQUIRED", detail: "webhook connector ต้องระบุ signature_header" },
+        { status: 400 }
+      )
+    }
+
     const input: CreateConnectorInput = {
       name,
       auth_type: authType as CreateConnectorInput["auth_type"],
       provider: provider || undefined,
+      signature_header: signatureHeader || undefined,
+      event_id_path: typeof body.event_id_path === "string" ? body.event_id_path : undefined,
       config: body.config ?? {},
       secret: body.secret ?? {},
     }

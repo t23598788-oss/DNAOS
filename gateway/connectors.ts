@@ -8,6 +8,7 @@
 import { randomBytes, randomUUID } from "crypto";
 import { supabaseAdmin } from "@/services/supabase/queries";
 import { clearConnectorCache, logConnectorLifecycleEvent, type ConnectorAuthType, type ConnectorRecord } from "@/core/connector-loader";
+import { normalizeSignatureHeader, requireSignatureHeader } from "@/core/webhook-signature";
 import { testConnector } from "@/engines/connectors/tester";
 
 export interface CreateConnectorInput {
@@ -20,6 +21,15 @@ export interface CreateConnectorInput {
    * identity instead of a display-name/slug guess.
    */
   provider?: string;
+  /**
+   * ชื่อ header ที่ผู้ส่งแนบลายเซ็น (webhook เท่านั้น). บังคับสำหรับ auth_type =
+   * "webhook" — connector ที่ไม่มีค่านี้จะตรวจลายเซ็นไม่ได้เลย (owner audit
+   * 2026-10-26, C3: ของเดิมไม่เคยเขียนค่านี้ ทำให้ทุก connector เกิดมา fail-open).
+   * รับได้ทั้งทาง input.signature_header และ input.config.signature_header.
+   */
+  signature_header?: string;
+  /** dot-path ของ event id ใน payload ใช้ทำ idempotency key เช่น "event.id" */
+  event_id_path?: string;
   config?: Record<string, unknown>;
   secret?: Record<string, unknown>;
 }
@@ -94,6 +104,10 @@ export async function createConnector(input: CreateConnectorInput): Promise<Conn
   if (input.provider) config.provider = input.provider.trim().toLowerCase();
 
   if (input.auth_type === "webhook") {
+    // Fail closed at the source: a webhook connector that cannot verify a
+    // signature must not be creatable (throws SIGNATURE_HEADER_REQUIRED).
+    config.signature_header = requireSignatureHeader(input.signature_header ?? input.config?.signature_header);
+    if (input.event_id_path) config.event_id_path = String(input.event_id_path);
     config.receiving_path = `/api/connectors/webhook/${slug}`;
     secret.signing_secret = randomBytes(24).toString("hex");
   }
@@ -244,14 +258,25 @@ export async function recordWebhookEvent(
   connectorId: string,
   headers: Record<string, unknown>,
   payload: unknown,
-  verified: boolean
+  verified: boolean,
+  /**
+   * Idempotency key ของ event นี้ (จาก webhookGate.deriveEventKey) — unique ตาม
+   * (connector_id, event_key). ของเดิม insert เปล่า ทำให้ webhook ที่ถูกส่งซ้ำ
+   * บันทึกซ้ำได้ไม่จำกัด (owner audit 2026-10-26, C5).
+   */
+  eventKey: string
 ): Promise<void> {
-  const { error } = await supabaseAdmin().from("connector_webhook_events").insert({
-    connector_id: connectorId,
-    headers,
-    payload: payload ?? {},
-    verified,
-  });
+  // ignoreDuplicates: การส่งซ้ำต้องไม่เป็น error และต้องไม่สร้างแถวใหม่
+  const { error } = await supabaseAdmin().from("connector_webhook_events").upsert(
+    {
+      connector_id: connectorId,
+      headers,
+      payload: payload ?? {},
+      verified,
+      event_key: eventKey,
+    },
+    { onConflict: "connector_id,event_key", ignoreDuplicates: true }
+  );
   if (error) throw new Error(error.message);
 
   await supabaseAdmin()
