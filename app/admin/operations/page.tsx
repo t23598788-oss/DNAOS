@@ -15,14 +15,17 @@ import { requireAuthPage } from "@/core/auth/requireAuthPage"
 import { ADMIN_TIER } from "@/core/auth/session"
 import OperationalWorkspace from "@/app/OperationalWorkspace"
 import ownerContext from "@/registry/owner-context.json"
+import { buildOwnerDisplayDTO } from "./owner-context-dto"
 
 // Reads the live session cookie per request — never prerendered.
 export const dynamic = "force-dynamic"
 
 export default async function AdminOperationsPage() {
   await requireAuthPage("/admin/operations", ADMIN_TIER)
-  // Directive 007 (2026-10-27): owner identity stays server-side — the page is
-  // a server component, so the JSON is never packaged into any client bundle;
-  // the client workspace receives only the displayed fields via props.
-  return <OperationalWorkspace ownerContext={ownerContext} />
+  // Directives 007/008 (2026-10-27): the full owner-context.json is a private
+  // operator registry. React/Flight serializes the RUNTIME object passed as a
+  // prop — a TypeScript interface does not filter anything — so the page
+  // materializes an explicit minimal DTO server-side here.
+  const ownerDisplay = buildOwnerDisplayDTO(ownerContext)
+  return <OperationalWorkspace ownerContext={ownerDisplay} />
 }
