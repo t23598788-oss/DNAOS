@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import portals from '@/registry/portals.json';
 import arch from '@/registry/architecture.json';
-import owner from '@/registry/owner-context.json';
 import businessCoverage from '@/registry/business-coverage.json';
 import connectorLifecycle from '@/registry/connector-lifecycle.json';
 import aiRegistry from '@/registry/AI_REGISTRY.json';
@@ -75,15 +74,27 @@ const WORKSPACE_NAV_HREFS = {
   IDE: '/admin/ide',
 } as const;
 
-export default function OperationalWorkspace() {
+// Operator identity (name, company, DBD registration, contact email) must not
+// reach the client bundle: this component is 'use client', so importing
+// registry/owner-context.json here shipped the whole owner record to every
+// authenticated session (Directive 007 boundary, 2026-10-27). The host page
+// (app/admin/operations/page.tsx, server) reads it server-side only and passes
+// just the fields this UI displays.
+export interface OwnerContextInput {
+  identity: { company: string; email: string };
+  current_goals: { long_term: string };
+  philosophy: { core: string };
+}
+
+export default function OperationalWorkspace({ ownerContext }: { ownerContext: OwnerContextInput }) {
   return (
     <ThemeProvider>
-      <OperationalWorkspaceContent />
+      <OperationalWorkspaceContent ownerContext={ownerContext} />
     </ThemeProvider>
   );
 }
 
-function OperationalWorkspaceContent() {
+function OperationalWorkspaceContent({ ownerContext }: { ownerContext: OwnerContextInput }) {
   const { theme } = useTheme();
   const e = elevation[theme];
   const ty = typography[theme];
@@ -364,8 +375,8 @@ function OperationalWorkspaceContent() {
               same fields (owner.current_goals.long_term, owner.philosophy.core,
               arch.note), same InfoCard component, unchanged. */}
           <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <InfoCard icon={Building} title="Purpose" description={owner.current_goals.long_term} />
-            <InfoCard icon={Target} title="Operating Principle" description={owner.philosophy.core} />
+            <InfoCard icon={Building} title="Purpose" description={ownerContext.current_goals.long_term} />
+            <InfoCard icon={Target} title="Operating Principle" description={ownerContext.philosophy.core} />
             <InfoCard icon={Layers} title="Structure" description={arch.note} />
           </div>
           <div className={`mt-6 max-w-3xl mx-auto p-4 rounded-lg text-sm ${e.card} ${ty.description}`}>
@@ -519,8 +530,8 @@ function OperationalWorkspaceContent() {
           {/* Moved from app/page.tsx (Dead Board footer) — same fields
               (owner.identity.company, owner.identity.email), unchanged. */}
           <p className={`text-sm ${ty.description}`}>
-            © {new Date().getFullYear()} {owner.identity.company}. All rights reserved. For inquiries, contact{' '}
-            <a href={`mailto:${owner.identity.email}`} className={semanticColors[theme].success.text}>{owner.identity.email}</a>.
+            © {new Date().getFullYear()} {ownerContext.identity.company}. All rights reserved. For inquiries, contact{' '}
+            <a href={`mailto:${ownerContext.identity.email}`} className={semanticColors[theme].success.text}>{ownerContext.identity.email}</a>.
           </p>
         </footer>
       </main>
