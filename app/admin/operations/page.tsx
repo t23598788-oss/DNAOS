@@ -14,11 +14,15 @@
 import { requireAuthPage } from "@/core/auth/requireAuthPage"
 import { ADMIN_TIER } from "@/core/auth/session"
 import OperationalWorkspace from "@/app/OperationalWorkspace"
+import ownerContext from "@/registry/owner-context.json"
 
 // Reads the live session cookie per request — never prerendered.
 export const dynamic = "force-dynamic"
 
 export default async function AdminOperationsPage() {
   await requireAuthPage("/admin/operations", ADMIN_TIER)
-  return <OperationalWorkspace />
+  // Directive 007 (2026-10-27): owner identity stays server-side — the page is
+  // a server component, so the JSON is never packaged into any client bundle;
+  // the client workspace receives only the displayed fields via props.
+  return <OperationalWorkspace ownerContext={ownerContext} />
 }
