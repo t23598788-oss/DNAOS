@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createServerSupabase } from "@/services/supabase/server";
+import { supabaseAdmin } from "@/services/supabase/queries";
 import { isSafeInternalPath } from "@/core/auth/resolveDestination";
 
 // THE single authentication entry for emailed links (promoted from "backup
@@ -103,11 +104,39 @@ export async function GET(req: NextRequest) {
     return redirectTo("/login?error=invalid_link");
   }
 
-  const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
+  const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type });
   if (error) {
     recordFailure(ip);
     return redirectTo("/login?error=invalid_link");
   }
   clearFailures(ip);
+
+  // M030 (2026-10-31): a verified session routes through the SAME landing
+  // rules — no second verifier, no new auth system.
+  //   - recovery link → set a NEW password first (the session is real but
+  //     the password is unknown) at the existing /account/change-password
+  //   - magic-link/sign-up user with no stored password → ONE stop at
+  //     first-time setup (same page; the password is set via Supabase Auth
+  //     API; we record only a timestamp)
+  //   - everyone already carrying a password lands on safeNext exactly as
+  //     before, so nobody is bounced into setup twice.
+  // The marker is profiles.password_set_at (timestamp only — no password or
+  // hash is ever stored in this database).
+  const verifiedUser = data.user;
+  if (verifiedUser) {
+    const nextSuffix =
+      safeNext && safeNext !== "/app" ? `&next=${encodeURIComponent(safeNext)}` : "";
+    if (type === "recovery") {
+      return redirectTo(`/account/change-password?recovery=1${nextSuffix}`);
+    }
+    const { data: profile } = await supabaseAdmin()
+      .from("profiles")
+      .select("password_set_at")
+      .eq("id", verifiedUser.id)
+      .maybeSingle();
+    if (!profile?.password_set_at) {
+      return redirectTo(`/account/change-password?first=1${nextSuffix}`);
+    }
+  }
   return redirectTo(safeNext);
 }

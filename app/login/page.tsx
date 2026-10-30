@@ -57,9 +57,12 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(initialError)
   const [loading, setLoading] = useState(false)
   const [oauthBusy, setOauthBusy] = useState<string | null>(null)
-  const [pwLoading, setPwLoading] = useState(false)
-  const [pwMaintenance, setPwMaintenance] = useState(false)
-  const [sentTo, setSentTo] = useState<string | null>(null)
+  const [ pwLoading, setPwLoading ] = useState(false)
+  const [ sentTo, setSentTo ] = useState<string | null>(null)
+  // M030 (2026-10-31): "ลืมรหัสผ่าน" = resetPasswordForEmail ของ Supabase เอง — ลิงก์
+  // เข้า /auth/confirm (type=recovery, verifier เดิมตัวเดียว) แล้วถูกพาไปตั้งรหัสผ่าน
+  // ใหม่ที่หน้าเดิม /account/change-password — ไม่มีระบบกู้คืนใหม่
+  const [ forgotSentTo, setForgotSentTo ] = useState<string | null>(null)
 
   // Recheck on return from the email/browser tab. Never mint a session here;
   // /app still resolves the destination and enforces server-side authority.
@@ -188,18 +191,23 @@ function LoginForm() {
     }
   }
 
-  // MAINTENANCE/BACKFLOOR ONLY (explicit owner directive, 2026-09-24):
-  // password sign-in stays reachable but gated behind its own toggle so it
-  // is never the main path. Email comes from the single email field above
-  // (no second email input → no duplicated autofill fields).
-  async function handlePasswordFallback(e: React.FormEvent) {
+  // M030 PRIMARY (owner directive 2026-10-31): เข้าสู่ระบบด้วย Email + Password
+  // ตรง ๆ — ผู้ใช้ที่ยืนยันตัวตนครั้งแรกและตั้งรหัสผ่านแล้วใช้ช่องนี้ได้เลย ไม่ต้องขอ
+  // ลิงก์ยืนยันซ้ำทุกครั้ง (เดิม signInWithPassword ถูกซ้อนไว้ในโหมดบำรุงรักษา —
+  // ตัว API ยังเป็นตัวเดิมกับ landing เดิม: next ที่ปลอดภัย → /app role-bounce)
+  async function handlePasswordLogin(e: React.FormEvent) {
     e.preventDefault()
     setPwLoading(true)
     setError(null)
     const email = (emailInputRef.current?.value ?? "").trim()
     const password = pwInputRef.current?.value ?? ""
     if (!email) {
-      setError("กรอกอีเมลด้านบนก่อน แล้วค่อยกรอกรหัสผ่านตรงนี้")
+      setError("กรุณากรอกอีเมล")
+      setPwLoading(false)
+      return
+    }
+    if (!password) {
+      setError("กรุณากรอกรหัสผ่าน")
       setPwLoading(false)
       return
     }
@@ -214,6 +222,33 @@ function LoginForm() {
     } catch {
       setError("เชื่อมต่อไม่ได้ ลองใหม่")
       setPwLoading(false)
+    }
+  }
+
+  // M030: ลืมรหัสผ่าน — ส่งลิงก์กู้คืนผ่าน resetPasswordForEmail (ไม่มีระบบกู้คืนใหม่
+  // ไม่มีการตรวจสอบการมีอยู่ของบัญชีจากคำตอบด้านผลลัพธ์ — รายงาน "ส่งแล้ว" เสมอเมื่อไม่มี error)
+  async function handleForgotPassword() {
+    setLoading(true)
+    setError(null)
+    const email = (emailInputRef.current?.value ?? "").trim()
+    if (!email) {
+      setError("กรอกอีเมลก่อน แล้วกด ลืมรหัสผ่าน")
+      setLoading(false)
+      return
+    }
+    try {
+      const redirectTo = `${window.location.origin}/auth/confirm?next=${encodeURIComponent(nextPath && isSafeInternalPath(nextPath) ? nextPath : "/app")}`
+      const { error: resetError } = await createBrowserSupabase().auth.resetPasswordForEmail(email, { redirectTo })
+      if (resetError) {
+        setError(resetError.message)
+        setLoading(false)
+        return
+      }
+      setForgotSentTo(email)
+    } catch {
+      setError("เชื่อมต่อไม่ได้ ลองใหม่")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -299,40 +334,46 @@ function LoginForm() {
         </button>
       </form>
 
-      {/* MAINTENANCE / BACKFLOOR ONLY — password login never becomes the main
-          path (owner, 2026-09-24). Email is reused from the field above. */}
-      <div className="border-t border-[#E9E1D6] pt-3">
-        {!pwMaintenance ? (
+      {/* M030 PRIMARY — password sign-in ขึ้นมาเป็นช่องหลัก (owner directive
+          2026-10-31: ยืนยันตัวตนครั้งแรกแล้วตั้งรหัสผ่านจากนั้น Email + Password
+          เข้าได้ตรง ไม่ต้องขอลิงก์ยืนยันซ้ำ) — signInWithPassword ตัวเดิม ไม่มีระบบ
+          auth ใหม่; ลิงก์อีเมล (สำรอง) และ OAuth ยังอยู่ครบ. ช่องอีเมลใช้ตัวเดียวกัน
+         ทั้ง login และลืมรหัสผ่าน (ไม่มี input ซ้ำ → ไม่มีช่อง autofill ซ้ำ). */}
+      <div className="border-t border-[#E9E1D6] pt-4 space-y-3">
+        <form onSubmit={handlePasswordLogin} className="space-y-4">
+          <input
+            ref={pwInputRef}
+            name="password"
+            type="password"
+            autoComplete="current-password"
+            required
+            disabled={pwLoading}
+            className="w-full text-base rounded-xl px-4 py-3 bg-[#F7F4EF] border border-[#E3DACE] focus:outline-none focus:border-[#B49C7C] focus:ring-2 focus:ring-[#B49C7C]/25 disabled:opacity-50"
+            placeholder="รหัสผ่าน"
+          />
           <button
-            type="button"
-            onClick={() => setPwMaintenance(true)}
-            className="w-full text-xs text-stone-400 transition hover:text-stone-600"
+            type="submit"
+            disabled={pwLoading}
+            className="w-full py-3 rounded-xl bg-stone-900 text-white text-base font-semibold shadow-[0_2px_8px_-2px_rgba(70,58,44,0.28)] transition hover:bg-stone-800 disabled:opacity-40"
           >
-            ลืมรหัสผ่าน / เข้าสู่ระบบด้วยรหัสผ่าน (สำหรับบำรุงรักษา)
+            {pwLoading ? "กำลังตรวจสอบ..." : "เข้าสู่ระบบ"}
           </button>
-        ) : (
-          <form onSubmit={handlePasswordFallback} className="space-y-4 pt-3">
-            <p className="text-xs text-stone-500">
-              ใช้อีเมลช่องด้านบน + รหัสผ่านเดิม — ทางนี้มีไว้ซ่อมบำรุงเท่านั้น ไม่ใช่ช่องหลัก
-            </p>
-            <input
-              ref={pwInputRef}
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              disabled={pwLoading}
-              className="w-full text-base rounded-xl px-4 py-3 bg-[#F7F4EF] border border-[#E3DACE] focus:outline-none focus:border-[#B49C7C] focus:ring-2 focus:ring-[#B49C7C]/25 disabled:opacity-50"
-              placeholder="••••••••"
-            />
-            <button
-              type="submit"
-              disabled={pwLoading}
-              className="w-full py-2.5 rounded-xl border border-[#E3DACE] bg-white text-sm font-semibold text-stone-700 transition hover:border-[#D5C8B6] disabled:opacity-40"
-            >
-              {pwLoading ? "กำลังตรวจสอบ..." : "เข้าสู่ระบบด้วยรหัสผ่าน"}
-            </button>
-          </form>
+        </form>
+
+        <button
+          type="button"
+          onClick={handleForgotPassword}
+          disabled={loading}
+          className="w-full text-xs text-stone-500 transition hover:text-stone-700 underline underline-offset-2 disabled:opacity-40"
+        >
+          ลืมรหัสผ่าน?
+        </button>
+
+        {forgotSentTo && (
+          <div className="text-xs text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
+            ส่งลิงก์ตั้งรหัสผ่านใหม่ไปที่ <b>{forgotSentTo}</b> แล้ว — เปิดลิงก์ในอีเมล
+            เพื่อตั้งรหัสผ่านใหม่ (ลิงก์ใช้ได้ 1 ครั้ง)
+          </div>
         )}
       </div>
     </div>
