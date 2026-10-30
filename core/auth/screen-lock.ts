@@ -126,11 +126,15 @@ export async function verifyPinAttempt(userId: string, pin: string): Promise<Unl
     return { status: "ok" };
   }
   const failed = (row.failedAttempts ?? 0) + 1;
-  const lockedUntil =
-    failed >= MAX_FAILED_ATTEMPTS
-      ? new Date(Date.now() + LOCK_MINUTES * 60 * 1000).toISOString()
-      : null;
-  await recordScreenLockFailure(userId, failed, lockedUntil);
+  if (failed >= MAX_FAILED_ATTEMPTS) {
+    // The threshold miss itself closes the session: report "locked" right on
+    // the 5th try, not one attempt later, so the client never sees the pad
+    // as merely "wrong" when the account has just been locked.
+    const lockedUntil = new Date(Date.now() + LOCK_MINUTES * 60 * 1000).toISOString();
+    await recordScreenLockFailure(userId, failed, lockedUntil);
+    return { status: "locked", retryAt: lockedUntil };
+  }
+  await recordScreenLockFailure(userId, failed, null);
   return { status: "bad", remaining: Math.max(0, MAX_FAILED_ATTEMPTS - failed) };
 }
 
