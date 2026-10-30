@@ -17284,38 +17284,6 @@
       "exports": [],
       "status": "active"
     },
-    "scripts/m015-storage-probe.ts": {
-      "owner": "scripts",
-      "layer": "scripts",
-      "purpose": "M015 Stage 5 — Storage contract probe (final, assertion-free).",
-      "purpose_th": "M015 Stage 5 — Storage contract probe (final, assertion-free).",
-      "exports": [],
-      "status": "active"
-    },
-    "scripts/m015-scope-probe.ts": {
-      "owner": "scripts",
-      "layer": "scripts",
-      "purpose": "M015 scope-probe (T1–T4) — pure module probes of core/authority/data-scope.ts",
-      "purpose_th": "M015 scope-probe (T1–T4) — pure module probes of core/authority/data-scope.ts",
-      "exports": [],
-      "status": "active"
-    },
-    "scripts/m015-runner.ts": {
-      "owner": "scripts",
-      "layer": "scripts",
-      "purpose": "M015 runner — ONE canonical engine call per process invocation.",
-      "purpose_th": "M015 runner — ONE canonical engine call per process invocation.",
-      "exports": [],
-      "status": "active"
-    },
-    "scripts/m014-runner.ts": {
-      "owner": "scripts",
-      "layer": "scripts",
-      "purpose": "M014 concurrency runner — ONE canonical engine call per process invocation.",
-      "purpose_th": "M014 concurrency runner — ONE canonical engine call per process invocation.",
-      "exports": [],
-      "status": "active"
-    },
     "services/debt/reminder-health.ts": {
       "owner": "services",
       "layer": "services",
@@ -17902,6 +17870,34 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "Debt reminder workbench — the read model behind the staging screen."
+    },
+    {
+      "path": "scripts/m015-storage-probe.ts",
+      "retired_at": "2026-10-30T20:41:58.164Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "M015 Stage 5 — Storage contract probe (final, assertion-free)."
+    },
+    {
+      "path": "scripts/m015-scope-probe.ts",
+      "retired_at": "2026-10-30T20:41:58.165Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "M015 scope-probe (T1–T4) — pure module probes of core/authority/data-scope.ts"
+    },
+    {
+      "path": "scripts/m015-runner.ts",
+      "retired_at": "2026-10-30T20:41:58.165Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "M015 runner — ONE canonical engine call per process invocation."
+    },
+    {
+      "path": "scripts/m014-runner.ts",
+      "retired_at": "2026-10-30T20:41:58.165Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "M014 concurrency runner — ONE canonical engine call per process invocation."
     }
   ]
 }

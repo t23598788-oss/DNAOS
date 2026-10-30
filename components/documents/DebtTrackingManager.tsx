@@ -4,6 +4,7 @@ import { Fragment, useState, useEffect, useCallback, useMemo } from "react"
 import Link from "next/link"
 import { formatMoney } from "@/engines/documents/document-editor"
 import type { DebtTrackingSummary } from "@/engines/debt/tracking"
+import DebtReminderWorkbench from "./DebtReminderWorkbench"
 
 interface Partner {
   id: string
@@ -508,6 +509,11 @@ export default function DebtTrackingManager() {
               </tbody>
             </table>
           </div>
+
+          {/* M026 capability lives inside this screen — the invoice-level balance and
+              the three preview messages are the same page's job, not a parallel site
+              (M029: no extra tab bar, no second route, no new navigation). */}
+          <DebtReminderWorkbench />
         </div>
 
       </div>

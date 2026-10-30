@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-30T20:29:32.997Z",
+  "generated_at": "2026-10-30T20:41:59.692Z",
   "version": 1,
   "nodes": [
     {
@@ -95716,7 +95716,6 @@
         "module:scripts/admin-read-scope.test.ts",
         "module:scripts/ai-data-scope-and-identity.test.ts",
         "module:scripts/ai-data-scope-live-check.ts",
-        "module:scripts/m015-scope-probe.ts",
         "module:services/supabase/queries.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -97491,116 +97490,6 @@
       ]
     },
     {
-      "id": "module:scripts/m015-storage-probe.ts",
-      "type": "Module",
-      "layer": "scripts",
-      "name_en": "scripts/m015-storage-probe.ts",
-      "purpose_th": "M015 Stage 5 — Storage contract probe (final, assertion-free).",
-      "exports": [],
-      "status": "OK",
-      "runtime_entry_point": true,
-      "internal_dependencies": [],
-      "dependents": [],
-      "data_tables": [
-        "attachments",
-        "audit_logs",
-        "document_artifacts",
-        "document_versions"
-      ],
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "scripts",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN"
-    },
-    {
-      "id": "module:scripts/m015-scope-probe.ts",
-      "type": "Module",
-      "layer": "scripts",
-      "name_en": "scripts/m015-scope-probe.ts",
-      "purpose_th": "M015 scope-probe (T1–T4) — pure module probes of core/authority/data-scope.ts",
-      "exports": [],
-      "status": "OK",
-      "runtime_entry_point": true,
-      "internal_dependencies": [
-        "module:core/authority/data-scope.ts"
-      ],
-      "dependents": [],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "scripts",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "import_sites": [
-        {
-          "specifier": "@/core/authority/data-scope",
-          "line": 4,
-          "resolved_target": "core/authority/data-scope.ts"
-        }
-      ]
-    },
-    {
-      "id": "module:scripts/m015-runner.ts",
-      "type": "Module",
-      "layer": "scripts",
-      "name_en": "scripts/m015-runner.ts",
-      "purpose_th": "M015 runner — ONE canonical engine call per process invocation.",
-      "exports": [],
-      "status": "OK",
-      "runtime_entry_point": true,
-      "internal_dependencies": [],
-      "dependents": [],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "scripts",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN"
-    },
-    {
-      "id": "module:scripts/m014-runner.ts",
-      "type": "Module",
-      "layer": "scripts",
-      "name_en": "scripts/m014-runner.ts",
-      "purpose_th": "M014 concurrency runner — ONE canonical engine call per process invocation.",
-      "exports": [],
-      "status": "OK",
-      "runtime_entry_point": true,
-      "internal_dependencies": [],
-      "dependents": [],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "scripts",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN"
-    },
-    {
       "id": "module:services/debt/reminder-health.ts",
       "type": "Module",
       "layer": "services",
@@ -98491,7 +98380,7 @@
           "name": "previewDebtReminder",
           "kind": "function",
           "line_start": 324,
-          "line_end": 391
+          "line_end": 392
         }
       ],
       "import_sites": [
@@ -104682,26 +104571,6 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/login-autofill-test.ts",
-      "label": "contains"
-    },
-    {
-      "source": "layer:scripts",
-      "target": "module:scripts/m014-runner.ts",
-      "label": "contains"
-    },
-    {
-      "source": "layer:scripts",
-      "target": "module:scripts/m015-runner.ts",
-      "label": "contains"
-    },
-    {
-      "source": "layer:scripts",
-      "target": "module:scripts/m015-scope-probe.ts",
-      "label": "contains"
-    },
-    {
-      "source": "layer:scripts",
-      "target": "module:scripts/m015-storage-probe.ts",
       "label": "contains"
     },
     {
@@ -122665,11 +122534,6 @@
       "label": "imports"
     },
     {
-      "source": "module:scripts/m015-scope-probe.ts",
-      "target": "module:core/authority/data-scope.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:scripts/m019-static-read-verify.ts",
       "target": "module:core/runtime/engine.ts",
       "label": "imports"
@@ -124816,8 +124680,8 @@
     }
   ],
   "summary": {
-    "total": 1443,
-    "ok": 1443,
+    "total": 1439,
+    "ok": 1439,
     "broken": 0,
     "unused": 0,
     "unregistered": 0
