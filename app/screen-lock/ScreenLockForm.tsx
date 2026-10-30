@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PinKeypad } from "@/components/auth/PinKeypad";
 
 const PIN_LEN = 6;
@@ -16,6 +16,18 @@ export default function ScreenLockForm({ next }: { next: string }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attemptsLeft, setAttemptsLeft] = useState<number | null>(null);
+  const submittingRef = useRef(false);
+  submittingRef.current = submitting;
+
+  // 6th digit → unlock attempt fires itself (Phone-lock behavior: no submit
+  // button, the pad IS the button). submit() resets the state first, so a
+  // retry never double-fires on the same value.
+  useEffect(() => {
+    if (pin.length === PIN_LEN && !submittingRef.current) {
+      void submit(pin);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pin]);
 
   async function submit(finalPin: string) {
     if (submitting) return;

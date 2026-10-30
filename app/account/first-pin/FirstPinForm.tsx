@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PinKeypad } from "@/components/auth/PinKeypad";
 
 const PIN_LEN = 6;
@@ -18,6 +18,18 @@ export default function FirstPinForm({ next }: { next: string }) {
   const [pin, setPin] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const submittingRef = useRef(false);
+  submittingRef.current = submitting;
+
+  // 6th digit lands → the form advances on its own (phone behavior): create
+  // round holds the round, confirm round POSTs. Kept off submit handlers so
+  // the keypad component stays a pure control.
+  useEffect(() => {
+    if (pin.length === PIN_LEN && !submittingRef.current && stage !== "done") {
+      void submit(pin);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pin]);
 
   async function submit(finalPin: string) {
     if (submitting || stage === "done") return;
