@@ -11,6 +11,7 @@ interface Contact {
   department: string | null
   trust_level: string | null
   notes: string | null
+  permissions?: Record<string, unknown> | null
   profile_company: { id: string; name: string } | null
   matched_company: { id: string; name: string } | null
 }
@@ -56,7 +57,7 @@ export default function LineProfilesPage() {
 
   async function updateProfile(lineUserId: string, patch: Record<string, unknown>) {
     setSavingId(lineUserId)
-    setContacts((prev) => prev.map((c) => (c.line_user_id === lineUserId ? { ...c, ...mapPatchToContact(patch) } : c)))
+    setContacts((prev) => prev.map((c) => (c.line_user_id === lineUserId ? applyPatch(c, patch) : c)))
     await fetch(`/api/admin/line-profiles/${lineUserId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -65,13 +66,31 @@ export default function LineProfilesPage() {
     setSavingId(null)
   }
 
-  function mapPatchToContact(patch: Record<string, unknown>) {
-    const out: Partial<Contact> = {}
+  function applyPatch(contact: Contact, patch: Record<string, unknown>): Contact {
+    const out: Contact = { ...contact }
     if ("role" in patch) out.role = (patch.role as string) || null
     if ("trustLevel" in patch) out.trust_level = patch.trustLevel as string
     if ("department" in patch) out.department = (patch.department as string) || null
     if ("notes" in patch) out.notes = (patch.notes as string) || null
+    // The API merges permission keys; mirror that locally so the row does not
+    // flick back to its old value before the next list fetch.
+    if (patch.permissions && typeof patch.permissions === "object") {
+      out.permissions = { ...(contact.permissions ?? {}), ...(patch.permissions as Record<string, unknown>) }
+    }
     return out
+  }
+
+  /** Tri-state consent: absent = allowed (default), true = allowed, false = opted out. */
+  function debtConsentValue(contact: Contact): string {
+    const v = contact.permissions?.debt_reminder
+    if (v === false) return "false"
+    if (v === true) return "true"
+    return ""
+  }
+
+  function setDebtConsent(lineUserId: string, value: string) {
+    const next = value === "" ? null : value === "true"
+    updateProfile(lineUserId, { permissions: { debt_reminder: next } })
   }
 
   return (
@@ -99,6 +118,7 @@ export default function LineProfilesPage() {
                 <th className="text-left px-3 py-2.5 font-semibold text-stone-500">บทบาท</th>
                 <th className="text-left px-3 py-2.5 font-semibold text-stone-500">แผนก</th>
                 <th className="text-left px-3 py-2.5 font-semibold text-stone-500">ความน่าเชื่อถือ</th>
+                <th className="text-left px-3 py-2.5 font-semibold text-stone-500">ติดตามหนี้</th>
                 <th className="text-left px-3 py-2.5 font-semibold text-stone-500">หมายเหตุ</th>
                 <th className="text-right px-5 py-2.5 font-semibold text-stone-500">พบครั้งแรก</th>
               </tr>
@@ -146,6 +166,20 @@ export default function LineProfilesPage() {
                       onChange={(e) => updateProfile(c.line_user_id, { trustLevel: e.target.value })}
                     >
                       {TRUST_OPTIONS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    </select>
+                  </td>
+                  <td className="px-3 py-3">
+                    <select
+                      className={`text-xs border rounded-lg px-2 py-1 ${
+                        debtConsentValue(c) === "false" ? "border-rose-200 bg-rose-50 text-rose-700" : "border-stone-200 bg-white"
+                      }`}
+                      value={debtConsentValue(c)}
+                      onChange={(e) => setDebtConsent(c.line_user_id, e.target.value)}
+                      title="อนุญาตให้ส่งข้อความติดตามหนี้ถึงผู้ติดต่อรายนี้หรือไม่ (บันทึกใน Connect Identity)"
+                    >
+                      <option value="">รับได้ (ค่าเริ่มต้น)</option>
+                      <option value="true">อนุญาต</option>
+                      <option value="false">ปฏิเสธ</option>
                     </select>
                   </td>
                   <td className="px-3 py-3">

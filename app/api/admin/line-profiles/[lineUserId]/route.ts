@@ -74,6 +74,18 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     return NextResponse.json({ error: `trustLevel ไม่ถูกต้อง — ต้องเป็นหนึ่งใน ${VALID_TRUST_LEVELS.join(", ")}` }, { status: 400 })
   }
 
+  // Contact Settings (M025) — consent flags are booleans in the canonical
+  // permissions object. A malformed value must fail here, not silently become
+  // "not false" and let a debtor who opted out keep receiving reminders.
+  if (body.permissions !== undefined) {
+    if (!body.permissions || typeof body.permissions !== "object" || Array.isArray(body.permissions)) {
+      return NextResponse.json({ error: "permissions ต้องเป็น object" }, { status: 400 })
+    }
+    if (body.permissions.debt_reminder !== undefined && body.permissions.debt_reminder !== null && typeof body.permissions.debt_reminder !== "boolean") {
+      return NextResponse.json({ error: "permissions.debt_reminder ต้องเป็น boolean หรือ null" }, { status: 400 })
+    }
+  }
+
   const db = supabase()
 
   // Permissions save as a merge (only the edited category's keys change),

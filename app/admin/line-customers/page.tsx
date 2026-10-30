@@ -49,7 +49,9 @@ interface Message {
   line_name?: string | null
   // Delivery status (owner mission 2026-10-10, TEST F): provider message id
   // captured by engines/response.ts#logOutboundToDb on accepted sends; status
-  // is line_events' own row status (out rows = 'processed' when LINE accepted).
+  // is line_events' own row status — 'processed' on the reply path, and
+  // 'queued' | 'sent' | 'failed' | 'cancelled' on the debt-reminder path, where
+  // 'sent' means the provider ACCEPTED the request (never "delivered").
   line_message_id?: string | null
   status?: string | null
   // Attachment rendering (mission 2026-10-10 §2 item 4): fresh 5-min signed

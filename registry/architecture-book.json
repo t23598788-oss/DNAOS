@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T00:57:51.271Z",
+  "generated_at": "2026-10-30T20:29:32.997Z",
   "version": 1,
   "nodes": [
     {
@@ -6293,6 +6293,7 @@
         "module:core/config-loader.ts"
       ],
       "dependents": [
+        "module:app/api/admin/debt-reminder-workbench/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/_lib/docDataFromRecord.ts",
         "module:app/api/admin/documents/route.ts",
@@ -6653,7 +6654,8 @@
         "module:engines/workspace/registerFileCommands.ts",
         "module:engines/workspace/snapshotStore.ts",
         "module:local-runtime/runtime-registration-test.ts",
-        "module:local-runtime/workspace-root-verifier-acceptance-test.ts"
+        "module:local-runtime/workspace-root-verifier-acceptance-test.ts",
+        "module:scripts/m019-static-read-verify.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -7605,7 +7607,8 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
-        "module:engines/index.ts"
+        "module:engines/index.ts",
+        "module:scripts/m019-static-read-verify.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -7853,7 +7856,8 @@
         "module:engines/debt/status.ts"
       ],
       "dependents": [
-        "module:engines/debt/engine.ts"
+        "module:engines/debt/engine.ts",
+        "module:scripts/m019-unit-verify.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -7928,7 +7932,8 @@
       "internal_dependencies": [],
       "dependents": [
         "module:engines/debt/calculator.ts",
-        "module:engines/debt/engine.ts"
+        "module:engines/debt/engine.ts",
+        "module:scripts/m019-unit-verify.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -8098,7 +8103,8 @@
       ],
       "dependents": [
         "module:engines/debt/calculator.ts",
-        "module:engines/debt/engine.ts"
+        "module:engines/debt/engine.ts",
+        "module:scripts/m019-unit-verify.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -8164,7 +8170,8 @@
       "internal_dependencies": [],
       "dependents": [
         "module:engines/debt/engine.ts",
-        "module:engines/debt/scheduler.ts"
+        "module:engines/debt/scheduler.ts",
+        "module:scripts/m019-unit-verify.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -8214,7 +8221,8 @@
         "module:engines/debt/transition.ts"
       ],
       "dependents": [
-        "module:engines/debt/engine.ts"
+        "module:engines/debt/engine.ts",
+        "module:scripts/m022-debt-reminder-e2e.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -8290,7 +8298,8 @@
       "dependents": [
         "module:engines/debt/calculator.ts",
         "module:engines/debt/engine.ts",
-        "module:engines/debt/transition.ts"
+        "module:engines/debt/transition.ts",
+        "module:scripts/m019-unit-verify.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -8484,7 +8493,8 @@
       ],
       "dependents": [
         "module:engines/debt/engine.ts",
-        "module:engines/debt/scheduler.ts"
+        "module:engines/debt/scheduler.ts",
+        "module:scripts/m019-unit-verify.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -8734,6 +8744,7 @@
         "module:engines/documents/debt-notice-draft.ts",
         "module:engines/documents/draft-builders.ts",
         "module:scripts/canonical-finance-acceptance-test.ts",
+        "module:scripts/m019-unit-verify.ts",
         "module:scripts/relationships-ui-test.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -10087,6 +10098,7 @@
       "dependents": [
         "module:app/api/admin/transactions/[id]/advance/route.ts",
         "module:app/workspace-preview/presentationGatewayDeps.ts",
+        "module:scripts/m019-unit-verify.ts",
         "module:scripts/transaction-status-authority.test.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -10157,7 +10169,8 @@
         "module:components/documents/DocumentBuilder.tsx",
         "module:components/transactions/TransactionPanel.tsx",
         "module:engines/transactions/document-link.ts",
-        "module:engines/transactions/state-machine.ts"
+        "module:engines/transactions/state-machine.ts",
+        "module:scripts/m019-unit-verify.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -10298,6 +10311,7 @@
         "module:scripts/ai-data-scope-and-identity.test.ts",
         "module:scripts/ai-data-scope-live-check.ts",
         "module:scripts/core-chain-execution-test.ts",
+        "module:scripts/m019-static-read-verify.ts",
         "module:scripts/rule72-gate.test.ts"
       ],
       "data_tables": [
@@ -13144,7 +13158,8 @@
         "module:core/config-loader.ts"
       ],
       "dependents": [
-        "module:engines/index.ts"
+        "module:engines/index.ts",
+        "module:scripts/m019-unit-verify.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -13473,6 +13488,8 @@
         "module:app/api/admin/connectors/providers/[providerId]/approval-request/route.ts",
         "module:app/api/admin/connectors/providers/[providerId]/prepare/route.ts",
         "module:app/api/admin/connectors/route.ts",
+        "module:app/api/admin/debt-reminder-health/route.ts",
+        "module:app/api/admin/debt-reminder-workbench/route.ts",
         "module:app/api/admin/debt-trackings/[id]/events/route.ts",
         "module:app/api/admin/debt-trackings/[id]/route.ts",
         "module:app/api/admin/debt-trackings/route.ts",
@@ -13636,6 +13653,11 @@
         "module:scripts/canonical-phase-d-acceptance-test.ts",
         "module:scripts/connect-identity-cutover-test.ts",
         "module:scripts/demo-full-pipeline-part2.ts",
+        "module:scripts/m022-debt-reminder-e2e.ts",
+        "module:scripts/m023-debt-reminder-integration-e2e.ts",
+        "module:scripts/m024-debt-readiness-gate.ts",
+        "module:scripts/m025-release-blockers-gate.ts",
+        "module:scripts/m026-workbench-verify.ts",
         "module:scripts/public-catalog-authority-audit.ts",
         "module:scripts/public-catalog-publish-e2e.ts",
         "module:scripts/workspace-job-path-test.ts",
@@ -17084,6 +17106,7 @@
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:core/connector-loader.ts",
+        "module:core/webhook-signature.ts",
         "module:engines/connectors/tester.ts",
         "module:services/supabase/queries.ts"
       ],
@@ -17134,80 +17157,80 @@
         {
           "name": "CreateConnectorInput",
           "kind": "interface",
-          "line_start": 13,
-          "line_end": 25
+          "line_start": 14,
+          "line_end": 35
         },
         {
           "name": "redactConnector",
           "kind": "function",
-          "line_start": 31,
-          "line_end": 35
+          "line_start": 41,
+          "line_end": 45
         },
         {
           "name": "redactConnectors",
           "kind": "function",
-          "line_start": 37,
-          "line_end": 39
+          "line_start": 47,
+          "line_end": 49
         },
         {
           "name": "listConnectors",
           "kind": "function",
-          "line_start": 50,
-          "line_end": 57
+          "line_start": 60,
+          "line_end": 67
         },
         {
           "name": "getConnectorById",
           "kind": "function",
-          "line_start": 59,
-          "line_end": 67
+          "line_start": 69,
+          "line_end": 77
         },
         {
           "name": "findConnectorIdByProvider",
           "kind": "function",
-          "line_start": 76,
-          "line_end": 84
+          "line_start": 86,
+          "line_end": 94
         },
         {
           "name": "createConnector",
           "kind": "function",
-          "line_start": 86,
-          "line_end": 129
+          "line_start": 96,
+          "line_end": 143
         },
         {
           "name": "updateConnector",
           "kind": "function",
-          "line_start": 131,
-          "line_end": 153
+          "line_start": 145,
+          "line_end": 167
         },
         {
           "name": "deleteConnector",
           "kind": "function",
-          "line_start": 155,
-          "line_end": 159
+          "line_start": 169,
+          "line_end": 173
         },
         {
           "name": "setConnectorEnabled",
           "kind": "function",
-          "line_start": 165,
-          "line_end": 186
+          "line_start": 179,
+          "line_end": 200
         },
         {
           "name": "recordConnectorTest",
           "kind": "function",
-          "line_start": 188,
-          "line_end": 230
+          "line_start": 202,
+          "line_end": 244
         },
         {
           "name": "runConnectorTest",
           "kind": "function",
-          "line_start": 232,
-          "line_end": 241
+          "line_start": 246,
+          "line_end": 255
         },
         {
           "name": "recordWebhookEvent",
           "kind": "function",
-          "line_start": 243,
-          "line_end": 262
+          "line_start": 257,
+          "line_end": 287
         }
       ],
       "import_sites": [
@@ -17222,8 +17245,13 @@
           "resolved_target": "core/connector-loader.ts"
         },
         {
-          "specifier": "@/engines/connectors/tester",
+          "specifier": "@/core/webhook-signature",
           "line": 11,
+          "resolved_target": "core/webhook-signature.ts"
+        },
+        {
+          "specifier": "@/engines/connectors/tester",
+          "line": 12,
           "resolved_target": "engines/connectors/tester.ts"
         }
       ]
@@ -17438,6 +17466,7 @@
         "module:app/api/admin/connectors/_lib/connectRuntime.ts",
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
+        "module:core/webhook-signature.ts",
         "module:engines/connectors/registry.ts",
         "module:engines/integration-gateway/evidence/proposalStore.ts",
         "module:gateway/connectors.ts",
@@ -17460,14 +17489,14 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 15,
-          "line_end": 27
+          "line_start": 16,
+          "line_end": 28
         },
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 29,
-          "line_end": 106
+          "line_start": 30,
+          "line_end": 119
         }
       ],
       "import_sites": [
@@ -17505,6 +17534,11 @@
           "specifier": "./_lib/connectRuntime",
           "line": 13,
           "resolved_target": "app/api/admin/connectors/_lib/connectRuntime.ts"
+        },
+        {
+          "specifier": "@/core/webhook-signature",
+          "line": 14,
+          "resolved_target": "core/webhook-signature.ts"
         }
       ]
     },
@@ -17601,6 +17635,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:app/api/connectors/webhook/[slug]/_lib/webhookGate.ts",
         "module:core/connector-loader.ts",
         "module:gateway/connectors.ts",
         "module:services/supabase/queries.ts"
@@ -17622,25 +17657,30 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 25,
-          "line_end": 58
+          "line_start": 30,
+          "line_end": 68
         }
       ],
       "import_sites": [
         {
           "specifier": "@/core/connector-loader",
-          "line": 11,
+          "line": 21,
           "resolved_target": "core/connector-loader.ts"
         },
         {
           "specifier": "@/gateway/connectors",
-          "line": 12,
+          "line": 22,
           "resolved_target": "gateway/connectors.ts"
         },
         {
           "specifier": "@/services/supabase/queries",
-          "line": 13,
+          "line": 23,
           "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "./_lib/webhookGate",
+          "line": 24,
+          "resolved_target": "app/api/connectors/webhook/[slug]/_lib/webhookGate.ts"
         }
       ]
     },
@@ -18182,6 +18222,8 @@
         "module:app/api/admin/connectors/providers/[providerId]/prepare/route.ts",
         "module:app/api/admin/connectors/providers/route.ts",
         "module:app/api/admin/connectors/route.ts",
+        "module:app/api/admin/debt-reminder-health/route.ts",
+        "module:app/api/admin/debt-reminder-workbench/route.ts",
         "module:app/api/admin/debt-trackings/[id]/draft/route.ts",
         "module:app/api/admin/debt-trackings/[id]/events/route.ts",
         "module:app/api/admin/debt-trackings/[id]/route.ts",
@@ -18598,6 +18640,8 @@
         "module:app/api/admin/connectors/providers/[providerId]/prepare/route.ts",
         "module:app/api/admin/connectors/providers/route.ts",
         "module:app/api/admin/connectors/route.ts",
+        "module:app/api/admin/debt-reminder-health/route.ts",
+        "module:app/api/admin/debt-reminder-workbench/route.ts",
         "module:app/api/admin/debt-trackings/[id]/draft/route.ts",
         "module:app/api/admin/debt-trackings/[id]/events/route.ts",
         "module:app/api/admin/debt-trackings/[id]/route.ts",
@@ -20268,14 +20312,14 @@
         {
           "name": "SystemLinksPage",
           "kind": "function",
-          "line_start": 5,
-          "line_end": 43
+          "line_start": 10,
+          "line_end": 48
         }
       ],
       "import_sites": [
         {
           "specifier": "@/config/system-links",
-          "line": 3,
+          "line": 8,
           "resolved_target": "config/system-links.ts"
         }
       ]
@@ -20611,11 +20655,7 @@
       ],
       "status": "OK",
       "runtime_entry_point": true,
-      "internal_dependencies": [
-        "module:presentation/feedback/CopyButton.tsx",
-        "module:registry/architecture-book.json.ts",
-        "module:registry/module-registry.json.ts"
-      ],
+      "internal_dependencies": [],
       "dependents": [],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -20633,25 +20673,8 @@
         {
           "name": "CeoDashboardPage",
           "kind": "function",
-          "line_start": 26,
-          "line_end": 103
-        }
-      ],
-      "import_sites": [
-        {
-          "specifier": "@/registry/module-registry.json",
-          "line": 1,
-          "resolved_target": "registry/module-registry.json.ts"
-        },
-        {
-          "specifier": "@/registry/architecture-book.json",
-          "line": 2,
-          "resolved_target": "registry/architecture-book.json.ts"
-        },
-        {
-          "specifier": "@/presentation/feedback/CopyButton",
-          "line": 4,
-          "resolved_target": "presentation/feedback/CopyButton.tsx"
+          "line_start": 17,
+          "line_end": 61
         }
       ]
     },
@@ -21550,7 +21573,7 @@
         "module:engines/documents/document-editor.ts"
       ],
       "dependents": [
-        "module:app/admin/debt-tracking/page.tsx"
+        "module:components/documents/DebtTrackingWorkspace.tsx"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -21941,7 +21964,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
-        "module:components/documents/DebtTrackingManager.tsx"
+        "module:components/documents/DebtTrackingWorkspace.tsx"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
@@ -21966,9 +21989,9 @@
       ],
       "import_sites": [
         {
-          "specifier": "@/components/documents/DebtTrackingManager",
+          "specifier": "@/components/documents/DebtTrackingWorkspace",
           "line": 1,
-          "resolved_target": "components/documents/DebtTrackingManager.tsx"
+          "resolved_target": "components/documents/DebtTrackingWorkspace.tsx"
         }
       ]
     },
@@ -21993,7 +22016,8 @@
         "module:app/api/admin/quotation-queue/route.ts",
         "module:engines/jobs/auto-create.ts",
         "module:engines/quote-price.ts",
-        "module:engines/validation/dispatcher.ts"
+        "module:engines/validation/dispatcher.ts",
+        "module:scripts/m019-unit-verify.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": [
@@ -22027,20 +22051,20 @@
         {
           "name": "splitMaterialText",
           "kind": "function",
-          "line_start": 20,
-          "line_end": 25
+          "line_start": 24,
+          "line_end": 29
         },
         {
           "name": "resolveMaterial",
           "kind": "function",
-          "line_start": 31,
-          "line_end": 47
+          "line_start": 35,
+          "line_end": 51
         },
         {
           "name": "resolveMaterialText",
           "kind": "function",
-          "line_start": 49,
-          "line_end": 51
+          "line_start": 53,
+          "line_end": 55
         }
       ]
     },
@@ -23959,6 +23983,12 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:engines/debt/holiday-calendar.ts",
+        "module:engines/debt/preview-mode.ts",
+        "module:engines/debt/reminder-message.ts",
+        "module:engines/debt/reminder-runner.ts",
+        "module:engines/debt/send-window.ts",
+        "module:engines/debt/snapshot-parity.ts",
         "module:engines/debt/tracking-calculator.ts",
         "module:supabase/functions/_shared/connect-event.ts",
         "module:supabase/functions/_shared/line-client.ts"
@@ -23967,6 +23997,7 @@
       "data_tables": [
         "app_configs",
         "business_events",
+        "company_debt_current",
         "company_line_links",
         "debt_events",
         "debt_snapshots",
@@ -23998,6 +24029,36 @@
           "specifier": "../../../engines/debt/tracking-calculator.ts",
           "line": 23,
           "resolved_target": "engines/debt/tracking-calculator.ts"
+        },
+        {
+          "specifier": "../../../engines/debt/reminder-message.ts",
+          "line": 28,
+          "resolved_target": "engines/debt/reminder-message.ts"
+        },
+        {
+          "specifier": "../../../engines/debt/send-window.ts",
+          "line": 29,
+          "resolved_target": "engines/debt/send-window.ts"
+        },
+        {
+          "specifier": "../../../engines/debt/preview-mode.ts",
+          "line": 30,
+          "resolved_target": "engines/debt/preview-mode.ts"
+        },
+        {
+          "specifier": "../../../engines/debt/holiday-calendar.ts",
+          "line": 31,
+          "resolved_target": "engines/debt/holiday-calendar.ts"
+        },
+        {
+          "specifier": "../../../engines/debt/snapshot-parity.ts",
+          "line": 32,
+          "resolved_target": "engines/debt/snapshot-parity.ts"
+        },
+        {
+          "specifier": "../../../engines/debt/reminder-runner.ts",
+          "line": 33,
+          "resolved_target": "engines/debt/reminder-runner.ts"
         }
       ]
     },
@@ -24123,6 +24184,7 @@
         "module:core/auth/session.ts",
         "module:core/config/company-settings.ts",
         "module:engines/canonical/event-write.ts",
+        "module:engines/debt/preview-mode.ts",
         "module:engines/documents/flex-template.ts",
         "module:registry/communication.ts",
         "module:services/supabase/queries.ts"
@@ -24150,8 +24212,8 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 27,
-          "line_end": 188
+          "line_start": 28,
+          "line_end": 205
         }
       ],
       "import_sites": [
@@ -24194,6 +24256,11 @@
           "specifier": "@/app/api/admin/ide/_lib/businessFailureBridge",
           "line": 9,
           "resolved_target": "app/api/admin/ide/_lib/businessFailureBridge.ts"
+        },
+        {
+          "specifier": "@/engines/debt/preview-mode",
+          "line": 10,
+          "resolved_target": "engines/debt/preview-mode.ts"
         }
       ]
     },
@@ -30920,8 +30987,8 @@
         {
           "name": "LineCustomersPage",
           "kind": "function",
-          "line_start": 172,
-          "line_end": 1123
+          "line_start": 174,
+          "line_end": 1125
         }
       ],
       "import_sites": [
@@ -33185,8 +33252,8 @@
         {
           "name": "LineProfilesPage",
           "kind": "function",
-          "line_start": 42,
-          "line_end": 168
+          "line_start": 43,
+          "line_end": 202
         }
       ]
     },
@@ -33389,7 +33456,7 @@
           "name": "GET",
           "kind": "function",
           "line_start": 14,
-          "line_end": 68
+          "line_end": 71
         }
       ],
       "import_sites": [
@@ -33515,7 +33582,7 @@
           "name": "PATCH",
           "kind": "function",
           "line_start": 63,
-          "line_end": 118
+          "line_end": 130
         }
       ],
       "import_sites": [
@@ -33890,7 +33957,11 @@
         "module:scripts/business-failure-bridge-test.ts",
         "module:scripts/demo-full-pipeline-part2.ts",
         "module:scripts/document-authority-census.test.ts",
-        "module:scripts/line-credential-path-test.ts"
+        "module:scripts/line-credential-path-test.ts",
+        "module:scripts/m022-debt-reminder-e2e.ts",
+        "module:scripts/m023-debt-reminder-integration-e2e.ts",
+        "module:scripts/m024-debt-readiness-gate.ts",
+        "module:scripts/m025-release-blockers-gate.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -44202,7 +44273,8 @@
       "name_en": "app/OperationalWorkspace.tsx",
       "purpose_th": "หน้าจอควบคุมสำหรับ Owner (Root Domain UI Conversion, 2026-08-05) — สถานะจริงของ Runtime/Registry/Gateway/Database/Connectors/Workers/Deployment/System Health/Costs ไม่มีข้อความประชาสัมพันธ์ Database กับ Costs เป็นแบบเรียลไทม์ผ่าน Supabase Realtime ส่วนอื่นอ่านจาก registry JSON ที่ build ไว้ render โดย app/page.tsx หลังผ่าน requireAuthPage",
       "exports": [
-        "OperationalWorkspace"
+        "OperationalWorkspace",
+        "OwnerContextInput"
       ],
       "status": "OK",
       "runtime_entry_point": false,
@@ -44216,7 +44288,6 @@
         "module:registry/architecture.json.ts",
         "module:registry/business-coverage.json.ts",
         "module:registry/connector-lifecycle.json.ts",
-        "module:registry/owner-context.json.ts",
         "module:registry/portals.json.ts",
         "module:services/supabase/browser.ts"
       ],
@@ -44240,10 +44311,16 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "OwnerContextInput",
+          "kind": "interface",
+          "line_start": 83,
+          "line_end": 87
+        },
+        {
           "name": "OperationalWorkspace",
           "kind": "function",
-          "line_start": 78,
-          "line_end": 84
+          "line_start": 89,
+          "line_end": 95
         }
       ],
       "import_sites": [
@@ -44258,53 +44335,48 @@
           "resolved_target": "registry/architecture.json.ts"
         },
         {
-          "specifier": "@/registry/owner-context.json",
-          "line": 7,
-          "resolved_target": "registry/owner-context.json.ts"
-        },
-        {
           "specifier": "@/registry/business-coverage.json",
-          "line": 8,
+          "line": 7,
           "resolved_target": "registry/business-coverage.json.ts"
         },
         {
           "specifier": "@/registry/connector-lifecycle.json",
-          "line": 9,
+          "line": 8,
           "resolved_target": "registry/connector-lifecycle.json.ts"
         },
         {
           "specifier": "@/registry/AI_REGISTRY.json",
-          "line": 10,
+          "line": 9,
           "resolved_target": "registry/AI_REGISTRY.json.ts"
         },
         {
           "specifier": "@/registry/AI_SESSIONS.json",
-          "line": 11,
+          "line": 10,
           "resolved_target": "registry/AI_SESSIONS.json.ts"
         },
         {
           "specifier": "@/registry/architecture-book.json",
-          "line": 12,
+          "line": 11,
           "resolved_target": "registry/architecture-book.json.ts"
         },
         {
           "specifier": "@/DNA_OS_HEALTH.json",
-          "line": 13,
+          "line": 12,
           "resolved_target": "DNA_OS_HEALTH.json.ts"
         },
         {
           "specifier": "@/services/supabase/browser",
-          "line": 14,
+          "line": 13,
           "resolved_target": "services/supabase/browser.ts"
         },
         {
           "specifier": "@/presentation/foundation/tokens",
-          "line": 20,
+          "line": 19,
           "resolved_target": "presentation/foundation/tokens/index.tsx"
         },
         {
           "specifier": "@/components/workspace/SystemRealityReportSection",
-          "line": 21,
+          "line": 20,
           "resolved_target": "components/workspace/SystemRealityReportSection.tsx"
         }
       ]
@@ -78336,6 +78408,7 @@
       ],
       "dependents": [
         "module:scripts/canonical-phase-c-acceptance-test.ts",
+        "module:scripts/m022-debt-reminder-e2e.ts",
         "module:services/canonical/document-detail.ts",
         "module:services/canonical/read-model.ts",
         "module:services/canonical/transaction-detail.ts"
@@ -79022,6 +79095,8 @@
         "module:gateway/actions.ts",
         "module:scripts/canonical-payment-invariant-test.ts",
         "module:scripts/canonical-phase-d-acceptance-test.ts",
+        "module:scripts/m022-debt-reminder-e2e.ts",
+        "module:scripts/m023-debt-reminder-integration-e2e.ts",
         "module:scripts/payment-rpc-adapter-test.ts"
       ],
       "data_tables": [
@@ -81304,7 +81379,6 @@
       "dependents": [
         "module:app/admin/ui-gallery/_lib/assemblyHost.tsx",
         "module:app/admin/ui-gallery/_lib/componentHost.tsx",
-        "module:app/business/page.tsx",
         "module:app/download/page.tsx"
       ],
       "data_tables": "UNKNOWN",
@@ -85540,7 +85614,8 @@
       "dependents": [
         "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
         "module:app/api/admin/relationships/[relationshipId]/match/route.ts",
-        "module:scripts/connect-identity-cutover-test.ts"
+        "module:scripts/connect-identity-cutover-test.ts",
+        "module:scripts/m025-release-blockers-gate.ts"
       ],
       "data_tables": [
         "connect_external_identities"
@@ -95641,6 +95716,7 @@
         "module:scripts/admin-read-scope.test.ts",
         "module:scripts/ai-data-scope-and-identity.test.ts",
         "module:scripts/ai-data-scope-live-check.ts",
+        "module:scripts/m015-scope-probe.ts",
         "module:services/supabase/queries.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -96071,8 +96147,10 @@
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:app/OperationalWorkspace.tsx",
+        "module:app/admin/operations/owner-context-dto.ts",
         "module:core/auth/requireAuthPage.ts",
-        "module:core/auth/session.ts"
+        "module:core/auth/session.ts",
+        "module:registry/owner-context.json.ts"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
@@ -96091,14 +96169,14 @@
         {
           "name": "dynamic",
           "kind": "const",
-          "line_start": 19,
-          "line_end": 19
+          "line_start": 21,
+          "line_end": 21
         },
         {
           "name": "AdminOperationsPage",
           "kind": "function",
-          "line_start": 21,
-          "line_end": 24
+          "line_start": 23,
+          "line_end": 31
         }
       ],
       "import_sites": [
@@ -96116,6 +96194,16 @@
           "specifier": "@/app/OperationalWorkspace",
           "line": 16,
           "resolved_target": "app/OperationalWorkspace.tsx"
+        },
+        {
+          "specifier": "@/registry/owner-context.json",
+          "line": 17,
+          "resolved_target": "registry/owner-context.json.ts"
+        },
+        {
+          "specifier": "./owner-context-dto",
+          "line": 18,
+          "resolved_target": "app/admin/operations/owner-context-dto.ts"
         }
       ]
     },
@@ -96448,6 +96536,7 @@
       ],
       "dependents": [
         "module:app/api/admin/backup/route.ts",
+        "module:app/api/admin/debt-reminder-workbench/route.ts",
         "module:app/api/admin/debt-trackings/[id]/route.ts",
         "module:app/api/admin/debt-trackings/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
@@ -96711,6 +96800,1710 @@
           "specifier": "@/app/api/chat/_lib/resultContract",
           "line": 25,
           "resolved_target": "app/api/chat/_lib/resultContract.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:core/webhook-signature.ts",
+      "type": "Module",
+      "layer": "core",
+      "name_en": "core/webhook-signature.ts",
+      "purpose_th": "Webhook signature header — shared rule for the two sides of the gateway:",
+      "exports": [
+        "normalizeSignatureHeader",
+        "requireSignatureHeader"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/api/admin/connectors/route.ts",
+        "module:app/api/connectors/webhook/[slug]/_lib/webhookGate.ts",
+        "module:gateway/connectors.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "core",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "normalizeSignatureHeader",
+          "kind": "function",
+          "line_start": 9,
+          "line_end": 11
+        },
+        {
+          "name": "requireSignatureHeader",
+          "kind": "function",
+          "line_start": 18,
+          "line_end": 26
+        }
+      ]
+    },
+    {
+      "id": "module:app/admin/operations/owner-context-dto.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/admin/operations/owner-context-dto.ts",
+      "purpose_th": "Explicit minimal server-side DTO for the owner-display fields of the",
+      "exports": [
+        "FORBIDDEN_OWNER_CONTEXT_SECTIONS",
+        "OwnerDisplayDTO",
+        "buildOwnerDisplayDTO"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/admin/operations/page.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "OwnerDisplayDTO",
+          "kind": "interface",
+          "line_start": 20,
+          "line_end": 31
+        },
+        {
+          "name": "FORBIDDEN_OWNER_CONTEXT_SECTIONS",
+          "kind": "const",
+          "line_start": 34,
+          "line_end": 48
+        },
+        {
+          "name": "buildOwnerDisplayDTO",
+          "kind": "function",
+          "line_start": 61,
+          "line_end": 76
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/connectors/webhook/[slug]/_lib/webhookGate.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/connectors/webhook/[slug]/_lib/webhookGate.ts",
+      "purpose_th": "Webhook Gate — the single place that decides whether an inbound webhook is",
+      "exports": [
+        "MAX_WEBHOOK_BODY_BYTES",
+        "WebhookGateConnector",
+        "WebhookGateInput",
+        "WebhookGateResult",
+        "WebhookRejectReason",
+        "deriveEventKey",
+        "evaluateWebhookRequest",
+        "readPath",
+        "requireSignatureHeader",
+        "verifySignature"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:core/webhook-signature.ts"
+      ],
+      "dependents": [
+        "module:app/api/connectors/webhook/[slug]/route.ts",
+        "module:scripts/connect-gateway-webhook-gate.test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "MAX_WEBHOOK_BODY_BYTES",
+          "kind": "const",
+          "line_start": 23,
+          "line_end": 23
+        },
+        {
+          "name": "WebhookRejectReason",
+          "kind": "type",
+          "line_start": 28,
+          "line_end": 35
+        },
+        {
+          "name": "WebhookGateConnector",
+          "kind": "interface",
+          "line_start": 37,
+          "line_end": 44
+        },
+        {
+          "name": "WebhookGateInput",
+          "kind": "interface",
+          "line_start": 46,
+          "line_end": 54
+        },
+        {
+          "name": "WebhookGateResult",
+          "kind": "type",
+          "line_start": 56,
+          "line_end": 69
+        },
+        {
+          "name": "verifySignature",
+          "kind": "function",
+          "line_start": 76,
+          "line_end": 84
+        },
+        {
+          "name": "readPath",
+          "kind": "function",
+          "line_start": 87,
+          "line_end": 97
+        },
+        {
+          "name": "deriveEventKey",
+          "kind": "function",
+          "line_start": 104,
+          "line_end": 108
+        },
+        {
+          "name": "evaluateWebhookRequest",
+          "kind": "function",
+          "line_start": 120,
+          "line_end": 177
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/webhook-signature",
+          "line": 18,
+          "resolved_target": "core/webhook-signature.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/m026-workbench-verify.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/m026-workbench-verify.ts",
+      "purpose_th": "M026 — staging workbench verification (isolated DB, synthetic data, no LINE).",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/debt/preview-mode.ts",
+        "module:engines/debt/workbench.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "line_events"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 17,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/debt/workbench",
+          "line": 18,
+          "resolved_target": "engines/debt/workbench.ts"
+        },
+        {
+          "specifier": "@/engines/debt/preview-mode",
+          "line": 22,
+          "resolved_target": "engines/debt/preview-mode.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/m025-release-blockers-gate.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/m025-release-blockers-gate.ts",
+      "purpose_th": "M025 — Debt reminder release-blocker gate (isolated, synthetic, NO real send)",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/connect/identity.ts",
+        "module:engines/debt/holiday-calendar.ts",
+        "module:engines/debt/reminder-message.ts",
+        "module:engines/debt/reminder-runner.ts",
+        "module:engines/debt/send-window.ts",
+        "module:engines/debt/snapshot-parity.ts",
+        "module:registry/communication.ts",
+        "module:services/debt/reminder-health.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "company_debt_position",
+        "line_events"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 16,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/registry/communication",
+          "line": 17,
+          "resolved_target": "registry/communication.ts"
+        },
+        {
+          "specifier": "@/engines/debt/reminder-message",
+          "line": 18,
+          "resolved_target": "engines/debt/reminder-message.ts"
+        },
+        {
+          "specifier": "@/engines/debt/send-window",
+          "line": 19,
+          "resolved_target": "engines/debt/send-window.ts"
+        },
+        {
+          "specifier": "@/engines/debt/holiday-calendar",
+          "line": 20,
+          "resolved_target": "engines/debt/holiday-calendar.ts"
+        },
+        {
+          "specifier": "@/engines/debt/snapshot-parity",
+          "line": 21,
+          "resolved_target": "engines/debt/snapshot-parity.ts"
+        },
+        {
+          "specifier": "@/engines/debt/reminder-runner",
+          "line": 22,
+          "resolved_target": "engines/debt/reminder-runner.ts"
+        },
+        {
+          "specifier": "@/engines/connect/identity",
+          "line": 23,
+          "resolved_target": "engines/connect/identity.ts"
+        },
+        {
+          "specifier": "@/services/debt/reminder-health",
+          "line": 24,
+          "resolved_target": "services/debt/reminder-health.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/m024-debt-readiness-gate.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/m024-debt-readiness-gate.ts",
+      "purpose_th": "M024 — Debt reminder production-readiness gate (isolated, synthetic, NO real send)",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/debt/reminder-message.ts",
+        "module:engines/debt/reminder-runner.ts",
+        "module:engines/debt/send-window.ts",
+        "module:registry/communication.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "company_debt_position",
+        "company_line_links",
+        "line_events",
+        "line_profiles"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 16,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/registry/communication",
+          "line": 17,
+          "resolved_target": "registry/communication.ts"
+        },
+        {
+          "specifier": "@/engines/debt/reminder-message",
+          "line": 18,
+          "resolved_target": "engines/debt/reminder-message.ts"
+        },
+        {
+          "specifier": "@/engines/debt/send-window",
+          "line": 19,
+          "resolved_target": "engines/debt/send-window.ts"
+        },
+        {
+          "specifier": "@/engines/debt/reminder-runner",
+          "line": 20,
+          "resolved_target": "engines/debt/reminder-runner.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/m023-debt-reminder-integration-e2e.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/m023-debt-reminder-integration-e2e.ts",
+      "purpose_th": "M023 — Automated debt reminder integration (isolated, synthetic, NO real LINE send)",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/canonical/payment-write.ts",
+        "module:engines/debt/reminder-message.ts",
+        "module:engines/debt/reminder-runner.ts",
+        "module:registry/communication.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "company_debt_position",
+        "line_events",
+        "payment_allocations",
+        "receipt_documents"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 18,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/registry/communication",
+          "line": 19,
+          "resolved_target": "registry/communication.ts"
+        },
+        {
+          "specifier": "@/engines/debt/reminder-message",
+          "line": 20,
+          "resolved_target": "engines/debt/reminder-message.ts"
+        },
+        {
+          "specifier": "@/engines/debt/reminder-runner",
+          "line": 21,
+          "resolved_target": "engines/debt/reminder-runner.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/payment-write",
+          "line": 22,
+          "resolved_target": "engines/canonical/payment-write.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/m022-debt-reminder-e2e.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/m022-debt-reminder-e2e.ts",
+      "purpose_th": "M022 — Debt reminder end-to-end acceptance (isolated, synthetic, NO real LINE send)",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/canonical/payment-write.ts",
+        "module:engines/debt/reminder-message.ts",
+        "module:engines/debt/scheduler.ts",
+        "module:registry/communication.ts",
+        "module:services/canonical/payments.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "company_line_links",
+        "debt_snapshots",
+        "invoice_payment_summary",
+        "invoices",
+        "line_events",
+        "line_profiles",
+        "payment_allocations",
+        "receipt_documents"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 20,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/services/canonical/payments",
+          "line": 21,
+          "resolved_target": "services/canonical/payments.ts"
+        },
+        {
+          "specifier": "@/registry/communication",
+          "line": 22,
+          "resolved_target": "registry/communication.ts"
+        },
+        {
+          "specifier": "@/engines/debt/scheduler",
+          "line": 23,
+          "resolved_target": "engines/debt/scheduler.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/payment-write",
+          "line": 24,
+          "resolved_target": "engines/canonical/payment-write.ts"
+        },
+        {
+          "specifier": "@/engines/debt/reminder-message",
+          "line": 25,
+          "resolved_target": "engines/debt/reminder-message.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/m020-inherited-evidence.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/m020-inherited-evidence.ts",
+      "purpose_th": "M020 — Inherited evidence reconciliation (85 rows: gateway 41, workspace 27,",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/m019-unit-verify.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/m019-unit-verify.ts",
+      "purpose_th": "M019 — Capability Unit Verification (26 business capabilities)",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/debt/calculator.ts",
+        "module:engines/debt/collection.ts",
+        "module:engines/debt/interest.ts",
+        "module:engines/debt/overdue.ts",
+        "module:engines/debt/status.ts",
+        "module:engines/debt/transition.ts",
+        "module:engines/documents/document-editor.ts",
+        "module:engines/material-resolver.ts",
+        "module:engines/transactions/state-machine.ts",
+        "module:engines/transactions/workflows.ts",
+        "module:engines/vehicle-selector.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/engines/vehicle-selector",
+          "line": 11,
+          "resolved_target": "engines/vehicle-selector.ts"
+        },
+        {
+          "specifier": "@/engines/material-resolver",
+          "line": 12,
+          "resolved_target": "engines/material-resolver.ts"
+        },
+        {
+          "specifier": "@/engines/debt/interest",
+          "line": 17,
+          "resolved_target": "engines/debt/interest.ts"
+        },
+        {
+          "specifier": "@/engines/debt/calculator",
+          "line": 18,
+          "resolved_target": "engines/debt/calculator.ts"
+        },
+        {
+          "specifier": "@/engines/debt/overdue",
+          "line": 19,
+          "resolved_target": "engines/debt/overdue.ts"
+        },
+        {
+          "specifier": "@/engines/debt/status",
+          "line": 20,
+          "resolved_target": "engines/debt/status.ts"
+        },
+        {
+          "specifier": "@/engines/debt/collection",
+          "line": 26,
+          "resolved_target": "engines/debt/collection.ts"
+        },
+        {
+          "specifier": "@/engines/debt/transition",
+          "line": 27,
+          "resolved_target": "engines/debt/transition.ts"
+        },
+        {
+          "specifier": "@/engines/transactions/state-machine",
+          "line": 28,
+          "resolved_target": "engines/transactions/state-machine.ts"
+        },
+        {
+          "specifier": "@/engines/transactions/workflows",
+          "line": 32,
+          "resolved_target": "engines/transactions/workflows.ts"
+        },
+        {
+          "specifier": "@/engines/documents/document-editor",
+          "line": 39,
+          "resolved_target": "engines/documents/document-editor.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/m019-static-read-verify.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/m019-static-read-verify.ts",
+      "purpose_th": "M019 — Static-read + Business-API verification",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/runtime/engine.ts",
+        "module:engines/business.ts",
+        "module:engines/validation/dispatcher.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/engines/validation/dispatcher",
+          "line": 15,
+          "resolved_target": "engines/validation/dispatcher.ts"
+        },
+        {
+          "specifier": "@/engines/business",
+          "line": 22,
+          "resolved_target": "engines/business.ts"
+        },
+        {
+          "specifier": "@/core/runtime/engine",
+          "line": 23,
+          "resolved_target": "core/runtime/engine.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/m015-storage-probe.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/m015-storage-probe.ts",
+      "purpose_th": "M015 Stage 5 — Storage contract probe (final, assertion-free).",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": [
+        "attachments",
+        "audit_logs",
+        "document_artifacts",
+        "document_versions"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/m015-scope-probe.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/m015-scope-probe.ts",
+      "purpose_th": "M015 scope-probe (T1–T4) — pure module probes of core/authority/data-scope.ts",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/authority/data-scope.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "@/core/authority/data-scope",
+          "line": 4,
+          "resolved_target": "core/authority/data-scope.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:scripts/m015-runner.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/m015-runner.ts",
+      "purpose_th": "M015 runner — ONE canonical engine call per process invocation.",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/m014-runner.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/m014-runner.ts",
+      "purpose_th": "M014 concurrency runner — ONE canonical engine call per process invocation.",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:services/debt/reminder-health.ts",
+      "type": "Module",
+      "layer": "services",
+      "name_en": "services/debt/reminder-health.ts",
+      "purpose_th": "Debt reminder delivery health — READ ONLY.",
+      "exports": [
+        "ReminderFailure",
+        "ReminderHealth",
+        "ReminderRowStatus",
+        "getDebtReminderHealth"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/api/admin/debt-reminder-health/route.ts",
+        "module:scripts/m025-release-blockers-gate.ts"
+      ],
+      "data_tables": [
+        "line_events"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "services",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ReminderRowStatus",
+          "kind": "type",
+          "line_start": 17,
+          "line_end": 17
+        },
+        {
+          "name": "ReminderFailure",
+          "kind": "interface",
+          "line_start": 19,
+          "line_end": 28
+        },
+        {
+          "name": "ReminderHealth",
+          "kind": "interface",
+          "line_start": 30,
+          "line_end": 42
+        },
+        {
+          "name": "getDebtReminderHealth",
+          "kind": "function",
+          "line_start": 62,
+          "line_end": 120
+        }
+      ]
+    },
+    {
+      "id": "module:engines/debt/snapshot-parity.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/debt/snapshot-parity.ts",
+      "purpose_th": "Snapshot parity — PURE. Is the cached `debt_snapshots.total_outstanding` still",
+      "exports": [
+        "SNAPSHOT_TOLERANCE",
+        "SnapshotParity",
+        "SnapshotParityStatus",
+        "compareSnapshotToLedger"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:scripts/m025-release-blockers-gate.ts",
+        "module:supabase/functions/debt-reminder-cron/index.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "SnapshotParityStatus",
+          "kind": "type",
+          "line_start": 17,
+          "line_end": 17
+        },
+        {
+          "name": "SnapshotParity",
+          "kind": "interface",
+          "line_start": 19,
+          "line_end": 26
+        },
+        {
+          "name": "SNAPSHOT_TOLERANCE",
+          "kind": "const",
+          "line_start": 28,
+          "line_end": 28
+        },
+        {
+          "name": "compareSnapshotToLedger",
+          "kind": "function",
+          "line_start": 30,
+          "line_end": 68
+        }
+      ]
+    },
+    {
+      "id": "module:engines/debt/send-window.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/debt/send-window.ts",
+      "purpose_th": "Debt Reminder Send Window — PURE, no I/O.",
+      "exports": [
+        "DayKind",
+        "ReminderTickPlan",
+        "SendWindowInput",
+        "SendWindowPlan",
+        "planReminderTick",
+        "planSendWindow"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:scripts/m024-debt-readiness-gate.ts",
+        "module:scripts/m025-release-blockers-gate.ts",
+        "module:supabase/functions/debt-reminder-cron/index.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "DayKind",
+          "kind": "type",
+          "line_start": 22,
+          "line_end": 22
+        },
+        {
+          "name": "SendWindowPlan",
+          "kind": "interface",
+          "line_start": 24,
+          "line_end": 35
+        },
+        {
+          "name": "SendWindowInput",
+          "kind": "interface",
+          "line_start": 37,
+          "line_end": 42
+        },
+        {
+          "name": "ReminderTickPlan",
+          "kind": "interface",
+          "line_start": 73,
+          "line_end": 80
+        },
+        {
+          "name": "planReminderTick",
+          "kind": "function",
+          "line_start": 90,
+          "line_end": 105
+        },
+        {
+          "name": "planSendWindow",
+          "kind": "function",
+          "line_start": 107,
+          "line_end": 135
+        }
+      ]
+    },
+    {
+      "id": "module:engines/debt/reminder-runner.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/debt/reminder-runner.ts",
+      "purpose_th": "Debt Reminder Runner — the ONE orchestration for an automated reminder.",
+      "exports": [
+        "Composer",
+        "ComposerInput",
+        "ComposerPlan",
+        "DEBT_RECIPIENT_ROLES",
+        "InvoiceDebt",
+        "MAX_SEND_ATTEMPTS",
+        "ReminderOutcome",
+        "ReminderRunResult",
+        "ReminderRunnerDeps",
+        "ReminderSkipReason",
+        "ReminderState",
+        "SendResult",
+        "Sender",
+        "businessDateIn",
+        "readCompanyInvoiceDebt",
+        "runCompanyReminder",
+        "runDebtReminders",
+        "selectDebtRecipient"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:engines/debt/workbench.ts",
+        "module:scripts/m023-debt-reminder-integration-e2e.ts",
+        "module:scripts/m024-debt-readiness-gate.ts",
+        "module:scripts/m025-release-blockers-gate.ts",
+        "module:supabase/functions/debt-reminder-cron/index.ts"
+      ],
+      "data_tables": [
+        "company_debt_position",
+        "company_line_links",
+        "invoice_payment_summary",
+        "invoices",
+        "line_events",
+        "line_profiles"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ReminderState",
+          "kind": "type",
+          "line_start": 28,
+          "line_end": 28
+        },
+        {
+          "name": "ComposerInput",
+          "kind": "interface",
+          "line_start": 30,
+          "line_end": 40
+        },
+        {
+          "name": "ComposerPlan",
+          "kind": "interface",
+          "line_start": 42,
+          "line_end": 51
+        },
+        {
+          "name": "Composer",
+          "kind": "type",
+          "line_start": 53,
+          "line_end": 53
+        },
+        {
+          "name": "SendResult",
+          "kind": "type",
+          "line_start": 55,
+          "line_end": 59
+        },
+        {
+          "name": "Sender",
+          "kind": "type",
+          "line_start": 61,
+          "line_end": 61
+        },
+        {
+          "name": "ReminderRunnerDeps",
+          "kind": "interface",
+          "line_start": 63,
+          "line_end": 89
+        },
+        {
+          "name": "ReminderOutcome",
+          "kind": "type",
+          "line_start": 91,
+          "line_end": 94
+        },
+        {
+          "name": "ReminderSkipReason",
+          "kind": "type",
+          "line_start": 96,
+          "line_end": 110
+        },
+        {
+          "name": "ReminderRunResult",
+          "kind": "interface",
+          "line_start": 112,
+          "line_end": 125
+        },
+        {
+          "name": "MAX_SEND_ATTEMPTS",
+          "kind": "const",
+          "line_start": 136,
+          "line_end": 136
+        },
+        {
+          "name": "DEBT_RECIPIENT_ROLES",
+          "kind": "const",
+          "line_start": 143,
+          "line_end": 150
+        },
+        {
+          "name": "businessDateIn",
+          "kind": "function",
+          "line_start": 152,
+          "line_end": 161
+        },
+        {
+          "name": "InvoiceDebt",
+          "kind": "interface",
+          "line_start": 167,
+          "line_end": 175
+        },
+        {
+          "name": "readCompanyInvoiceDebt",
+          "kind": "function",
+          "line_start": 182,
+          "line_end": 213
+        },
+        {
+          "name": "selectDebtRecipient",
+          "kind": "function",
+          "line_start": 234,
+          "line_end": 299
+        },
+        {
+          "name": "runCompanyReminder",
+          "kind": "function",
+          "line_start": 348,
+          "line_end": 510
+        },
+        {
+          "name": "runDebtReminders",
+          "kind": "function",
+          "line_start": 512,
+          "line_end": 549
+        }
+      ]
+    },
+    {
+      "id": "module:engines/debt/reminder-message.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/debt/reminder-message.ts",
+      "purpose_th": "Debt Reminder Message Composer — PURE, no I/O, no AI, no money math.",
+      "exports": [
+        "ReminderInput",
+        "ReminderMessage",
+        "ReminderPlan",
+        "ReminderState",
+        "assertReminderPolicy",
+        "planDebtReminder"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:engines/debt/workbench.ts",
+        "module:scripts/m022-debt-reminder-e2e.ts",
+        "module:scripts/m023-debt-reminder-integration-e2e.ts",
+        "module:scripts/m024-debt-readiness-gate.ts",
+        "module:scripts/m025-release-blockers-gate.ts",
+        "module:supabase/functions/debt-reminder-cron/index.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ReminderState",
+          "kind": "type",
+          "line_start": 19,
+          "line_end": 19
+        },
+        {
+          "name": "ReminderInput",
+          "kind": "interface",
+          "line_start": 21,
+          "line_end": 40
+        },
+        {
+          "name": "ReminderMessage",
+          "kind": "interface",
+          "line_start": 42,
+          "line_end": 54
+        },
+        {
+          "name": "ReminderPlan",
+          "kind": "type",
+          "line_start": 56,
+          "line_end": 58
+        },
+        {
+          "name": "assertReminderPolicy",
+          "kind": "function",
+          "line_start": 85,
+          "line_end": 92
+        },
+        {
+          "name": "planDebtReminder",
+          "kind": "function",
+          "line_start": 94,
+          "line_end": 163
+        }
+      ]
+    },
+    {
+      "id": "module:engines/debt/preview-mode.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/debt/preview-mode.ts",
+      "purpose_th": "SAFE PREVIEW MODE — one flag, read by every debt-collection sender.",
+      "exports": [
+        "isDebtPreviewMode"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/api/admin/debt-reminder-workbench/route.ts",
+        "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
+        "module:scripts/m026-workbench-verify.ts",
+        "module:supabase/functions/debt-reminder-cron/index.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "isDebtPreviewMode",
+          "kind": "function",
+          "line_start": 19,
+          "line_end": 22
+        }
+      ]
+    },
+    {
+      "id": "module:engines/debt/holiday-calendar.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/debt/holiday-calendar.ts",
+      "purpose_th": "Thai public-holiday calendar — PURE validation, no I/O, no assumed dates.",
+      "exports": [
+        "CalendarStatus",
+        "HolidayCalendar",
+        "HolidayDay",
+        "HolidayKind",
+        "HolidayYearEntry",
+        "listedYears",
+        "resolveHolidayCalendar"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:scripts/m025-release-blockers-gate.ts",
+        "module:supabase/functions/debt-reminder-cron/index.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "HolidayKind",
+          "kind": "type",
+          "line_start": 31,
+          "line_end": 31
+        },
+        {
+          "name": "HolidayDay",
+          "kind": "interface",
+          "line_start": 33,
+          "line_end": 37
+        },
+        {
+          "name": "HolidayYearEntry",
+          "kind": "interface",
+          "line_start": 39,
+          "line_end": 44
+        },
+        {
+          "name": "CalendarStatus",
+          "kind": "type",
+          "line_start": 46,
+          "line_end": 52
+        },
+        {
+          "name": "HolidayCalendar",
+          "kind": "interface",
+          "line_start": 54,
+          "line_end": 63
+        },
+        {
+          "name": "resolveHolidayCalendar",
+          "kind": "function",
+          "line_start": 102,
+          "line_end": 162
+        },
+        {
+          "name": "listedYears",
+          "kind": "function",
+          "line_start": 165,
+          "line_end": 173
+        }
+      ]
+    },
+    {
+      "id": "module:components/documents/DebtTrackingWorkspace.tsx",
+      "type": "Module",
+      "layer": "components",
+      "name_en": "components/documents/DebtTrackingWorkspace.tsx",
+      "purpose_th": "The existing debt-tracking workspace, with the collection workbench as a second",
+      "exports": [
+        "DebtTrackingWorkspace"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:components/documents/DebtReminderWorkbench.tsx",
+        "module:components/documents/DebtTrackingManager.tsx"
+      ],
+      "dependents": [
+        "module:app/admin/debt-tracking/page.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "components",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "DebtTrackingWorkspace",
+          "kind": "function",
+          "line_start": 11,
+          "line_end": 52
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./DebtTrackingManager",
+          "line": 4,
+          "resolved_target": "components/documents/DebtTrackingManager.tsx"
+        },
+        {
+          "specifier": "./DebtReminderWorkbench",
+          "line": 5,
+          "resolved_target": "components/documents/DebtReminderWorkbench.tsx"
+        }
+      ]
+    },
+    {
+      "id": "module:components/documents/DebtReminderWorkbench.tsx",
+      "type": "Module",
+      "layer": "components",
+      "name_en": "components/documents/DebtReminderWorkbench.tsx",
+      "purpose_th": "Debt Collection Workbench (M026) — a tab inside the existing debt-tracking",
+      "exports": [
+        "DebtReminderWorkbench"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:components/documents/DebtTrackingWorkspace.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "components",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "DebtReminderWorkbench",
+          "kind": "function",
+          "line_start": 124,
+          "line_end": 312
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/debt-reminder-workbench/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/debt-reminder-workbench/route.ts",
+      "purpose_th": "Debt Collection Workbench (M026) — the staging screen's data source.",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:app/api/admin/_lib/read-scope.ts",
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:core/config/company-settings.ts",
+        "module:engines/debt/preview-mode.ts",
+        "module:engines/debt/workbench.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "app_configs"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "GET",
+          "kind": "function",
+          "line_start": 42,
+          "line_end": 67
+        },
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 69,
+          "line_end": 118
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/auth/requireAuth",
+          "line": 2,
+          "resolved_target": "core/auth/requireAuth.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 3,
+          "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 4,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/app/api/admin/_lib/read-scope",
+          "line": 5,
+          "resolved_target": "app/api/admin/_lib/read-scope.ts"
+        },
+        {
+          "specifier": "@/core/config/company-settings",
+          "line": 6,
+          "resolved_target": "core/config/company-settings.ts"
+        },
+        {
+          "specifier": "@/engines/debt/preview-mode",
+          "line": 7,
+          "resolved_target": "engines/debt/preview-mode.ts"
+        },
+        {
+          "specifier": "@/engines/debt/workbench",
+          "line": 8,
+          "resolved_target": "engines/debt/workbench.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/debt-reminder-health/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/debt-reminder-health/route.ts",
+      "purpose_th": "Debt Reminder delivery health (M025) — the operator's answer to \"did anything",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:services/debt/reminder-health.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "GET",
+          "kind": "function",
+          "line_start": 10,
+          "line_end": 29
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/auth/requireAuth",
+          "line": 2,
+          "resolved_target": "core/auth/requireAuth.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 3,
+          "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 4,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/services/debt/reminder-health",
+          "line": 5,
+          "resolved_target": "services/debt/reminder-health.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:engines/debt/workbench.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/debt/workbench.ts",
+      "purpose_th": "Debt reminder workbench — the read model behind the staging screen.",
+      "exports": [
+        "PreviewMessage",
+        "PreviewSendInput",
+        "PreviewSendResult",
+        "TrackingStatus",
+        "WorkbenchHistoryRow",
+        "WorkbenchOptions",
+        "WorkbenchResult",
+        "WorkbenchRow",
+        "buildDebtReminderWorkbench",
+        "previewDebtReminder"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:engines/debt/reminder-message.ts",
+        "module:engines/debt/reminder-runner.ts"
+      ],
+      "dependents": [
+        "module:app/api/admin/debt-reminder-workbench/route.ts",
+        "module:scripts/m026-workbench-verify.ts"
+      ],
+      "data_tables": [
+        "companies",
+        "company_debt_position",
+        "line_events",
+        "line_profiles"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "TrackingStatus",
+          "kind": "type",
+          "line_start": 23,
+          "line_end": 23
+        },
+        {
+          "name": "PreviewMessage",
+          "kind": "interface",
+          "line_start": 25,
+          "line_end": 29
+        },
+        {
+          "name": "WorkbenchHistoryRow",
+          "kind": "interface",
+          "line_start": 31,
+          "line_end": 41
+        },
+        {
+          "name": "WorkbenchRow",
+          "kind": "interface",
+          "line_start": 43,
+          "line_end": 73
+        },
+        {
+          "name": "WorkbenchResult",
+          "kind": "interface",
+          "line_start": 75,
+          "line_end": 90
+        },
+        {
+          "name": "WorkbenchOptions",
+          "kind": "interface",
+          "line_start": 142,
+          "line_end": 150
+        },
+        {
+          "name": "buildDebtReminderWorkbench",
+          "kind": "function",
+          "line_start": 152,
+          "line_end": 303
+        },
+        {
+          "name": "PreviewSendInput",
+          "kind": "interface",
+          "line_start": 305,
+          "line_end": 313
+        },
+        {
+          "name": "PreviewSendResult",
+          "kind": "interface",
+          "line_start": 315,
+          "line_end": 322
+        },
+        {
+          "name": "previewDebtReminder",
+          "kind": "function",
+          "line_start": 324,
+          "line_end": 391
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/engines/debt/reminder-runner",
+          "line": 15,
+          "resolved_target": "engines/debt/reminder-runner.ts"
+        },
+        {
+          "specifier": "@/engines/debt/reminder-message",
+          "line": 21,
+          "resolved_target": "engines/debt/reminder-message.ts"
         }
       ]
     }
@@ -97128,6 +98921,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/admin/operations/owner-context-dto.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/admin/operations/page.tsx",
       "label": "contains"
     },
@@ -97414,6 +99212,16 @@
     {
       "source": "layer:app",
       "target": "module:app/api/admin/connectors/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/debt-reminder-health/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/debt-reminder-workbench/route.ts",
       "label": "contains"
     },
     {
@@ -99263,6 +101071,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/connectors/webhook/[slug]/_lib/webhookGate.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/connectors/webhook/[slug]/route.ts",
       "label": "contains"
     },
@@ -100083,7 +101896,17 @@
     },
     {
       "source": "layer:components",
+      "target": "module:components/documents/DebtReminderWorkbench.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:components",
       "target": "module:components/documents/DebtTrackingManager.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:components",
+      "target": "module:components/documents/DebtTrackingWorkspace.tsx",
       "label": "contains"
     },
     {
@@ -100429,6 +102252,11 @@
     {
       "source": "layer:core",
       "target": "module:core/shared/types.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:core",
+      "target": "module:core/webhook-signature.ts",
       "label": "contains"
     },
     {
@@ -100878,6 +102706,11 @@
     },
     {
       "source": "layer:engines",
+      "target": "module:engines/debt/holiday-calendar.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
       "target": "module:engines/debt/interest.ts",
       "label": "contains"
     },
@@ -100888,7 +102721,32 @@
     },
     {
       "source": "layer:engines",
+      "target": "module:engines/debt/preview-mode.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/debt/reminder-message.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/debt/reminder-runner.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
       "target": "module:engines/debt/scheduler.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/debt/send-window.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/debt/snapshot-parity.ts",
       "label": "contains"
     },
     {
@@ -100909,6 +102767,11 @@
     {
       "source": "layer:engines",
       "target": "module:engines/debt/transition.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/debt/workbench.ts",
       "label": "contains"
     },
     {
@@ -102823,6 +104686,66 @@
     },
     {
       "source": "layer:scripts",
+      "target": "module:scripts/m014-runner.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/m015-runner.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/m015-scope-probe.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/m015-storage-probe.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/m019-static-read-verify.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/m019-unit-verify.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/m020-inherited-evidence.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/m022-debt-reminder-e2e.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/m023-debt-reminder-integration-e2e.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/m024-debt-readiness-gate.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/m025-release-blockers-gate.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/m026-workbench-verify.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
       "target": "module:scripts/manager-question-queue-test.ts",
       "label": "contains"
     },
@@ -103284,6 +105207,11 @@
     {
       "source": "layer:services",
       "target": "module:services/data-boundary/dataBoundaryRuntime.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:services",
+      "target": "module:services/debt/reminder-health.ts",
       "label": "contains"
     },
     {
@@ -103843,11 +105771,6 @@
     },
     {
       "source": "module:app/OperationalWorkspace.tsx",
-      "target": "module:registry/owner-context.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/OperationalWorkspace.tsx",
       "target": "module:registry/portals.json.ts",
       "label": "imports"
     },
@@ -103908,7 +105831,7 @@
     },
     {
       "source": "module:app/admin/debt-tracking/page.tsx",
-      "target": "module:components/documents/DebtTrackingManager.tsx",
+      "target": "module:components/documents/DebtTrackingWorkspace.tsx",
       "label": "imports"
     },
     {
@@ -104083,12 +106006,22 @@
     },
     {
       "source": "module:app/admin/operations/page.tsx",
+      "target": "module:app/admin/operations/owner-context-dto.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/admin/operations/page.tsx",
       "target": "module:core/auth/requireAuthPage.ts",
       "label": "imports"
     },
     {
       "source": "module:app/admin/operations/page.tsx",
       "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/admin/operations/page.tsx",
+      "target": "module:registry/owner-context.json.ts",
       "label": "imports"
     },
     {
@@ -105318,6 +107251,11 @@
     },
     {
       "source": "module:app/api/admin/connectors/route.ts",
+      "target": "module:core/webhook-signature.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/route.ts",
       "target": "module:engines/connectors/registry.ts",
       "label": "imports"
     },
@@ -105333,6 +107271,61 @@
     },
     {
       "source": "module:app/api/admin/connectors/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-reminder-health/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-reminder-health/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-reminder-health/route.ts",
+      "target": "module:services/debt/reminder-health.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-reminder-health/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-reminder-workbench/route.ts",
+      "target": "module:app/api/admin/_lib/read-scope.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-reminder-workbench/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-reminder-workbench/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-reminder-workbench/route.ts",
+      "target": "module:core/config/company-settings.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-reminder-workbench/route.ts",
+      "target": "module:engines/debt/preview-mode.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-reminder-workbench/route.ts",
+      "target": "module:engines/debt/workbench.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/debt-reminder-workbench/route.ts",
       "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
@@ -110908,6 +112901,11 @@
     },
     {
       "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
+      "target": "module:engines/debt/preview-mode.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/line-customers/[lineUserId]/send-debt/route.ts",
       "target": "module:engines/documents/flex-template.ts",
       "label": "imports"
     },
@@ -112362,6 +114360,21 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/connectors/webhook/[slug]/_lib/webhookGate.ts",
+      "target": "module:core/webhook-signature.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/connectors/webhook/[slug]/_lib/webhookGate.ts",
+      "target": "module:core/webhook-signature.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/connectors/webhook/[slug]/route.ts",
+      "target": "module:app/api/connectors/webhook/[slug]/_lib/webhookGate.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/connectors/webhook/[slug]/route.ts",
       "target": "module:core/connector-loader.ts",
       "label": "imports"
@@ -113274,21 +115287,6 @@
     {
       "source": "module:app/business/layout.tsx",
       "target": "module:registry/portals.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/business/page.tsx",
-      "target": "module:presentation/feedback/CopyButton.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/business/page.tsx",
-      "target": "module:registry/architecture-book.json.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/business/page.tsx",
-      "target": "module:registry/module-registry.json.ts",
       "label": "imports"
     },
     {
@@ -114719,6 +116717,16 @@
     {
       "source": "module:components/documents/DebtTrackingManager.tsx",
       "target": "module:engines/documents/document-editor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DebtTrackingWorkspace.tsx",
+      "target": "module:components/documents/DebtReminderWorkbench.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/documents/DebtTrackingWorkspace.tsx",
+      "target": "module:components/documents/DebtTrackingManager.tsx",
       "label": "imports"
     },
     {
@@ -116687,6 +118695,16 @@
       "label": "imports"
     },
     {
+      "source": "module:engines/debt/workbench.ts",
+      "target": "module:engines/debt/reminder-message.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/debt/workbench.ts",
+      "target": "module:engines/debt/reminder-runner.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:engines/distance.selfDescription.ts",
       "target": "module:core/runtime/contextBroker.ts",
       "label": "imports"
@@ -117839,6 +119857,11 @@
     {
       "source": "module:gateway/connectors.ts",
       "target": "module:core/connector-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:gateway/connectors.ts",
+      "target": "module:core/webhook-signature.ts",
       "label": "imports"
     },
     {
@@ -119737,6 +121760,11 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/connect-gateway-webhook-gate.test.ts",
+      "target": "module:app/api/connectors/webhook/[slug]/_lib/webhookGate.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/connect-identity-cutover-test.ts",
       "target": "module:engines/connect/identity.ts",
       "label": "imports"
@@ -120634,6 +122662,221 @@
     {
       "source": "module:scripts/login-autofill-test.ts",
       "target": "module:services/supabase/browser.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m015-scope-probe.ts",
+      "target": "module:core/authority/data-scope.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-static-read-verify.ts",
+      "target": "module:core/runtime/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-static-read-verify.ts",
+      "target": "module:engines/business.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-static-read-verify.ts",
+      "target": "module:engines/validation/dispatcher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-unit-verify.ts",
+      "target": "module:engines/debt/calculator.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-unit-verify.ts",
+      "target": "module:engines/debt/collection.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-unit-verify.ts",
+      "target": "module:engines/debt/interest.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-unit-verify.ts",
+      "target": "module:engines/debt/overdue.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-unit-verify.ts",
+      "target": "module:engines/debt/status.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-unit-verify.ts",
+      "target": "module:engines/debt/transition.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-unit-verify.ts",
+      "target": "module:engines/documents/document-editor.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-unit-verify.ts",
+      "target": "module:engines/material-resolver.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-unit-verify.ts",
+      "target": "module:engines/transactions/state-machine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-unit-verify.ts",
+      "target": "module:engines/transactions/workflows.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m019-unit-verify.ts",
+      "target": "module:engines/vehicle-selector.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m022-debt-reminder-e2e.ts",
+      "target": "module:engines/canonical/payment-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m022-debt-reminder-e2e.ts",
+      "target": "module:engines/debt/reminder-message.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m022-debt-reminder-e2e.ts",
+      "target": "module:engines/debt/scheduler.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m022-debt-reminder-e2e.ts",
+      "target": "module:registry/communication.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m022-debt-reminder-e2e.ts",
+      "target": "module:services/canonical/payments.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m022-debt-reminder-e2e.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m023-debt-reminder-integration-e2e.ts",
+      "target": "module:engines/canonical/payment-write.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m023-debt-reminder-integration-e2e.ts",
+      "target": "module:engines/debt/reminder-message.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m023-debt-reminder-integration-e2e.ts",
+      "target": "module:engines/debt/reminder-runner.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m023-debt-reminder-integration-e2e.ts",
+      "target": "module:registry/communication.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m023-debt-reminder-integration-e2e.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m024-debt-readiness-gate.ts",
+      "target": "module:engines/debt/reminder-message.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m024-debt-readiness-gate.ts",
+      "target": "module:engines/debt/reminder-runner.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m024-debt-readiness-gate.ts",
+      "target": "module:engines/debt/send-window.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m024-debt-readiness-gate.ts",
+      "target": "module:registry/communication.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m024-debt-readiness-gate.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m025-release-blockers-gate.ts",
+      "target": "module:engines/connect/identity.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m025-release-blockers-gate.ts",
+      "target": "module:engines/debt/holiday-calendar.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m025-release-blockers-gate.ts",
+      "target": "module:engines/debt/reminder-message.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m025-release-blockers-gate.ts",
+      "target": "module:engines/debt/reminder-runner.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m025-release-blockers-gate.ts",
+      "target": "module:engines/debt/send-window.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m025-release-blockers-gate.ts",
+      "target": "module:engines/debt/snapshot-parity.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m025-release-blockers-gate.ts",
+      "target": "module:registry/communication.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m025-release-blockers-gate.ts",
+      "target": "module:services/debt/reminder-health.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m025-release-blockers-gate.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m026-workbench-verify.ts",
+      "target": "module:engines/debt/preview-mode.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m026-workbench-verify.ts",
+      "target": "module:engines/debt/workbench.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/m026-workbench-verify.ts",
+      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
@@ -121908,6 +124151,36 @@
     },
     {
       "source": "module:supabase/functions/debt-reminder-cron/index.ts",
+      "target": "module:engines/debt/holiday-calendar.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/debt-reminder-cron/index.ts",
+      "target": "module:engines/debt/preview-mode.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/debt-reminder-cron/index.ts",
+      "target": "module:engines/debt/reminder-message.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/debt-reminder-cron/index.ts",
+      "target": "module:engines/debt/reminder-runner.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/debt-reminder-cron/index.ts",
+      "target": "module:engines/debt/send-window.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/debt-reminder-cron/index.ts",
+      "target": "module:engines/debt/snapshot-parity.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:supabase/functions/debt-reminder-cron/index.ts",
       "target": "module:engines/debt/tracking-calculator.ts",
       "label": "imports"
     },
@@ -122543,8 +124816,8 @@
     }
   ],
   "summary": {
-    "total": 1416,
-    "ok": 1416,
+    "total": 1443,
+    "ok": 1443,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

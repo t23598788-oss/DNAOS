@@ -41,7 +41,7 @@ export async function GET() {
   const lineUserIds = contacts.map((c) => c.line_user_id)
 
   const { data: profiles } = lineUserIds.length
-    ? await db.from("line_profiles").select("line_user_id, role, company_id, department, trust_level, notes, companies(id, name)").in("line_user_id", lineUserIds)
+    ? await db.from("line_profiles").select("line_user_id, role, company_id, department, trust_level, notes, permissions, companies(id, name)").in("line_user_id", lineUserIds)
     : { data: [] }
   const profileByUserId = new Map((profiles ?? []).map((p: any) => [p.line_user_id, p]))
 
@@ -59,6 +59,9 @@ export async function GET() {
       department: profile?.department ?? null,
       trust_level: profile?.trust_level ?? null,
       notes: profile?.notes ?? null,
+      // Contact Settings (M025): consent to receive debt-tracking messages lives
+      // in the canonical identity permissions object, not in a second flag table.
+      permissions: profile?.permissions ?? {},
       profile_company: profile?.companies ?? null,
       matched_company: matchedCompany,
     }

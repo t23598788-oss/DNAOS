@@ -1,5 +1,5 @@
-import DebtTrackingManager from "@/components/documents/DebtTrackingManager"
+import DebtTrackingWorkspace from "@/components/documents/DebtTrackingWorkspace"
 
 export default function DebtTrackingPage() {
-  return <DebtTrackingManager />
+  return <DebtTrackingWorkspace />
 }

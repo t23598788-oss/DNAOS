@@ -8117,7 +8117,8 @@
       "purpose": "Owner Control Center client UI (Root Domain UI Conversion, 2026-08-05) — real Runtime/Registry/Gateway/Database/Connectors/Workers/Deployment/System Health/Costs status, no marketing copy. Database + Costs are live via Supabase Realtime; everything else reads registry JSON snapshotted at build time. Rendered by app/page.tsx after requireAuthPage.",
       "purpose_th": "หน้าจอควบคุมสำหรับ Owner (Root Domain UI Conversion, 2026-08-05) — สถานะจริงของ Runtime/Registry/Gateway/Database/Connectors/Workers/Deployment/System Health/Costs ไม่มีข้อความประชาสัมพันธ์ Database กับ Costs เป็นแบบเรียลไทม์ผ่าน Supabase Realtime ส่วนอื่นอ่านจาก registry JSON ที่ build ไว้ render โดย app/page.tsx หลังผ่าน requireAuthPage",
       "exports": [
-        "OperationalWorkspace"
+        "OperationalWorkspace",
+        "OwnerContextInput"
       ],
       "status": "active"
     },
@@ -17176,6 +17177,313 @@
         "POST"
       ],
       "status": "active"
+    },
+    "core/webhook-signature.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Webhook signature header — shared rule for the two sides of the gateway:",
+      "purpose_th": "Webhook signature header — shared rule for the two sides of the gateway:",
+      "exports": [
+        "normalizeSignatureHeader",
+        "requireSignatureHeader"
+      ],
+      "status": "active"
+    },
+    "app/admin/operations/owner-context-dto.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Explicit minimal server-side DTO for the owner-display fields of the",
+      "purpose_th": "Explicit minimal server-side DTO for the owner-display fields of the",
+      "exports": [
+        "FORBIDDEN_OWNER_CONTEXT_SECTIONS",
+        "OwnerDisplayDTO",
+        "buildOwnerDisplayDTO"
+      ],
+      "status": "active"
+    },
+    "app/api/connectors/webhook/[slug]/_lib/webhookGate.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Webhook Gate — the single place that decides whether an inbound webhook is",
+      "purpose_th": "Webhook Gate — the single place that decides whether an inbound webhook is",
+      "exports": [
+        "MAX_WEBHOOK_BODY_BYTES",
+        "WebhookGateConnector",
+        "WebhookGateInput",
+        "WebhookGateResult",
+        "WebhookRejectReason",
+        "deriveEventKey",
+        "evaluateWebhookRequest",
+        "readPath",
+        "requireSignatureHeader",
+        "verifySignature"
+      ],
+      "status": "active"
+    },
+    "scripts/m026-workbench-verify.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "M026 — staging workbench verification (isolated DB, synthetic data, no LINE).",
+      "purpose_th": "M026 — staging workbench verification (isolated DB, synthetic data, no LINE).",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/m025-release-blockers-gate.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "M025 — Debt reminder release-blocker gate (isolated, synthetic, NO real send)",
+      "purpose_th": "M025 — Debt reminder release-blocker gate (isolated, synthetic, NO real send)",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/m024-debt-readiness-gate.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "M024 — Debt reminder production-readiness gate (isolated, synthetic, NO real send)",
+      "purpose_th": "M024 — Debt reminder production-readiness gate (isolated, synthetic, NO real send)",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/m023-debt-reminder-integration-e2e.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "M023 — Automated debt reminder integration (isolated, synthetic, NO real LINE send)",
+      "purpose_th": "M023 — Automated debt reminder integration (isolated, synthetic, NO real LINE send)",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/m022-debt-reminder-e2e.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "M022 — Debt reminder end-to-end acceptance (isolated, synthetic, NO real LINE send)",
+      "purpose_th": "M022 — Debt reminder end-to-end acceptance (isolated, synthetic, NO real LINE send)",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/m020-inherited-evidence.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "M020 — Inherited evidence reconciliation (85 rows: gateway 41, workspace 27,",
+      "purpose_th": "M020 — Inherited evidence reconciliation (85 rows: gateway 41, workspace 27,",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/m019-unit-verify.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "M019 — Capability Unit Verification (26 business capabilities)",
+      "purpose_th": "M019 — Capability Unit Verification (26 business capabilities)",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/m019-static-read-verify.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "M019 — Static-read + Business-API verification",
+      "purpose_th": "M019 — Static-read + Business-API verification",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/m015-storage-probe.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "M015 Stage 5 — Storage contract probe (final, assertion-free).",
+      "purpose_th": "M015 Stage 5 — Storage contract probe (final, assertion-free).",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/m015-scope-probe.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "M015 scope-probe (T1–T4) — pure module probes of core/authority/data-scope.ts",
+      "purpose_th": "M015 scope-probe (T1–T4) — pure module probes of core/authority/data-scope.ts",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/m015-runner.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "M015 runner — ONE canonical engine call per process invocation.",
+      "purpose_th": "M015 runner — ONE canonical engine call per process invocation.",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/m014-runner.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "M014 concurrency runner — ONE canonical engine call per process invocation.",
+      "purpose_th": "M014 concurrency runner — ONE canonical engine call per process invocation.",
+      "exports": [],
+      "status": "active"
+    },
+    "services/debt/reminder-health.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Debt reminder delivery health — READ ONLY.",
+      "purpose_th": "Debt reminder delivery health — READ ONLY.",
+      "exports": [
+        "ReminderFailure",
+        "ReminderHealth",
+        "ReminderRowStatus",
+        "getDebtReminderHealth"
+      ],
+      "status": "active"
+    },
+    "engines/debt/snapshot-parity.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Snapshot parity — PURE. Is the cached `debt_snapshots.total_outstanding` still",
+      "purpose_th": "Snapshot parity — PURE. Is the cached `debt_snapshots.total_outstanding` still",
+      "exports": [
+        "SNAPSHOT_TOLERANCE",
+        "SnapshotParity",
+        "SnapshotParityStatus",
+        "compareSnapshotToLedger"
+      ],
+      "status": "active"
+    },
+    "engines/debt/send-window.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Debt Reminder Send Window — PURE, no I/O.",
+      "purpose_th": "Debt Reminder Send Window — PURE, no I/O.",
+      "exports": [
+        "DayKind",
+        "ReminderTickPlan",
+        "SendWindowInput",
+        "SendWindowPlan",
+        "planReminderTick",
+        "planSendWindow"
+      ],
+      "status": "active"
+    },
+    "engines/debt/reminder-runner.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Debt Reminder Runner — the ONE orchestration for an automated reminder.",
+      "purpose_th": "Debt Reminder Runner — the ONE orchestration for an automated reminder.",
+      "exports": [
+        "Composer",
+        "ComposerInput",
+        "ComposerPlan",
+        "DEBT_RECIPIENT_ROLES",
+        "InvoiceDebt",
+        "MAX_SEND_ATTEMPTS",
+        "ReminderOutcome",
+        "ReminderRunResult",
+        "ReminderRunnerDeps",
+        "ReminderSkipReason",
+        "ReminderState",
+        "SendResult",
+        "Sender",
+        "businessDateIn",
+        "readCompanyInvoiceDebt",
+        "runCompanyReminder",
+        "runDebtReminders",
+        "selectDebtRecipient"
+      ],
+      "status": "active"
+    },
+    "engines/debt/reminder-message.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Debt Reminder Message Composer — PURE, no I/O, no AI, no money math.",
+      "purpose_th": "Debt Reminder Message Composer — PURE, no I/O, no AI, no money math.",
+      "exports": [
+        "ReminderInput",
+        "ReminderMessage",
+        "ReminderPlan",
+        "ReminderState",
+        "assertReminderPolicy",
+        "planDebtReminder"
+      ],
+      "status": "active"
+    },
+    "engines/debt/preview-mode.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "SAFE PREVIEW MODE — one flag, read by every debt-collection sender.",
+      "purpose_th": "SAFE PREVIEW MODE — one flag, read by every debt-collection sender.",
+      "exports": [
+        "isDebtPreviewMode"
+      ],
+      "status": "active"
+    },
+    "engines/debt/holiday-calendar.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Thai public-holiday calendar — PURE validation, no I/O, no assumed dates.",
+      "purpose_th": "Thai public-holiday calendar — PURE validation, no I/O, no assumed dates.",
+      "exports": [
+        "CalendarStatus",
+        "HolidayCalendar",
+        "HolidayDay",
+        "HolidayKind",
+        "HolidayYearEntry",
+        "listedYears",
+        "resolveHolidayCalendar"
+      ],
+      "status": "active"
+    },
+    "components/documents/DebtTrackingWorkspace.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "The existing debt-tracking workspace, with the collection workbench as a second",
+      "purpose_th": "The existing debt-tracking workspace, with the collection workbench as a second",
+      "exports": [
+        "DebtTrackingWorkspace"
+      ],
+      "status": "active"
+    },
+    "components/documents/DebtReminderWorkbench.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Debt Collection Workbench (M026) — a tab inside the existing debt-tracking",
+      "purpose_th": "Debt Collection Workbench (M026) — a tab inside the existing debt-tracking",
+      "exports": [
+        "DebtReminderWorkbench"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/debt-reminder-workbench/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Debt Collection Workbench (M026) — the staging screen's data source.",
+      "purpose_th": "Debt Collection Workbench (M026) — the staging screen's data source.",
+      "exports": [
+        "GET",
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/debt-reminder-health/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Debt Reminder delivery health (M025) — the operator's answer to \"did anything",
+      "purpose_th": "Debt Reminder delivery health (M025) — the operator's answer to \"did anything",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "engines/debt/workbench.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Debt reminder workbench — the read model behind the staging screen.",
+      "purpose_th": "Debt reminder workbench — the read model behind the staging screen.",
+      "exports": [
+        "PreviewMessage",
+        "PreviewSendInput",
+        "PreviewSendResult",
+        "TrackingStatus",
+        "WorkbenchHistoryRow",
+        "WorkbenchOptions",
+        "WorkbenchResult",
+        "WorkbenchRow",
+        "buildDebtReminderWorkbench",
+        "previewDebtReminder"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
@@ -17587,6 +17895,13 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "skeleton ระหว่างโหลดหน้า Products"
+    },
+    {
+      "path": "services/debt/reminder-workbench.ts",
+      "retired_at": "2026-10-30T20:29:31.337Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "Debt reminder workbench — the read model behind the staging screen."
     }
   ]
 }

@@ -7,6 +7,7 @@ import { debtReminderFlex } from "@/engines/documents/flex-template"
 import { loadCompanySettings } from "@/core/config/company-settings"
 import { sendLineMessage } from "@/registry/communication"
 import { normalizeSendResult } from "@/app/api/admin/ide/_lib/businessFailureBridge"
+import { isDebtPreviewMode } from "@/engines/debt/preview-mode"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -27,6 +28,11 @@ const PROVIDER = "line"
 export async function POST(req: Request, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
+
+  // SAFE PREVIEW MODE (M026) — a staging screen must be able to press every
+  // button without a real customer receiving anything. Preview of the card
+  // itself is still allowed below; only the real push is refused.
+  const previewMode = isDebtPreviewMode(process.env)
 
   const { lineUserId } = await params
   const body = await req.json().catch(() => ({}))
@@ -117,7 +123,18 @@ export async function POST(req: Request, { params }: Params) {
   })
 
   if (mode === "preview") {
-    return NextResponse.json({ ok: true, flex_preview: flex })
+    return NextResponse.json({ ok: true, flex_preview: flex, safe_preview_mode: previewMode })
+  }
+
+  if (previewMode) {
+    return NextResponse.json(
+      {
+        error: "SAFE PREVIEW MODE — ไม่ส่ง LINE จริงในสภาพแวดล้อมนี้",
+        reason: "PREVIEW_MODE_ACTIVE",
+        flex_preview: flex,
+      },
+      { status: 409 },
+    )
   }
 
   const lineRes = await sendLineMessage(supabase(), lineUserId, [

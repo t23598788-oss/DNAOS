@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "purpose": "Thai public holidays used by the debt-reminder send window (พระราชบัญญัติการทวงถามหนี้ พ.ศ. 2558 มาตรา 8: contact until 20:00 on weekdays, 18:00 on public holidays).",
+  "policy": [
+    "NEVER add a date from memory, news articles, or a private calendar. Transcribe only from the official announcement.",
+    "Each year entry must name the official source and the date the operator verified it.",
+    "A day that is a holiday for EITHER the Cabinet list (soc.go.th) or the Bank of Thailand financial-institution list (bot.or.th) is treated as a holiday — the stricter window wins.",
+    "Special (cabinet-approved) holidays must be recorded with kind='special' so they can be audited separately.",
+    "When a year has no entry, the debt-reminder cron refuses to send for that year. Missing data is not read as 'no holiday today'."
+  ],
+  "official_sources": {
+    "cabinet_public_holidays": "https://www.soc.go.th/ (สำนักเลขาธิการคณะรัฐมนตรี — วันหยุดราชการประจำปี)",
+    "bot_financial_institution_holidays": "https://www.bot.or.th/th/financial-institutions-holiday.html",
+    "royal_gazette": "https://ratchakitcha.soc.go.th/ (ประกาศวันหยุดราชการ / วันหยุดเพิ่มเป็นกรณีพิเศษ)"
+  },
+  "runtime_override": "The cron reads app_configs['debt-reminder-holiday-calendar']; this file documents the schema and the approved sources. Operators may seed the same JSON into app_configs without a deploy.",
+  "years": {}
+}

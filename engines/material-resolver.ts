@@ -15,7 +15,11 @@ export interface MaterialMatch {
   candidates: MaterialTypeRow[]
 }
 
-const SPLIT_PATTERN = /[,、]|(?:\bและ\b)|(?:\bกับ\b)/
+// Thai script has no ASCII word boundaries: `\bและ\b` never matches because
+// Thai code points are not \w (regression found by M019, fixed in M020).
+// Separators are the list punctuation (, 、) plus the Thai connectors และ / กับ,
+// with or without surrounding spaces ("ทราย และ หิน", "ทรายและหิน").
+const SPLIT_PATTERN = /[,、]|\s*และ\s*|\s*กับ\s*/
 
 export function splitMaterialText(materialText: string): string[] {
   return materialText
