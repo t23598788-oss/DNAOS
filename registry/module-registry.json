@@ -17393,16 +17393,6 @@
       ],
       "status": "active"
     },
-    "components/documents/DebtTrackingWorkspace.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "The existing debt-tracking workspace, with the collection workbench as a second",
-      "purpose_th": "The existing debt-tracking workspace, with the collection workbench as a second",
-      "exports": [
-        "DebtTrackingWorkspace"
-      ],
-      "status": "active"
-    },
     "components/documents/DebtReminderWorkbench.tsx": {
       "owner": "components",
       "layer": "components",
@@ -17450,6 +17440,16 @@
         "WorkbenchRow",
         "buildDebtReminderWorkbench",
         "previewDebtReminder"
+      ],
+      "status": "active"
+    },
+    "app/api/account/password-state/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "M030 (2026-10-31): the ONE place that records \"this account set its own",
+      "purpose_th": "M030 (2026-10-31): the ONE place that records \"this account set its own",
+      "exports": [
+        "POST"
       ],
       "status": "active"
     }
@@ -17898,6 +17898,13 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "M014 concurrency runner — ONE canonical engine call per process invocation."
+    },
+    {
+      "path": "components/documents/DebtTrackingWorkspace.tsx",
+      "retired_at": "2026-10-30T21:05:33.530Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "The existing debt-tracking workspace, with the collection workbench as a second"
     }
   ]
 }

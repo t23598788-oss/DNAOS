@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
-import { createServerSupabase } from "@/services/supabase/server";
+import { createServerClient } from "@supabase/ssr";
+import { SESSION_COOKIE_MAX_AGE } from "@/services/supabase/browser";
 import { supabaseAdmin } from "@/services/supabase/queries";
 import { isSafeInternalPath } from "@/core/auth/resolveDestination";
 
@@ -12,13 +13,41 @@ import { isSafeInternalPath } from "@/core/auth/resolveDestination";
 // guard → /app role-bounce → workspace. Recovery uses this identical route —
 // one flow, one way in.
 
+// M030 (2026-10-31) session fix: this route writes its OWN response
+// (`new NextResponse(...)` redirect below — relative Location headers, see the
+// note further down), so the generic cookies()-store client in
+// services/supabase/server.ts is NOT in play here — its writes land in the
+// framework's implicit response, never in the one we return, and the brand-new
+// session was silently dropped on the way out (real Playwright proof: confirm
+// returned 307 → /account/change-password?first=1 yet every protected page
+// saw NO session and bounced to /login?next=…). The adapter pattern that
+// middleware.ts already uses is applied here instead: the Supabase client
+// writes directly onto the response we actually return, so the cookies the
+// toolkit sets during verifyOtp reach this exact 307 response.
+function makeConfirmClient(req: NextRequest, resp: NextResponse) {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookieOptions: { maxAge: SESSION_COOKIE_MAX_AGE },
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            resp.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+}
+
 // Per-IP sliding-window limiter against token_hash brute-forcing (TASK-001,
 // DNA-000072). In-memory only — resets per server instance, not shared across
 // serverless regions/cold-starts, so this is defense-in-depth on top of
 // Supabase's own token expiry/single-use enforcement, not a hard guarantee.
-// No existing rate-limit utility in the repo to extend (checked per Rule
-// 103), and this is the only endpoint that needs one, so kept local rather
-// than building a shared abstraction for a single caller.
 const MAX_ATTEMPTS = 5;
 const WINDOW_MS = 10 * 60 * 1000;
 const failuresByIp = new Map<string, number[]>();
@@ -60,6 +89,12 @@ export async function GET(req: NextRequest) {
   // to https://evil.com (protocol-relative). Guard through the SAME
   // isSafeInternalPath authority resolveDestination uses; unsafe → default.
   const safeNext = isSafeInternalPath(next) ? next : "/app"; // /app = role-bounce entry (PWA start_url)
+
+  // M030: one response the Supabase client can write session cookies onto,
+  // even when the outcome of this route turns out to be a redirect.
+  const cookieCarrier = NextResponse.next({ request: { headers: new Headers(req.headers) } });
+  const supabase = makeConfirmClient(req, cookieCarrier);
+
   // REDIRECTS SEND A RELATIVE Location HEADER DIRECTLY (owner fix 2026-10-08,
   // found by real browser login test on Railway): `new URL(req.url).origin`
   // inside the container is http://localhost:8080 (the proxy forwards the
@@ -68,8 +103,19 @@ export async function GET(req: NextRequest) {
   // rejects relative URLs outright ("middleware-relative-urls"), so we emit a
   // raw 307 with a relative Location and let the BROWSER resolve it against
   // the host the user is actually on. The ?next= safety guard is unchanged.
-  const redirectTo = (location: string): NextResponse =>
-    new NextResponse(null, { status: 307, headers: { Location: location } });
+  // M030: whatever cookies the Supabase client wrote during verifyOtp are
+  // copied from cookieCarrier onto this exact response, so the redirect never
+  // travels without the session.
+  const redirectTo = (location: string): NextResponse => {
+    const out = new NextResponse(null, {
+      status: 307,
+      headers: { Location: location },
+    });
+    for (const cookie of cookieCarrier.headers.getSetCookie()) {
+      out.headers.append("set-cookie", cookie);
+    }
+    return out;
+  };
 
   if (providerError) {
     const errorCode = searchParams.get("error_code");
@@ -84,8 +130,6 @@ export async function GET(req: NextRequest) {
   if (isRateLimited(ip)) {
     return redirectTo("/login?error=too_many_attempts");
   }
-
-  const supabase = await createServerSupabase();
 
   // Provider OAuth (PKCE return from Google/Apple/Microsoft): SAME one
   // verifier entry — exchange the code, then the identical safe-next redirect.
