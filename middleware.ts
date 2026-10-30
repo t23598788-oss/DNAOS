@@ -118,6 +118,10 @@ export const config = {
     "/account/:path*",
     "/workspace-preview/:path*",
     "/business-workspace-template/:path*",
+    // M031: run session refresh on the lock surface too, so a PIN unlock
+    // right after landing doesn't act on a stale token (/account:path* already
+    // covers /account/first-pin).
+    "/screen-lock",
     // /workspace (owner approval 2026-09-24): middleware ต้องรันเพื่อ strip header
     // ปลอมจากทุกคำขอ และติด LOCAL_UI_REVIEW_HEADER เฉพาะ dev+loopback เท่านั้น
     // (ตัวหน้าเองยังกัน anonymous ด้วย getAuthedUser ใน page — ไม่ได้เพิ่ม prefix

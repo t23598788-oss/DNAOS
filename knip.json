@@ -71,7 +71,10 @@
     "public/sw.js",
     "device-connector/dnaos-device.mjs",
     "core/authority/rights.ts",
-    "external-packages/semantic-preflight/**"
+    "external-packages/semantic-preflight/**",
+    "engines/debt/holiday-calendar.ts",
+    "engines/debt/send-window.ts",
+    "engines/debt/snapshot-parity.ts"
   ],
   "workspaces": {
     "dna-os-mcp-server": {

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { SESSION_COOKIE_MAX_AGE } from "@/services/supabase/browser";
-import { supabaseAdmin } from "@/services/supabase/queries";
+import { getWorkspaceScreenLock } from "@/gateway/auth";
 import { isSafeInternalPath } from "@/core/auth/resolveDestination";
 
 // THE single authentication entry for emailed links (promoted from "backup
@@ -117,6 +117,24 @@ export async function GET(req: NextRequest) {
     return out;
   };
 
+  // M031 (2026-10-31): first verification still lands once, but on the
+  // SIX-DIGIT PIN setup — the owner removed the M030 forced password stop
+  // (password/no-password both proceed untouched, Supabase Auth stays as-is).
+  // Users already carrying a screen-lock PIN land on safeNext exactly as
+  // before, so returning users never see setup twice.
+  const landingAfterFirstVerification = async (
+    userId: string,
+    safeNext: string
+  ): Promise<string> => {
+    const suffix =
+      safeNext && safeNext !== "/app" ? `&next=${encodeURIComponent(safeNext)}` : "";
+    const lock = await getWorkspaceScreenLock(userId);
+    if (!lock) {
+      return `/account/first-pin?first=1${suffix}`;
+    }
+    return safeNext;
+  };
+
   if (providerError) {
     const errorCode = searchParams.get("error_code");
     const params = new URLSearchParams({
@@ -134,12 +152,15 @@ export async function GET(req: NextRequest) {
   // Provider OAuth (PKCE return from Google/Apple/Microsoft): SAME one
   // verifier entry — exchange the code, then the identical safe-next redirect.
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data: codeData, error } = await supabase.auth.exchangeCodeForSession(code);
     if (error) {
       recordFailure(ip);
       return redirectTo("/login?error=invalid_link");
     }
     clearFailures(ip);
+    if (codeData.user) {
+      return redirectTo(await landingAfterFirstVerification(codeData.user.id, safeNext));
+    }
     return redirectTo(safeNext);
   }
 
@@ -173,14 +194,7 @@ export async function GET(req: NextRequest) {
     if (type === "recovery") {
       return redirectTo(`/account/change-password?recovery=1${nextSuffix}`);
     }
-    const { data: profile } = await supabaseAdmin()
-      .from("profiles")
-      .select("password_set_at")
-      .eq("id", verifiedUser.id)
-      .maybeSingle();
-    if (!profile?.password_set_at) {
-      return redirectTo(`/account/change-password?first=1${nextSuffix}`);
-    }
+    return redirectTo(await landingAfterFirstVerification(verifiedUser.id, safeNext));
   }
   return redirectTo(safeNext);
 }

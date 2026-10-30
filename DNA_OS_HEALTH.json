@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-26T22:24:03Z",
+  "generated_at": "2026-10-30T22:38:55Z",
   "governance_score": 100,
   "checks": {
     "type_check": 1,
@@ -12,11 +12,11 @@
     "architecture_drift": 1
   },
   "metrics": {
-    "total_modules": 1048,
+    "total_modules": 1068,
     "unused_files": 0,
-    "unused_exports": 515,
+    "unused_exports": 528,
     "ghost_rules": 0,
-    "code_clones": 451,
+    "code_clones": 453,
     "layer_violations": 0,
     "shadow_files": 0,
     "dependency_cycles": 0,

@@ -5617,7 +5617,12 @@
       "purpose": "Thin Gateway wrapper (TASK-033) around createServerSupabase so core/auth/session.ts can resolve the live Supabase Auth session without core importing services/ directly, which the dependency graph disallows; read-only, no writes.",
       "purpose_th": "wrapper บาง ๆ ของ Gateway (TASK-033) ครอบ createServerSupabase ให้ core/auth/session.ts เรียก session จริงของ Supabase Auth ได้โดยไม่ต้อง import services/ ตรง ๆ ซึ่ง dependency graph ไม่อนุญาต เป็น read-only ไม่มีการเขียนข้อมูล",
       "exports": [
-        "getServerSupabaseClient"
+        "WorkspaceScreenLockRow",
+        "getServerSupabaseClient",
+        "getWorkspaceScreenLock",
+        "hasWorkspaceScreenLock",
+        "recordScreenLockFailure",
+        "upsertWorkspaceScreenLock"
       ],
       "status": "active"
     },
@@ -17450,6 +17455,105 @@
       "purpose_th": "M030 (2026-10-31): the ONE place that records \"this account set its own",
       "exports": [
         "POST"
+      ],
+      "status": "active"
+    },
+    "components/auth/PinKeypad.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "M031 — the shared phone-style PIN surface: six number slots, a pure",
+      "purpose_th": "M031 — the shared phone-style PIN surface: six number slots, a pure",
+      "exports": [
+        "PinKeypad",
+        "PinSlots"
+      ],
+      "status": "active"
+    },
+    "core/auth/screen-lock.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "M031 — THE screen-lock authority (server side only). The browser never",
+      "purpose_th": "M031 — THE screen-lock authority (server side only). The browser never",
+      "exports": [
+        "FRESH_VERIFICATION_MS",
+        "LOCK_MINUTES",
+        "MAX_FAILED_ATTEMPTS",
+        "PIN_LENGTH",
+        "PIN_RE",
+        "UNLOCK_COOKIE_NAME",
+        "UnlockAttempt",
+        "hasFreshPrimaryVerification",
+        "hasWorkspacePin",
+        "hashPin",
+        "isWorkspaceUnlocked",
+        "issueUnlockToken",
+        "lockRowInfo",
+        "needsWorkspaceUnlock",
+        "unlockCookieOptions",
+        "verifyPinAttempt",
+        "verifyPinHex"
+      ],
+      "status": "active"
+    },
+    "app/screen-lock/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "M031 — THE workspace screen lock. Shown when the user holds a valid",
+      "purpose_th": "M031 — THE workspace screen lock. Shown when the user holds a valid",
+      "exports": [
+        "ScreenLockPage"
+      ],
+      "status": "active"
+    },
+    "app/screen-lock/ScreenLockForm.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "M031 — the ONE thing to do on the lock screen: 6 digits → unlock. No email",
+      "purpose_th": "M031 — the ONE thing to do on the lock screen: 6 digits → unlock. No email",
+      "exports": [
+        "ScreenLockForm"
+      ],
+      "status": "active"
+    },
+    "app/account/first-pin/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "M031 — FIRST-TIME 6-digit PIN setup (directive 3). /auth/confirm lands",
+      "purpose_th": "M031 — FIRST-TIME 6-digit PIN setup (directive 3). /auth/confirm lands",
+      "exports": [
+        "FirstPinPage"
+      ],
+      "status": "active"
+    },
+    "app/account/first-pin/FirstPinForm.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "M031, directive 3 — set the PIN twice: create (6 digits) → confirm",
+      "purpose_th": "M031, directive 3 — set the PIN twice: create (6 digits) → confirm",
+      "exports": [
+        "FirstPinForm"
+      ],
+      "status": "active"
+    },
+    "app/api/auth/screen-lock/unlock/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "M031, owner directives 4+7+8: UNLOCK — POST /api/auth/screen-lock/unlock",
+      "purpose_th": "M031, owner directives 4+7+8: UNLOCK — POST /api/auth/screen-lock/unlock",
+      "exports": [
+        "POST",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/auth/screen-lock/setup/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "M031, owner directive 3: FIRST-TIME PIN set — POST /api/auth/screen-lock/setup",
+      "purpose_th": "M031, owner directive 3: FIRST-TIME PIN set — POST /api/auth/screen-lock/setup",
+      "exports": [
+        "POST",
+        "runtime"
       ],
       "status": "active"
     }
