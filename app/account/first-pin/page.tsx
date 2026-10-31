@@ -29,9 +29,16 @@ export default async function FirstPinPage({
   const next =
     rawNext && isSafeInternalPath(rawNext) ? rawNext : resolveDestination(user.role);
 
-  if (await hasWorkspacePin(user.id)) {
-    // Already set → there is nothing to set; go back to the intended target.
-    redirect(next);
+  // M032 §05 fail-closed: unreadable PIN state → deny, never assume "no PIN"
+  // (that would let a locked workspace bounce through setup to escape the
+  // lock while the server cannot verity anything).
+  try {
+    if (await hasWorkspacePin(user.id)) {
+      // Already set → there is nothing to set; go back to the intended target.
+      redirect(next);
+    }
+  } catch {
+    redirect("/login?error=screen_lock_unavailable");
   }
   if (!(await hasFreshPrimaryVerification())) {
     // Only a JUST-verified session may create a PIN (directive 1 keeps

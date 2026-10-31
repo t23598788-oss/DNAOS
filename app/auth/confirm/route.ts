@@ -122,15 +122,21 @@ export async function GET(req: NextRequest) {
   // (password/no-password both proceed untouched, Supabase Auth stays as-is).
   // Users already carrying a screen-lock PIN land on safeNext exactly as
   // before, so returning users never see setup twice.
+  // M032 §05: the lock-table read is fail-closed — unreadable → deny to
+  // /login?error=screen_lock_unavailable instead of guessing "no PIN".
   const landingAfterFirstVerification = async (
     userId: string,
     safeNext: string
   ): Promise<string> => {
     const suffix =
       safeNext && safeNext !== "/app" ? `&next=${encodeURIComponent(safeNext)}` : "";
-    const lock = await getWorkspaceScreenLock(userId);
-    if (!lock) {
-      return `/account/first-pin?first=1${suffix}`;
+    try {
+      const lock = await getWorkspaceScreenLock(userId);
+      if (!lock) {
+        return `/account/first-pin?first=1${suffix}`;
+      }
+    } catch {
+      return "/login?error=screen_lock_unavailable";
     }
     return safeNext;
   };

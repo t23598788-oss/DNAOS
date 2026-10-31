@@ -5,6 +5,24 @@ import { getWorkspaceScreenLock } from "@/gateway/auth";
 import { isSafeInternalPath, resolveDestination } from "@/core/auth/resolveDestination";
 import ScreenLockForm from "./ScreenLockForm";
 
+// Deny STATE (not a UI style): when the server cannot read the lock state
+// from the database, the workspace still cannot open. Fail-closed, per the
+// owner directive — an unreadable gate must never read as "unlocked".
+function ScreenLockUnreadableState() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-stone-900 to-stone-700 flex items-center justify-center p-6">
+      <div className="w-full max-w-xs text-center text-stone-100">
+        <div className="text-[10px] font-bold tracking-[0.2em] text-stone-400 uppercase mb-2">DNA OS</div>
+        <h1 className="text-xl font-bold">ยืนยันสถานะไม่สำเร็จ</h1>
+        <p className="mt-3 text-xs text-stone-300 leading-relaxed">
+          ระบบตรวจสถานะการล็อกจากฐานข้อมูลไม่ได้ในขณะนี้ —
+          จึงยังไม่ปลดล็อกพื้นที่ทำงาน กรุณาลองใหม่ภายหลัง
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // M031 — THE workspace screen lock. Shown when the user holds a valid
 // Supabase Auth session but has not unlocked this browser session yet
 // (requireAuthPage funnels everything here). Six digits, a numeric keypad
@@ -25,14 +43,28 @@ export default async function ScreenLockPage({
   const next =
     rawNext && isSafeInternalPath(rawNext) ? rawNext : resolveDestination(user.role);
 
-  const lock = await getWorkspaceScreenLock(user.id);
+  // M032 §05 fail-closed: the PIN existence read comes FIRST, and a failed
+  // read renders the deny state — it never falls through to a workspace
+  // bounce, and it never interprets a broken DB as "no PIN stored".
+  let lock;
+  try {
+    lock = await getWorkspaceScreenLock(user.id);
+  } catch {
+    return ScreenLockUnreadableState();
+  }
+
   if (!lock) {
     // No PIN stored → nothing to lock with (pre-PIN accounts keep working).
     redirect(next);
   }
-  if (!(await needsWorkspaceUnlock(user))) {
-    // Direct visit while already unlocked → straight back to the workspace.
-    redirect(next);
+
+  try {
+    if (!(await needsWorkspaceUnlock(user))) {
+      // Direct visit while already unlocked → straight back to the workspace.
+      redirect(next);
+    }
+  } catch {
+    return ScreenLockUnreadableState();
   }
 
   return (

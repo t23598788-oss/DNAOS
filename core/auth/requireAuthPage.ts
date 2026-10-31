@@ -29,12 +29,20 @@ export async function requireAuthPage(
   // M031 screen lock (server-side gate): valid session, but this browser
   // session has not unlocked the workspace → the phone-style lock screen.
   // Server-rendered check, not a browser-side overlay.
-  if (
-    (await needsWorkspaceUnlock(user)) &&
-    !UNLOCK_EXEMPT_PAGES.some((p) => nextPath === p || nextPath.startsWith(p + "/"))
-  ) {
-    console.log("[TRACE-AUTH] requireAuthPage SCREEN_LOCKED", { nextPath });
-    redirect(`/screen-lock?next=${encodeURIComponent(nextPath)}`);
+  //
+  // M032 §05 fail-closed: lock STATE unreadable from the DB → deny (back to
+  // /login with an explicit error), never silently treat it as unlocked.
+  try {
+    if (
+      (await needsWorkspaceUnlock(user)) &&
+      !UNLOCK_EXEMPT_PAGES.some((p) => nextPath === p || nextPath.startsWith(p + "/"))
+    ) {
+      console.log("[TRACE-AUTH] requireAuthPage SCREEN_LOCKED", { nextPath });
+      redirect(`/screen-lock?next=${encodeURIComponent(nextPath)}`);
+    }
+  } catch {
+    console.error("[TRACE-AUTH] requireAuthPage SCREEN_LOCK_STATE_UNREADABLE", { nextPath });
+    redirect("/login?error=screen_lock_unavailable");
   }
 
   if (!allowedRoles.includes(user.role)) {

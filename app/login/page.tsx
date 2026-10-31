@@ -52,7 +52,11 @@ function LoginForm() {
           ? "ลิงก์ไม่ถูกต้อง/หมดอายุ/ถูกใช้ไปแล้ว — กด “ส่งลิงก์ใหม่” ด้านล่างได้เลย (ลิงก์ใช้ได้1ครั้ง)"
           : urlError === "oauth_denied"
             ? "การเข้าสู่ระบบผ่าน provider ถูกยกเลิก หรือยังไม่ได้เปิดใช้งานใน Supabase Dashboard (Google/Apple/Microsoft)"
-            : null
+            : urlError === "screen_lock_unavailable"
+              ? // M032 §05 fail-closed: the lock STATE was unreadable server-side —
+                // nothing was trusted on the browser screen; retry when stable.
+                "ตรวจสถานะการล็อกจากเซิร์ฟเวอร์ไม่สำเร็จชั่วคราว — รอสักครู่แล้วลองใหม่ (session ของคุณยังอยู่)"
+              : null
 
   const [error, setError] = useState<string | null>(initialError)
   const [loading, setLoading] = useState(false)
@@ -67,7 +71,10 @@ function LoginForm() {
   // Recheck on return from the email/browser tab. Never mint a session here;
   // /app still resolves the destination and enforces server-side authority.
   useEffect(() => {
-    if (urlError === "forbidden") return;
+    // screen_lock_unavailable (M032 §05): no AUTO-resume on this error — it
+    // keeps the deny short-cut clean (no /login → /app → /login bounce while
+    // the state read is failing); the user retries deliberately.
+    if (urlError === "forbidden" || urlError === "screen_lock_unavailable") return;
     const sb = createBrowserSupabase();
     let disposed = false;
     let checking = false;

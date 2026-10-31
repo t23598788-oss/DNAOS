@@ -20,8 +20,13 @@ export async function getServerSupabaseClient() {
 // and any temporary lockout live HERE, server-side only. The table has RLS on
 // with NO policy, so an end-user token can never read/touch these rows via
 // PostgREST: the screen-lock gate stays a server gate, not a browser screen.
-// (Read failure = fail-open with a loud console error: the real session is
-// still mandatory before any of these calls happen, middleware.ts sees to it.)
+
+// M032 §05 (owner directive): the lock-state read is FAIL-CLOSED. An unreadable
+// table must deny access, never be mistaken for "no lock": every caller of
+// getWorkspaceScreenLock catches WorkspaceScreenLockUnavailableError and
+// refuses (503 / a deny screen), so a DB outage can never open the workspace.
+export class WorkspaceScreenLockUnavailableError extends Error {}
+
 export interface WorkspaceScreenLockRow {
   pinHash: string;
   failedAttempts: number;
@@ -36,7 +41,7 @@ export async function getWorkspaceScreenLock(userId: string): Promise<WorkspaceS
     .maybeSingle();
   if (error) {
     console.error("[M031] workspace_screen_locks read failed:", error.message);
-    return null;
+    throw new WorkspaceScreenLockUnavailableError(error.message);
   }
   return data
     ? { pinHash: data.pin_hash, failedAttempts: data.failed_attempts ?? 0, lockedUntil: data.locked_until ?? null }
