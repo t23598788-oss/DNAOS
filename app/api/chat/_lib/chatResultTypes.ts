@@ -80,7 +80,12 @@ export type ChatResult =
       summary: PartnerSummary | null;
       items: PartnerTimelineEntry[];
     }
-  | { type: "error"; message: string }
+  | {
+      type: "error";
+      message: string;
+      code?: "QUERY_FAILED" | "ACCESS_DENIED" | "INVALID_REQUEST";
+      sourceReference?: string;
+    }
   | {
       type: "confirmation";
       text: string;

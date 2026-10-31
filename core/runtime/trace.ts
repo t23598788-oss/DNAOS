@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+
 /**
  * DNA OS Runtime Trace — ทุก request ต้องมี trace ที่ replay ได้
  *
@@ -25,6 +27,44 @@ export interface TraceStep {
   error?: string;
 }
 
+export type ExecutionEventName =
+  | "command.received"
+  | "tool.selected"
+  | "reader.started"
+  | "reader.completed"
+  | "result.ready"
+  | "execution.failed"
+  | "execution.completed";
+
+export type ExecutionEventStatus =
+  | "received"
+  | "selected"
+  | "started"
+  | "completed"
+  | "failed"
+  | "denied"
+  | "ready";
+
+export interface ExecutionEvent {
+  traceId: string;
+  sequence: number;
+  event: ExecutionEventName;
+  actorId: string;
+  scopeMode: "platform" | "organization" | "none";
+  organizationIds: string[];
+  toolId: string;
+  timestamp: string;
+  status: ExecutionEventStatus;
+  sourceReference: string;
+  durationMs?: number;
+  recordCount?: number;
+}
+
+export type ExecutionEventInput = Omit<
+  ExecutionEvent,
+  "traceId" | "sequence" | "actorId" | "scopeMode" | "organizationIds" | "timestamp"
+>;
+
 export interface RequestTrace {
   trace_id: string;
   started_at: string;
@@ -34,10 +74,23 @@ export interface RequestTrace {
   intent?: string;
   status: "in_progress" | "completed" | "failed";
   steps: TraceStep[];
+  events: ExecutionEvent[];
 }
+
+interface ExecutionContext {
+  traceId: string;
+  actorId: string;
+  scopeMode: "platform" | "organization" | "none";
+  organizationIds: string[];
+  sequence: number;
+  onEvent?: (event: ExecutionEvent) => void;
+}
+
+type ExecutionContextInput = Omit<ExecutionContext, "sequence">;
 
 const traceStore = new Map<string, RequestTrace>();
 const MAX_TRACES = 200;
+const executionContext = new AsyncLocalStorage<ExecutionContext>();
 
 export function startTrace(traceId: string, userInput: string): RequestTrace {
   const trace: RequestTrace = {
@@ -46,6 +99,7 @@ export function startTrace(traceId: string, userInput: string): RequestTrace {
     user_input: userInput,
     status: "in_progress",
     steps: [],
+    events: [],
   };
   traceStore.set(traceId, trace);
 
@@ -56,6 +110,32 @@ export function startTrace(traceId: string, userInput: string): RequestTrace {
   }
 
   return trace;
+}
+
+export function withExecutionContext<T>(
+  context: ExecutionContextInput,
+  fn: () => T,
+): T {
+  return executionContext.run({ ...context, sequence: 0 }, fn);
+}
+
+export function emitExecutionEvent(event: ExecutionEventInput): void {
+  const context = executionContext.getStore();
+  if (!context) return;
+
+  const sequence = ++context.sequence;
+  const trace = traceStore.get(context.traceId);
+  const recorded: ExecutionEvent = {
+    ...event,
+    traceId: context.traceId,
+    sequence,
+    actorId: context.actorId,
+    scopeMode: context.scopeMode,
+    organizationIds: [...context.organizationIds],
+    timestamp: new Date().toISOString(),
+  };
+  trace?.events.push(recorded);
+  context.onEvent?.(recorded);
 }
 
 export function addStep(traceId: string, step: Omit<TraceStep, "seq" | "timestamp">): void {

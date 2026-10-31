@@ -18,6 +18,7 @@ import { DOC_LABELS } from "@/engines/documents/engine";
 import { dispatch } from "@/engines/validation/dispatcher";
 import { getDocumentDetail } from "@/services/canonical/document-detail";
 import type { CanonicalDocumentDetail } from "@/services/canonical/read-model";
+import { emitExecutionEvent } from "@/core/runtime/trace";
 
 // ── intent matchers (pure function ตรวจ/ทดสอบง่าย — เรียกจาก buildChatResult เท่านั้น) ──
 
@@ -52,17 +53,77 @@ function timelineIntentName(message: string): string | null {
 
 // ── proxy ไป canonical API เดิม (cookie ของผู้เรียกคนเดิม) ─────────────────
 
-async function proxyJson<T>(req: Request, path: string): Promise<T | null> {
+class ReaderFailure extends Error {
+  constructor(
+    readonly code: "QUERY_FAILED" | "ACCESS_DENIED",
+    readonly sourceReference: string,
+    readonly httpStatus?: number,
+  ) {
+    super(code === "ACCESS_DENIED" ? "ไม่มีสิทธิ์อ่านข้อมูลนี้" : "อ่านข้อมูลจาก Business API ไม่สำเร็จ");
+  }
+}
+
+async function proxyJson<T>(req: Request, path: string): Promise<T> {
+  const toolId = `GET ${path}`;
+  const sourceReference = path.split("?")[0];
+  emitExecutionEvent({ event: "tool.selected", toolId, sourceReference, status: "selected" });
+  const startedAt = Date.now();
+  emitExecutionEvent({ event: "reader.started", toolId, sourceReference, status: "started" });
   try {
     const res = await fetch(new URL(path, req.url), {
       headers: { cookie: req.headers.get("cookie") ?? "" },
       cache: "no-store",
     });
-    if (!res.ok) return null;
-    return (await res.json()) as T;
-  } catch {
-    return null;
+    if (!res.ok) {
+      const code = res.status === 401 || res.status === 403 ? "ACCESS_DENIED" : "QUERY_FAILED";
+      throw new ReaderFailure(code, sourceReference, res.status);
+    }
+    let data: T;
+    try {
+      data = (await res.json()) as T;
+    } catch {
+      throw new ReaderFailure("QUERY_FAILED", sourceReference, res.status);
+    }
+    if (data && typeof data === "object" && "ok" in data && data.ok === false) {
+      throw new ReaderFailure("QUERY_FAILED", sourceReference, res.status);
+    }
+    emitExecutionEvent({
+      event: "reader.completed",
+      toolId,
+      sourceReference,
+      status: "completed",
+      durationMs: Date.now() - startedAt,
+    });
+    return data;
+  } catch (error) {
+    emitExecutionEvent({
+      event: "reader.completed",
+      toolId,
+      sourceReference,
+      status: "failed",
+      durationMs: Date.now() - startedAt,
+    });
+    if (error instanceof ReaderFailure) throw error;
+    throw new ReaderFailure("QUERY_FAILED", sourceReference);
   }
+}
+
+function dispatchFailure(command: string, violations: string[]): ChatResult {
+  const accessDenied = violations.some((violation) =>
+    /DATA_SCOPE_REQUIRED|NO_VERIFIED_ACTOR|ปฏิเสธ|ไม่มีสิทธิ์/i.test(violation),
+  );
+  const queryFailed = violations.some((violation) => /^query error:/i.test(violation));
+  const code = accessDenied ? "ACCESS_DENIED" : queryFailed ? "QUERY_FAILED" : "INVALID_REQUEST";
+  return {
+    type: "error",
+    code,
+    sourceReference: `registry/command-registry.json#${command}`,
+    message: code === "ACCESS_DENIED"
+      ? "บัญชีนี้ไม่มีสิทธิ์อ่านข้อมูลที่ร้องขอ"
+      : code === "QUERY_FAILED"
+        ? "อ่านข้อมูลจาก Canonical Reader ไม่สำเร็จ"
+        : "คำสั่งอ่านข้อมูลไม่ผ่านการตรวจสอบ",
+  };
 }
 
 function localMonth(): string {
@@ -143,7 +204,7 @@ async function financeTable(req: Request, month: string): Promise<ResultTable> {
 
 async function financeResult(req: Request): Promise<Extract<ChatResult, { type: "finance_summary" }> | null> {
   const fin = await proxyJson<FinanceSummaryResponse>(req, "/api/admin/finance-summary");
-  if (!fin?.ok) return null;
+  if (!fin.ok) throw new ReaderFailure("QUERY_FAILED", "/api/admin/finance-summary", 200);
   const month = localMonth();
   const m = fin.months?.find((x) => x.month === month);
   const totals = fin.totals ?? {};
@@ -203,11 +264,18 @@ async function documentResult(
   // READ through the dispatcher (owner ข้อ 3): registry-gated command, input
   // validated, no write path — never a POST/write route.
   const listResult = await dispatch("document.list", {});
-  if (!listResult.ok || !Array.isArray(listResult.data)) return null;
+  if (!listResult.ok) return dispatchFailure("document.list", listResult.violations);
+  if (!Array.isArray(listResult.data)) return dispatchFailure("document.list", ["invalid reader response"]);
   const matches = (listResult.data as DocRow[]).filter(
     (d) => String(d.document_type ?? "").toLowerCase() === docType,
   );
-  if (matches.length === 0) return null;
+  if (matches.length === 0) {
+    return {
+      type: "table",
+      title: `ไม่พบ${DOC_LABELS[docType]?.th ?? "เอกสาร"} (อ่านสำเร็จ ไม่มีรายการ)`,
+      table: { columns: DOC_COLUMNS, rows: [] },
+    };
+  }
 
   // (owner 2026-10-08): NEVER auto-pick the first match. If the message names
   // a document number, open exactly that one; if exactly one match exists,
@@ -231,14 +299,46 @@ async function documentResult(
       },
     };
   }
-  if (!doc.id) return null;
+  if (!doc.id) {
+    return { type: "error", code: "QUERY_FAILED", message: "รายการเอกสารไม่มีรหัสต้นทาง", sourceReference: "engines/validation/dispatcher.ts#document.list" };
+  }
 
   // (owner ข้อ 4): read the ORIGINAL persisted document — getDocumentDetail()
   // pulls document_versions (snapshot) + document_artifacts (files) exactly as
   // stored. generateDoc() is deliberately NOT called here anymore.
   const kind = docType === "invoice" ? "invoice" : "standalone_document";
-  const detail = await getDocumentDetail(kind, doc.id);
-  if (!detail) return null;
+  const detailToolId = "canonical.document-detail";
+  const detailSource = "services/canonical/document-detail.ts#getDocumentDetail";
+  emitExecutionEvent({ event: "tool.selected", toolId: detailToolId, sourceReference: detailSource, status: "selected" });
+  const detailStartedAt = Date.now();
+  emitExecutionEvent({ event: "reader.started", toolId: detailToolId, sourceReference: detailSource, status: "started" });
+  let detail: CanonicalDocumentDetail | null;
+  try {
+    detail = await getDocumentDetail(kind, doc.id);
+  } catch {
+    emitExecutionEvent({
+      event: "reader.completed",
+      toolId: detailToolId,
+      sourceReference: detailSource,
+      status: "failed",
+      durationMs: Date.now() - detailStartedAt,
+    });
+    throw new ReaderFailure("QUERY_FAILED", detailSource);
+  }
+  emitExecutionEvent({
+    event: "reader.completed",
+    toolId: detailToolId,
+    sourceReference: detailSource,
+    status: "completed",
+    durationMs: Date.now() - detailStartedAt,
+  });
+  if (!detail) {
+    return {
+      type: "table",
+      title: "ไม่พบเอกสารต้นฉบับที่เลือก",
+      table: { columns: DOC_COLUMNS, rows: [] },
+    };
+  }
 
   // Open the REAL file — only artifacts belonging to the version this reader
   // actually selected (highest version_no, as returned in detail.version) —
@@ -341,10 +441,17 @@ async function timelineResult(_req: Request, name: string): Promise<Extract<Chat
   // READ through the dispatcher (owner ข้อ 3) — both commands are registry-
   // declared read commands with real QUERY_MAP handlers; no write path.
   const findResult = await dispatch("partner.find", { keyword: name });
-  if (!findResult.ok || !Array.isArray(findResult.data)) return null;
+  if (!findResult.ok) return dispatchFailure("partner.find", findResult.violations);
+  if (!Array.isArray(findResult.data)) return dispatchFailure("partner.find", ["invalid reader response"]);
   type PartnerRow = { id?: string; name?: string };
   const found = findResult.data as PartnerRow[];
-  if (found.length === 0) return null;
+  if (found.length === 0) {
+    return {
+      type: "table",
+      title: "ไม่พบคู่ค้าที่ตรงกัน (อ่านสำเร็จ ไม่มีรายการ)",
+      table: { columns: [{ key: "status", label: "สถานะ" }], rows: [] },
+    };
+  }
 
   // (owner 2026-10-08): NEVER auto-pick the first partner. Exact full-name
   // match wins; otherwise hand the human a picker table to choose.
@@ -362,9 +469,12 @@ async function timelineResult(_req: Request, name: string): Promise<Extract<Chat
       },
     };
   }
-  if (!partner.id) return null;
+  if (!partner.id) {
+    return { type: "error", code: "QUERY_FAILED", message: "รายการคู่ค้าไม่มีรหัสต้นทาง", sourceReference: "engines/validation/dispatcher.ts#partner.find" };
+  }
   const tl = await dispatch("partner.timeline", { partner_id: String(partner.id) });
-  if (!tl.ok || !tl.data || typeof tl.data !== "object") return null;
+  if (!tl.ok) return dispatchFailure("partner.timeline", tl.violations);
+  if (!tl.data || typeof tl.data !== "object") return dispatchFailure("partner.timeline", ["invalid reader response"]);
   const data = tl.data as {
     summary: Extract<ChatResult, { type: "timeline" }>["summary"];
     timeline: Extract<ChatResult, { type: "timeline" }>["items"];
@@ -382,7 +492,8 @@ async function dispatcherTableResult(
   payload: Record<string, unknown>,
 ): Promise<ChatResult | null> {
   const r = await dispatch(command, payload);
-  if (!r.ok || !Array.isArray(r.data)) return null;
+  if (!r.ok) return dispatchFailure(command, r.violations);
+  if (!Array.isArray(r.data)) return dispatchFailure(command, ["invalid reader response"]);
   // ผลอ่านสำเร็จแต่ไม่มีรายการ → แสดงตารางว่างตรง ๆ (ซื่อสัตย์ว่าอ่านแล้วจริง)
   // ไม่ใช่ null (กัน fallback ไปแปลงเป็นคำตอบอย่างอื่น)
   if (r.data.length === 0) {
@@ -469,7 +580,7 @@ export async function buildChatResult(
   if (pipeline.doc_html) {
     return { type: "document", title: "เอกสาร", html: pipeline.doc_html };
   }
-  // board workspace.sections (ของเดิม) — fallback ท้ายสุดถ้า canonical query พลาด
+  // Existing board sections remain the fallback only when no canonical reader answers.
   const sectionBlocks = pipeline.workspace?.sections?.length
     ? sectionsToBlocks(pipeline.workspace.sections)
     : [];
@@ -496,8 +607,21 @@ export async function buildChatResult(
       const r = await documentResult(req, docType, message);
       if (r) return r;
     }
-  } catch {
-    // canonical query ล้มเหลว → ตกไป sections/text (ไม่เดา ไม่แต่ง)
+  } catch (error) {
+    if (error instanceof ReaderFailure) {
+      return {
+        type: "error",
+        code: error.code,
+        message: error.message,
+        sourceReference: error.sourceReference,
+      };
+    }
+    return {
+      type: "error",
+      code: "QUERY_FAILED",
+      message: "อ่านข้อมูลจาก Canonical Reader ไม่สำเร็จ",
+      sourceReference: "app/api/chat/_lib/resultContract.ts#buildChatResult",
+    };
   }
   if (sectionBlocks.length) return { type: "sections", blocks: sectionBlocks };
   return null;

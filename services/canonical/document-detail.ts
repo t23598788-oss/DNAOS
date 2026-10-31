@@ -16,45 +16,67 @@ export async function getDocumentDetail(kind: DocumentKind, documentId: string):
   const table = isInvoice ? "invoices" : "standalone_documents";
 
   const { data: doc, error } = await db.from(table).select("*").eq("id", documentId).maybeSingle();
-  if (error || !doc) return null;
+  if (error) throw new Error(`document detail query failed: ${table}`);
+  if (!doc) return null;
   const d = doc as Record<string, unknown>;
 
-  const derived = isInvoice
-    ? ((await db.from("invoice_payment_summary").select("*").eq("invoice_id", documentId).maybeSingle()).data as Record<string, unknown> | null)
-    : null;
+  let derived: Record<string, unknown> | null = null;
+  if (isInvoice) {
+    const { data, error: derivedError } = await db
+      .from("invoice_payment_summary")
+      .select("*")
+      .eq("invoice_id", documentId)
+      .maybeSingle();
+    if (derivedError) throw new Error("document detail query failed: invoice_payment_summary");
+    derived = data as Record<string, unknown> | null;
+  }
 
   const versionQuery = db
     .from("document_versions")
     .select("id, version_no, status, data_completeness, snapshot, created_at, created_by, previous_version_id")
     .order("version_no", { ascending: false })
     .limit(1);
-  const { data: version } = await (isInvoice ? versionQuery.eq("invoice_id", documentId) : versionQuery.eq("standalone_document_id", documentId)).maybeSingle();
+  const { data: version, error: versionError } = await (
+    isInvoice ? versionQuery.eq("invoice_id", documentId) : versionQuery.eq("standalone_document_id", documentId)
+  ).maybeSingle();
+  if (versionError) throw new Error("document detail query failed: document_versions");
   const v = version as Record<string, unknown> | null;
 
   // artifacts belong to a VERSION, so a document's full set spans every version it has
-  const { data: allVersions } = await (isInvoice
+  const { data: allVersions, error: allVersionsError } = await (isInvoice
     ? db.from("document_versions").select("id").eq("invoice_id", documentId)
     : db.from("document_versions").select("id").eq("standalone_document_id", documentId)
   ).order("version_no", { ascending: true });
+  if (allVersionsError) throw new Error("document detail query failed: document_versions");
   const versionIds = ((allVersions ?? []) as Record<string, unknown>[]).map((row) => String(row.id));
-  const { data: artifacts } = versionIds.length
-    ? await db
+  let artifacts: Record<string, unknown>[] = [];
+  if (versionIds.length) {
+    const { data, error: artifactsError } = await db
         .from("document_artifacts")
         .select("id, document_version_id, kind, storage_bucket, storage_path, sha256, size_bytes, mime_type, produced_by, created_at")
         .in("document_version_id", versionIds)
-        .order("created_at", { ascending: true })
-    : { data: [] as Record<string, unknown>[] };
+        .order("created_at", { ascending: true });
+    if (artifactsError) throw new Error("document detail query failed: document_artifacts");
+    artifacts = (data ?? []) as Record<string, unknown>[];
+  }
 
-  const { data: sourceLinks } = await db
+  const { data: sourceLinks, error: sourceLinksError } = await db
     .from("inbound_source_links")
     .select("*")
     .or(isInvoice ? `invoice_id.eq.${documentId}` : `standalone_document_id.eq.${documentId}`);
+  if (sourceLinksError) throw new Error("document detail query failed: inbound_source_links");
   const inboundIds = [
     ...new Set((sourceLinks ?? []).map((l: Record<string, unknown>) => l.receipt_document_id).filter(Boolean) as string[]),
   ];
-  const { data: inbound } = inboundIds.length
-    ? await db.from("receipt_documents_bank_line").select("*").in("receipt_document_id", inboundIds)
-    : { data: [] as Record<string, unknown>[] };
+  let inbound: Record<string, unknown>[] = [];
+  if (inboundIds.length) {
+    const { data, error: inboundError } = await db
+      .from("receipt_documents_bank_line")
+      .select("*")
+      .in("receipt_document_id", inboundIds);
+    if (inboundError) throw new Error("document detail query failed: receipt_documents_bank_line");
+    inbound = (data ?? []) as Record<string, unknown>[];
+  }
 
   const allocations = await getCanonicalAllocations(isInvoice ? { invoiceId: documentId } : { standaloneDocumentId: documentId });
 
@@ -63,20 +85,22 @@ export async function getDocumentDetail(kind: DocumentKind, documentId: string):
   let lineItems: Record<string, unknown>[] = Array.isArray(snapshotItems) ? (snapshotItems as Record<string, unknown>[]) : [];
   let itemsSource: CanonicalDocumentDetail["line_items_source"] = lineItems.length ? "version_snapshot" : "unavailable";
   if (!lineItems.length) {
-    const { data: live } = isInvoice
+    const { data: live, error: liveItemsError } = isInvoice
       ? await db.from("invoice_items").select("*").eq("invoice_id", documentId).order("sort_order", { ascending: true })
       : await db.from("standalone_document_items").select("*").eq("document_id", documentId).order("sort_order", { ascending: true });
+    if (liveItemsError) throw new Error("document detail query failed: document items");
     if (live?.length) {
       lineItems = live as Record<string, unknown>[];
       itemsSource = "live_items";
     }
   }
 
-  const { data: audit } = await db
+  const { data: audit, error: auditError } = await db
     .from("audit_logs")
     .select("*")
     .eq("entity_id", documentId)
     .order("created_at", { ascending: true });
+  if (auditError) throw new Error("document detail query failed: audit_logs");
 
   const snapshotFinancial = ((v?.snapshot as Record<string, unknown> | undefined)?.financial ?? null) as Record<string, unknown> | null;
 

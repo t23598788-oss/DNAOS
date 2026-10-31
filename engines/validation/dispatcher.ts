@@ -26,6 +26,7 @@ import registry from "@/registry/command-registry.json";
 import { classify, type Classification } from "@/engines/governance/hardcode-decision-engine";
 import { isTenantScopedRead, scopeCanReadTenantData, NO_DATA_SCOPE, type DataScope } from "@/core/authority/data-scope";
 import { currentDataScope } from "@/core/authority/data-scope-context";
+import { emitExecutionEvent } from "@/core/runtime/trace";
 
 // ── Types ──
 
@@ -390,6 +391,12 @@ export async function dispatch(
   // API token), never from the command payload.
   const scope = accessScope ?? currentDataScope();
   if (isTenantScopedRead(command) && !scopeCanReadTenantData(scope)) {
+    emitExecutionEvent({
+      event: "tool.selected",
+      toolId: command,
+      sourceReference: `registry/command-registry.json#${command}`,
+      status: "denied",
+    });
     return {
       ok: false,
       command,
@@ -401,6 +408,8 @@ export async function dispatch(
     };
   }
 
+  const sourceReference = `registry/command-registry.json#${command}`;
+  emitExecutionEvent({ event: "tool.selected", toolId: command, sourceReference, status: "selected" });
   const violations = validateInput(command, payload);
 
   if (def.requires_confirmation && !confirmed) {
@@ -423,10 +432,27 @@ export async function dispatch(
 
   const queryFn = QUERY_MAP[command];
   if (queryFn) {
+    const startedAt = Date.now();
+    emitExecutionEvent({ event: "reader.started", toolId: command, sourceReference, status: "started" });
     try {
       const data = await queryFn(payload, scope ?? NO_DATA_SCOPE);
+      emitExecutionEvent({
+        event: "reader.completed",
+        toolId: command,
+        sourceReference,
+        status: "completed",
+        durationMs: Date.now() - startedAt,
+        recordCount: Array.isArray(data) ? data.length : undefined,
+      });
       return { ok: true, command, data, requires_confirmation: false, violations: [], hardcode_warnings };
     } catch (err) {
+      emitExecutionEvent({
+        event: "reader.completed",
+        toolId: command,
+        sourceReference,
+        status: "failed",
+        durationMs: Date.now() - startedAt,
+      });
       return {
         ok: false, command, data: null, requires_confirmation: false,
         violations: [`query error: ${err instanceof Error ? err.message : String(err)}`],

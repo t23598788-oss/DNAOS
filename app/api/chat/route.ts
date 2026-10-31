@@ -7,6 +7,15 @@ import { runCognitivePipeline } from "@/cognitive/pipeline";
 import { buildChatResult } from "./_lib/resultContract";
 import type { ChatResult } from "./_lib/chatResultTypes";
 import {
+  completeTrace,
+  emitExecutionEvent,
+  getTrace,
+  startTrace,
+  withExecutionContext,
+  type ExecutionEvent,
+} from "@/core/runtime/trace";
+import { randomUUID } from "node:crypto";
+import {
   askOwnerRuntime,
   resolveOwnerRuntimeIdentity,
   resolveOwnerRuntimeInstruction,
@@ -60,143 +69,303 @@ function mapOwnerRuntimeResult(owner: OwnerRuntimeAnswer): ChatResult {
 // pipeline (this route, the /ask route, anything future) goes through the
 // same one real analysis layer instead of each route re-implementing its
 // own checks. This file is intentionally thin now.
+type ChatPayload = {
+  message?: unknown;
+  sessionKey?: unknown;
+  knownCustomerId?: unknown;
+  knownCustomerName?: unknown;
+  relationshipId?: unknown;
+  documentContext?: {
+    document_no?: string | null;
+    document_id?: string | null;
+    title?: string | null;
+  } | null;
+}
+
+interface ChatExecutionResult {
+  body: Record<string, unknown>;
+  status: number;
+}
+
+async function executeChat(
+  request: Request,
+  auth: Extract<Awaited<ReturnType<typeof requireAuth>>, { id: string }>,
+  input: ChatPayload,
+  onEvent?: (event: ExecutionEvent) => void,
+): Promise<ChatExecutionResult> {
+  const traceId = randomUUID();
+  startTrace(traceId, "[Workspace command redacted]");
+  let context: Parameters<typeof withExecutionContext>[0] = {
+    traceId,
+    actorId: auth.id,
+    scopeMode: "none",
+    organizationIds: [],
+    onEvent,
+  };
+
+  try {
+    const rawMessage = String(input.message ?? "");
+    const scope = await resolveSessionDataScope(auth);
+    context = {
+      traceId,
+      actorId: scope.profileId ?? auth.id,
+      scopeMode: scope.mode,
+      organizationIds: scope.organizationIds,
+      onEvent,
+    };
+
+    return await withExecutionContext(context, async () => {
+      emitExecutionEvent({
+        event: "command.received",
+        toolId: "chat.workspace",
+        sourceReference: "/api/chat",
+        status: "received",
+      });
+
+      try {
+        const sessionKey = input.sessionKey;
+        const knownCustomerId = input.knownCustomerId;
+        const knownCustomerName = input.knownCustomerName;
+        const relationshipId = input.relationshipId;
+        const documentContext = input.documentContext;
+        const memorySessionKey = `u:${auth.id}:${sessionKey ? String(sessionKey) : "chat"}`;
+        const gatewayContext = {
+          ownerId: auth.email,
+          sessionId: request.headers.get("x-dna-session") ?? memorySessionKey,
+        };
+
+        const payload = await runWithDataScope(scope, async () => {
+          const response = await runCognitivePipeline(
+            rawMessage,
+            null,
+            memorySessionKey,
+            knownCustomerId ? { id: String(knownCustomerId), name: String(knownCustomerName ?? "") } : null,
+            gatewayContext,
+            { origin: new URL(request.url).origin, cookie: request.headers.get("cookie"), userId: auth.id },
+          );
+          let result: ChatResult = (await buildChatResult(request, rawMessage, response)) ?? {
+            type: "text",
+            text: response.text ?? "",
+          };
+
+          const pipelineResponse = response as Record<string, unknown>;
+          const clineStructured = pipelineResponse.cline_result;
+          if (
+            pipelineResponse.pulse_node === "module:app/api/chat/_lib/clineWorker" &&
+            clineStructured &&
+            typeof clineStructured === "object"
+          ) {
+            result = clineStructured as ChatResult;
+          }
+          let ownerTextOverride: string | null = null;
+          const deterministicCue = Boolean(
+            pipelineResponse.navigate_url ||
+              pipelineResponse.open_app ||
+              pipelineResponse.external_url ||
+              pipelineResponse.window_action ||
+              pipelineResponse.screen_vision ||
+              pipelineResponse.line_copilot ||
+              pipelineResponse.command ||
+              pipelineResponse.pulse_node,
+          );
+          let localAiCommandUsed: string | null = null;
+          const bridgeEligible =
+            result.type !== "error" &&
+            !deterministicCue &&
+            (result.type === "text" || result.type === "sections");
+          if (bridgeEligible) {
+            const localCommand = await translateLocalAiCommand(rawMessage, {
+              ownerId: auth.id,
+              sessionId: memorySessionKey,
+            });
+            if (localCommand) {
+              const aiResult = await buildChatResult(request, rawMessage, response, localCommand);
+              if (aiResult && aiResult.type !== "text" && aiResult.type !== "error") {
+                result = aiResult;
+                localAiCommandUsed = localCommand.action;
+              }
+            }
+          }
+          if (!deterministicCue && result.type === "text") {
+            const identityId = resolveOwnerRuntimeIdentity(auth);
+            if (identityId) {
+              const owner = await askOwnerRuntime({
+                text: resolveOwnerRuntimeInstruction(rawMessage, documentContext),
+                identityId,
+                relationshipId: relationshipId ? String(relationshipId) : knownCustomerId ? String(knownCustomerId) : null,
+                documentContext: documentContext ?? null,
+              });
+              if (owner) {
+                result = mapOwnerRuntimeResult(owner);
+                ownerTextOverride = result.type === "text" ? result.text : null;
+              }
+            }
+          }
+
+          const structured = ["finance_summary", "document", "timeline", "table", "error"].includes(result.type);
+          const { navigate_url: navigateUrl, ...rest } = response;
+          return {
+            ...rest,
+            ...(structured ? {} : navigateUrl ? { navigate_url: navigateUrl } : {}),
+            text: structured ? "" : ownerTextOverride ?? response.text,
+            result,
+            trace_id: traceId,
+            ...(localAiCommandUsed ? { local_ai_command: localAiCommandUsed } : {}),
+          };
+        });
+
+        const readerOutcomes = new Map<string, ExecutionEvent>();
+        for (const event of getTrace(traceId)?.events ?? []) {
+          if (event.event === "reader.completed") readerOutcomes.set(event.toolId, event);
+        }
+        const failedReader = [...readerOutcomes.values()].find((event) => event.status === "failed");
+        const deniedTool = [...(getTrace(traceId)?.events ?? [])]
+          .reverse()
+          .find((event) => event.event === "tool.selected" && event.status === "denied");
+        const readerFailure = failedReader ?? deniedTool;
+        let result = payload.result as ChatResult;
+        if (result.type !== "error" && readerFailure) {
+          result = {
+            type: "error",
+            code: deniedTool ? "ACCESS_DENIED" : "QUERY_FAILED",
+            message: deniedTool
+              ? "บัญชีนี้ไม่มีสิทธิ์อ่านข้อมูลที่ร้องขอ"
+              : "อ่านข้อมูลจาก Canonical Reader ไม่สำเร็จ",
+            sourceReference: readerFailure.sourceReference,
+          };
+          payload.result = result;
+          payload.text = "";
+        }
+        emitExecutionEvent({
+          event: "result.ready",
+          toolId: `chat.result.${result.type}`,
+          sourceReference:
+            result.type === "error" && result.sourceReference
+              ? result.sourceReference
+              : "app/api/chat/_lib/resultContract.ts#buildChatResult",
+          status: result.type === "error" ? "failed" : "ready",
+        });
+        if (result.type === "error") {
+          emitExecutionEvent({
+            event: "execution.failed",
+            toolId: "chat.workspace",
+            sourceReference: "/api/chat",
+            status: "failed",
+          });
+          completeTrace(traceId, "failed");
+          const status = result.code === "ACCESS_DENIED" ? 403 : result.code === "INVALID_REQUEST" ? 400 : 502;
+          return { body: payload, status };
+        }
+
+        emitExecutionEvent({
+          event: "execution.completed",
+          toolId: "chat.workspace",
+          sourceReference: "/api/chat",
+          status: "completed",
+        });
+        completeTrace(traceId, "completed");
+        return { body: payload, status: 200 };
+      } catch (error) {
+        console.error("[chat] pipeline execution failed", {
+          traceId,
+          errorName: error instanceof Error ? error.name : "UnknownError",
+        });
+        emitExecutionEvent({
+          event: "execution.failed",
+          toolId: "chat.workspace",
+          sourceReference: "/api/chat",
+          status: "failed",
+        });
+        completeTrace(traceId, "failed");
+        return {
+          body: {
+            sender: "ai",
+            type: "text",
+            text: "ประมวลผลคำสั่งไม่สำเร็จ โปรดลองอีกครั้ง",
+            result: {
+              type: "error",
+              code: "QUERY_FAILED",
+              message: "ประมวลผลคำสั่งไม่สำเร็จ โปรดลองอีกครั้ง",
+              sourceReference: "/api/chat",
+            },
+            trace_id: traceId,
+          },
+          status: 500,
+        };
+      }
+    });
+  } catch (error) {
+    console.error("[chat] request scope resolution failed", {
+      traceId,
+      errorName: error instanceof Error ? error.name : "UnknownError",
+    });
+    return withExecutionContext(context, () => {
+      emitExecutionEvent({
+        event: "execution.failed",
+        toolId: "chat.workspace",
+        sourceReference: "/api/chat",
+        status: "failed",
+      });
+      completeTrace(traceId, "failed");
+      return {
+        body: {
+          sender: "ai",
+          type: "text",
+          text: "ตรวจสอบสิทธิ์หรือขอบเขตข้อมูลไม่สำเร็จ",
+          result: {
+            type: "error",
+            code: "QUERY_FAILED",
+            message: "ตรวจสอบสิทธิ์หรือขอบเขตข้อมูลไม่สำเร็จ",
+            sourceReference: "/api/chat",
+          },
+          trace_id: traceId,
+        },
+        status: 500,
+      };
+    });
+  }
+}
+
 export async function POST(request: Request) {
   const auth = await requireAuth(ADMIN_TIER);
   if (auth instanceof NextResponse) return auth;
 
+  let input: ChatPayload;
   try {
-    // sessionKey (owner, 2026-07-31 fix): the caller's session key, so
-    // cognitive/memory/session.ts keeps each customer/relationship's memory
-    // isolated instead of one process-wide singleton — see cognitive/
-    // pipeline.ts's runCognitivePipeline for the real incident this fixes.
-    // Distinct from contactContext, which is free-text AI-prompt context,
-    // not an identifier.
-    // knownCustomerId/knownCustomerName (owner, 2026-08-01): "เรื่องการเงิน
-    // เอกสารไม่ต้องให้ ai เข้ามา" — when the caller (an Action Bar button)
-    // already knows exactly which customer this is, skip AI name-matching
-    // for identity entirely (see runCognitiveCore's knownCustomer handling).
-    const { message, sessionKey, knownCustomerId, knownCustomerName, relationshipId, documentContext } = await request.json();
-    const rawMessage = String(message ?? "");
-    const scope = await resolveSessionDataScope(auth);
-    const memorySessionKey = `u:${auth.id}:${sessionKey ? String(sessionKey) : "chat"}`;
-    const gatewayContext = {
-      ownerId: auth.email,
-      sessionId: request.headers.get("x-dna-session") ?? memorySessionKey,
-    };
-    const response = await runWithDataScope(scope, () =>
-      runCognitivePipeline(
-        rawMessage,
-        null,
-        memorySessionKey,
-        knownCustomerId ? { id: String(knownCustomerId), name: String(knownCustomerName ?? "") } : null,
-        gatewayContext,
-        { origin: new URL(request.url).origin, cookie: request.headers.get("cookie"), userId: auth.id },
-      ),
-    );
-    // RESPONSE CONTRACT (owner 2026-09-25): แนบ result ทุกครั้ง — structured
-    // (finance/document/timeline/table) มาจาก canonical reader จึง "แทนที่"
-    // ข้อความ LLM (text="") ห้ามให้ LLM แต่งตัวเลข · confirmation/text คงข้อความเดิม
-    let result: ChatResult = (await buildChatResult(request, rawMessage, response)) ?? {
-      type: "text",
-      text: response.text ?? "",
-    };
-    // OWNER WORKSPACE AI TOOL INTEGRATION (2026-10-11): structured result จาก
-    // Cline (sanitized ใน clineWorker แล้ว) ชนะ text เปล่า — render ด้วย
-    // Workspace result contract เดิมทุก type (sections/table/timeline/file/document)
-    const pipelineResponse = response as Record<string, unknown>;
-    const clineStructured = pipelineResponse.cline_result;
-    if (
-      pipelineResponse.pulse_node === "module:app/api/chat/_lib/clineWorker" &&
-      clineStructured &&
-      typeof clineStructured === "object"
-    ) {
-      result = clineStructured as ChatResult;
-    }
-    let ownerTextOverride: string | null = null;
-    // FALLBACK ORDER (owner spec): deterministic command/intent (inside
-    // runCognitivePipeline: client directives, navigation, external facts) →
-    // canonical capability (buildChatResult dispatcher above) → owner runtime.
-    // A deterministic cue or a structured capability result means the layers
-    // above already answered — the runtime is never consulted for those.
-    const deterministicCue = Boolean(
-      pipelineResponse.navigate_url ||
-        pipelineResponse.open_app ||
-        pipelineResponse.external_url ||
-        pipelineResponse.window_action ||
-        pipelineResponse.screen_vision ||
-        pipelineResponse.line_copilot ||
-        pipelineResponse.command ||
-        // OWNER BUSINESS ROUTING FIX (2026-10-11): deterministic business Q&A
-        // (เช่น answerCompanyInfoQuestion) แนบ pulse_node มาด้วย — ชั้นนี้ตอบ
-        // แล้วจริง ห้ามส่งต่อให้ local AI bridge / owner-runtime เรียก AI อีกชั้น
-        pipelineResponse.pulse_node,
-    );
-    const capabilityAnswered = result.type !== "text" && result.type !== "error";
-    // LOCAL AI intent bridge (LOCAL AI RUNTIME mission, 2026-10-11): เมื่อ
-    // deterministic layers + canonical capability ยังไม่ตอบ — Local AI (Ollama
-    // adapter ของ AI Gateway เดิม, capability intent.classify) แปลภาษาคนเป็น
-    // READ command จากรายการคำสั่งเดิม แล้วส่งกลับเข้า buildChatResult path
-    // canonical เดิม — AI ไม่เขียน DB ไม่ execute อะไรทั้งสิ้น · fail-closed:
-    // แปลไม่ได้/ไม่ configured = null → เดินต่อ owner-runtime เหมือนเดิมทุกประการ
-    let localAiCommandUsed: string | null = null;
-    // sections = board fallback (ข้อมูล workspace เดิม) ไม่ใช่คำตอบจริงของคำถาม
-    // — ปล่อยให้ Local AI แปลและแทนที่ได้ แต่ถ้า AI แปลไม่ได้ sections เดิมคงอยู่
-    const bridgeEligible =
-      !deterministicCue &&
-      (result.type === "text" || result.type === "error" || result.type === "sections");
-    if (bridgeEligible) {
-      const localCommand = await translateLocalAiCommand(rawMessage, {
-        ownerId: auth.id,
-        sessionId: memorySessionKey,
-      });
-      if (localCommand) {
-        const aiResult = await buildChatResult(request, rawMessage, response, localCommand);
-        if (aiResult && aiResult.type !== "text" && aiResult.type !== "error") {
-          result = aiResult;
-          localAiCommandUsed = localCommand.action;
-        }
-      }
-    }
-    if (!deterministicCue && !(result.type !== "text" && result.type !== "error")) {
-      // identity_id comes ONLY from the authenticated session mapping —
-      // never hardcoded, never the customer/relationship id (relationshipId
-      // travels as its own context param), never a default. No mapping = no
-      // call: the runtime is never asked under a guessed identity.
-      const identityId = resolveOwnerRuntimeIdentity(auth);
-      if (identityId) {
-        const owner = await askOwnerRuntime({
-          text: resolveOwnerRuntimeInstruction(rawMessage, documentContext),
-          identityId,
-          relationshipId: relationshipId ? String(relationshipId) : knownCustomerId ? String(knownCustomerId) : null,
-          documentContext: documentContext ?? null,
-        });
-        if (owner) {
-          result = mapOwnerRuntimeResult(owner);
-          ownerTextOverride = result.type === "text" ? result.text : null;
-        }
-      }
-    }
-    const structured = ["finance_summary", "document", "timeline", "table", "error"].includes(result.type);
-    // navigate_url vs structured result (owner fix 2026-10-08, found by real
-    // browser test): the pipeline sometimes answers with BOTH a navigation cue
-    // and a structured read result — the workspace shell pushed the message and
-    // then router.push()ed away, unmounting the result the user just asked for.
-    // When a structured result is present it OWNS the screen: navigation cues
-    // are suppressed. Text-only replies keep their original navigate behavior.
-    const { navigate_url: navigateUrl, ...rest } = response;
-    return NextResponse.json({
-      ...rest,
-      ...(structured ? {} : navigateUrl ? { navigate_url: navigateUrl } : {}),
-      text: structured ? "" : ownerTextOverride ?? response.text,
-      result,
-      // LOCAL AI RUNTIME evidence: action ที่ Local AI แปลได้ (null = ไม่ผ่าน bridge)
-      ...(localAiCommandUsed ? { local_ai_command: localAiCommandUsed } : {}),
-    });
-  } catch (error) {
-    return NextResponse.json({
-      sender: "ai",
-      type: "text",
-      text: `ผิดพลาด: ${error instanceof Error ? error.message : String(error)}`,
-    });
+    input = (await request.json()) as ChatPayload;
+  } catch {
+    return NextResponse.json({ error: "คำขอไม่ถูกต้อง" }, { status: 400 });
   }
+
+  if (!request.headers.get("accept")?.includes("text/event-stream")) {
+    const result = await executeChat(request, auth, input);
+    return NextResponse.json(result.body, { status: result.status });
+  }
+
+  const encoder = new TextEncoder();
+  let cancelled = false;
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      const send = (event: string, data: unknown) => {
+        if (cancelled) return;
+        controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
+      };
+      void executeChat(request, auth, input, (event) => send("execution", event)).then((result) => {
+        send("result", { ...result.body, http_status: result.status });
+        if (!cancelled) controller.close();
+      });
+    },
+    cancel() {
+      cancelled = true;
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "X-Accel-Buffering": "no",
+    },
+  });
 }

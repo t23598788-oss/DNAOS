@@ -13,12 +13,23 @@ import { formatDocumentCreateResult } from "@/presenter/formatter";
 import type { ExecutionPlan, ToolStepPlan } from "../planner";
 import type { WorldState } from "../state";
 import type { ExecutionOutput } from "../evaluation";
+import { emitExecutionEvent } from "@/core/runtime/trace";
 
 type StepData = Record<string, unknown> | Record<string, unknown>[] | null;
 
 interface StepResult extends ExecutionOutput {
   data: StepData;
 }
+
+const DIRECT_READ_TOOLS = new Set([
+  "identity.resolve",
+  "debt.query",
+  "document.query",
+  "invoice.query",
+  "quotation.query",
+  "boq.query",
+  "job.query",
+]);
 
 export async function executePlan(plan: ExecutionPlan, worldState: WorldState): Promise<StepResult[]> {
   if (plan.ask_user || plan.steps.length === 0) return [];
@@ -27,8 +38,37 @@ export async function executePlan(plan: ExecutionPlan, worldState: WorldState): 
 
   for (const step of [...plan.steps].sort((a, b) => a.group - b.group || a.id - b.id)) {
     const started = Date.now();
+    const registryCommand = toRegistryCommand(step.tool);
+    const usesRegistryCommand = Boolean(registryCommand && isRegistered(registryCommand));
+    const directReader = !usesRegistryCommand && DIRECT_READ_TOOLS.has(step.tool);
+    const sourceReference = `cognitive/executor/index.ts#${step.tool}`;
+    if (!usesRegistryCommand) {
+      emitExecutionEvent({
+        event: "tool.selected",
+        toolId: step.tool,
+        sourceReference,
+        status: "selected",
+      });
+    }
+    if (directReader) {
+      emitExecutionEvent({
+        event: "reader.started",
+        toolId: step.tool,
+        sourceReference,
+        status: "started",
+      });
+    }
     try {
       const data = await runStep(step, worldState, results);
+      if (directReader) {
+        emitExecutionEvent({
+          event: "reader.completed",
+          toolId: step.tool,
+          sourceReference,
+          status: "completed",
+          durationMs: Date.now() - started,
+        });
+      }
       results.push({
         tool: step.tool,
         success: true,
@@ -41,6 +81,15 @@ export async function executePlan(plan: ExecutionPlan, worldState: WorldState): 
       // Stop here and let the human confirm before anything downstream runs.
       if ((data as { _preview_pending?: boolean } | null)?._preview_pending) break;
     } catch (error) {
+      if (directReader) {
+        emitExecutionEvent({
+          event: "reader.completed",
+          toolId: step.tool,
+          sourceReference,
+          status: "failed",
+          durationMs: Date.now() - started,
+        });
+      }
       results.push({
         tool: step.tool,
         success: false,

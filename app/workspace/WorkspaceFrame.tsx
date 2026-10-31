@@ -40,6 +40,59 @@ type FrameItem = {
   disabledNote?: string;
 };
 
+type ChatExecutionEvent = {
+  traceId: string;
+  sequence: number;
+  event: string;
+  actorId: string;
+  scopeMode: "platform" | "organization" | "none";
+  organizationIds: string[];
+  toolId: string;
+  timestamp: string;
+  status: string;
+  sourceReference: string;
+  durationMs?: number;
+  recordCount?: number;
+};
+
+async function readChatEventStream(
+  response: Response,
+  onEvent: (event: ChatExecutionEvent) => void,
+): Promise<Record<string, unknown> | null> {
+  if (!response.body) throw new Error("Chat stream has no response body");
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let result: Record<string, unknown> | null = null;
+  const consume = (frame: string) => {
+    let eventName = "message";
+    const data: string[] = [];
+    for (const line of frame.split("\n")) {
+      if (line.startsWith("event:")) eventName = line.slice(6).trim();
+      else if (line.startsWith("data:")) data.push(line.slice(5).trimStart());
+    }
+    if (data.length === 0) return;
+    const parsed: unknown = JSON.parse(data.join("\n"));
+    if (eventName === "execution" && parsed && typeof parsed === "object") {
+      onEvent(parsed as ChatExecutionEvent);
+    } else if (eventName === "result" && parsed && typeof parsed === "object") {
+      result = parsed as Record<string, unknown>;
+    }
+  };
+
+  while (true) {
+    const { done, value } = await reader.read();
+    buffer += decoder.decode(value, { stream: !done }).replace(/\r\n/g, "\n");
+    const frames = buffer.split("\n\n");
+    buffer = frames.pop() ?? "";
+    frames.forEach(consume);
+    if (done) break;
+  }
+  if (buffer.trim()) consume(buffer);
+  if (!result) throw new Error("Chat stream ended before returning a result");
+  return result;
+}
+
 // RUNPOD console shortcut (owner 2026-08-03): เดิมอยู่ใน IconRail ของ
 // relationships — shell ใหม่คงไว้ใน drawer (external = เปิด browser จริง
 // ไม่ใช่ navigate webview เหมือนเหตุผลเดิมที่ rail ไม่มี href)
@@ -150,7 +203,6 @@ export function WorkspaceFrame({
   panelOpen,
   onPanelOpenChange,
   composerContext,
-  onComposerSent,
   selfRoute,
   itemBadges,
 }: {
@@ -161,13 +213,8 @@ export function WorkspaceFrame({
   /** เปิด/ปิดแผง (controlled ก็ได้ ไม่ส่งก็ใช้ state ในตัว) */
   panelOpen?: boolean;
   onPanelOpenChange?: (open: boolean) => void;
-  /** context ของ entity ที่เลือก — ไม่มีช่องทาง LINE → ยิง /api/chat ด้วย
-   *  sessionKey/knownCustomerId/knownCustomerName (ชุดเดียวกับ runCommand/ask) +
-   *  upload ลงโฟลเดอร์ documentId · มีช่องทาง LINE → communication action
-   *  ใช้ LINE/send API เดิม (POST …/reply) */
+  /** Entity context for authenticated /api/chat and attachment upload. */
   composerContext?: {
-    /** channel จริงของ entity — มีค่า = ส่งข้อความผ่าน LINE reply API เดิม */
-    lineUserId?: string | null;
     relationshipId?: string;
     sessionKey?: string;
     knownCustomerId?: string;
@@ -182,8 +229,6 @@ export function WorkspaceFrame({
       title?: string | null;
     };
   };
-  /** หลังส่งสำเร็จ (LINE) — ให้หน้าเจ้าของ canvas refresh timeline ตัวเอง */
-  onComposerSent?: () => void;
   /** route ของหน้าปัจจุบัน — item นี้ใน drawer แค่ปิดเมนู ไม่ navigate ซ้ำ */
   selfRoute?: string;
   /** ตัวเลขจริงจากชั้นข้อมูลของหน้า (key = label ของ item ใน drawer) */
@@ -213,8 +258,10 @@ export function WorkspaceFrame({
     confirm?: { action: string; token: string; busy?: boolean };
     docHtml?: string;
     flexPreview?: unknown;
+    executionEvents?: ChatExecutionEvent[];
   }[]>([]);
   const [sending, setSending] = useState(false);
+  const [activeExecutionEvents, setActiveExecutionEvents] = useState<ChatExecutionEvent[]>([]);
   const [uploading, setUploading] = useState(false);
   // เสียงตอบ (ยุบมาจากเลขาส่วนตัวเดิม) — voiceRef ใช้ใน realtime effect ที่ mount ครั้งเดียว
   const [voiceOn, setVoiceOn] = useState(false);
@@ -229,6 +276,7 @@ export function WorkspaceFrame({
       confirm?: { action: string; token: string };
       docHtml?: string;
       flexPreview?: unknown;
+      executionEvents?: ChatExecutionEvent[];
     },
   ) => {
     msgSeq.current += 1;
@@ -341,33 +389,12 @@ export function WorkspaceFrame({
     if (!text || sending) return;
     setDraft("");
     setSending(true);
+    setActiveExecutionEvents([]);
     pushMsg("user", text);
-    // (E) มี entity + ช่องทาง LINE → communication action ใช้ LINE/send API เดิม
-    // (POST …/reply body {text} — สัญญาเดียวกับ sendReply ของ relationships ทุกตัวอักษร)
-    if (composerContext?.lineUserId && composerContext.relationshipId) {
-      try {
-        const res = await fetch(`/api/admin/line-customers/${composerContext.lineUserId}/reply`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
-        });
-        const d = await res.json().catch(() => null);
-        if (res.ok) {
-          pushMsg("system", "ส่งข้อความแล้ว");
-          onComposerSent?.();
-        } else {
-          pushMsg("system", (d && typeof d.error === "string" && d.error) || "ส่งไม่สำเร็จ");
-        }
-      } catch {
-        pushMsg("system", "เชื่อมต่อไม่สำเร็จ");
-      } finally {
-        setSending(false);
-      }
-      return;
-    }
+    const receivedEvents: ChatExecutionEvent[] = [];
     try {
-      // ไม่มี entity (คำสั่ง DNA OS) หรือ entity ไม่มีช่องทาง LINE (คำสั่ง/ถามกับ
-      // context ของ entity) → /api/chat เดิม
+      // Workspace commands always use authenticated business chat. Sending a
+      // LINE message remains an explicit action in the Messages surface.
       const body: Record<string, unknown> = {
         message: text,
         sessionKey: composerContext?.sessionKey || "workspace-shell",
@@ -380,31 +407,48 @@ export function WorkspaceFrame({
       if (composerContext?.documentContext) body.documentContext = composerContext.documentContext;
       const res = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
         body: JSON.stringify(body),
       });
-      const data = await res.json().catch(() => null);
-      if (res.ok && data) {
+      const data = res.headers.get("content-type")?.includes("text/event-stream")
+        ? await readChatEventStream(res, (event) => {
+            receivedEvents.push(event);
+            setActiveExecutionEvents([...receivedEvents]);
+          })
+        : await res.json().catch(() => null);
+      if (
+        data &&
+        typeof data.result === "object" &&
+        data.result !== null &&
+        "type" in data.result &&
+        data.result.type === "error"
+      ) {
+        const errorResult = data.result as Extract<ChatResult, { type: "error" }>;
+        pushMsg("system", errorResult.message, {
+          result: errorResult,
+          executionEvents: receivedEvents,
+        });
+      } else if (res.ok && data) {
         // ── client-only side effects (thin executor — central dispatcher ใน
         //    cognitive/pipeline ตัดสินใจเองว่าคำสั่งไหนใช้แบบไหน · ยุบมาจาก
         //    เลขาส่วนตัวเดิมตัวเดียว ไม่มี matcher ซ้ำในหน้าจอ) ──
         if (data.back) {
-          pushMsg("ai", String(data.text ?? "ย้อนกลับให้แล้วครับ"));
+          pushMsg("ai", String(data.text ?? "ย้อนกลับให้แล้วครับ"), { executionEvents: receivedEvents });
           router.back();
           return;
         }
         if (data.window_action) {
           await performWindowAction(data.window_action as "minimize" | "maximize" | "close");
-          pushMsg("ai", String(data.text ?? "รับทราบครับ"));
+          pushMsg("ai", String(data.text ?? "รับทราบครับ"), { executionEvents: receivedEvents });
           return;
         }
         if (data.external_url) {
           window.open(String(data.external_url), "_blank");
-          pushMsg("ai", String(data.text ?? "เปิดให้แล้วครับ"));
+          pushMsg("ai", String(data.text ?? "เปิดให้แล้วครับ"), { executionEvents: receivedEvents });
           return;
         }
         if (data.screen_vision) {
-          pushMsg("ai", String(data.text ?? "กำลังอ่านหน้าจอให้ครับ..."));
+          pushMsg("ai", String(data.text ?? "กำลังอ่านหน้าจอให้ครับ..."), { executionEvents: receivedEvents });
           const vision = await performScreenVision(
             typeof data.screen_vision_goal === "string" ? data.screen_vision_goal : undefined,
           );
@@ -413,7 +457,7 @@ export function WorkspaceFrame({
           return;
         }
         if (data.open_app) {
-          pushMsg("ai", await performOpenApp(String(data.open_app)));
+          pushMsg("ai", await performOpenApp(String(data.open_app)), { executionEvents: receivedEvents });
           return;
         }
         if (data.line_copilot) {
@@ -422,6 +466,7 @@ export function WorkspaceFrame({
           if (copilot) {
             const blocks = copilot.sections?.length ? sectionsToBlocks(copilot.sections) : [];
             pushMsg("ai", copilot.text, {
+              executionEvents: receivedEvents,
               ...(copilot.confirmToken
                 ? { confirm: { action: copilot.confirmAction ?? "", token: copilot.confirmToken } }
                 : {}),
@@ -448,6 +493,7 @@ export function WorkspaceFrame({
             : {}),
           ...(data.doc_html ? { docHtml: String(data.doc_html) } : {}),
           ...(data.flex_preview ? { flexPreview: data.flex_preview } : {}),
+          executionEvents: receivedEvents,
         });
         // เสียงตอบ (voiceOn) — พูดข้อความตอบจริง ไม่พูด structured ที่ไม่มี text
         if (voiceOn && typeof data.text === "string" && data.text) speak(String(data.text));
@@ -456,12 +502,19 @@ export function WorkspaceFrame({
         if (data.navigate_url) router.push(String(data.navigate_url));
       } else {
         const message = `ส่งคำสั่งไม่สำเร็จ: ${data?.error ?? data?.text ?? `HTTP ${res.status}`}`;
-        pushMsg("system", message, { result: { type: "error", message } });
+        pushMsg("system", message, {
+          result: { type: "error", message },
+          executionEvents: receivedEvents,
+        });
       }
     } catch {
       const message = "ติดต่อ /api/chat ไม่สำเร็จ ลองใหม่อีกครั้งครับ";
-      pushMsg("system", message, { result: { type: "error", message } });
+      pushMsg("system", message, {
+        result: { type: "error", message },
+        executionEvents: receivedEvents,
+      });
     } finally {
+      setActiveExecutionEvents([]);
       setSending(false);
     }
   };
@@ -649,6 +702,9 @@ export function WorkspaceFrame({
                           <FlexPreview flex={m.flexPreview} />
                         </div>
                       )}
+                      {m.executionEvents && m.executionEvents.length > 0 && (
+                        <ExecutionTimeline events={m.executionEvents} />
+                      )}
                       {m.confirm && (
                         <div className="row msg-actions">
                           <button
@@ -674,6 +730,9 @@ export function WorkspaceFrame({
                   </div>
                 );
               })}
+              {activeExecutionEvents.length > 0 && (
+                <ExecutionTimeline events={activeExecutionEvents} active />
+              )}
               {sending && <div className="note">DNA OS กำลังประมวลผล...</div>}
               {uploading && <div className="note">กำลังอัปโหลดไฟล์...</div>}
             </div>
@@ -744,6 +803,40 @@ export function WorkspaceFrame({
         </form>
       </section>
       )}
+    </div>
+  );
+}
+
+function ExecutionTimeline({ events, active = false }: { events: ChatExecutionEvent[]; active?: boolean }) {
+  if (events.length === 0) return null;
+  const traceId = events[0].traceId;
+  return (
+    <div className="note" aria-label="หลักฐานการประมวลผล" style={{ marginTop: 8, maxWidth: 760 }}>
+      <div style={{ fontSize: 11, marginBottom: 3 }}>
+        {active ? "กำลังทำงาน" : "หลักฐานการทำงาน"} · Trace {traceId}
+      </div>
+      {events.map((event) => (
+        <div
+          key={`${event.traceId}-${event.sequence}`}
+          style={{ display: "flex", gap: 6, alignItems: "baseline", fontSize: 11, overflowWrap: "anywhere" }}
+        >
+          <span aria-hidden="true">→</span>
+          <span>{event.event}</span>
+          <span>{event.toolId}</span>
+          <span>
+            ({event.status}
+            {event.recordCount === undefined ? "" : ` · ${event.recordCount} รายการ`}
+            {event.durationMs === undefined ? "" : ` · ${event.durationMs} ms`})
+          </span>
+          {event.sourceReference.startsWith("/api/") ? (
+            <a href={event.sourceReference} target="_blank" rel="noreferrer" className="attachment-link">
+              เปิด API
+            </a>
+          ) : (
+            <span>{event.sourceReference}</span>
+          )}
+        </div>
+      ))}
     </div>
   );
 }

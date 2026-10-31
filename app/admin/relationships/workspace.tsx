@@ -1527,9 +1527,8 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
   //     +unread จาก last_message เดิม · select = openRelationship เดิม)
   //   · เลือก entity → canvas กลางเปลี่ยน context = workspaceContent ชุดเดิม
   //     (feed/เอกสาร/การเงิน/งาน/inspector) — ไม่ navigate ไป UI shell ชุดที่สอง
-  //   · ONE composer ด้านล่าง:ไม่มี entity = คำสั่ง DNA OS (sessionKey คงที่) ·
-  //     มี entity = body sessionKey/knownCustomerId/knownCustomerName ชุดเดียวกับ
-  //     runCommand/ask เดิม + upload ลง documentId ของ entity
+  //     · ONE composer ด้านล่างส่งคำสั่งเข้าบัญชี /api/chat เสมอ; ส่ง LINE
+  //       เป็น explicit action ใน Messages เท่านั้น
   // route/backend/data/message ทั้งหมดคงเดิม — งานนี้ UI PRESENTATION เท่านั้น
   return (
     <WorkspaceFrame
@@ -1540,20 +1539,14 @@ function RelationshipWorkspace({ initialRelationshipId }: { initialRelationshipI
       composerContext={
         activeId
           ? {
-              // (E) มีช่องทาง LINE → composer ยิง LINE/send API เดิม (…/reply)
-              lineUserId: primaryLineUserId,
               relationshipId: activeId,
-              // ไม่มีช่องทาง LINE → /api/chat ด้วย context ของ entity (คำสั่ง/ถาม)
-              sessionKey: primaryLineUserId ?? `relationship:${activeId}`,
+              sessionKey: `relationship:${activeId}`,
               knownCustomerId: activeId,
               knownCustomerName: activeRelationship?.name ?? null,
               documentId: activeId,
             }
           : undefined
       }
-      onComposerSent={() => {
-        if (activeId) void loadDetail(activeId)
-      }}
       messagePanel={
         <ListColumn
           items={listItems}

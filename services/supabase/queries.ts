@@ -658,7 +658,7 @@ export async function getMaterialTypes() {
     .from("material_types")
     .select("id, name")
     .order("name");
-  if (error) return [];
+  if (error) throw new Error(error.message);
   return (data ?? []).map((d: any) => ({ id: d.id, name: d.name }));
 }
 
@@ -884,9 +884,10 @@ export async function getPartnersWithDocumentSummary(scope?: DataScope) {
       }),
   ])
 
-  const { data: invoiceOwners } = await supabaseAdmin()
+  const { data: invoiceOwners, error: invoiceOwnersError } = await supabaseAdmin()
     .from("invoices")
     .select("id, customer_company_id, invoice_date")
+  if (invoiceOwnersError) throw new Error(invoiceOwnersError.message);
   const ownerById = new Map((invoiceOwners ?? []).map((i: any) => [String(i.id), i]))
 
   const summaryMap = new Map<string, { total_invoiced: number; total_received: number; count: number; last_date: string | null }>();

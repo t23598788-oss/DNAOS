@@ -56,14 +56,16 @@ export async function getCanonicalAllocations(target: {
   else return [];
 
   const { data, error } = await q.order("allocated_at", { ascending: true });
-  if (error || !data?.length) return [];
+  if (error) throw new Error("canonical payment allocation query failed");
+  if (!data?.length) return [];
   const rows = data as AllocationRow[];
   const receiptIds = [...new Set(rows.map((r) => r.receipt_document_id))];
 
-  const { data: receipts } = await db
+  const { data: receipts, error: receiptsError } = await db
     .from("receipt_documents_bank_line")
     .select("receipt_document_id, document_type, receipt_status, receipt_amount, media_path, media_sha256, allocation_state, bank_statement_transaction_id, bank_amount")
     .in("receipt_document_id", receiptIds);
+  if (receiptsError) throw new Error("canonical receipt allocation query failed");
   const byId = new Map((receipts ?? []).map((r: Record<string, unknown>) => [String(r.receipt_document_id), r]));
 
   return rows.map((r) => {
@@ -155,4 +157,3 @@ export async function getCanonicalAllocationsForDocuments(
     };
   });
 }
-

@@ -113,7 +113,7 @@ check("R6. finance strip renders API summary (formatMoney only)", ws.includes("f
 check("R6. debt header + collection state + days", ws.includes("debt.total_outstanding") && ws.includes("days_overdue") && ws.includes("ชำระแล้ว") && ws.includes("ค้างชำระ"));
 check("R6. rail badges (pending quotes + finance alerts)", ws.includes("pendingQuotesCount") && ws.includes("pendingFinanceCount"));
 check("R6. ONE composer (owner 2026-09-25): ไม่มี input ตอบ/ถาม ที่สอง + composerContext ผูก entity", !ws.includes("value={replyText}") && !ws.includes("value={aiAskText}") && ws.includes("composerContext={"));
-check("F/E. เลือก entity → composer ใช้ LINE/send API เดิม (…/line-customers/…/reply body {text}) + onComposerSent refresh timeline", frameSrc.includes("/line-customers/") && frameSrc.includes("JSON.stringify({ text })") && ws.includes("lineUserId: primaryLineUserId") && ws.includes("onComposerSent=") && existsSync("app/api/admin/line-customers/[lineUserId]/reply/route.ts"));
+check("F/E. Workspace composer always uses authenticated /api/chat; LINE reply stays an explicit Messages action", frameSrc.includes('fetch("/api/chat"') && frameSrc.includes('Accept: "text/event-stream"') && !frameSrc.includes("/api/admin/line-customers/") && ws.includes("const sendReply") && ws.includes("/api/admin/line-customers/${lineUserId}/reply") && existsSync("app/api/admin/line-customers/[lineUserId]/reply/route.ts"));
 check("F. business logic เดิมเก็บครบ (sendReply/askAi/runCommand/buildFeed — เปลี่ยนแค่ presentation)", ws.includes("const sendReply") && ws.includes("const askAi") && ws.includes("const runCommand") && ws.includes("buildFeed(detail"));
 check("R6. Inspector + MapView kept in canvas; AppHeader bar ถูกถอด (ONE SURFACE)", ws.includes("<Inspector") && ws.includes("<MapView") && !ws.includes("<AppHeader"));
 check("R6. unified feed via buildFeed (messages+events+docs+sent bubbles)", ws.includes("buildFeed(detail") && ws.includes("sentInvoiceEntries"));
@@ -171,4 +171,3 @@ check(
 
 console.log(`\nrelationships-ui: ${pass} PASS / ${fail} FAIL`);
 if (fail > 0) process.exit(1);
-
