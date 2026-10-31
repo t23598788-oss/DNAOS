@@ -1075,7 +1075,6 @@ function ChatResultView({ result, fallbackText }: { result: ChatResult; fallback
                 {
                   kind: "table",
                   id: "t",
-                  title: result.title,
                   columns: result.table.columns,
                   rows: result.table.rows,
                 },
