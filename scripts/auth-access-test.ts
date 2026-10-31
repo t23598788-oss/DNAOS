@@ -64,14 +64,14 @@ const relDeep = read("app/admin/relationships/[relationshipId]/page.tsx");
 const logoutRoute = read("app/api/auth/logout/route.ts");
 const session = read("core/auth/session.ts");
 
-check("login = one identity/many providers: OAuth(google/apple/microsoft)+otp primary, password only behind pwMaintenance, no auto-login",
-  login.includes("signInWithOtp") && login.includes("signInWithOAuth") &&
-    ["google", "apple", "azure"].every((p) => login.includes(`"${p}"`)) &&
-    login.includes('"Microsoft"') &&
-    login.includes("/auth/confirm") && login.includes("isSafeInternalPath(nextPath)") &&
-    login.includes("signInWithPassword") && login.includes("pwMaintenance") &&
+check("login = email OTP only; existing identity mapping and safe destination retained",
+  login.includes("signInWithOtp") && login.includes('type: "email"') &&
+    login.includes("verifyOtp") && !login.includes("signInWithOAuth") &&
+    !login.includes("signInWithPassword") &&
+    login.includes("resolveIdentityContext") && login.includes("isSafeInternalPath(nextPath)") &&
+    login.includes('"/workspace"') &&
     !login.includes("/api/auth/auto-login"));
-check("landing after emailed link: /auth/confirm safe-next → default /app role-bounce",
+check("legacy email-link callback retains its /app role-bounce default",
   confirm.includes('searchParams.get("next") ?? "/app"') &&
     confirm.includes('isSafeInternalPath(next) ? next : "/app"'));
 check("/auth/confirm guards ?next= server-side", confirm.includes("isSafeInternalPath(next)") && confirm.includes("safeNext"));

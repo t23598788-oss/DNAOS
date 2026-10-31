@@ -9,12 +9,9 @@ import { isSafeInternalPath } from "@/core/auth/resolveDestination"
 // The ONE login page for the whole system (TASK-001 SSO) — Admin, Business,
 // Partner, and User Portal all redirect here when unauthenticated
 // (middleware.ts), and all sign in against the same Supabase Auth session.
-// Role-based landing page after login comes from profiles.role (see
-// supabase/migrations/20260708000001_profiles_roles.sql) — never guessed
-// client-side, always read from the row RLS lets the user see for themselves.
-// Where that role actually lands is decided in exactly one place:
-// core/auth/resolveDestination.ts (Enterprise Workspace Architecture, Phase 1)
-// — this file only fetches the role, it does not decide the destination.
+// The requested safe path is preserved; otherwise successful email OTP
+// opens Workspace. Profile identity and all later data scopes remain enforced
+// by the existing server-side auth and authority layers.
 //
 // Sign-in only, no sign-up (owner, 2026-07-29): during this single-owner
 // development phase there is exactly one real account (dnaos.tech@gmail.com)
@@ -25,44 +22,39 @@ import { isSafeInternalPath } from "@/core/auth/resolveDestination"
 // the system is actually customer-facing) is a small, deliberate change, not
 // a regression risk today.
 
+function getLoginDestination(nextPath: string | null): string {
+  return nextPath && isSafeInternalPath(nextPath) ? nextPath : "/workspace"
+}
+
 function LoginForm() {
   const searchParams = useSearchParams()
   const nextPath = searchParams.get("next")
 
-  // Canonical auth = "one identity, many providers" (owner, 2026-09-24):
-  // Google / Apple / Microsoft buttons are PRIMARY (sign in with the account
-  // already on the machine), email magic link is the fallback, and password
-  // login survives ONLY inside an explicit maintenance/fallback section —
-  // never the main path. All methods resolve through the SAME Supabase Auth
-  // into the SAME user + profiles row (identity resolved by email — see
-  // core/auth/session.ts#getAuthedUser + migration
-  // 20260927000001_identity_email_federation.sql). No separate owner/admin/
-  // developer logins; /auth/confirm is the ONE verifier for emailed links
-  // and OAuth PKCE returns alike.
-  // Surface ANY ?error= from the verifier — the old page only knew
-  // "forbidden", so too_many_attempts/invalid_link/oauth_denied failed
-  // SILENTLY (a real run had 10 login attempts look like "nothing happened").
+  // Email OTP uses the existing Supabase Auth identity and cookie session.
+  // Provider callbacks remain supported by /auth/confirm for existing
+  // identities; this page exposes only the email-code sign-in path.
   const urlError = searchParams.get("error")
   const initialError =
     urlError === "forbidden"
       ? "บัญชีนี้ไม่มีสิทธิ์เข้าถึงหน้าที่ขอ — ลองเข้าสู่ระบบด้วยบัญชีอื่น"
       : urlError === "too_many_attempts"
-        ? "ระบบกันการยิงลิงก์ซ้ำ (5 ครั้ง/10 นาที) — รอสักครู่แล้วขอลิงก์ใหม่จากหน้านี้"
+        ? "มีการยืนยันไม่สำเร็จหลายครั้ง — รอสักครู่แล้วลองใหม่"
         : urlError === "invalid_link"
-          ? "ลิงก์ไม่ถูกต้อง/หมดอายุ/ถูกใช้ไปแล้ว — กด “ส่งลิงก์ใหม่” ด้านล่างได้เลย (ลิงก์ใช้ได้1ครั้ง)"
+          ? "รหัสหรือลิงก์ไม่ถูกต้อง หมดอายุ หรือถูกใช้ไปแล้ว — ขอรหัสใหม่ได้"
           : urlError === "oauth_denied"
             ? "การเข้าสู่ระบบผ่าน provider ถูกยกเลิก หรือยังไม่ได้เปิดใช้งานใน Supabase Dashboard (Google/Apple/Microsoft)"
             : null
 
   const [error, setError] = useState<string | null>(initialError)
   const [loading, setLoading] = useState(false)
-  const [oauthBusy, setOauthBusy] = useState<string | null>(null)
-  const [pwLoading, setPwLoading] = useState(false)
-  const [pwMaintenance, setPwMaintenance] = useState(false)
-  const [sentTo, setSentTo] = useState<string | null>(null)
+  const [step, setStep] = useState<"email" | "otp">("email")
+  const [email, setEmail] = useState("")
+  const [otp, setOtp] = useState("")
+  const [resendCooldown, setResendCooldown] = useState(0)
 
-  // Recheck on return from the email/browser tab. Never mint a session here;
-  // /app still resolves the destination and enforces server-side authority.
+  // Reuse a valid session instead of requiring a new OTP. Supabase's
+  // getUser() verifies the persisted cookie; profile resolution stays in the
+  // existing Identity Layer before navigation.
   useEffect(() => {
     if (urlError === "forbidden") return;
     const sb = createBrowserSupabase();
@@ -72,7 +64,8 @@ function LoginForm() {
       if (checking || disposed) return;
       checking = true;
       try {
-        const { data: { user } } = await sb.auth.getUser();
+        const { data: { user }, error: authError } = await sb.auth.getUser();
+        if (authError) throw authError;
         if (!user || disposed) return;
         const identity = await resolveIdentityContext(user, async ({ field, value }) => {
           const { data, error } = await sb.from("profiles").select("id, role").eq(field, value).maybeSingle();
@@ -84,7 +77,7 @@ function LoginForm() {
           setError("ยืนยันบัญชีแล้ว แต่ยังไม่พบข้อมูลสิทธิ์ผู้ใช้ในระบบ กรุณาให้ผู้ดูแลตรวจบัญชี ไม่ต้องขอลิงก์ซ้ำ");
           return;
         }
-        window.location.replace("/app");
+        window.location.replace(getLoginDestination(nextPath));
       } catch {
         if (!disposed) setError("ตรวจสถานะบัญชีหรือสิทธิ์ไม่สำเร็จ ยังไม่สามารถเปิดพื้นที่ทำงานได้");
       } finally {
@@ -100,241 +93,234 @@ function LoginForm() {
       window.removeEventListener("focus", onVisible);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [urlError]);
+  }, [urlError, nextPath]);
 
-
-  // DOM refs so submit reads the actual input values, not React state — some
-  // autofill mechanisms set value via the native setter, bypassing onChange.
   const emailInputRef = useRef<HTMLInputElement>(null)
-  const pwInputRef = useRef<HTMLInputElement>(null)
+  const otpInputRef = useRef<HTMLInputElement>(null)
 
-  // Email magic-link action (fallback tier, same verifier): the link lands on
-  // /auth/confirm (verifyOtp) → session → SAME isSafeInternalPath ?next= guard
-  // → /app role-bounce → workspace. The identical emailed link is also the
-  // recovery path.
-  async function handleSendLink(e: React.FormEvent) {
+  useEffect(() => {
+    if (step === "otp") otpInputRef.current?.focus()
+  }, [step])
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return
+    const timer = window.setInterval(() => {
+      setResendCooldown((remaining) => Math.max(0, remaining - 1))
+    }, 1000)
+    return () => window.clearInterval(timer)
+  }, [resendCooldown])
+
+  async function requestOtp(targetEmail: string): Promise<void> {
+    const { error: requestError } = await createBrowserSupabase().auth.signInWithOtp({
+      email: targetEmail,
+      options: { shouldCreateUser: false },
+    })
+    if (requestError) {
+      setError("ส่งรหัสไม่สำเร็จ หรือมีการขอรหัสถี่เกินไป กรุณารอสักครู่แล้วลองใหม่")
+      return
+    }
+    setEmail(targetEmail)
+    setOtp("")
+    setResendCooldown(30)
+    setError(null)
+    setStep("otp")
+  }
+
+  async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
-    const email = (emailInputRef.current?.value ?? "").trim()
-    if (!email) {
+    const targetEmail = (emailInputRef.current?.value ?? "").trim()
+    if (!targetEmail) {
       setError("กรุณากรอกอีเมล")
       setLoading(false)
       return
     }
 
-    // ?next= rides along on the emailed link; /auth/confirm re-validates it
-    // server-side with isSafeInternalPath and falls back to /app when unsafe.
-    // Guard here too (defense-in-depth — the ONE next-guard, applied at source).
-    const safeNext = nextPath && isSafeInternalPath(nextPath) ? nextPath : null
-    const redirectTo = `${window.location.origin}/auth/confirm${safeNext ? `?next=${encodeURIComponent(safeNext)}` : ""}`
-
-    // Silent auto-retry (owner, 2026-07-29, kept): a transient network-level
-    // fetch failure shouldn't force a human to click again. Real Supabase
-    // outages are alerted separately by supabase/functions/system-health-check.
-    let result: Awaited<ReturnType<ReturnType<typeof createBrowserSupabase>["auth"]["signInWithOtp"]>> | null = null
-    let networkFailed = false
-    for (let attempt = 0; attempt < 3; attempt++) {
-      networkFailed = false
-      try {
-        const sb = createBrowserSupabase()
-        result = await sb.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo } })
-      } catch {
-        networkFailed = true
-      }
-      if (!networkFailed) break
-      if (attempt < 2) await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)))
-    }
-
-    if (networkFailed || !result || result.error) {
-      setError(
-        networkFailed
-          ? "เชื่อมต่อ Supabase ไม่ได้ ลองเช็คอินเทอร์เน็ต หรือเปิด Incognito window ดู"
-          : (result?.error?.message ?? "ส่งลิงก์ไม่สำเร็จ กรุณาลองใหม่"),
-      )
-      setLoading(false)
-      return
-    }
-
-    setSentTo(email)
-    setLoading(false)
-  }
-
-  // PRIMARY: provider sign-in (one identity, many providers). Supabase comes
-  // back to /auth/confirm which exchangeCodeForSession()s the PKCE code
-  // (Google/Apple/Microsoft) or verifyOtp()s a magic link — ONE verifier, one
-  // safe-next guard, one /app role-bounce. The provider must be enabled in
-  // Supabase Dashboard first; until then GoTrue returns an error and
-  // ?error=oauth_denied is surfaced above (no silent failure).
-  async function startOAuth(provider: "google" | "apple" | "azure") {
-    setOauthBusy(provider)
-    setError(null)
     try {
-      const safeNext = nextPath && isSafeInternalPath(nextPath) ? nextPath : null
-      const redirectTo = `${window.location.origin}/auth/confirm${safeNext ? `?next=${encodeURIComponent(safeNext)}` : ""}`
-      const { error: oauthError } = await createBrowserSupabase().auth.signInWithOAuth({
-        provider,
-        options: { redirectTo },
-      })
-      if (oauthError) {
-        setError(oauthError.message)
-        setOauthBusy(null)
-      }
-      // success = browser navigating away; keep busy until then
+      await requestOtp(targetEmail)
     } catch {
-      setError("เชื่อมต่อไม่ได้ ลองใหม่ — หรือใช้ลิงก์อีเมลด้านล่างแทน")
-      setOauthBusy(null)
+      setError("เชื่อมต่อระบบยืนยันตัวตนไม่ได้ กรุณาลองใหม่")
+    } finally {
+      setLoading(false)
     }
   }
 
-  // MAINTENANCE/BACKFLOOR ONLY (explicit owner directive, 2026-09-24):
-  // password sign-in stays reachable but gated behind its own toggle so it
-  // is never the main path. Email comes from the single email field above
-  // (no second email input → no duplicated autofill fields).
-  async function handlePasswordFallback(e: React.FormEvent) {
+  async function handleVerifyOtp(e: React.FormEvent) {
     e.preventDefault()
-    setPwLoading(true)
-    setError(null)
-    const email = (emailInputRef.current?.value ?? "").trim()
-    const password = pwInputRef.current?.value ?? ""
-    if (!email) {
-      setError("กรอกอีเมลด้านบนก่อน แล้วค่อยกรอกรหัสผ่านตรงนี้")
-      setPwLoading(false)
+    const token = (otpInputRef.current?.value ?? otp).replace(/\D/g, "").slice(0, 6)
+    if (!/^\d{6}$/.test(token)) {
+      setError("กรอกรหัส OTP 6 หลัก")
       return
     }
+
+    setLoading(true)
+    setError(null)
+
     try {
-      const { data, error: pwError } = await createBrowserSupabase().auth.signInWithPassword({ email, password })
-      if (pwError || !data.session) {
-        setError(pwError?.message ?? "อีเมลหรือรหัสผ่านไม่ถูกต้อง")
-        setPwLoading(false)
+      const supabase = createBrowserSupabase()
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: "email",
+      })
+      if (verifyError || !data.session || !data.user) {
+        setError("รหัส OTP ไม่ถูกต้องหรือหมดอายุ กรุณาตรวจรหัสแล้วลองใหม่")
         return
       }
-      window.location.href = nextPath && isSafeInternalPath(nextPath) ? nextPath : "/app"
+
+      const { data: { user }, error: sessionError } = await supabase.auth.getUser()
+      if (sessionError || !user || user.id !== data.user.id) {
+        setError("ยืนยันรหัสแล้วแต่ตรวจสอบ Session ไม่สำเร็จ กรุณาลองใหม่")
+        return
+      }
+
+      const identity = await resolveIdentityContext(user, async ({ field, value }) => {
+        const { data: profile, error: profileError } = await supabase
+          .from("profiles")
+          .select("id, role")
+          .eq(field, value)
+          .maybeSingle()
+        if (profileError) throw profileError
+        return profile
+      })
+      if (!identity) {
+        setError("ยืนยันตัวตนแล้ว แต่ไม่พบข้อมูลสิทธิ์ผู้ใช้ กรุณาติดต่อผู้ดูแลระบบ")
+        return
+      }
+
+      window.location.replace(getLoginDestination(nextPath))
     } catch {
-      setError("เชื่อมต่อไม่ได้ ลองใหม่")
-      setPwLoading(false)
+      setError("ยืนยันรหัส OTP ไม่สำเร็จ กรุณาตรวจรหัสแล้วลองใหม่")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  async function handleResendOtp() {
+    if (loading || resendCooldown > 0) return
+    setLoading(true)
+    try {
+      await requestOtp(email)
+    } catch {
+      setError("ส่งรหัสไม่สำเร็จ กรุณารอสักครู่แล้วลองใหม่")
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <div className="space-y-6">
-      {/* PRIMARY — one identity, many providers: sign in with the account
-          this device/browser already has (owner, 2026-09-24). */}
-      <div className="space-y-3">
-        <p className="text-center text-sm font-semibold text-stone-600">
-          เข้าสู่ระบบด้วยบัญชีที่เครื่องมีอยู่แล้ว
-        </p>
-        <button
-          type="button"
-          onClick={() => startOAuth("google")}
-          disabled={oauthBusy !== null || loading || pwLoading}
-          className="w-full py-3 rounded-xl border border-[#E3DACE] bg-white text-base font-semibold text-stone-700 transition hover:border-[#D5C8B6] disabled:opacity-40"
-        >
-          {oauthBusy === "google" ? "กำลังเปิด Google..." : "Google"}
-        </button>
-        <button
-          type="button"
-          onClick={() => startOAuth("apple")}
-          disabled={oauthBusy !== null || loading || pwLoading}
-          className="w-full py-3 rounded-xl border border-[#E3DACE] bg-white text-base font-semibold text-stone-700 transition hover:border-[#D5C8B6] disabled:opacity-40"
-        >
-          {oauthBusy === "apple" ? "กำลังเปิด Apple..." : "Apple"}
-        </button>
-        <button
-          type="button"
-          onClick={() => startOAuth("azure")}
-          disabled={oauthBusy !== null || loading || pwLoading}
-          className="w-full py-3 rounded-xl border border-[#E3DACE] bg-white text-base font-semibold text-stone-700 transition hover:border-[#D5C8B6] disabled:opacity-40"
-        >
-          {oauthBusy === "azure" ? "กำลังเปิด Microsoft..." : "Microsoft"}
-        </button>
-      </div>
-
-      <div className="flex items-center gap-3 text-xs text-stone-400">
-        <div className="flex-1 h-px bg-[#E9E1D6]" />
-        หรือ — ลิงก์อีเมล (สำรอง)
-        <div className="flex-1 h-px bg-[#E9E1D6]" />
-      </div>
-
-      <form onSubmit={handleSendLink} className="space-y-5">
-        <div>
-          <label className="block text-sm font-semibold text-stone-600 mb-2">Email</label>
-          <input
-            ref={emailInputRef}
-            name="email"
-            type="email"
-            /* WHATWG autofill: ฟอร์มล็อกอินใช้ token "username" (ตัวระบุล็อกอิน
-               ซึ่งมักเป็นอีเมล) — "email" หมายถึงข้อมูลติดต่อใน profile
-               ไม่ใช่ identifier ของ login form (Chrome/iCloud Keychain
-               อ่านตาม token นี้) */
-            autoComplete="username"
-            required
-            disabled={loading}
-            className="w-full text-base rounded-xl px-4 py-3 bg-[#F7F4EF] border border-[#E3DACE] shadow-[inset_0_1px_2px_rgba(90,72,52,0.06)] transition hover:border-[#D5C8B6] focus:outline-none focus:border-[#B49C7C] focus:bg-white focus:ring-2 focus:ring-[#B49C7C]/25 disabled:opacity-50"
-            placeholder="you@company.com"
-          />
-        </div>
-
-        {sentTo && (
-          <div className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-3.5 py-2.5">
-            ส่งลิงก์เข้าสู่ระบบไปที่ <b>{sentTo}</b> แล้ว — เปิดลิงก์ในอีเมลเพื่อเข้าใช้งาน
-            (ลิงก์ชุดเดียวกันใช้ได้ทั้งเข้าสู่ระบบใหม่และกู้คืน ไม่ต้องจำรหัสผ่าน)
-            · ไม่เห็นเมล? ตรวจโฟลเดอร์ Junk แล้วกด "ส่งลิงก์อีกครั้ง" ด้านล่าง
-          </div>
-        )}
-
-        {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3.5 py-2.5">
-            {error}
-          </div>
-        )}
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-base font-semibold shadow-[0_2px_8px_-2px_rgba(70,58,44,0.28)] transition hover:bg-stone-800 hover:shadow-[0_5px_16px_-4px_rgba(70,58,44,0.30)] active:translate-y-[0.5px] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
-        >
-          {loading ? "กำลังส่งลิงก์..." : sentTo ? "ส่งลิงก์อีกครั้ง" : "ส่งลิงก์เข้าใช้งานทางอีเมล"}
-        </button>
-      </form>
-
-      {/* MAINTENANCE / BACKFLOOR ONLY — password login never becomes the main
-          path (owner, 2026-09-24). Email is reused from the field above. */}
-      <div className="border-t border-[#E9E1D6] pt-3">
-        {!pwMaintenance ? (
-          <button
-            type="button"
-            onClick={() => setPwMaintenance(true)}
-            className="w-full text-xs text-stone-400 transition hover:text-stone-600"
-          >
-            ลืมรหัสผ่าน / เข้าสู่ระบบด้วยรหัสผ่าน (สำหรับบำรุงรักษา)
-          </button>
-        ) : (
-          <form onSubmit={handlePasswordFallback} className="space-y-4 pt-3">
-            <p className="text-xs text-stone-500">
-              ใช้อีเมลช่องด้านบน + รหัสผ่านเดิม — ทางนี้มีไว้ซ่อมบำรุงเท่านั้น ไม่ใช่ช่องหลัก
-            </p>
+      {step === "email" ? (
+        <form onSubmit={handleSendOtp} className="space-y-5">
+          <div>
+            <label htmlFor="login-email" className="block text-sm font-semibold text-stone-600 mb-2">
+              อีเมล
+            </label>
             <input
-              ref={pwInputRef}
-              name="password"
-              type="password"
-              autoComplete="current-password"
+              ref={emailInputRef}
+              id="login-email"
+              name="email"
+              type="email"
+              autoComplete="username"
               required
-              disabled={pwLoading}
-              className="w-full text-base rounded-xl px-4 py-3 bg-[#F7F4EF] border border-[#E3DACE] focus:outline-none focus:border-[#B49C7C] focus:ring-2 focus:ring-[#B49C7C]/25 disabled:opacity-50"
-              placeholder="••••••••"
+              disabled={loading}
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="w-full text-base rounded-xl px-4 py-3 bg-[#F7F4EF] border border-[#E3DACE] shadow-[inset_0_1px_2px_rgba(90,72,52,0.06)] transition hover:border-[#D5C8B6] focus:outline-none focus:border-[#B49C7C] focus:bg-white focus:ring-2 focus:ring-[#B49C7C]/25 disabled:opacity-50"
+              placeholder="you@company.com"
             />
+          </div>
+
+          {error && (
+            <div role="alert" className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3.5 py-2.5">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-base font-semibold shadow-[0_2px_8px_-2px_rgba(70,58,44,0.28)] transition hover:bg-stone-800 hover:shadow-[0_5px_16px_-4px_rgba(70,58,44,0.30)] active:translate-y-[0.5px] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+          >
+            {loading ? "กำลังส่งรหัส..." : "ส่งรหัส OTP"}
+          </button>
+        </form>
+      ) : (
+        <form onSubmit={handleVerifyOtp} className="space-y-5">
+          <p className="text-center text-sm text-stone-600">
+            กรอกรหัส 6 หลักที่ส่งไปยัง <b>{email}</b>
+          </p>
+          <div>
+            <label htmlFor="login-otp" className="block text-sm font-semibold text-stone-600 mb-2">
+              รหัส OTP
+            </label>
+            <input
+              ref={otpInputRef}
+              id="login-otp"
+              name="otp"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              pattern="[0-9]{6}"
+              maxLength={6}
+              required
+              disabled={loading}
+              value={otp}
+              onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+              className="w-full text-center text-2xl tracking-[0.5em] font-semibold rounded-xl px-4 py-3 bg-[#F7F4EF] border border-[#E3DACE] focus:outline-none focus:border-[#B49C7C] focus:bg-white focus:ring-2 focus:ring-[#B49C7C]/25 disabled:opacity-50"
+              placeholder="••••••"
+              aria-describedby="otp-help"
+            />
+            <p id="otp-help" className="mt-2 text-xs text-stone-500">
+              วางรหัสจากอีเมลได้ รหัสจะไม่ถูกบันทึกหลังออกจากหน้านี้
+            </p>
+          </div>
+
+          {error && (
+            <div role="alert" className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3.5 py-2.5">
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading || otp.length !== 6}
+            className="w-full py-3.5 rounded-xl bg-stone-900 text-white text-base font-semibold shadow-[0_2px_8px_-2px_rgba(70,58,44,0.28)] transition hover:bg-stone-800 hover:shadow-[0_5px_16px_-4px_rgba(70,58,44,0.30)] active:translate-y-[0.5px] disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none"
+          >
+            {loading ? "กำลังตรวจสอบ..." : "ยืนยันและเข้า Workspace"}
+          </button>
+
+          <div className="flex items-center justify-between gap-4 text-sm">
             <button
-              type="submit"
-              disabled={pwLoading}
-              className="w-full py-2.5 rounded-xl border border-[#E3DACE] bg-white text-sm font-semibold text-stone-700 transition hover:border-[#D5C8B6] disabled:opacity-40"
+              type="button"
+              onClick={() => {
+                setStep("email")
+                setOtp("")
+                setError(null)
+                setResendCooldown(0)
+              }}
+              disabled={loading}
+              className="text-stone-500 underline underline-offset-2 disabled:opacity-50"
             >
-              {pwLoading ? "กำลังตรวจสอบ..." : "เข้าสู่ระบบด้วยรหัสผ่าน"}
+              เปลี่ยนอีเมล
             </button>
-          </form>
-        )}
-      </div>
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              disabled={loading || resendCooldown > 0}
+              className="text-stone-700 underline underline-offset-2 disabled:text-stone-400 disabled:no-underline"
+            >
+              {loading ? "กำลังส่ง..." : resendCooldown > 0 ? `ส่งรหัสอีกครั้งใน ${resendCooldown} วินาที` : "ส่งรหัสอีกครั้ง"}
+            </button>
+          </div>
+        </form>
+      )}
+
+      <p className="text-center text-xs text-stone-400">
+        เข้าสู่ระบบด้วยรหัสยืนยันอีเมล — ระบบเดิมของ DNA OS
+      </p>
     </div>
   )
 }

@@ -77,19 +77,22 @@ check("R3 connections stay behind core/connector-loader; /login never references
 const loginCode = loginRaw
   .replace(/\/\*[\s\S]*?\*\//g, "")
   .replace(/^\s*\/\/.*$/gm, "");
-check("L1 login (comment-stripped): no connector/credential/secret/token/.env leakage",
-  !/connector|credential|secret|token|\.env/i.test(loginCode),
-  (loginCode.match(/connector|credential|secret|token|\.env/i) ?? []).join(","));
+check("L1 login (comment-stripped): no connector/credential/secret/env leakage",
+  !/connector|credential|secret|process\.env|\.env|service[_ -]?role/i.test(loginCode),
+  (loginCode.match(/connector|credential|secret|process\.env|\.env|service[_ -]?role/i) ?? []).join(","));
 
 // ──5: password NEVER spread to providers ───────────────────────────────────
-check("P1 signInWithPassword appears exactly once in /login (maintenance fallback)",
-  (loginRaw.match(/signInWithPassword/g) ?? []).length === 1);
-const oauthSlice = loginRaw.split("async function startOAuth")[1]?.split("// MAINTENANCE")[0] ?? "";
-check("P2 OAuth handler never touches a password (each provider keeps its own session/token)",
-  oauthSlice.includes("signInWithOAuth") && !/password|pwInputRef/i.test(oauthSlice));
-check("P3 provider buttons: google + apple + azure(Microsoft) via the standard flow",
-  ["google", "apple", "azure"].every((p) => loginRaw.includes(`"${p}"`)) &&
-    loginRaw.includes('"Microsoft"') && loginRaw.includes("signInWithOtp"));
+check("P1 /login uses numeric email OTP only",
+  loginRaw.includes("signInWithOtp") &&
+    loginRaw.includes('type: "email"') &&
+    !loginRaw.includes("signInWithPassword") &&
+    !loginRaw.includes("signInWithOAuth"));
+check("P2 OAuth identity callback remains supported outside the Login UI",
+  !loginRaw.includes("signInWithOAuth") && confirmSrc.includes("exchangeCodeForSession"));
+check("P3 provider login UI is hidden without changing identity mapping or PKCE callback",
+  !loginRaw.includes("signInWithOAuth") &&
+    identitySrc.includes("resolveIdentityContext") &&
+    confirmSrc.includes("exchangeCodeForSession"));
 
 // ──6: one verifier still holds everything together ─────────────────────────
 check("V1 ONE verifier /auth/confirm (magic link + PKCE) and /auth/verify only forwards",
