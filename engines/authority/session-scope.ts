@@ -13,6 +13,8 @@ import {
   NO_DATA_SCOPE,
   platformDataScope,
   resolveDataScope,
+  resolveRequestDataScope,
+  type SessionRequestScopeIntent,
   type DataScope,
 } from "@/core/authority/data-scope";
 import { loadAuthorityContext, loadOrganizationMembership } from "./load";
@@ -21,7 +23,10 @@ function isPlatformRole(role: string | null | undefined): boolean {
   return role === "super_admin";
 }
 
-export async function resolveSessionDataScope(user: AuthedUser): Promise<DataScope> {
+export async function resolveSessionDataScope(
+  user: AuthedUser,
+  intent?: SessionRequestScopeIntent,
+): Promise<DataScope> {
   const profileId = user.canonicalProfileId ?? user.id;
   const loaded = await loadAuthorityContext({
     profileId,
@@ -30,6 +35,15 @@ export async function resolveSessionDataScope(user: AuthedUser): Promise<DataSco
     resolvedBy: user.resolvedBy ?? null,
     emailConfirmed: user.emailConfirmed ?? null,
   });
+  if (intent) {
+    return resolveRequestDataScope({
+      profileId: loaded.actor.profileId,
+      role: user.role,
+      organizationIds: loaded.actor.organizationIds,
+      sessionVerified: loaded.organizationScope.eligible,
+      intent,
+    });
+  }
   return resolveDataScope({
     profileId: loaded.actor.profileId,
     role: user.role,

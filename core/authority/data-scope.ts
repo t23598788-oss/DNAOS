@@ -104,6 +104,49 @@ export function resolveDataScope(input: {
   });
 }
 
+export type SessionRequestScopeIntent = "current-organization" | "platform-wide";
+
+export function resolveRequestDataScope(input: {
+  profileId?: string | null;
+  role?: string | null;
+  organizationIds?: string[] | null;
+  sessionVerified: boolean;
+  intent: SessionRequestScopeIntent;
+}): DataScope {
+  const role = typeof input.role === "string" && input.role.trim() ? input.role.trim() : null;
+  const deny = (reason: string): DataScope => ({
+    ...NO_DATA_SCOPE,
+    profileId: input.profileId ?? null,
+    role,
+    reason,
+  });
+
+  if (!input.sessionVerified || !input.profileId) return deny("UNVERIFIED_SESSION");
+
+  if (input.intent === "platform-wide") {
+    if (!role || !PLATFORM_ROLES.includes(role)) return deny("PLATFORM_SCOPE_FORBIDDEN");
+    return platformDataScope({
+      profileId: input.profileId,
+      role,
+      reason: "EXPLICIT_PLATFORM_REQUEST",
+    });
+  }
+
+  const organizationIds = Array.from(
+    new Set((input.organizationIds ?? []).filter((id) => typeof id === "string").map((id) => id.trim()).filter(Boolean)),
+  );
+  if (organizationIds.length !== 1) {
+    return deny(organizationIds.length === 0 ? "ACTIVE_ORGANIZATION_UNAVAILABLE" : "ACTIVE_ORGANIZATION_AMBIGUOUS");
+  }
+
+  return organizationDataScope({
+    profileId: input.profileId,
+    role,
+    organizationIds,
+    reason: "VERIFIED_ACTIVE_ORGANIZATION",
+  });
+}
+
 /** True only when this scope may read tenant-scoped business records. */
 export function scopeCanReadTenantData(scope: DataScope | null | undefined): boolean {
   if (!scope) return false;

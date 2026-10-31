@@ -4,7 +4,7 @@ import { ADMIN_TIER } from "@/core/auth/session";
 import { runWithDataScope } from "@/core/authority/data-scope-context";
 import { resolveSessionDataScope } from "@/engines/authority/session-scope";
 import { runCognitivePipeline } from "@/cognitive/pipeline";
-import { buildChatResult } from "./_lib/resultContract";
+import { buildChatResult, isDocumentReadOnlyIntent } from "./_lib/resultContract";
 import type { ChatResult } from "./_lib/chatResultTypes";
 import {
   completeTrace,
@@ -87,6 +87,10 @@ interface ChatExecutionResult {
   status: number;
 }
 
+function isExplicitPlatformWideRequest(message: string): boolean {
+  return /ทุกองค์กร|ทุกบริษัท|all organizations|across organizations/i.test(message);
+}
+
 async function executeChat(
   request: Request,
   auth: Extract<Awaited<ReturnType<typeof requireAuth>>, { id: string }>,
@@ -105,7 +109,9 @@ async function executeChat(
 
   try {
     const rawMessage = String(input.message ?? "");
-    const scope = await resolveSessionDataScope(auth);
+    const documentReadOnlyIntent = isDocumentReadOnlyIntent(rawMessage);
+    const scopeIntent = isExplicitPlatformWideRequest(rawMessage) ? "platform-wide" : "current-organization";
+    const scope = await resolveSessionDataScope(auth, scopeIntent);
     context = {
       traceId,
       actorId: scope.profileId ?? auth.id,
@@ -135,20 +141,22 @@ async function executeChat(
         };
 
         const payload = await runWithDataScope(scope, async () => {
-          const response = await runCognitivePipeline(
-            rawMessage,
-            null,
-            memorySessionKey,
-            knownCustomerId ? { id: String(knownCustomerId), name: String(knownCustomerName ?? "") } : null,
-            gatewayContext,
-            { origin: new URL(request.url).origin, cookie: request.headers.get("cookie"), userId: auth.id },
-          );
-          let result: ChatResult = (await buildChatResult(request, rawMessage, response)) ?? {
+          const response = documentReadOnlyIntent
+            ? null
+            : await runCognitivePipeline(
+                rawMessage,
+                null,
+                memorySessionKey,
+                knownCustomerId ? { id: String(knownCustomerId), name: String(knownCustomerName ?? "") } : null,
+                gatewayContext,
+                { origin: new URL(request.url).origin, cookie: request.headers.get("cookie"), userId: auth.id },
+              );
+          const pipelineResponse: Record<string, unknown> = response ? { ...response } : {};
+          let result: ChatResult = (await buildChatResult(request, rawMessage, response ?? { text: "" })) ?? {
             type: "text",
-            text: response.text ?? "",
+            text: response?.text ?? "",
           };
 
-          const pipelineResponse = response as Record<string, unknown>;
           const clineStructured = pipelineResponse.cline_result;
           if (
             pipelineResponse.pulse_node === "module:app/api/chat/_lib/clineWorker" &&
@@ -159,7 +167,8 @@ async function executeChat(
           }
           let ownerTextOverride: string | null = null;
           const deterministicCue = Boolean(
-            pipelineResponse.navigate_url ||
+            documentReadOnlyIntent ||
+              pipelineResponse.navigate_url ||
               pipelineResponse.open_app ||
               pipelineResponse.external_url ||
               pipelineResponse.window_action ||
@@ -179,7 +188,7 @@ async function executeChat(
               sessionId: memorySessionKey,
             });
             if (localCommand) {
-              const aiResult = await buildChatResult(request, rawMessage, response, localCommand);
+              const aiResult = await buildChatResult(request, rawMessage, response ?? { text: "" }, localCommand);
               if (aiResult && aiResult.type !== "text" && aiResult.type !== "error") {
                 result = aiResult;
                 localAiCommandUsed = localCommand.action;
@@ -203,11 +212,11 @@ async function executeChat(
           }
 
           const structured = ["finance_summary", "document", "timeline", "table", "error"].includes(result.type);
-          const { navigate_url: navigateUrl, ...rest } = response;
+          const { navigate_url: navigateUrl, ...rest } = pipelineResponse;
           return {
             ...rest,
             ...(structured ? {} : navigateUrl ? { navigate_url: navigateUrl } : {}),
-            text: structured ? "" : ownerTextOverride ?? response.text,
+            text: structured ? "" : ownerTextOverride ?? response?.text,
             result,
             trace_id: traceId,
             ...(localAiCommandUsed ? { local_ai_command: localAiCommandUsed } : {}),

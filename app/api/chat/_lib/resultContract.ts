@@ -42,6 +42,10 @@ function documentIntentType(message: string): DocumentType | null {
   return null;
 }
 
+export function isDocumentReadOnlyIntent(message: string): boolean {
+  return documentIntentType(message) !== null && !isFinanceIntent(message) && !timelineIntentName(message);
+}
+
 function timelineIntentName(message: string): string | null {
   if (!/(ประวัติ|ไทม์ไลน์)/.test(message)) return null;
   const m = message.match(

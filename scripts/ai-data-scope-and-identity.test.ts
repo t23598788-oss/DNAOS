@@ -19,10 +19,13 @@ import {
   isTenantScopedRead,
   platformDataScope,
   resolveDataScope,
+  resolveRequestDataScope,
   scopeCoversOrganization,
   type DataScope,
 } from "@/core/authority/data-scope";
 import { dispatch } from "@/engines/validation/dispatcher";
+import { filterCompanyRows, filterQueryByCompanyIds } from "@/services/supabase/queries";
+import { isDocumentReadOnlyIntent } from "@/app/api/chat/_lib/resultContract";
 import {
   resolveDiscoveryRight,
   resolveInternalReadRight,
@@ -68,6 +71,54 @@ console.log("=== A — scope resolution is fail-closed ===");
   const unknownRole = resolveDataScope({ profileId: "p-x", role: null, organizationIds: [ORG_A] });
   expect(unknownRole.mode === "organization", "A known membership still scopes an unknown role to its org (never platform)");
 
+  const activeOrg = resolveRequestDataScope({
+    profileId: "p-owner",
+    role: "super_admin",
+    organizationIds: [ORG_A],
+    sessionVerified: true,
+    intent: "current-organization",
+  });
+  expect(
+    activeOrg.mode === "organization" && activeOrg.organizationIds[0] === ORG_A,
+    "A platform operator's current-org request uses its single verified organization membership",
+  );
+  expect(
+    isDocumentReadOnlyIntent("แสดงใบแจ้งหนี้ขององค์กรปัจจุบัน"),
+    "A current-organization invoice request is eligible for the canonical-reader-only path",
+  );
+  const ambiguousOrg = resolveRequestDataScope({
+    profileId: "p-owner",
+    role: "super_admin",
+    organizationIds: [ORG_A, ORG_B],
+    sessionVerified: true,
+    intent: "current-organization",
+  });
+  expect(ambiguousOrg.mode === "none", "A current-org request with multiple memberships fails closed");
+  const explicitPlatform = resolveRequestDataScope({
+    profileId: "p-owner",
+    role: "super_admin",
+    organizationIds: [ORG_A],
+    sessionVerified: true,
+    intent: "platform-wide",
+  });
+  expect(explicitPlatform.mode === "platform", "A verified platform operator may explicitly request platform-wide scope");
+  const deniedPlatform = resolveRequestDataScope({
+    profileId: "p-a",
+    role: "admin",
+    organizationIds: [ORG_A],
+    sessionVerified: true,
+    intent: "platform-wide",
+  });
+  expect(deniedPlatform.mode === "none", "A tenant operator cannot request platform-wide scope");
+  const unverifiedPlatform = resolveRequestDataScope({
+    profileId: "p-owner",
+    role: "super_admin",
+    organizationIds: [],
+    sessionVerified: false,
+    intent: "platform-wide",
+  });
+  expect(unverifiedPlatform.mode === "none", "An unverified session cannot use platform-wide privileges");
+
   expect(!scopeCoversOrganization(NO_DATA_SCOPE, ORG_A), "A none never covers an organization");
   expect(!scopeCoversOrganization(null, ORG_A), "A missing scope covers nothing");
 }
@@ -90,6 +141,39 @@ console.log("\n=== B — two organizations are isolated; NULL is platform-only =
   expect(scopeCoversOrganization(platform, companyA.organizationId), "B platform scope sees org A");
   expect(scopeCoversOrganization(platform, companyB.organizationId), "B platform scope sees org B");
   expect(scopeCoversOrganization(platform, unowned.organizationId), "B platform scope sees unattributed records");
+
+  const allowedCompanyIds = new Set(
+    [companyA, companyB]
+      .filter((company) => scopeCoversOrganization(scopeA, company.organizationId))
+      .map((company) => company.id),
+  );
+  const visibleInvoices = filterCompanyRows(
+    [
+      { id: "invoice-a", partner_id: companyA.id },
+      { id: "invoice-b", partner_id: companyB.id },
+      { id: "invoice-unowned", partner_id: null },
+    ],
+    allowedCompanyIds,
+  );
+  expect(
+    visibleInvoices.length === 1 && visibleInvoices[0]?.id === "invoice-a",
+    "B canonical company-row filtering returns org A invoices only across two organizations",
+  );
+  const scopedQuery = filterQueryByCompanyIds(
+    { filters: [] as { column: string; values: string[] }[] },
+    allowedCompanyIds,
+    (query, companyIds) => ({
+      ...query,
+      filters: [...query.filters, { column: "customer_company_id", values: companyIds }],
+    }),
+  );
+  expect(
+    scopedQuery.filters.length === 1 &&
+      scopedQuery.filters[0]?.column === "customer_company_id" &&
+      scopedQuery.filters[0]?.values.length === 1 &&
+      scopedQuery.filters[0]?.values[0] === companyA.id,
+    "B canonical invoice query is constrained by org A company ids before fetching rows",
+  );
 }
 
 /* ------------------------------------------------------------------ */

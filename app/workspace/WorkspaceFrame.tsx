@@ -702,7 +702,11 @@ export function WorkspaceFrame({
                           <FlexPreview flex={m.flexPreview} />
                         </div>
                       )}
-                      {m.executionEvents && m.executionEvents.length > 0 && (
+                      {m.executionEvents &&
+                        m.executionEvents.length > 0 &&
+                        !m.executionEvents.some(
+                          (event) => event.event === "execution.completed" || event.event === "execution.failed",
+                        ) && (
                         <ExecutionTimeline events={m.executionEvents} />
                       )}
                       {m.confirm && (

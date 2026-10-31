@@ -45,9 +45,20 @@ export async function getVisibleCompanyIds(scope?: DataScope): Promise<Set<strin
   return scopedCompanyIds(scope);
 }
 
-function keepCompanyRows<T extends { partner_id?: string | null }>(rows: T[], allowed: Set<string> | null): T[] {
+export function filterCompanyRows<T extends { partner_id?: string | null }>(
+  rows: T[],
+  allowed: Set<string> | null,
+): T[] {
   if (!allowed) return rows;
   return rows.filter((row) => Boolean(row.partner_id) && allowed.has(String(row.partner_id)));
+}
+
+export function filterQueryByCompanyIds<T>(
+  query: T,
+  allowed: Set<string> | null,
+  applyFilter: (query: T, companyIds: string[]) => T,
+): T {
+  return allowed ? applyFilter(query, Array.from(allowed)) : query;
 }
 
 /** Debt rows carry only invoice_id — resolve the owning company before filtering. */
@@ -365,43 +376,57 @@ export async function getDocumentTypeCounts(): Promise<{ counts: Record<string, 
 export async function getDocuments(docType?: string, scope?: DataScope) {
   const canonical = docType ? canonicalDocumentType(docType) : null;
   const allowed = await scopedCompanyIds(scope);
+  if (allowed?.size === 0) return [];
 
   if (!canonical || canonical === "invoice") {
-    const { data, error } = await supabaseAdmin()
-      .from("invoices")
-      .select("id, invoice_no, invoice_status, customer_company_id, customer_order_id, invoice_date, total_amount, paid_amount, reference_no, created_at, companies(id, name)")
-      .order("created_at", { ascending: false });
+    const invoiceQuery = filterQueryByCompanyIds(
+      supabaseAdmin()
+        .from("invoices")
+        .select("id, invoice_no, invoice_status, customer_company_id, customer_order_id, invoice_date, total_amount, paid_amount, reference_no, created_at, companies(id, name)"),
+      allowed,
+      (query, companyIds) => query.in("customer_company_id", companyIds),
+    );
+    const { data, error } = await invoiceQuery.order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
-    const invoiceDocs = keepCompanyRows((data ?? []).map(mapInvoiceToDocument), allowed);
+    const invoiceDocs = filterCompanyRows((data ?? []).map(mapInvoiceToDocument), allowed);
     if (canonical === "invoice") return invoiceDocs;
 
     // ดึง standalone_documents ด้วยถ้าไม่ระบุ type
-    const { data: sdData, error: sdErr } = await supabaseAdmin()
-      .from("standalone_documents")
-      // standalone_documents has TWO FKs into companies (customer_company_id,
-      // partner_company_id) — confirmed via live schema inspection
-      // (2026-07-14) — PostgREST can't auto-embed an ambiguous relationship,
-      // hence the explicit constraint-name hint, same pattern getTransactions()
-      // already uses for customer_orders' own ambiguous companies FK.
-      .select("id, document_no, document_type, document_date, customer_company_id, total_amount, reference_no, created_at, customer_order_id, companies!standalone_documents_customer_company_id_fkey(id, name)")
-      .order("created_at", { ascending: false });
+    const standaloneQuery = filterQueryByCompanyIds(
+      supabaseAdmin()
+        .from("standalone_documents")
+        // standalone_documents has TWO FKs into companies (customer_company_id,
+        // partner_company_id) — confirmed via live schema inspection
+        // (2026-07-14) — PostgREST can't auto-embed an ambiguous relationship,
+        // hence the explicit constraint-name hint, same pattern getTransactions()
+        // already uses for customer_orders' own ambiguous companies FK.
+        .select("id, document_no, document_type, document_date, customer_company_id, total_amount, reference_no, created_at, customer_order_id, companies!standalone_documents_customer_company_id_fkey(id, name)"),
+      allowed,
+      (query, companyIds) => query.in("customer_company_id", companyIds),
+    );
+    const { data: sdData, error: sdErr } = await standaloneQuery.order("created_at", { ascending: false });
     if (sdErr) throw new Error(sdErr.message);
-    const standaloneDocs = keepCompanyRows((sdData ?? []).map(mapStandaloneToDocument), allowed);
+    const standaloneDocs = filterCompanyRows((sdData ?? []).map(mapStandaloneToDocument), allowed);
     return [...invoiceDocs, ...standaloneDocs].sort((a, b) =>
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
   }
 
   // non-invoice types → standalone_documents
-  const { data, error } = await supabaseAdmin()
-    .from("standalone_documents")
-    // Same ambiguous-FK fix as above — standalone_documents has two FKs into
-    // companies, explicit constraint hint required.
-    .select("id, document_no, document_type, document_date, customer_company_id, total_amount, reference_no, created_at, customer_order_id, companies!standalone_documents_customer_company_id_fkey(id, name)")
+  const standaloneQuery = filterQueryByCompanyIds(
+    supabaseAdmin()
+      .from("standalone_documents")
+      // Same ambiguous-FK fix as above — standalone_documents has two FKs into
+      // companies, explicit constraint hint required.
+      .select("id, document_no, document_type, document_date, customer_company_id, total_amount, reference_no, created_at, customer_order_id, companies!standalone_documents_customer_company_id_fkey(id, name)"),
+    allowed,
+    (query, companyIds) => query.in("customer_company_id", companyIds),
+  );
+  const { data, error } = await standaloneQuery
     .eq("document_type", canonical)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
-  return keepCompanyRows((data ?? []).map(mapStandaloneToDocument), allowed);
+  return filterCompanyRows((data ?? []).map(mapStandaloneToDocument), allowed);
 }
 
 export async function getLatestInvoice(scope?: DataScope) {
@@ -605,7 +630,7 @@ export async function getJobs(status?: string, scope?: DataScope) {
   const { data, error } = await query;
   if (error) throw new Error(error.message);
   const allowed = await scopedCompanyIds(scope);
-  const rows = keepCompanyRows((data ?? []) as JobRow[], allowed);
+  const rows = filterCompanyRows((data ?? []) as JobRow[], allowed);
   return rows.map((j) => ({
     id: j.id,
     project_name: j.project_name ?? "-",
