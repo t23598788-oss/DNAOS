@@ -32,17 +32,25 @@ export async function requireAuthPage(
   //
   // M032 §05 fail-closed: lock STATE unreadable from the DB → deny (back to
   // /login with an explicit error), never silently treat it as unlocked.
+  // NOTE: redirect() THROWS in Next.js — never call it inside the try/catch
+  // guarding the DB read, or the catch swallows NEXT_REDIRECT (real browser
+  // evidence: a valid, unlocked session was denied as screen_lock_unavailable).
+  let mustUnlock = false;
+  let stateUnreadable = false;
   try {
-    if (
+    mustUnlock =
       (await needsWorkspaceUnlock(user)) &&
-      !UNLOCK_EXEMPT_PAGES.some((p) => nextPath === p || nextPath.startsWith(p + "/"))
-    ) {
-      console.log("[TRACE-AUTH] requireAuthPage SCREEN_LOCKED", { nextPath });
-      redirect(`/screen-lock?next=${encodeURIComponent(nextPath)}`);
-    }
+      !UNLOCK_EXEMPT_PAGES.some((p) => nextPath === p || nextPath.startsWith(p + "/"));
   } catch {
     console.error("[TRACE-AUTH] requireAuthPage SCREEN_LOCK_STATE_UNREADABLE", { nextPath });
+    stateUnreadable = true;
+  }
+  if (stateUnreadable) {
     redirect("/login?error=screen_lock_unavailable");
+  }
+  if (mustUnlock) {
+    console.log("[TRACE-AUTH] requireAuthPage SCREEN_LOCKED", { nextPath });
+    redirect(`/screen-lock?next=${encodeURIComponent(nextPath)}`);
   }
 
   if (!allowedRoles.includes(user.role)) {

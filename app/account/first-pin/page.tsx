@@ -31,14 +31,21 @@ export default async function FirstPinPage({
 
   // M032 §05 fail-closed: unreadable PIN state → deny, never assume "no PIN"
   // (that would let a locked workspace bounce through setup to escape the
-  // lock while the server cannot verity anything).
+  // lock while the server cannot verify anything). redirect() THROWS in
+  // Next.js, so the redirects run OUTSIDE the try/catch guarding the DB read
+  // (real browser evidence: a swallowed NEXT_REDIRECT denied a valid setup).
+  let hasPin: boolean | null = null;
   try {
-    if (await hasWorkspacePin(user.id)) {
-      // Already set → there is nothing to set; go back to the intended target.
-      redirect(next);
-    }
+    hasPin = await hasWorkspacePin(user.id);
   } catch {
+    hasPin = null; // unreadable state
+  }
+  if (hasPin === null) {
     redirect("/login?error=screen_lock_unavailable");
+  }
+  if (hasPin) {
+    // Already set → there is nothing to set; go back to the intended target.
+    redirect(next);
   }
   if (!(await hasFreshPrimaryVerification())) {
     // Only a JUST-verified session may create a PIN (directive 1 keeps

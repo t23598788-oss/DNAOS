@@ -14,28 +14,36 @@ import { getWorkspaceScreenLock } from "@/gateway/auth";
 // exactly like a normal login. Existing authorities only: no second auth, no
 // new landing map, no middleware matcher change (the page self-gates).
 //
-// M032 §02 rule 3 (owner directive): this page IS the post-login funnel, so it
-// also answers the PIN question before anything protected renders:
+// M032 §02 rule 3 (owner directive): this page IS the post-login funnel, so
+// it also answers the PIN question before anything protected renders:
 //   session + NO PIN yet + fresh primary verification → /account/first-pin
 //   ONCE, then straight into the workspace (the setup route issues the unlock
 //   cookie, so no immediate second prompt). A session without a PIN whose
 //   verification is NOT fresh (M030/M028 accounts, employees) keeps landing in
 //   the workspace exactly as before, and a session WITH a PIN is funneled to
 //   the lock screen by requireAuthPage one hop later — no repeat prompt ever.
+//
+// NOTE: redirect() THROWS in Next.js — it must run OUTSIDE the try/catch that
+// guards the database read, or the catch swallows NEXT_REDIRECT (real browser
+// evidence: a fresh login landed on /login?error=screen_lock_unavailable).
 export default async function AppStartPage() {
   const user = await getAuthedUser();
   if (!user) redirect("/login?next=/app");
 
   const workspace = resolveDestination(user.role, null);
 
+  let goFirstPin = false;
+  let stateUnreadable = false;
   try {
     const lock = await getWorkspaceScreenLock(user.id);
-    if (!lock && (await hasFreshPrimaryVerification())) {
-      redirect(`/account/first-pin?first=1&next=${encodeURIComponent(workspace)}`);
-    }
+    goFirstPin = !lock && (await hasFreshPrimaryVerification());
   } catch {
     // Fail-closed (M032 §05): cannot even read whether a PIN exists → deny.
-    redirect("/login?error=screen_lock_unavailable");
+    stateUnreadable = true;
+  }
+  if (stateUnreadable) redirect("/login?error=screen_lock_unavailable");
+  if (goFirstPin) {
+    redirect(`/account/first-pin?first=1&next=${encodeURIComponent(workspace)}`);
   }
 
   redirect(workspace);

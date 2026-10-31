@@ -46,10 +46,17 @@ export default async function ScreenLockPage({
   // M032 §05 fail-closed: the PIN existence read comes FIRST, and a failed
   // read renders the deny state — it never falls through to a workspace
   // bounce, and it never interprets a broken DB as "no PIN stored".
+  // NOTE: redirect() THROWS in Next.js — redirects run OUTSIDE these
+  // try/catches (a real browser run proved a swallowed NEXT_REDIRECT puts an
+  // already-unlocked visitor onto the deny screen).
   let lock;
+  let lockReadFailed = false;
   try {
     lock = await getWorkspaceScreenLock(user.id);
   } catch {
+    lockReadFailed = true;
+  }
+  if (lockReadFailed) {
     return ScreenLockUnreadableState();
   }
 
@@ -58,13 +65,19 @@ export default async function ScreenLockPage({
     redirect(next);
   }
 
+  let mustUnlock = false;
+  let unlockedReadFailed = false;
   try {
-    if (!(await needsWorkspaceUnlock(user))) {
-      // Direct visit while already unlocked → straight back to the workspace.
-      redirect(next);
-    }
+    mustUnlock = await needsWorkspaceUnlock(user);
   } catch {
+    unlockedReadFailed = true;
+  }
+  if (unlockedReadFailed) {
     return ScreenLockUnreadableState();
+  }
+  if (!mustUnlock) {
+    // Direct visit while already unlocked → straight back to the workspace.
+    redirect(next);
   }
 
   return (
