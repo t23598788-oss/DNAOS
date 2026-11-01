@@ -13,7 +13,7 @@
     "tie_break": "priority ascending, then adapter id ascending (deterministic)"
   },
   "capabilities": {
-    "conversation.answer": "answer a customer/user conversation turn (proven caller: workerAdapters/localModelWorkerAdapter.ts)",
+    "conversation.answer": "answer a customer/user conversation turn (Workspace caller: cognitive/pipeline.ts#answerWithAi)",
     "intent.classify": "classify what the caller is asking for",
     "screen.describe": "read a screen capture and say what is on it / what to click next",
     "document.ocr": "read text out of an image/PDF document",
@@ -157,14 +157,16 @@
         "next"
       ],
       "capabilities": [
+        "conversation.answer",
+        "intent.classify",
         "location.geocode",
         "text.entity_extract"
       ],
       "enabled": true,
-      "priority": 30,
+      "priority": 4,
       "authorization": {
         "requirement": "credential",
-        "note": "GEMINI_API_KEY presence is the configuration check"
+        "note": "The enabled system Connector credential is resolved server-side"
       },
       "configuration": {
         "required_any_env": [
@@ -177,12 +179,14 @@
       },
       "execution": {
         "status": "gateway-adapter",
-        "note": "declared so these two capabilities have a real adapter; the Deno callers in line-webhook-v2/helpers.ts are NOT cut over in A5 (scope limit A5.7) and keep their current direct call"
+        "note": "Next serves Workspace conversation.answer and intent.classify through the Gateway; Deno entity/geocode callers retain their existing direct calls"
       },
       "declared_by": "services/ai/adapters.ts#geminiAdapter",
-      "evidence": "A0–A3 census: supabase/functions/line-webhook-v2/helpers.ts:634,675 (real direct HTTP calls, gemini-2.5-flash-lite, key from Deno.env GEMINI_API_KEY) — the only real Gemini callers in the repo",
+      "evidence": "Workspace routing uses cognitive/pipeline.ts#answerWithAi and the Gemini adapter; credentials are resolved from the single connected+enabled system Connector. Deno entity/geocode callers remain direct per scope.",
       "capabilities_by_runtime": {
         "next": [
+          "conversation.answer",
+          "intent.classify",
           "text.entity_extract",
           "location.geocode"
         ],

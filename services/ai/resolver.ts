@@ -6,11 +6,12 @@
  * Algorithm (deterministic, fail-closed, no silent fallback):
  *   1. the capability must be declared in the registry  -> AI_GATEWAY_CAPABILITY_NOT_REGISTERED
  *   2. candidates = declarations that support the capability, are runtime
- *      compatible, enabled, have a real implementation, and are configured
+ *      compatible, enabled, and have a real implementation
  *   3. if a privileged adapterConstraint is given, candidates are restricted to
  *      it; an empty result is AI_ADAPTER_CONSTRAINT_UNSATISFIED
  *   4. an empty candidate set is AI_NO_COMPATIBLE_ADAPTER (never a fallback)
- *   5. otherwise: priority ascending, then adapter id ascending -> one adapter
+ *   5. choose the single priority winner first, then fail closed if it is
+ *      unconfigured; never fall through to a lower-priority provider
  *
  * A5.1: the initial policy is chosen so the EFFECTIVE routing is unchanged for
  * all 9 pre-existing capabilities. A5.2: selection is driven by the resolver,
@@ -68,6 +69,33 @@ export function listDeclaredCapabilities(registry: AiAdapterRegistryFile = loadA
 const order = (a: AiAdapterDeclaration, b: AiAdapterDeclaration): number =>
   a.priority !== b.priority ? a.priority - b.priority : a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
 
+function usableDeclarations(capability: AiCapability, options: AiResolverOptions): AiAdapterDeclaration[] {
+  const registry = options.registry ?? loadAiAdapterRegistry();
+  const implementations = options.implementations ?? AI_ADAPTER_IMPLEMENTATIONS;
+  const runtime = options.runtime ?? "next";
+  return registry.adapters
+    .filter((declaration) =>
+      (declaration.capabilities_by_runtime?.[runtime] ?? declaration.capabilities).includes(capability) &&
+      declaration.enabled &&
+      declaration.runtimes.includes(runtime) &&
+      Boolean(implementations[declaration.id])
+    )
+    .sort(order);
+}
+
+export function getPrimaryAiAdapterDeclaration(
+  capability: AiCapability,
+  options: AiResolverOptions = {},
+): AiAdapterDeclaration | null {
+  const registry = options.registry ?? loadAiAdapterRegistry();
+  if (!registry.capabilities[capability]) return null;
+  const usable = usableDeclarations(capability, options);
+  const candidates = options.adapterConstraint
+    ? usable.filter((declaration) => declaration.id === options.adapterConstraint!.adapterId)
+    : usable;
+  return candidates[0] ?? null;
+}
+
 export function selectAiAdapter(capability: AiCapability, options: AiResolverOptions = {}): AiSelection {
   const registry = options.registry ?? loadAiAdapterRegistry();
   const implementations = options.implementations ?? AI_ADAPTER_IMPLEMENTATIONS;
@@ -77,13 +105,7 @@ export function selectAiAdapter(capability: AiCapability, options: AiResolverOpt
     return { ok: false, code: "AI_GATEWAY_CAPABILITY_NOT_REGISTERED", error: `AI_GATEWAY_CAPABILITY_NOT_REGISTERED: ${capability}`, candidates: [] };
   }
 
-  // A8: a declaration may scope its capabilities per runtime; fall back to the
-  // flat list when it does not.
-  const capsOf = (d: AiAdapterDeclaration) => d.capabilities_by_runtime?.[runtime] ?? d.capabilities;
-  const supported = registry.adapters.filter((d) => capsOf(d).includes(capability));
-  const usable = supported
-    .filter((d) => d.enabled && d.runtimes.includes(runtime) && Boolean(implementations[d.id]))
-    .sort(order);
+  const usable = usableDeclarations(capability, { ...options, registry, implementations, runtime });
 
   let candidates = usable;
   if (options.adapterConstraint) {
@@ -106,20 +128,22 @@ export function selectAiAdapter(capability: AiCapability, options: AiResolverOpt
     };
   }
 
-  const configured = candidates.filter((d) => implementations[d.id]!.status(options.context).configured);
-  const chosen = configured[0] ?? null;
+  const chosen = candidates[0] ?? null;
   if (!chosen) {
+    return { ok: false, code: "AI_NO_COMPATIBLE_ADAPTER", error: "AI_NO_COMPATIBLE_ADAPTER", candidates: [] };
+  }
+  const status = implementations[chosen.id]!.status(options.context);
+  if (!status.configured) {
     // Fail closed exactly like the pre-A4 gateway did for an unconfigured
     // provider: the SAME declared error code, no invocation, and — critically —
     // no attempt at any other provider.
-    const first = candidates[0];
-    return { ok: false, code: first.configuration.unconfigured_error, error: first.configuration.unconfigured_error, candidates: candidates.map((d) => d.id) };
+    return { ok: false, code: chosen.configuration.unconfigured_error, error: chosen.configuration.unconfigured_error, candidates: candidates.map((d) => d.id) };
   }
 
   // Model is configuration: the declaration decides it for this capability (a
   // per-capability override wins, then the env var, then the declared default) —
   // the adapter only receives the answer, and the caller never sees a model name.
-  const model = chosen.configuration.capability_models?.[capability] ?? null;
+  const model = chosen.configuration.capability_models?.[capability] ?? status.model;
 
   return {
     ok: true,

@@ -19,7 +19,13 @@
  * returns text.
  */
 import { supabaseAdmin } from "@/services/supabase/queries";
-import { loadAiAdapterRegistry, selectAiAdapter, type AiAdapterConstraint } from "./resolver";
+import { resolveGeminiConnectorKey } from "./geminiCredential";
+import {
+  getPrimaryAiAdapterDeclaration,
+  loadAiAdapterRegistry,
+  selectAiAdapter,
+  type AiAdapterConstraint,
+} from "./resolver";
 import type {
   AiAdapter, AiAdapterId, AiAdapterRegistryFile, AiCapability, AiEvidenceEvent, AiGatewayRequest,
   AiGatewayResult, AiProviderName, AiProvenance, AiRuntimeKind, AiAdapterInvokeContext,
@@ -46,6 +52,8 @@ export interface AiGatewayDependencies {
   runtime?: AiRuntimeKind;
   /** Test/DI seam passed through to the selected adapter. */
   context?: AiAdapterInvokeContext;
+  /** Test/DI seam for the system-managed Gemini Connector credential. */
+  resolveGeminiCredential?: () => Promise<string | null>;
 }
 
 
@@ -83,6 +91,51 @@ export async function invokeAiGateway(request: AiGatewayRequest, deps: AiGateway
   const now = deps.now ?? (() => new Date().toISOString());
   const requestId = deps.requestId?.() ?? id("ai");
   const evidenceId = id("evidence");
+  const runtime = deps.runtime ?? "next";
+  const emit = deps.emitEvidence ?? emitDefaultEvidence;
+  let context: AiAdapterInvokeContext = { ...(deps.context ?? {}), runtime };
+  const registry = deps.registry ?? loadAiAdapterRegistry();
+  const primary = getPrimaryAiAdapterDeclaration(request.capability, {
+    adapterConstraint: deps.adapterConstraint,
+    registry,
+    implementations: deps.implementations,
+    runtime,
+  });
+  const validForCredentialLookup =
+    Boolean(request.origin && request.ownerId && request.sessionId) &&
+    Boolean(registry.capabilities[request.capability]) &&
+    ["analysis", "classification", "draft"].includes(request.effect) &&
+    Boolean(request.prompt && request.prompt.length <= 200_000);
+  if (primary?.id === "gemini" && validForCredentialLookup && !deps.context?.env) {
+    try {
+      const connectorKey = await (deps.resolveGeminiCredential ?? resolveGeminiConnectorKey)();
+      context = {
+        ...context,
+        env: (name) => name === "GEMINI_API_KEY"
+          ? connectorKey ?? undefined
+          : process.env[name],
+      };
+    } catch (error) {
+      const message = error instanceof Error && error.message === "AI_GATEWAY_CREDENTIAL_AMBIGUOUS"
+        ? error.message
+        : "AI_GATEWAY_CREDENTIAL_LOOKUP_FAILED";
+      const provenance: AiProvenance = {
+        requestId,
+        origin: request.origin,
+        ownerId: request.ownerId,
+        sessionId: request.sessionId,
+        capability: request.capability,
+        effect: request.effect,
+        provider: "unselected",
+        model: null,
+        evidenceId,
+        occurredAt: now(),
+      };
+      await emit({ ...provenance, status: "failed", error: message });
+      await deps.reportFailure?.({ request, error: message, evidenceId });
+      return { ok: false, output: null, error: message, provenance };
+    }
+  }
   // Selection runs BEFORE the guard block only so a denied request still carries
   // the same adapter identity it had pre-A4 (evidence parity). Selection never
   // invokes anything — the guards below still decide the outcome.
@@ -90,8 +143,8 @@ export async function invokeAiGateway(request: AiGatewayRequest, deps: AiGateway
     adapterConstraint: deps.adapterConstraint,
     registry: deps.registry,
     implementations: deps.implementations,
-    runtime: deps.runtime ?? "next",
-    context: deps.context,
+    runtime,
+    context,
   });
   const provenance: AiProvenance = {
     requestId,
@@ -101,10 +154,10 @@ export async function invokeAiGateway(request: AiGatewayRequest, deps: AiGateway
     capability: request.capability,
     effect: request.effect,
     provider: selection.ok ? selection.id : "unselected",
+    model: selection.ok ? selection.model : null,
     evidenceId,
     occurredAt: now(),
   };
-  const emit = deps.emitEvidence ?? emitDefaultEvidence;
 
   try {
     assertSafeRequest(request);
@@ -132,7 +185,7 @@ export async function invokeAiGateway(request: AiGatewayRequest, deps: AiGateway
         image: request.image,
         maxTokens: request.maxTokens ?? 600,
       },
-      { ...(deps.context ?? {}), runtime: selection.runtime, model: selection.model },
+      { ...context, runtime: selection.runtime, model: selection.model },
     );
     await emit({ ...provenance, status: "completed" });
     return { ok: true, output, provenance };
@@ -159,5 +212,3 @@ export function aiGatewayProviderFor(capability: AiCapability): AiProviderName |
     .sort((a, b) => (a.priority - b.priority) || (a.id < b.id ? -1 : 1))[0];
   return declared ? declared.id : null;
 }
-
-

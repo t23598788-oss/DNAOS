@@ -85,6 +85,7 @@ export interface AiProvenance {
    *  "unselected" = selection failed BEFORE any adapter could serve this request
    *  (fail-closed). It is never a provider name and never a fallback. */
   provider: AiProviderName | "unselected";
+  model?: string | null;
   evidenceId: string;
   occurredAt: string;
 }
@@ -107,6 +108,7 @@ export interface AiEvidenceEvent {
   effect: AiEffect;
   /** Adapter the resolver selected; "unselected" = fail-closed before selection. */
   provider: AiProviderName | "unselected";
+  model?: string | null;
   occurredAt: string;
   error?: string;
 }
@@ -191,4 +193,3 @@ export interface AiAdapterRegistryFile {
   capabilities: Record<string, string>;
   adapters: AiAdapterDeclaration[];
 }
-

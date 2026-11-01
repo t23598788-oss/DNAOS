@@ -8,7 +8,14 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { loadAiAdapterRegistry, selectAiAdapter, listDeclaredCapabilities } from "../services/ai/resolver";
 import { AI_ADAPTER_IMPLEMENTATIONS } from "../services/ai/adapters";
-import { invokeAiGateway, aiGatewayProviderFor, type AiGatewayDependencies } from "../services/ai/gateway";
+import {
+  invokeAiGateway,
+  aiGatewayProviderFor,
+  type AiEvidenceEvent,
+  type AiGatewayDependencies,
+} from "../services/ai/gateway";
+import { findUsableSystemGeminiConnectors } from "../services/ai/geminiCredential";
+import type { ConnectorRecord } from "../core/connector-loader";
 import type {
   AiAdapter, AiAdapterDeclaration, AiAdapterRegistryFile, AiCapability,
 } from "../services/ai/adapterContract";
@@ -23,9 +30,9 @@ function check(name: string, condition: boolean, detail = ""): void {
 const read = (p: string) => readFileSync(join(ROOT, p), "utf-8");
 
 /** The routing the pre-A4 gateway enforced with its static CAPABILITY_PROVIDER map. */
-const PRE_A4_EFFECTIVE_ROUTING: Record<string, string> = {
-  "conversation.answer": "ollama",
-  "intent.classify": "ollama",
+const EXPECTED_NEXT_ROUTING: Record<string, string> = {
+  "conversation.answer": "gemini",
+  "intent.classify": "gemini",
   "screen.describe": "ollama",
   "document.ocr": "anthropic",
   "document.event_extract": "anthropic",
@@ -46,6 +53,27 @@ function mockAdapter(id: string, capabilities: AiCapability[], opts: { configure
     runtimes: opts.runtimes ?? ["next"],
     status: () => ({ configured: opts.configured ?? true, reason: "mock adapter", model: "mock-model", endpoint: null }),
     invoke: async () => { calls.push(id); return `mock:${id}`; },
+  };
+}
+
+function geminiConnector(
+  id: string,
+  status: ConnectorRecord["status"] = "connected",
+  enabled = true,
+): ConnectorRecord {
+  return {
+    id,
+    name: `Gemini API Key ${id}`,
+    slug: `gemini-api-key-${id}`,
+    auth_type: "api_key",
+    status,
+    enabled,
+    config: { provider: "google" },
+    secret: { api_key: `test-${id}` },
+    last_checked_at: null,
+    last_error: null,
+    created_at: "",
+    updated_at: "",
   };
 }
 
@@ -93,7 +121,9 @@ console.log("AI resolver / adapter contract — A4–A5");
   const sel = selectAiAdapter("document.ocr", { context: { runtime: "next", env: envWith("ANTHROPIC_API_KEY") } });
   check("T1 capability selects compatible registered adapter", sel.ok && sel.id === "anthropic", JSON.stringify(sel));
   const sel2 = selectAiAdapter("conversation.answer", { context: { runtime: "next", env: envWith("AI_GATEWAY_OLLAMA_URL") } });
-  check("T1b second capability resolves independently", sel2.ok && sel2.id === "ollama");
+  check("T1b unconfigured Gemini primary fails closed instead of routing to Ollama", !sel2.ok && sel2.code === "AI_GATEWAY_GEMINI_NOT_CONFIGURED", JSON.stringify(sel2));
+  const sel3 = selectAiAdapter("conversation.answer", { context: { runtime: "next", env: envWith("GEMINI_API_KEY", "AI_GATEWAY_OLLAMA_URL") } });
+  check("T1c configured Gemini is selected as the conversation primary", sel3.ok && sel3.id === "gemini");
 }
 
 // T2 — a disabled adapter can never be selected.
@@ -193,6 +223,100 @@ async function main(): Promise<void> {
   );
   check("T9c fail-closed path reports unselected + emits a failed evidence event", !failed.ok && failed.provenance.provider === "unselected" && collector.events.some((e) => e.status === "failed"));
 
+  const usableGemini = findUsableSystemGeminiConnectors([
+    geminiConnector("enabled"),
+    geminiConnector("disabled", "connected", false),
+    geminiConnector("failed-test", "error", false),
+    {
+      ...geminiConnector("not-google-gemini"),
+      config: { provider: "google" },
+      name: "Google Drive",
+      slug: "google-drive",
+    },
+  ]);
+  check("Gemini credential lookup accepts only the enabled, connected Gemini Connector", usableGemini.map((connector) => connector.id).join() === "enabled");
+
+  const gatewayEvents: AiEvidenceEvent[] = [];
+  let credentialLookups = 0;
+  let ollamaInvocations = 0;
+  let geminiRequest: { url?: string; init?: RequestInit } = {};
+  const geminiResult = await invokeAiGateway(
+    {
+      origin: "workspace-chat",
+      ownerId: "test-owner",
+      sessionId: "test-session",
+      capability: "conversation.answer",
+      effect: "analysis",
+      prompt: "Reply exactly: GEMINI WORKSPACE TEST OK",
+    },
+    {
+      resolveGeminiCredential: async () => {
+        credentialLookups += 1;
+        return "test-gemini-key";
+      },
+      implementations: {
+        ...AI_ADAPTER_IMPLEMENTATIONS,
+        ollama: {
+          ...AI_ADAPTER_IMPLEMENTATIONS.ollama!,
+          invoke: async () => {
+            ollamaInvocations += 1;
+            return "UNEXPECTED_OLLAMA_RESPONSE";
+          },
+        },
+      },
+      context: {
+        runtime: "next",
+        fetchImpl: (async (input: RequestInfo | URL, init?: RequestInit) => {
+          geminiRequest = { url: String(input), init };
+          return new Response(JSON.stringify({
+            candidates: [{ content: { parts: [{ text: "GEMINI WORKSPACE TEST OK" }] } }],
+          }), { status: 200, headers: { "Content-Type": "application/json" } });
+        }) as typeof fetch,
+      },
+      emitEvidence: async (event) => { gatewayEvents.push(event); },
+      requestId: () => "gemini-workspace-regression",
+    },
+  );
+  const geminiHeaders = new Headers(geminiRequest.init?.headers);
+  check("Unconstrained Workspace conversation invokes Gemini and returns its response", geminiResult.ok && geminiResult.output === "GEMINI WORKSPACE TEST OK");
+  check("Gateway resolves Gemini credential from the system Connector seam", credentialLookups === 1);
+  check("Gemini provenance and evidence record actual adapter, model, and trace", geminiResult.provenance.provider === "gemini" && geminiResult.provenance.model === "gemini-2.5-flash-lite" && geminiResult.provenance.requestId === "gemini-workspace-regression" && gatewayEvents.some((event) => event.provider === "gemini" && event.model === "gemini-2.5-flash-lite" && event.status === "completed"));
+  check("Gemini key is sent only in the API-key header and Ollama is not invoked", geminiRequest.url === "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent" && geminiHeaders.get("x-goog-api-key") === "test-gemini-key" && !geminiRequest.url.includes("test-gemini-key") && ollamaInvocations === 0);
+
+  let missingCredentialFetches = 0;
+  const noGeminiCredential = await invokeAiGateway(
+    {
+      origin: "workspace-chat",
+      ownerId: "test-owner",
+      sessionId: "test-session",
+      capability: "conversation.answer",
+      effect: "analysis",
+      prompt: "No credentials must fail closed",
+    },
+    {
+      resolveGeminiCredential: async () => null,
+      implementations: {
+        ...AI_ADAPTER_IMPLEMENTATIONS,
+        ollama: {
+          ...AI_ADAPTER_IMPLEMENTATIONS.ollama!,
+          invoke: async () => {
+            ollamaInvocations += 1;
+            return "UNEXPECTED_OLLAMA_RESPONSE";
+          },
+        },
+      },
+      context: {
+        runtime: "next",
+        fetchImpl: (async () => {
+          missingCredentialFetches += 1;
+          return new Response("unexpected", { status: 200 });
+        }) as typeof fetch,
+      },
+      emitEvidence: async () => {},
+    },
+  );
+  check("Missing Gemini Connector credential fails closed without Ollama fallback", !noGeminiCredential.ok && noGeminiCredential.error === "AI_GATEWAY_GEMINI_NOT_CONFIGURED" && missingCredentialFetches === 0 && ollamaInvocations === 0);
+
 // T10 — the AI layer has zero canonical-write authority.
 {
   const aiFiles = ["services/ai/gateway.ts", "services/ai/resolver.ts", "services/ai/adapters.ts", "services/ai/adapterContract.ts", "services/ai/bridge-local.ts", "services/ai/bridge-claude.ts", "services/ai/translator.ts"];
@@ -209,19 +333,19 @@ async function main(): Promise<void> {
   check("T10a evidence telemetry is the only write target", writes.length > 0 && writes.every((w) => w.table === "system_health_status"), JSON.stringify(writes));
   check("T10b no RPC call in the AI layer", rpcCalls.length === 0, rpcCalls.map((w) => w.f).join(","));
   check("T10c the AI layer imports no canonical writer", canonicalImports.length === 0, canonicalImports.map((w) => w.f).join(","));
-  check("T10d the registry declares the same capability vocabulary the contract type has", listDeclaredCapabilities().length === Object.keys(PRE_A4_EFFECTIVE_ROUTING).length + 2);
+  check("T10d the registry declares the same capability vocabulary the contract type has", listDeclaredCapabilities().length === Object.keys(EXPECTED_NEXT_ROUTING).length + 2);
 }
 
-// T11 — current-routing parity: the resolver reproduces the pre-A4 effective routing.
+// T11 — current Next routing follows the declared provider priority.
 {
-  const env = envWith("AI_GATEWAY_OLLAMA_URL", "ANTHROPIC_API_KEY");
+  const env = envWith("GEMINI_API_KEY", "AI_GATEWAY_OLLAMA_URL", "ANTHROPIC_API_KEY");
   const mismatches: string[] = [];
-  for (const [capability, expected] of Object.entries(PRE_A4_EFFECTIVE_ROUTING)) {
+  for (const [capability, expected] of Object.entries(EXPECTED_NEXT_ROUTING)) {
     const sel = selectAiAdapter(capability as AiCapability, { runtime: "next", context: { runtime: "next", env } });
     const got = sel.ok ? sel.id : `ERROR:${sel.code}`;
     if (got !== expected) mismatches.push(`${capability}: expected ${expected}, got ${got}`);
   }
-  check("T11 all 9 pre-existing capabilities keep their effective routing", mismatches.length === 0, mismatches.join(" | "));
+  check("T11 all 9 capabilities follow the declared Next provider priorities", mismatches.length === 0, mismatches.join(" | "));
   check("T11b aiGatewayProviderFor answers from the resolver", aiGatewayProviderFor("document.ocr") === "anthropic" && aiGatewayProviderFor("memory.draft") === "ollama");
 }
 
@@ -236,7 +360,7 @@ async function main(): Promise<void> {
   const providerNamed = capabilityNames.filter((c) => providerNames.some((p) => c.toLowerCase().includes(p)));
   check("T12c no capability is named after a provider", providerNamed.length === 0, providerNamed.join(","));
   check("T12d the two new capabilities are declared with a real adapter", registry.adapters.some((a) => a.capabilities.includes("text.entity_extract")) && registry.adapters.some((a) => a.capabilities.includes("location.geocode")));
-  check("T12e declared adapters only name proven providers", registry.adapters.every((a) => ["ollama", "anthropic", "gemini", "digitalocean"].includes(a.id)));
+  check("T12e declared adapters only name proven providers", registry.adapters.every((a) => ["ollama", "anthropic", "gemini", "digitalocean", "openai"].includes(a.id)));
   check("T12f the non-executable provider is declared but not selectable", registry.adapters.some((a) => a.id === "digitalocean" && a.enabled === false) && !AI_ADAPTER_IMPLEMENTATIONS.digitalocean);
 }
 
@@ -249,6 +373,4 @@ console.log(`\n${passed} passed, ${failures.length} failed`);
 }
 
 void main();
-
-
 

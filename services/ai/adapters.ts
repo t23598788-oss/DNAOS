@@ -4,9 +4,8 @@
  * The two providers that used to live INSIDE services/ai/gateway.ts
  * (anthropicProvider()/ollamaProvider()) now live here, behaviour-identical, so
  * gateway.ts stops being registry + resolver + provider implementations + entry
- * point in one file. Gemini is declared because the A0–A3 census found real
- * callers (line-webhook-v2/helpers.ts) — its capabilities are named by the WORK
- * (text.entity_extract / location.geocode), never by the provider.
+ * point in one file. Gemini serves Workspace conversation work and the existing
+ * entity/geocode callers through the same provider adapter.
  *
  * Model identity is configuration (env + declared default) — never a capability.
  * A4.2: no model value is replaced in this phase.
@@ -116,7 +115,7 @@ export const OPENAI_DEFAULT_MODEL = "gpt-4o-mini";
 export const geminiAdapter: AiAdapter = {
   id: "gemini",
   kind: "ai",
-  capabilities: ["text.entity_extract", "location.geocode"],
+  capabilities: ["conversation.answer", "intent.classify", "text.entity_extract", "location.geocode"],
   runtimes: ["deno", "next"],
   status(context): AiAdapterStatus {
     const configured = Boolean(envOf(context)("GEMINI_API_KEY"));
@@ -131,12 +130,12 @@ export const geminiAdapter: AiAdapter = {
     const env = envOf(context);
     const apiKey = env("GEMINI_API_KEY");
     if (!apiKey) throw new Error("AI_GATEWAY_GEMINI_NOT_CONFIGURED");
-    const model = env("AI_GATEWAY_GEMINI_MODEL") ?? GEMINI_DEFAULT_MODEL;
+    const model = context.model ?? env("AI_GATEWAY_GEMINI_MODEL") ?? GEMINI_DEFAULT_MODEL;
     const response = await fetchOf(context)(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
         body: JSON.stringify({
           contents: [{ role: "user", parts: [{ text: `${request.systemPrompt ?? ""}\n\n${request.prompt}` }] }],
         }),

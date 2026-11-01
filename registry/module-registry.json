@@ -15299,10 +15299,22 @@
         "AiResolverOptions",
         "AiSelection",
         "describeAiAdapterFor",
+        "getPrimaryAiAdapterDeclaration",
         "invokeSelectedAdapter",
         "listDeclaredCapabilities",
         "loadAiAdapterRegistry",
         "selectAiAdapter"
+      ],
+      "status": "active"
+    },
+    "services/ai/geminiCredential.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Resolve the enabled, connected system Gemini Connector credential for AI Gateway calls.",
+      "purpose_th": "Resolve the enabled, connected system Gemini Connector credential for AI Gateway calls.",
+      "exports": [
+        "findUsableSystemGeminiConnectors",
+        "resolveGeminiConnectorKey"
       ],
       "status": "active"
     },
