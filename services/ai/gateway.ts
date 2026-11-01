@@ -13,7 +13,7 @@ export type AiCapability =
   | "code.generate";
 
 export type AiEffect = "analysis" | "classification" | "draft";
-export type AiProviderName = "anthropic" | "ollama";
+export type AiProviderName = "anthropic" | "ollama" | "deepseek" | "gemini";
 
 export interface AiGatewayImage {
   base64: string;
@@ -91,7 +91,7 @@ export interface AiGatewayDependencies {
 }
 
 const CAPABILITY_PROVIDER: Record<AiCapability, AiProviderName> = {
-  "conversation.answer": "ollama",
+  "conversation.answer": "gemini",
   "intent.classify": "ollama",
   "screen.describe": "ollama",
   "document.ocr": "anthropic",
@@ -182,6 +182,31 @@ function ollamaProvider(): AiProvider {
   };
 }
 
+function geminiProvider(): AiProvider {
+  return {
+    async complete(request) {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) throw new Error("AI_GATEWAY_GEMINI_NOT_CONFIGURED");
+      const model = process.env.AI_GATEWAY_GEMINI_MODEL ?? "gemini-2.5-flash-lite";
+      // Key travels in the x-goog-api-key header, never in the URL.
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: `${request.systemPrompt ?? ""}\n\n${request.prompt}` }] }],
+          generationConfig: { maxOutputTokens: request.maxTokens ?? 600 },
+        }),
+        signal: AbortSignal.timeout(60_000),
+      });
+      if (!response.ok) throw new Error(`AI_GATEWAY_GEMINI_HTTP_${response.status}`);
+      const body = await response.json() as { candidates?: { content?: { parts?: { text?: unknown }[] } }[] };
+      const text = body.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (typeof text !== "string" || !text.trim()) throw new Error("AI_GATEWAY_EMPTY_PROVIDER_RESULT");
+      return text.trim();
+    },
+  };
+}
+
 export async function invokeAiGateway(request: AiGatewayRequest, deps: AiGatewayDependencies = {}): Promise<AiGatewayResult> {
   const now = deps.now ?? (() => new Date().toISOString());
   const requestId = deps.requestId?.() ?? id("ai");
@@ -210,7 +235,13 @@ export async function invokeAiGateway(request: AiGatewayRequest, deps: AiGateway
 
   await emit({ ...provenance, status: "requested" });
   try {
-    const provider = deps.providers?.[providerName] ?? (providerName === "anthropic" ? anthropicProvider() : ollamaProvider());
+    const provider = deps.providers?.[providerName] ?? (
+      providerName === "anthropic"
+        ? anthropicProvider()
+        : providerName === "gemini"
+          ? geminiProvider()
+          : ollamaProvider()
+    );
     const output = await provider.complete({
       systemPrompt: request.systemPrompt,
       prompt: request.prompt,
