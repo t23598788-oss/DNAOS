@@ -28,6 +28,7 @@ export async function runOwnerRequestViaRailwayTaskQueue(
     whoId?: string | null
   },
 ): Promise<ClineWorkerReply | null> {
+  if (process.env.CLINE_QUEUE_ENABLED !== "true") return null
   // LOCAL AGENT BRIDGE KILL SWITCH (default OFF): no worker consumes ai_tasks in
   // this Railway project, so enqueueing only costs MAX_WAIT_MS of latency.
   if (process.env.LOCAL_AGENT_BRIDGE_ENABLED !== "true") return null
