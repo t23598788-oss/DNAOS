@@ -644,8 +644,12 @@ async function runOwnerClineWithFallback(
   message: string,
   opts: { sessionKey?: string | null; transport: ClineWorkerTransport; who?: string | null; whoId?: string | null },
 ) {
+  // LOCAL AGENT BRIDGE KILL SWITCH (default OFF): both helpers reach the owner's
+  // machine (local binary / ai_tasks queue). Neither can answer on Railway.
+  if (process.env.LOCAL_AGENT_BRIDGE_ENABLED !== "true") return null
+  const CLINE_QUEUE_ENABLED = process.env.CLINE_QUEUE_ENABLED === "true"
   const local = await runOwnerRequestViaCline(message, opts);
-  const reply = local ?? (await runOwnerRequestViaRailwayTaskQueue(message, opts).catch(() => null));
+  const reply = local ?? (CLINE_QUEUE_ENABLED ? await runOwnerRequestViaRailwayTaskQueue(message, opts).catch(() => null) : null);
   // DNA-000221: ตารางเอกสารจาก cline ใช้ title เทมเพลต "เอกสารล่าสุดของ <ชื่อ>" —
   // เก็บ identity ลง memory (สัญญาเดิม newSession) เพื่อให้คำสั่งต่อเนื่อง
   // ("แสดงเอกสารต้นฉบับของบริษัทนี้") มีบริบท ไม่ต้องถามซ้ำ

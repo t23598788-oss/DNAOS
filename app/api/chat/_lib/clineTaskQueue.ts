@@ -14,6 +14,11 @@ import { sanitizeClineResult, type ClineWorkerReply, type ClineWorkerTransport }
 const POLL_MS = 2500
 const MAX_WAIT_MS = Number(process.env.CLINE_TASK_WAIT_MS ?? 150_000)
 
+let workerUnavailableUntil = 0
+export function __resetClineQueueFailuresForTest() {
+  workerUnavailableUntil = 0
+}
+
 export async function runOwnerRequestViaRailwayTaskQueue(
   message: string,
   opts: {
@@ -23,6 +28,11 @@ export async function runOwnerRequestViaRailwayTaskQueue(
     whoId?: string | null
   },
 ): Promise<ClineWorkerReply | null> {
+  // LOCAL AGENT BRIDGE KILL SWITCH (default OFF): no worker consumes ai_tasks in
+  // this Railway project, so enqueueing only costs MAX_WAIT_MS of latency.
+  if (process.env.LOCAL_AGENT_BRIDGE_ENABLED !== "true") return null
+  if (Date.now() < workerUnavailableUntil) return null
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !key || !opts.transport.cookie || !opts.transport.userId) return null
@@ -83,7 +93,11 @@ export async function runOwnerRequestViaRailwayTaskQueue(
       }
     }
     if (task.status === "failed") {
-      console.error("[clineTaskQueue] task failed:", String(task.error ?? "").slice(0, 200))
+      const reason = String(task.error ?? "")
+      if (/INTERPRETER_OUTPUT_INVALID|INSUFFICIENT_CREDITS|no run_result|^spawn:/.test(reason)) {
+        workerUnavailableUntil = Date.now() + 10 * 60_000
+      }
+      console.error("[clineTaskQueue] task failed:", reason.slice(0, 200))
       return null
     }
   }

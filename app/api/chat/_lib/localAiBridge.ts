@@ -78,6 +78,9 @@ export async function translateLocalAiCommand(
   ctx: { ownerId: string; sessionId: string },
   deps: AiGatewayDependencies = {},
 ): Promise<LocalAiCommand | null> {
+  // LOCAL AGENT BRIDGE KILL SWITCH (default OFF): intent.classify resolves to the
+  // owner-side local model adapter, which is not present in this container.
+  if (process.env.LOCAL_AGENT_BRIDGE_ENABLED !== "true") return null;
   const text = message.trim();
   if (!text) return null;
   try {

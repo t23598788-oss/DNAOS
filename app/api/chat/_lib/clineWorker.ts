@@ -272,6 +272,9 @@ export async function runOwnerRequestViaCline(
   message: string,
   opts: { sessionKey?: string | null; transport: ClineWorkerTransport; who?: string | null; whoId?: string | null },
 ): Promise<ClineWorkerReply | null> {
+  // LOCAL AGENT BRIDGE KILL SWITCH (default OFF): this path spawns a binary that
+  // only exists on the owner's machine. On Railway it can only waste time.
+  if (process.env.LOCAL_AGENT_BRIDGE_ENABLED !== "true") return null
   const bin = resolveClineBin()
   if (!bin || !opts.transport.origin) {
     console.info(`[clineWorker] skip (bin=${bin ? "found" : "MISSING"} origin=${opts.transport.origin || "-"})`)
