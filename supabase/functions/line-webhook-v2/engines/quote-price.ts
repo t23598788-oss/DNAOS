@@ -226,18 +226,17 @@ export async function tryQuoteMaterialPrice(
   if (!nearest) return { ok: false, text: "เดี๋ยวแจ้งราคากลับไปครับ" }
 
   const priceRow = (pitMaterials ?? []).find((pm: any) => pm.pit_profile_id === nearest!.id)
-  const costPrice = Number(priceRow?.price)
-  if (!costPrice) return { ok: false, text: "เดี๋ยวแจ้งราคากลับไปครับ ขอเช็คราคาก่อนนะครับ" }
+  const partnerBasePrice = Number(priceRow?.price)
+  if (!partnerBasePrice) return { ok: false, text: "เดี๋ยวแจ้งราคากลับไปครับ ขอเช็คราคาก่อนนะครับ" }
 
-  // Real business rule (owner, 2026-07-26): pit_materials.price is the real
-  // COST/gate price, not the customer-facing sell price — quoting it
-  // directly (as this file used to) means selling at cost or a loss once
-  // transport is added. 25% markup, same figure already used in
-  // middleware/sanitizer.ts's markupPercent default (that file's own path
-  // isn't live today, but the number is a real existing business figure,
-  // not invented here).
+  // pit_materials.price คือ "ราคาฐานของพาร์ตเนอร์" (partner base price) —
+  // ราคาที่พาร์ตเนอร์ต้องได้รับ ไม่ใช่ต้นทุนของ DNA OS
+  // DNA OS ไม่ได้ซื้อของ: บวก 25% Platform Commission ตามสัญญา
+  // ดู docs/PRICING_DOMAIN.md §3-§5
+  //
+  // อัตรา 25% ตามสัญญาพาร์ตเนอร์ — ดู docs/PRICING_DOMAIN.md §4
   const MARKUP_MULTIPLIER = 1.25
-  const unitPrice = costPrice * MARKUP_MULTIPLIER
+  const unitPrice = partnerBasePrice * MARKUP_MULTIPLIER
 
   const qty = quantityInTons
   const materialTotal = unitPrice * qty

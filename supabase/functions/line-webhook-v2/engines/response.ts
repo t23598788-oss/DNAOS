@@ -266,11 +266,12 @@ async function pushToLine(to: string, text: string) {
 //   synchronous cloud-LLM call inside the webhook request, which this
 //   repo confirmed doesn't hold (no ANTHROPIC_API_KEY, and by extension no
 //   reason to assume GEMINI_API_KEY was ever really configured either).
-// - `middleware/sanitizer.ts` (`sanitizePricing`, `RawPricingData`) is now
-//   unused by this file too — left in place as its own file (not deleted)
-//   since Rule 104 knowledge-extraction for *that* file's specific
-//   history lives in its own header comment; a future cleanup pass can
-//   remove the file itself once confirmed to have zero other importers.
+// - The old sanitizer layer under `middleware/` (`sanitizePricing`,
+//   `RawPricingData`) no longer exists anywhere in this repo — corrected
+//   2026-11-09 after it was found that an earlier version of this header
+//   claimed the file was "left in place", which was not true. Its pricing
+//   role was superseded by `engines/quote-price.ts`; see
+//   docs/PRICING_DOMAIN.md §6 before adding any second pricing layer.
 
 export class ResponseGateway {
   static async pushMessage(to: string, text: string) {

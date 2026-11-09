@@ -5,10 +5,18 @@
 // pricing engine the LINE bot itself uses to answer customers
 // (supabase/functions/line-webhook-v2/engines/quote-price.ts, Deno).
 //
-// This is the Next.js-side equivalent, but reuses the real engines already
-// on this side instead of re-deriving them: findNearestPit (engines/distance.ts)
-// and resolveMaterial (engines/material-resolver.ts). Material price only —
-// no vehicle/trip/transport calc, same "ไม่ต้องไล่รถ" constraint as the LINE
+// IMPORTANT — what this file returns:
+// This is the PARTNER BASE PRICE (Price A), for BACK-OFFICE use. It
+// deliberately does NOT apply the 25% Platform Commission. The Deno
+// customer-facing engine (supabase/functions/line-webhook-v2/engines/
+// quote-price.ts) returns Price B instead — customer price, commission
+// applied, pit name masked. The two differ ON PURPOSE: different party,
+// different number. Never merge them. docs/PRICING_DOMAIN.md §6.
+//
+// It reuses the real engines already on this side instead of re-deriving
+// them: findNearestPit (engines/distance.ts) and resolveMaterial
+// (engines/material-resolver.ts). Material price only — no
+// vehicle/trip/transport calc, same "ไม่ต้องไล่รถ" constraint as the LINE
 // bot version. Never invents a price: if no pit sells the material, or GPS
 // is unknown, says so plainly instead of guessing.
 

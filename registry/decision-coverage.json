@@ -12,7 +12,7 @@
         { "decision": "คำนวณค่าน้ำมัน", "codified_in": "engines/fuel.ts", "source": "DB:app_configs.fuel-price" },
         { "decision": "คำนวณจำนวนเที่ยว", "codified_in": "engines/capacity.ts", "source": "DB:app_configs.vehicle-default-capacity" },
         { "decision": "คำนวณค่าแรงคนขับ", "codified_in": "engines/cost.ts", "source": "DB:app_configs.driver-wage-per-trip" },
-        { "decision": "คิด markup", "codified_in": "engines/pricing.ts", "source": "DB:app_configs.pricing-markup-percent" },
+        { "decision": "คิด Platform Commission 25% จากราคาฐานพาร์ตเนอร์", "codified_in": "engines/pricing.ts", "source": "DB:app_configs.pricing-markup-percent" },
         { "decision": "คิด VAT", "codified_in": "engines/tax.ts", "source": "DB:app_configs.vat-rate" },
         { "decision": "คิดค่าเร่งด่วน", "codified_in": "engines/pricing.ts", "source": "DB:app_configs.urgent-fee-percent" },
         { "decision": "เลือกบ่อที่ใกล้สุด", "codified_in": "engines/distance.ts", "source": "DB:pit_profiles" }

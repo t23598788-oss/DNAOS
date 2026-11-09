@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-09T09:26:23.066Z",
+  "generated_at": "2026-11-09T12:26:08.960Z",
   "version": 1,
   "nodes": [
     {
@@ -2026,8 +2026,8 @@
         {
           "name": "ResponseGateway",
           "kind": "class",
-          "line_start": 275,
-          "line_end": 313
+          "line_start": 276,
+          "line_end": 314
         }
       ],
       "import_sites": [
@@ -23426,7 +23426,7 @@
           "name": "tryQuoteMaterialPrice",
           "kind": "function",
           "line_start": 134,
-          "line_end": 316
+          "line_end": 315
         }
       ],
       "import_sites": [
@@ -23818,30 +23818,30 @@
         {
           "name": "QuoteResult",
           "kind": "interface",
-          "line_start": 19,
-          "line_end": 43
+          "line_start": 27,
+          "line_end": 51
         },
         {
           "name": "tryQuoteMaterialPrice",
           "kind": "function",
-          "line_start": 45,
-          "line_end": 92
+          "line_start": 53,
+          "line_end": 100
         }
       ],
       "import_sites": [
         {
           "specifier": "@/services/supabase/queries",
-          "line": 15,
+          "line": 23,
           "resolved_target": "services/supabase/queries.ts"
         },
         {
           "specifier": "./distance",
-          "line": 16,
+          "line": 24,
           "resolved_target": "engines/distance.ts"
         },
         {
           "specifier": "./material-resolver",
-          "line": 17,
+          "line": 25,
           "resolved_target": "engines/material-resolver.ts"
         }
       ]

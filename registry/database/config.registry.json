@@ -41,7 +41,7 @@
     "debt-collection-fee-limit": { "value": 20000, "unit": "บาท", "description": "เพดานค่าทวงถามตามกฎหมาย" },
     "fuel-price": { "value": 43, "unit": "บาท/ลิตร", "description": "ราคาน้ำมันปัจจุบัน" },
     "driver-wage-per-trip": { "value": 450, "unit": "บาท/เที่ยว", "description": "ค่าแรงคนขับ" },
-    "pricing-markup-percent": { "value": 25, "unit": "%", "description": "กำไรเพิ่มจากต้นทุน" },
+    "pricing-markup-percent": { "value": 25, "unit": "%", "description": "Platform Commission 25% ที่ DNA OS หักจากราคาฐานพาร์ตเนอร์ (ตามสัญญา) — ไม่ใช่กำไรจากการขายสินค้า" },
     "vehicle-default-capacity": { "value": 10, "unit": "คิว", "description": "ความจุรถเริ่มต้น" },
     "minimum-distance": { "value": 15, "unit": "กม.", "description": "ระยะทางขั้นต่ำคิดค่าขนส่ง" }
   }
