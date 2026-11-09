@@ -22,7 +22,8 @@
 ## 3. ราคาสองตัว ไม่ใช่บั๊ก
 
 - **ราคาฐาน (Price A)** = `pit_materials.price` — ราคาที่พาร์ตเนอร์ต้องได้รับ
-- **ราคาลูกค้า (Price B)** = Price A × 1.25 + ค่าขนส่ง × 1.25
+- **ราคาลูกค้า (Price B)** = Price A × (1 + commission) + ค่าขนส่ง × (1 + commission)
+  (อัตราปัจจุบัน 25% → ตัวคูณ 1.25; อ่านจาก `app_configs.pricing-markup-percent`)
 
 ผู้อ่านที่เจอตัวเลขสองค่าสำหรับวัสดุเดียวกัน กำลังเห็น A กับ B
 ไม่ใช่ความผิดพลาด ห้ามพยายาม "รวมให้ตรงกัน"
@@ -40,9 +41,13 @@
 อนุญาตเฉพาะ:
 
 1. บวกค่าขนส่ง
-2. คูณ 1.25 (Platform Commission) กับทุกรายการที่ขายในระบบ
+2. คูณ (1 + อัตรา Platform Commission) กับทุกรายการที่ขายในระบบ
 
-ห้าม: คูณซ้อน, ฮาร์ดโค้ดอัตราอื่น, เดาจากไฟล์ข้างเคียง
+อัตราต้องอ่านจาก `app_configs."pricing-markup-percent"` เท่านั้น:
+`engines/commission.ts` (`readCommissionRate()`) ฝั่ง Node และสำเนาของมันใน
+Deno engine — อ่านไม่ได้ = ไม่เสนอราคา (fail closed) ห้าม fallback เป็นค่าคงที่
+
+ห้าม: คูณซ้อน, ฮาร์ดโค้ดอัตรา, เดาจากไฟล์ข้างเคียง
 
 ## 6. สามเส้นทางราคาในโค้ด (ห้าม merge)
 
@@ -50,7 +55,7 @@
 |---|---|---|---|
 | 1 | `supabase/functions/line-webhook-v2/engines/quote-price.ts` | Price B (ลูกค้า), ปิดชื่อบ่อ | LINE webhook |
 | 2 | `engines/quote-price.ts` | Price A ดิบ (หลังบ้าน), เปิดชื่อบ่อ | /admin/ask, dispatcher |
-| 3 | `engines/validation/dispatcher.ts` | Price A + ขนส่ง (ยังไม่คูณ 1.25) | /api/chat, /api/v1/query |
+| 3 | `engines/validation/dispatcher.ts` | Price B (Price A × commission + ขนส่ง × commission) | /api/chat, /api/v1/query, เอกสาร |
 
 `engines/quote-price.ts` หัวไฟล์เขียนว่า "Next.js-side equivalent" ของ
 Deno engine — **ข้อความนี้ผิด** สองไฟล์ให้ผลต่างกันเพราะให้คนละฝ่าย
@@ -86,10 +91,10 @@ assert total = A × qty × 1.25 + transport × 1.25
 
 ## 11. ข้อขัดแย้งที่ยังเปิดอยู่
 
-- `line-webhook-v2/engines/quote-price.ts` ฮาร์ดโค้ด `MARKUP_MULTIPLIER = 1.25`
-  และเคยอ้าง `middleware/sanitizer.ts` ที่ไม่มีอยู่จริง — citation ปลอมถูกลบแล้ว
-  แต่ยังเก็บอัตรา 1.25 ไว้ (ถูกต้องตามสัญญา) แต่ยังไม่ได้อ่านจาก
-  `app_configs.pricing-markup-percent`
+- ~~Deno engine ฮาร์ดโค้ดอัตรา~~ **ปิดแล้ว** (2026-11-09): ทั้ง Deno engine และ
+  dispatcher อ่านอัตราจาก `app_configs."pricing-markup-percent"` ผ่าน
+  `engines/commission.ts` / สำเนาใน Deno — fail closed, ไม่มี fallback.
+  citation ปลอม `middleware/sanitizer.ts` ถูกลบแล้วเช่นกัน
 - `BUSINESS_CAPABILITY_MATRIX` domain F ระบุ `source_of_truth` เป็น
   `engines/pricing.ts` ซึ่งเป็น dead code
 - Node quote engine ติดป้าย บาท/คิว ทั้งที่คอลัมน์เป็น บาท/ตัน

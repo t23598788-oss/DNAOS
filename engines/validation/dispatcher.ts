@@ -21,6 +21,7 @@ import { tryQuoteMaterialPrice } from "@/engines/quote-price";
 import { supabaseAdmin } from "@/services/supabase/queries";
 import { calcCapacity } from "@/engines/capacity";
 import { calcCost } from "@/engines/cost";
+import { readCommissionRate } from "@/engines/commission";
 import { loadCompanySettings } from "@/core/config/company-settings";
 import registry from "@/registry/command-registry.json";
 import { classify, type Classification } from "@/engines/governance/hardcode-decision-engine";
@@ -147,16 +148,37 @@ const QUERY_MAP: Record<string, QueryFn> = {
       trips = capacity.trips_required;
     }
 
+    // Platform Commission (owner decision, Model B — docs/PRICING_DOMAIN.md
+    // §3-§5). `quote.unitPrice` above is Price A, the partner's base price, and
+    // stays exactly that: the commission is applied HERE, once, on both legs.
+    // Never pre-multiply upstream — doing that is how the document path and the
+    // LINE path drifted apart in the first place.
+    //
+    // readCommissionRate() reads app_configs."pricing-markup-percent" and fails
+    // closed (throws) if it cannot — there is deliberately no hardcoded
+    // fallback rate anywhere in this path.
+    const rate = await readCommissionRate();
+    const unitPriceCustomer = quote.unitPrice * (1 + rate);
+    const materialTotal = quote.unitPrice * quantity * (1 + rate);
+    const transportTotal = transportCost * (1 + rate);
+
     return {
       matched: true,
       material_name: quote.materialName ?? match.matched.name,
       quantity,
       unit: quote.quantityUnit ?? "คิว",
-      unit_price: quote.unitPrice,
+      // Explicit base/customer pair — never a bare `unit_price`. A caller that
+      // puts Price A in front of a customer, or in a document, is the exact
+      // revenue leak this replaced.
+      unit_price_base: quote.unitPrice,
+      unit_price_customer: unitPriceCustomer,
+      commission_rate: rate,
       distance_km: quote.distanceKm,
       trips,
-      transport_cost: transportCost,
-      total_price: quote.unitPrice * quantity + transportCost,
+      transport_cost_base: transportCost,
+      transport_total: transportTotal,
+      material_total: materialTotal,
+      total_price: materialTotal + transportTotal,
     };
   },
   "partner.timeline": async (p, scope) => {

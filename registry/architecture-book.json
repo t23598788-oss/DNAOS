@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-09T12:26:08.960Z",
+  "generated_at": "2026-11-09T13:12:50.865Z",
   "version": 1,
   "nodes": [
     {
@@ -4099,7 +4099,7 @@
           "name": "composeBoard",
           "kind": "function",
           "line_start": 53,
-          "line_end": 240
+          "line_end": 242
         }
       ],
       "import_sites": [
@@ -10339,6 +10339,7 @@
         "module:core/config/company-settings.ts",
         "module:core/runtime/trace.ts",
         "module:engines/capacity.ts",
+        "module:engines/commission.ts",
         "module:engines/cost.ts",
         "module:engines/debt/tracking.ts",
         "module:engines/governance/hardcode-decision-engine.ts",
@@ -10388,38 +10389,38 @@
         {
           "name": "DispatchResult",
           "kind": "interface",
-          "line_start": 33,
-          "line_end": 40
+          "line_start": 34,
+          "line_end": 41
         },
         {
           "name": "isRegistered",
           "kind": "function",
-          "line_start": 321,
-          "line_end": 323
+          "line_start": 343,
+          "line_end": 345
         },
         {
           "name": "getCommandDef",
           "kind": "function",
-          "line_start": 325,
-          "line_end": 327
+          "line_start": 347,
+          "line_end": 349
         },
         {
           "name": "listCommands",
           "kind": "function",
-          "line_start": 329,
-          "line_end": 331
+          "line_start": 351,
+          "line_end": 353
         },
         {
           "name": "validateInput",
           "kind": "function",
-          "line_start": 357,
-          "line_end": 369
+          "line_start": 379,
+          "line_end": 391
         },
         {
           "name": "dispatch",
           "kind": "function",
-          "line_start": 371,
-          "line_end": 472
+          "line_start": 393,
+          "line_end": 494
         }
       ],
       "import_sites": [
@@ -10464,33 +10465,38 @@
           "resolved_target": "engines/cost.ts"
         },
         {
-          "specifier": "@/core/config/company-settings",
+          "specifier": "@/engines/commission",
           "line": 24,
+          "resolved_target": "engines/commission.ts"
+        },
+        {
+          "specifier": "@/core/config/company-settings",
+          "line": 25,
           "resolved_target": "core/config/company-settings.ts"
         },
         {
           "specifier": "@/registry/command-registry.json",
-          "line": 25,
+          "line": 26,
           "resolved_target": "registry/command-registry.json.ts"
         },
         {
           "specifier": "@/engines/governance/hardcode-decision-engine",
-          "line": 26,
+          "line": 27,
           "resolved_target": "engines/governance/hardcode-decision-engine.ts"
         },
         {
           "specifier": "@/core/authority/data-scope",
-          "line": 27,
+          "line": 28,
           "resolved_target": "core/authority/data-scope.ts"
         },
         {
           "specifier": "@/core/authority/data-scope-context",
-          "line": 28,
+          "line": 29,
           "resolved_target": "core/authority/data-scope-context.ts"
         },
         {
           "specifier": "@/core/runtime/trace",
-          "line": 29,
+          "line": 30,
           "resolved_target": "core/runtime/trace.ts"
         }
       ]
@@ -12616,7 +12622,7 @@
           "name": "explainQuote",
           "kind": "function",
           "line_start": 33,
-          "line_end": 243
+          "line_end": 249
         }
       ],
       "import_sites": [
@@ -13300,6 +13306,7 @@
         "module:core/config/ide-settings.ts",
         "module:engines/business.ts",
         "module:engines/capacity.ts",
+        "module:engines/commission.ts",
         "module:engines/cost.ts",
         "module:engines/debt/engine.ts",
         "module:engines/distance.ts",
@@ -13674,6 +13681,7 @@
         "module:engines/canonical/resource-transaction-write.ts",
         "module:engines/canonical/transaction-write.ts",
         "module:engines/capacity.ts",
+        "module:engines/commission.ts",
         "module:engines/cost.ts",
         "module:engines/debt/engine.ts",
         "module:engines/debt/tracking.ts",
@@ -23395,6 +23403,7 @@
         "module:supabase/functions/line-webhook-v2/engines/event-followup.ts"
       ],
       "data_tables": [
+        "app_configs",
         "company_line_links",
         "customer_sites",
         "fuel_price_log",
@@ -23426,7 +23435,7 @@
           "name": "tryQuoteMaterialPrice",
           "kind": "function",
           "line_start": 134,
-          "line_end": 315
+          "line_end": 335
         }
       ],
       "import_sites": [
@@ -23730,7 +23739,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 26,
-          "line_end": 108
+          "line_end": 114
         }
       ],
       "import_sites": [
@@ -98307,6 +98316,64 @@
           "resolved_target": "engines/integration-gateway/workers/order-dispatcher.ts"
         }
       ]
+    },
+    {
+      "id": "module:engines/commission.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/commission.ts",
+      "purpose_th": "อ่านอัตรา Platform Commission เดียวของระบบจาก app_configs.pricing-markup-percent (คืนเป็นเศษส่วน 0.25) — อ่านไม่ได้/ค่าไม่ถูกต้อง = ปฏิเสธการคิดราคา (fail closed) ห้าม fallback เป็นอัตราคงที่ — ดู docs/PRICING_DOMAIN.md §4-§5",
+      "exports": [
+        "COMMISSION_CONFIG_KEY",
+        "readCommissionRate"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:core/config-loader.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:engines/validation/dispatcher.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "COMMISSION_CONFIG_KEY",
+          "kind": "const",
+          "line_start": 29,
+          "line_end": 29
+        },
+        {
+          "name": "readCommissionRate",
+          "kind": "function",
+          "line_start": 39,
+          "line_end": 70
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/config-loader",
+          "line": 26,
+          "resolved_target": "core/config-loader.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 27,
+          "resolved_target": "services/supabase/queries.ts"
+        }
+      ]
     }
   ],
   "edges": [
@@ -102453,6 +102520,11 @@
     {
       "source": "layer:engines",
       "target": "module:engines/capacity.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/commission.ts",
       "label": "contains"
     },
     {
@@ -118296,6 +118368,16 @@
       "label": "imports"
     },
     {
+      "source": "module:engines/commission.ts",
+      "target": "module:core/config-loader.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/commission.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:engines/connectors/contract.ts",
       "target": "module:core/connector-loader.ts",
       "label": "imports"
@@ -119268,6 +119350,11 @@
     {
       "source": "module:engines/validation/dispatcher.ts",
       "target": "module:engines/capacity.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/validation/dispatcher.ts",
+      "target": "module:engines/commission.ts",
       "label": "imports"
     },
     {
@@ -124577,8 +124664,8 @@
     }
   ],
   "summary": {
-    "total": 1438,
-    "ok": 1438,
+    "total": 1439,
+    "ok": 1439,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

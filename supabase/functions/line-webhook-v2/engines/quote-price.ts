@@ -234,8 +234,28 @@ export async function tryQuoteMaterialPrice(
   // DNA OS ไม่ได้ซื้อของ: บวก 25% Platform Commission ตามสัญญา
   // ดู docs/PRICING_DOMAIN.md §3-§5
   //
-  // อัตรา 25% ตามสัญญาพาร์ตเนอร์ — ดู docs/PRICING_DOMAIN.md §4
-  const MARKUP_MULTIPLIER = 1.25
+  // อัตรา Platform Commission อ่านจาก app_configs."pricing-markup-percent"
+  // (docs/PRICING_DOMAIN.md §4): เป็นนโยบายธุรกิจ ต้องเปลี่ยนได้โดยไม่ต้อง
+  // deploy จึงห้ามฮาร์ดโค้ด ณ จุดนี้. FAIL CLOSED: อ่านไม่ได้ = ไม่เสนอราคา
+  // ไม่มี fallback เป็นอัตราคงที่เด็ดขาด.
+  //
+  // ทำซ้ำจาก engines/commission.ts (ฝั่ง Next.js) โดยตั้งใจ — ไฟล์นั้นรันใน
+  // Node, ไฟล์นี้รันใน Deno จึง import กันไม่ได้ กติกาเดียวกับ haversine ที่
+  // คัดลอกไว้ด้านบนของไฟล์นี้ (runtime boundary, ห้าม dedupe).
+  const { data: commissionRow } = await supabase
+    .from("app_configs")
+    .select("data")
+    .eq("title", "pricing-markup-percent")
+    .maybeSingle()
+  const commissionRaw = commissionRow?.data
+  const commissionPercent =
+    commissionRaw === undefined || commissionRaw === null || String(commissionRaw).trim() === ""
+      ? NaN
+      : Number(commissionRaw)
+  if (!Number.isFinite(commissionPercent) || commissionPercent < 0) {
+    return { ok: false, text: "ระบบยังไม่ได้ตั้งค่าอัตราค่าคอมมิชชั่น (pricing-markup-percent) — ขออนุญาตไม่เสนอราคาเพื่อความถูกต้องครับ" }
+  }
+  const MARKUP_MULTIPLIER = 1 + commissionPercent / 100
   const unitPrice = partnerBasePrice * MARKUP_MULTIPLIER
 
   const qty = quantityInTons

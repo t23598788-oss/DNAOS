@@ -616,8 +616,10 @@ async function buildMaterialItems(rawInput: string, customerId: string) {
   if (!dispatched.ok) throw new Error(dispatched.violations.join("; ") || "ไม่สามารถคำนวณราคาวัสดุได้");
   const quote = dispatched.data as {
     matched: boolean; candidates?: string[]; material_name?: string;
-    quantity?: number; unit?: string; unit_price?: number; error?: string;
-    distance_km?: number; trips?: number; transport_cost?: number;
+    quantity?: number; unit?: string; error?: string;
+    unit_price_base?: number; unit_price_customer?: number; commission_rate?: number;
+    distance_km?: number; trips?: number;
+    transport_cost_base?: number; transport_total?: number; total_price?: number;
   } | null;
 
   if (!quote?.matched) {
@@ -630,15 +632,19 @@ async function buildMaterialItems(rawInput: string, customerId: string) {
   if (quote.error === "no_gps") {
     throw new Error("ยังไม่มีพิกัดของลูกค้าคนนี้ในระบบ ไม่สามารถหาบ่อที่ใกล้ที่สุดเพื่อคำนวณราคาได้ — รอพิกัดจาก LINE ก่อน");
   }
-  if (quote.error || quote.unit_price == null) {
+  if (quote.error || quote.unit_price_customer == null) {
     throw new Error(quote.error ?? "คำนวณราคาไม่สำเร็จ");
   }
 
+  // Price B (docs/PRICING_DOMAIN.md §3): a customer document must carry the
+  // customer-facing number, i.e. the partner base price WITH the platform
+  // commission already applied. `unit_price_base` is deliberately NOT used
+  // here — storing Price A on a quotation is the revenue leak this closed.
   const items = [{
     description: quote.material_name ?? rawInput,
     qty: quantity,
     unit: quote.unit ?? "คิว",
-    unitPrice: quote.unit_price,
+    unitPrice: quote.unit_price_customer,
   }];
 
   // Real transport cost (owner, 2026-07-24): a generated document needs the
@@ -647,12 +653,12 @@ async function buildMaterialItems(rawInput: string, customerId: string) {
   // computed via the existing, already-built vehicle-capacity/fuel/driver-
   // wage engines (engines/capacity.ts, engines/cost.ts) — no new pricing
   // math invented here, just wired for the first time.
-  if (quote.transport_cost && quote.transport_cost > 0) {
+  if (quote.transport_total && quote.transport_total > 0) {
     items.push({
       description: `ค่าขนส่ง (${quote.distance_km?.toFixed(1) ?? "-"} กม.${quote.trips ? ` × ${quote.trips} เที่ยว` : ""})`,
       qty: 1,
       unit: "รายการ",
-      unitPrice: quote.transport_cost,
+      unitPrice: quote.transport_total,
     });
   }
 

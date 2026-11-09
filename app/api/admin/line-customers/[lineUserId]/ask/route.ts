@@ -52,6 +52,12 @@ export async function POST(req: NextRequest, { params }: Params) {
       : null
 
     const quantity = extractQuantity(question)
+    // BACK-OFFICE / PRICE A ONLY (docs/PRICING_DOMAIN.md §6, path 2): this
+    // helper returns the partner's BASE price (`pit_materials.price`) with no
+    // platform commission and no transport. It is deliberately NOT the
+    // customer-facing number — the customer price path is `material.quote`,
+    // which applies the commission read from app_configs. Do not forward this
+    // text to a customer as a quote.
     const { text } = await tryQuoteMaterialPrice(question, quantity, gps)
     return NextResponse.json({ sender: "ai", type: "text", text })
   }

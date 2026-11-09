@@ -189,10 +189,12 @@ export function composeBoard(
       materialQuoteText = `${data.material_name} — ต้องรู้ตำแหน่งจัดส่งจริงก่อนถึงจะคำนวณราคารวมค่าขนส่งได้ครับ (ยังไม่มีข้อมูลลูกค้า/พิกัดในบทสนทนานี้)`;
     } else if (typeof data.error === "string") {
       materialQuoteText = `${data.material_name} — ${data.error}`;
-    } else if (typeof data.unit_price === "number") {
+    } else if (typeof data.unit_price_customer === "number") {
       const qty = Number(data.quantity ?? 1);
       const unit = String(data.unit ?? "คิว");
-      materialQuoteText = `${data.material_name} ${qty} ${unit} ราคา ${Number(data.unit_price).toLocaleString("th-TH")} บาท/${unit}${
+      // Customer-facing text — Price B (docs/PRICING_DOMAIN.md §3), never the
+      // partner base price.
+      materialQuoteText = `${data.material_name} ${qty} ${unit} ราคา ${Number(data.unit_price_customer).toLocaleString("th-TH")} บาท/${unit}${
         typeof data.total_price === "number" ? ` รวม ${Number(data.total_price).toLocaleString("th-TH")} บาท` : ""
       } (ยังไม่รวมค่าขนส่งถ้าไม่มีระยะทางจริง)`;
     }

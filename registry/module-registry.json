@@ -17470,6 +17470,17 @@
         "POST"
       ],
       "status": "active"
+    },
+    "engines/commission.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Single reader for the platform-commission rate from app_configs.pricing-markup-percent; returns a fraction, fails closed on missing/invalid values, never falls back to a hardcoded rate.",
+      "purpose_th": "อ่านอัตรา Platform Commission เดียวของระบบจาก app_configs.pricing-markup-percent (คืนเป็นเศษส่วน 0.25) — อ่านไม่ได้/ค่าไม่ถูกต้อง = ปฏิเสธการคิดราคา (fail closed) ห้าม fallback เป็นอัตราคงที่ — ดู docs/PRICING_DOMAIN.md §4-§5",
+      "exports": [
+        "COMMISSION_CONFIG_KEY",
+        "readCommissionRate"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

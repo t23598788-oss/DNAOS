@@ -21,9 +21,9 @@ export interface TracedValue {
 export interface ExplainedQuote {
   items: TracedValue[];
   summary: {
-    total_cost: number;
-    selling_price: number;
-    profit: number;
+    base_total: number;
+    customer_total: number;
+    commission_amount: number;
   };
 }
 
@@ -194,50 +194,56 @@ export async function explainQuote(params: {
   // เหมาอิสระ เฮียเป็นคนเสนอราคาให้เขาจากระยะทางจริง × ราคาน้ำมันจริง —
   // ไม่ใช่ค่าคงที่ที่ DNA OS จ่ายแยกต่างหาก
 
-  // 7. ต้นทุน + ราคาขาย
-  const totalCost = materialCost + fuelCost;
-  const markup = getNum(configs, "pricing-markup-percent");
-  const sellingPrice = Math.round(totalCost * (1 + markup / 100));
-  const profit = sellingPrice - totalCost;
+  // 7. ราคาฐาน (Price A) + Platform Commission + ราคาที่ลูกค้าจ่าย (Price B)
+  //
+  // docs/PRICING_DOMAIN.md §3-§5: DNA OS does not buy the material and does
+  // not resell it. It adds a Platform Commission on top of the partner's base
+  // price (and on top of the transport leg). The arithmetic below is UNCHANGED
+  // — only its name was wrong. DNA OS's revenue is the commission, not a
+  // resale margin.
+  const baseTotal = materialCost + fuelCost;
+  const commissionPercent = getNum(configs, "pricing-markup-percent");
+  const customerPrice = Math.round(baseTotal * (1 + commissionPercent / 100));
+  const commissionAmount = customerPrice - baseTotal;
 
   items.push({
-    label: "ต้นทุนรวม",
-    value: totalCost,
+    label: "ราคาฐานรวม (วัสดุ + ขนส่ง)",
+    value: baseTotal,
     unit: "บาท",
     source: "คำนวณจากค่าวัสดุ + ค่าน้ำมัน (ระยะทางจริง × ราคาน้ำมันจริง)",
-    formula: `${materialCost.toLocaleString()} + ${fuelCost.toLocaleString()} = ${totalCost.toLocaleString()}`,
+    formula: `${materialCost.toLocaleString()} + ${fuelCost.toLocaleString()} = ${baseTotal.toLocaleString()}`,
     timestamp: now,
   });
 
   items.push({
-    label: "Markup",
-    value: markup,
+    label: "Platform Commission",
+    value: commissionPercent,
     unit: "%",
-    source: "app_configs.pricing-markup-percent",
-    formula: `บวกกำไร ${markup}% จากต้นทุน`,
+    source: "app_configs.pricing-markup-percent — ดู docs/PRICING_DOMAIN.md §4",
+    formula: `บวกค่าคอมมิชชั่น ${commissionPercent}% จากราคาฐานพาร์ตเนอร์`,
     timestamp: now,
   });
 
   items.push({
-    label: "ราคาขาย",
-    value: sellingPrice,
+    label: "ราคาที่ลูกค้าจ่าย",
+    value: customerPrice,
     unit: "บาท",
-    source: "คำนวณจากต้นทุน × (1 + markup%)",
-    formula: `${totalCost.toLocaleString()} × ${(1 + markup / 100).toFixed(2)} = ${sellingPrice.toLocaleString()}`,
+    source: "คำนวณจากราคาฐาน × (1 + ค่าคอมมิชชั่น%)",
+    formula: `${baseTotal.toLocaleString()} × ${(1 + commissionPercent / 100).toFixed(2)} = ${customerPrice.toLocaleString()}`,
     timestamp: now,
   });
 
   items.push({
-    label: "กำไร",
-    value: profit,
+    label: "ค่าคอมมิชชั่น (ส่วนของ DNA OS)",
+    value: commissionAmount,
     unit: "บาท",
-    source: "คำนวณจากราคาขาย - ต้นทุน",
-    formula: `${sellingPrice.toLocaleString()} - ${totalCost.toLocaleString()} = ${profit.toLocaleString()}`,
+    source: "คำนวณจากราคาที่ลูกค้าจ่าย - ราคาฐาน",
+    formula: `${customerPrice.toLocaleString()} - ${baseTotal.toLocaleString()} = ${commissionAmount.toLocaleString()}`,
     timestamp: now,
   });
 
   return {
     items,
-    summary: { total_cost: totalCost, selling_price: sellingPrice, profit },
+    summary: { base_total: baseTotal, customer_total: customerPrice, commission_amount: commissionAmount },
   };
 }
