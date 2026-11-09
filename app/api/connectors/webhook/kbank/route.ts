@@ -32,15 +32,20 @@ import {
 import { normalizeKBankWebhook } from "@/engines/integration-gateway/adapters/kbank";
 import { publish } from "@/engines/integration-gateway/event-bus/bus";
 
-type Params = { params: Promise<{ slug: string }> };
+// WHY the slug is hardcoded: this is a STATIC route (no [slug] segment), so
+// Next.js supplies no route parameter for it and the old dynamic-destructuring
+// of one always yielded undefined. getConnector(db, undefined) then found
+// nothing, getConnectedConnector() returned null, and EVERY KBank webhook
+// answered 404 — the receiver was dead code. One provider = one connector, so
+// the provider slug is a constant here. Multi-tenant/custom ingress stays on
+// the generic app/api/connectors/webhook/[slug]/route.ts.
+const CONNECTOR_SLUG = "kbank";
 
 const NOT_FOUND = NextResponse.json({ error: "ไม่พบ Webhook Connector นี้" }, { status: 404 });
 
-export async function POST(req: NextRequest, { params }: Params) {
-  const { slug } = await params;
-
+export async function POST(req: NextRequest) {
   // Only a connector that passed Connect → Register → Test → Enable may ingest.
-  const connector = await getConnectedConnector(supabaseAdmin(), slug);
+  const connector = await getConnectedConnector(supabaseAdmin(), CONNECTOR_SLUG);
   if (!connector) return NOT_FOUND;
 
   // Cheap pre-read guard: refuse an oversized body before buffering it.

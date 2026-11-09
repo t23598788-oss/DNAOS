@@ -91,6 +91,24 @@ function nowIso(): string {
   return new Date().toISOString();
 }
 
+/**
+ * Timestamp for an UPDATE, guaranteed to be strictly after the row's
+ * created_at.
+ *
+ * Real bug (found by the E2E stream test, 2026-11-09): broadcastJob inserts
+ * created_at and updated_at from the same value, so an accept/advance that
+ * lands in that same millisecond produced updated_at === created_at and the
+ * row's own history stopped being readable. Millisecond collisions are normal
+ * here (one POST per stage, no artificial delay), so "now" alone is not enough:
+ * when now is not already past created_at, advance created_at by exactly 1ms.
+ */
+function nextUpdatedAt(createdAt: string | null | undefined): string {
+  const now = Date.now();
+  const created = createdAt ? Date.parse(createdAt) : 0;
+  const safe = Number.isFinite(created) && created >= now ? created + 1 : now;
+  return new Date(safe).toISOString();
+}
+
 /** Append one event to the stream. Callers must have moved the job already. */
 async function logEvent(
   db: SupabaseClient,
@@ -207,7 +225,7 @@ export async function acceptJob(
       assigned_truck_id: truckId,
       assigned_driver_id: driverId,
       current_status: "ACCEPTED" satisfies TruckJobStatus,
-      updated_at: nowIso(),
+      updated_at: nextUpdatedAt(job.created_at),
     })
     .eq("id", jobId)
     .select()
@@ -257,7 +275,7 @@ export async function updateJobStatus(
 
   const { data: updated, error } = await db
     .from("truck_jobs")
-    .update({ current_status: newStatus, updated_at: nowIso() })
+    .update({ current_status: newStatus, updated_at: nextUpdatedAt(job.created_at) })
     .eq("id", jobId)
     .select()
     .single();

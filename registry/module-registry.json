@@ -17285,28 +17285,23 @@
       "entry_point": true,
       "purpose": "Integration Gateway — Reconciliation Worker (Phase 2, worker).",
       "purpose_th": "Integration Gateway — Reconciliation Worker (Phase 2, worker).",
-      "exports": ["reconcileKBankPayments"],
+      "exports": [
+        "reconcileKBankPayments"
+      ],
       "status": "active"
     },
-
     "engines/integration-gateway/workers/payout-worker.ts": {
       "owner": "engines",
       "layer": "engines",
       "entry_point": true,
       "purpose": "Integration Gateway — KBank Payout Worker (Phase 3, worker).",
       "purpose_th": "Integration Gateway — KBank Payout Worker (Phase 3, worker).",
-      "exports": ["processOrderPayout", "reconcilePayouts"],
-      "status": "active"
-    },
-
-    "engines/integration-gateway/workers/order-translator.ts": {
-      "owner": "engines",
-      "layer": "engines",
-      "entry_point": true,
-      "purpose": "Integration Gateway — Reconciliation Worker (Phase 2, worker).",
-      "purpose_th": "Integration Gateway — Reconciliation Worker (Phase 2, worker).",
       "exports": [
-        "reconcileKBankPayments"
+        "PayoutWorkerOptions",
+        "executeApprovedPayout",
+        "processOrderPayout",
+        "reconcilePayouts",
+        "requestPayoutApproval"
       ],
       "status": "active"
     },
@@ -17321,6 +17316,105 @@
         "buildOrderNo",
         "extractLineOrderFields",
         "translateLineMessageEvents"
+      ],
+      "status": "active"
+    },
+    "services/kbank/kapi-payout.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "KBank Payout API Client.",
+      "purpose_th": "KBank Payout API Client.",
+      "exports": [
+        "Distribution",
+        "DistributionPartner",
+        "KBankPaymentEntry",
+        "KBankPayoutPayload",
+        "PartnerId",
+        "PayoutOptions",
+        "buildPayoutPayload",
+        "sendPayout"
+      ],
+      "status": "active"
+    },
+    "services/kbank/kapi-refund.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "KBank Refund API Client.",
+      "purpose_th": "KBank Refund API Client.",
+      "exports": [
+        "KBankRefundEntry",
+        "KBankRefundPayload",
+        "RefundOptions",
+        "buildRefundPayload",
+        "sendRefund"
+      ],
+      "status": "active"
+    },
+    "services/finance/cancellation-policy.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Cancellation policy — fault-based refund routing.",
+      "purpose_th": "Cancellation policy — fault-based refund routing.",
+      "exports": [
+        "CancellationReasonType",
+        "DeliveryStage",
+        "RefundResult",
+        "STAGE_DEDUCTIONS",
+        "StageDeduction",
+        "computeCancellationRefund"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/workers/cancellation-worker.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway — Fault-based Cancellation Worker (2026-11-09).",
+      "purpose_th": "Integration Gateway — Fault-based Cancellation Worker (2026-11-09).",
+      "exports": [
+        "CancellationEvidenceRow",
+        "CancellationWorkerOptions",
+        "cancelOrderWithRefund"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/workers/truck-tracker.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway — Real-time Truck Tracking Worker (2026-11-09).",
+      "purpose_th": "Integration Gateway — Real-time Truck Tracking Worker (2026-11-09).",
+      "exports": [
+        "EVENT_TYPE_BY_STATUS",
+        "TRUCK_EVENT_TYPES",
+        "TRUCK_JOB_STATUSES",
+        "TruckEventMetadata",
+        "TruckEventType",
+        "TruckJobRow",
+        "TruckJobStatus",
+        "TruckTrackerOptions",
+        "acceptJob",
+        "broadcastJob",
+        "updateJobStatus"
+      ],
+      "status": "active"
+    },
+    "app/api/driver/tracking/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Driver tracking API (2026-11-09).",
+      "purpose_th": "Driver tracking API (2026-11-09).",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/cron/gateway-workers/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "entry_point": true,
+      "purpose": "Gateway Worker Scheduler — GET /api/cron/gateway-workers, the consumer the Integration Gateway has been missing: runs translateLineMessageEvents, reconcileKBankPayments and reconcilePayouts (approval request only) in isolated phases; never cancellation-worker and never executeApprovedPayout.",
+      "purpose_th": "ตัวตั้งเวลาของ Integration Gateway — GET /api/cron/gateway-workers คือ consumer ที่ Gateway ขาดไป: รัน translateLineMessageEvents, reconcileKBankPayments และ reconcilePayouts (แค่ขออนุมัติ ไม่จ่ายเงิน) แยกเฟสกัน ไม่เรียก cancellation-worker และไม่เรียก executeApprovedPayout เด็ดขาด",
+      "exports": [
+        "GET"
       ],
       "status": "active"
     }

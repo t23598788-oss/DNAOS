@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-08T06:35:32.860Z",
+  "generated_at": "2026-11-09T03:23:48.365Z",
   "policy": "Per-module Factory mapping only — no file was moved. See registry/factory-registry.json for the Factory contracts this maps into.",
   "modules": {
     "app/.well-known/oauth-authorization-server/route.ts": {
@@ -191,6 +191,15 @@
         "admin UI page (remaining)"
       ]
     },
+    "app/admin/documents/page.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "DOCUMENTS workspace (owner mission 2026-10-10, FINANCIAL DOCUMENT MANAGEMENT).",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
     "app/admin/engine-explorer/page.tsx": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -331,6 +340,15 @@
       "domain": "Developer Tooling",
       "capability": "app",
       "responsibility": "หน้าส่ง LINE notification ด้วยมือ ต้องกดยืนยันทุกครั้ง (Rule 72) ไม่ส่งอัตโนมัติ",
+      "evidence": [
+        "admin UI page (remaining)"
+      ]
+    },
+    "app/admin/operations/page.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "app",
+      "responsibility": "Owner Control Center — relocated (2026-10-24, unified public entry pass).",
       "evidence": [
         "admin UI page (remaining)"
       ]
@@ -713,6 +731,15 @@
         "AI services page"
       ]
     },
+    "app/api/admin/_lib/read-scope.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "Admin-route read scope (STEP 1b, owner 2026-10-25).",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
     "app/api/admin/api-tokens/[id]/route.ts": {
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
@@ -773,6 +800,15 @@
       "domain": "Business",
       "capability": "app",
       "responsibility": "POST /api/admin/capability-boxes/run",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/company-expenses/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "ชนิดเอกสารค่าใช้จ่ายที่ระบบมีจริงใน production (ค่าจาก company_expenses เดิม)",
       "evidence": [
         "default: unmatched admin API surface on a business-operations platform"
       ]
@@ -1011,6 +1047,15 @@
         "default: unmatched admin API surface on a business-operations platform"
       ]
     },
+    "app/api/admin/documents/[id]/artifact-recover/route.ts": {
+      "factoryOwner": "document-factory",
+      "domain": "Documents",
+      "capability": "app",
+      "responsibility": "CANONICAL DOCUMENT ARTIFACT RECOVERY (owner mission 2026-10-10, PHASE 5).",
+      "evidence": [
+        "document admin API"
+      ]
+    },
     "app/api/admin/documents/[id]/confirm/route.ts": {
       "factoryOwner": "document-factory",
       "domain": "Documents",
@@ -1020,11 +1065,47 @@
         "document admin API"
       ]
     },
+    "app/api/admin/documents/[id]/file/route.ts": {
+      "factoryOwner": "document-factory",
+      "domain": "Documents",
+      "capability": "app",
+      "responsibility": "DOCUMENT FILE ACCESS (owner mission 2026-10-10) — เปิด/ดาวน์โหลดต้นฉบับ PDF/PNG",
+      "evidence": [
+        "document admin API"
+      ]
+    },
+    "app/api/admin/documents/[id]/recover-helpers.ts": {
+      "factoryOwner": "document-factory",
+      "domain": "Documents",
+      "capability": "app",
+      "responsibility": "Shared stored-file lookup (owner mission 2026-10-10) — single copy ใช้ร่วมกัน",
+      "evidence": [
+        "document admin API"
+      ]
+    },
     "app/api/admin/documents/[id]/route.ts": {
       "factoryOwner": "document-factory",
       "domain": "Documents",
       "capability": "api",
       "responsibility": "API อ่าน/แก้ไข/ลบเอกสารรายการ",
+      "evidence": [
+        "document admin API"
+      ]
+    },
+    "app/api/admin/documents/_lib/docDataFromRecord.ts": {
+      "factoryOwner": "document-factory",
+      "domain": "Documents",
+      "capability": "app",
+      "responsibility": "เอกสารอยู่ใน 2 ตาราง (ไม่มีตารางรวม) — ลองทั้งสองแบบเดียวกับ /api/admin/documents/[id]",
+      "evidence": [
+        "document admin API"
+      ]
+    },
+    "app/api/admin/documents/_lib/listDocuments.ts": {
+      "factoryOwner": "document-factory",
+      "domain": "Documents",
+      "capability": "app",
+      "responsibility": "DOCUMENT LIST + SEARCH (owner mission 2026-10-10, FINANCIAL DOCUMENT MANAGEMENT).",
       "evidence": [
         "document admin API"
       ]
@@ -1144,6 +1225,24 @@
       "responsibility": "API รวมข้อมูลกระแสเงินสดจริงสำหรับหน้า app/admin/finance/page.tsx — รวมยอดจากใบแจ้งหนี้/เอกสารอื่นจริง (รายได้), สลิปโอนเงินที่ยืนยันแล้ว+บิลน้ำมันจริง, หนี้...",
       "evidence": [
         "business-domain admin API (debt/finance/equipment/events)"
+      ]
+    },
+    "app/api/admin/finance/audit/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "Financial audit trail (UNIFIED FINANCE ADMIN mission, 2026-10-11) — อ่าน",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/finance/transactions/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "Unified financial transaction list (UNIFIED FINANCE ADMIN mission, 2026-10-11):",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
       ]
     },
     "app/api/admin/ide/_lib/acceptanceContractRuntime.ts": {
@@ -3702,6 +3801,15 @@
         "LINE customer/profile admin API"
       ]
     },
+    "app/api/admin/line-customers/[lineUserId]/document-preview/route.ts": {
+      "factoryOwner": "communication-factory",
+      "domain": "Communication",
+      "capability": "app",
+      "responsibility": "DOCUMENT IMAGE & PREVIEW (owner mission 2026-10-10) — PREVIEW ONLY.",
+      "evidence": [
+        "LINE customer/profile admin API"
+      ]
+    },
     "app/api/admin/line-customers/[lineUserId]/reply/route.ts": {
       "factoryOwner": "communication-factory",
       "domain": "Communication",
@@ -3846,6 +3954,15 @@
         "default: unmatched admin API surface on a business-operations platform"
       ]
     },
+    "app/api/admin/payables/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "Admin payable workflow (UNIFIED FINANCE ADMIN mission, 2026-10-11) — คำขอจ่าย",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
     "app/api/admin/pits/[pitId]/materials/route.ts": {
       "factoryOwner": "business-factory",
       "domain": "Business",
@@ -3927,6 +4044,15 @@
         "default: unmatched admin API surface on a business-operations platform"
       ]
     },
+    "app/api/admin/publications/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "POST/GET /api/admin/publications — per-item publication permission.",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
     "app/api/admin/pulse/route.ts": {
       "factoryOwner": "business-factory",
       "domain": "Business",
@@ -3941,6 +4067,24 @@
       "domain": "Business",
       "capability": "app",
       "responsibility": "คำขอราคาจริงจากแชท LINE ที่ยังไม่มีเอกสารตอบกลับ พร้อมจับคู่ชื่อวัสดุกับข้อมูลจริง — ยังคำนวณราคาไม่ได้ รอเชื่อม geocoding ปลายทาง",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/receipt-documents/[id]/acknowledge/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "Payment acknowledgement (BATCH 40) — manual/retry trigger for the",
+      "evidence": [
+        "default: unmatched admin API surface on a business-operations platform"
+      ]
+    },
+    "app/api/admin/receipt-documents/[id]/company/route.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "Receipt debtor assignment (BATCH 33) — the ONE approved write path for",
       "evidence": [
         "default: unmatched admin API surface on a business-operations platform"
       ]
@@ -4251,6 +4395,33 @@
         "AI-facing API"
       ]
     },
+    "app/api/chat/_lib/clineTaskQueue.ts": {
+      "factoryOwner": "ai-factory",
+      "domain": "AI",
+      "capability": "app",
+      "responsibility": "Railway task-queue client (DNA-000218, RAILWAY NATIVE CLINE RUNTIME).",
+      "evidence": [
+        "AI-facing API"
+      ]
+    },
+    "app/api/chat/_lib/clineWorker.ts": {
+      "factoryOwner": "ai-factory",
+      "domain": "AI",
+      "capability": "app",
+      "responsibility": "Cline worker bridge (OWNER WORKSPACE AI TOOL INTEGRATION, 2026-10-11).",
+      "evidence": [
+        "AI-facing API"
+      ]
+    },
+    "app/api/chat/_lib/localAiBridge.ts": {
+      "factoryOwner": "ai-factory",
+      "domain": "AI",
+      "capability": "app",
+      "responsibility": "Local AI intent bridge (LOCAL AI RUNTIME mission, 2026-10-11).",
+      "evidence": [
+        "AI-facing API"
+      ]
+    },
     "app/api/chat/_lib/resultContract.ts": {
       "factoryOwner": "ai-factory",
       "domain": "AI",
@@ -4305,11 +4476,29 @@
         "connector/OAuth/gateway API"
       ]
     },
+    "app/api/connectors/webhook/[slug]/_lib/webhookGate.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "app",
+      "responsibility": "Webhook Gate — the single place that decides whether an inbound webhook is",
+      "evidence": [
+        "connector/OAuth/gateway API"
+      ]
+    },
     "app/api/connectors/webhook/[slug]/route.ts": {
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
       "capability": "app",
       "responsibility": "POST /api/connectors/webhook/[slug] — endpoint รับ event ขาเข้าจากบริการภายนอกใด ๆ ตรวจสอบด้วย HMAC signature โดยไม่ต้องแก้โค้ดหรือ deploy ใหม่",
+      "evidence": [
+        "connector/OAuth/gateway API"
+      ]
+    },
+    "app/api/connectors/webhook/kbank/route.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "app",
+      "responsibility": "KBank Webhook Receiver Skeleton.",
       "evidence": [
         "connector/OAuth/gateway API"
       ]
@@ -4490,6 +4679,15 @@
         "internal command-execution API"
       ]
     },
+    "app/api/internal/connect/material-price/route.ts": {
+      "factoryOwner": "runtime-factory",
+      "domain": "Runtime",
+      "capability": "app",
+      "responsibility": "POST /api/internal/connect/material-price — Connect price boundary (WAVE 2).",
+      "evidence": [
+        "internal command-execution API"
+      ]
+    },
     "app/api/internal/connect/payment-confirm/route.ts": {
       "factoryOwner": "runtime-factory",
       "domain": "Runtime",
@@ -4571,6 +4769,15 @@
         "internal command-execution API"
       ]
     },
+    "app/api/internal/kbank/token/route.ts": {
+      "factoryOwner": "runtime-factory",
+      "domain": "Runtime",
+      "capability": "app",
+      "responsibility": "KBank Token Bridge (internal API).",
+      "evidence": [
+        "internal command-execution API"
+      ]
+    },
     "app/api/internal/line/command/route.ts": {
       "factoryOwner": "communication-factory",
       "domain": "Communication",
@@ -4624,6 +4831,20 @@
       "evidence": [
         "connector/OAuth/gateway API"
       ]
+    },
+    "app/api/public/products/[slug]/route.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "GET /api/public/products/:slug — public detail, read-only, no login.",
+      "evidence": []
+    },
+    "app/api/public/products/route.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "GET /api/public/products — public, read-only, no login.",
+      "evidence": []
     },
     "app/api/reader/route.ts": {
       "factoryOwner": "document-factory",
@@ -4720,6 +4941,15 @@
       "domain": "Architecture",
       "capability": "app",
       "responsibility": "endpoint สรุปสถาปัตยกรรมระบบ",
+      "evidence": [
+        "self-description/manifest/constitution/capabilities API surface"
+      ]
+    },
+    "app/api/v1/mcp/business/dispatch/route.ts": {
+      "factoryOwner": "architecture-office",
+      "domain": "Architecture",
+      "capability": "app",
+      "responsibility": "GET/POST /api/v1/mcp/business/dispatch — THE missing connection reported by",
       "evidence": [
         "self-description/manifest/constitution/capabilities API surface"
       ]
@@ -5201,11 +5431,29 @@
         "dev playground page"
       ]
     },
-    "app/products/loading.tsx": {
+    "app/products/[slug]/page.tsx": {
       "factoryOwner": "business-factory",
       "domain": "Business",
       "capability": "app",
-      "responsibility": "skeleton ระหว่างโหลดหน้า Products",
+      "responsibility": "/products/[slug] — public detail page, SERVER RENDERED, no login.",
+      "evidence": [
+        "business-domain preview/marketing page"
+      ]
+    },
+    "app/products/catalog/loading.tsx": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "Loading skeleton for the public product catalog page (six cards).",
+      "evidence": [
+        "business-domain preview/marketing page"
+      ]
+    },
+    "app/products/catalog/page.tsx": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "app",
+      "responsibility": "/products/catalog — public listing, SERVER RENDERED, no login.",
       "evidence": [
         "business-domain preview/marketing page"
       ]
@@ -5218,6 +5466,13 @@
       "evidence": [
         "business-domain preview/marketing page"
       ]
+    },
+    "app/register/page.tsx": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "PUBLIC REGISTRATION (required re-add, 2026-10-24): the system is now",
+      "evidence": []
     },
     "app/report/loading.tsx": {
       "factoryOwner": "business-factory",
@@ -5236,6 +5491,20 @@
       "evidence": [
         "business-domain preview/marketing page"
       ]
+    },
+    "app/robots.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "/robots.txt — server-rendered (Next.js MetadataRoute).",
+      "evidence": []
+    },
+    "app/sitemap.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "/sitemap.xml — server-rendered (Next.js MetadataRoute), no database read.",
+      "evidence": []
     },
     "app/solutions/loading.tsx": {
       "factoryOwner": "business-factory",
@@ -5930,6 +6199,78 @@
         "document UI components"
       ]
     },
+    "components/finance/AuditTab.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "components",
+      "responsibility": "AuditTab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — ประวัติการดำเนินงาน",
+      "evidence": [
+        "UI component (remaining)"
+      ]
+    },
+    "components/finance/DocumentsTab.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "components",
+      "responsibility": "DocumentsTab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — เอกสารการเงิน",
+      "evidence": [
+        "UI component (remaining)"
+      ]
+    },
+    "components/finance/ExpenseEntryTab.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "components",
+      "responsibility": "Expense entry tab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — ฟอร์มกรอก",
+      "evidence": [
+        "UI component (remaining)"
+      ]
+    },
+    "components/finance/FinanceWorkspace.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "components",
+      "responsibility": "FinanceWorkspace (UNIFIED FINANCE ADMIN mission, 2026-10-11) — หน้าจอการเงิน",
+      "evidence": [
+        "UI component (remaining)"
+      ]
+    },
+    "components/finance/IncomeEntryTab.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "components",
+      "responsibility": "Income entry tab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — ฟอร์มกรอกเงิน",
+      "evidence": [
+        "UI component (remaining)"
+      ]
+    },
+    "components/finance/PayablesPanel.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "components",
+      "responsibility": "PayablesPanel (UNIFIED FINANCE ADMIN mission, 2026-10-11) — คำขอจ่ายเงิน",
+      "evidence": [
+        "UI component (remaining)"
+      ]
+    },
+    "components/finance/SummaryTab.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "components",
+      "responsibility": "Finance Summary tab (เดิมคือหน้า /admin/finance ทั้งหน้า — owner request",
+      "evidence": [
+        "UI component (remaining)"
+      ]
+    },
+    "components/finance/UnifiedListTab.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "components",
+      "responsibility": "UnifiedListTab (UNIFIED FINANCE ADMIN mission, 2026-10-11) — รายการการเงิน",
+      "evidence": [
+        "UI component (remaining)"
+      ]
+    },
     "components/ide-shell/IDEWorkspace.tsx": {
       "factoryOwner": "software-factory",
       "domain": "Developer Tooling",
@@ -5946,6 +6287,24 @@
       "responsibility": "Popup ตั้งค่าผู้ติดต่อ — เป็น generic tree-renderer อ่านจาก registry/contact-settings-categories.ts แล้ว render ตามที่ประกาศไว้ ไม่ hardcode JSX เฉพาะโมดูล ม...",
       "evidence": [
         "under a line/ directory"
+      ]
+    },
+    "components/public/LineContactButton.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "components",
+      "responsibility": "LINE OA contact button (2026-10-24 public entry pass).",
+      "evidence": [
+        "UI component (remaining)"
+      ]
+    },
+    "components/public/PublicPriceTable.tsx": {
+      "factoryOwner": "software-factory",
+      "domain": "Developer Tooling",
+      "capability": "components",
+      "responsibility": "Public price table (2026-10-24) — columns required by the owner:",
+      "evidence": [
+        "UI component (remaining)"
       ]
     },
     "components/pwa/PwaRegistration.tsx": {
@@ -6164,6 +6523,34 @@
         "auth foundation"
       ]
     },
+    "core/authority/data-scope-context.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Request-scoped data access scope (STEP 1, 2026-10-25).",
+      "evidence": []
+    },
+    "core/authority/data-scope.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Data access scope — WHO a server-side data read is allowed to see.",
+      "evidence": []
+    },
+    "core/authority/resolve.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Central authority resolver (WAVE 2, 2026-10-25) — PURE, no I/O.",
+      "evidence": []
+    },
+    "core/authority/rights.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Four SEPARATE data rights (owner directive 2026-10-25, STEP 4).",
+      "evidence": []
+    },
     "core/config-loader.ts": {
       "factoryOwner": "infrastructure-factory",
       "domain": "Infrastructure",
@@ -6282,6 +6669,34 @@
       "responsibility": "Tool Scope Policy — the ONE deny-by-default evaluator for \"may this subject",
       "evidence": []
     },
+    "core/public-catalog/authority.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Public catalog authority — WHO may publish WHAT. Pure functions, no I/O.",
+      "evidence": []
+    },
+    "core/public-catalog/geography.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Province / district resolution from the supplier's own address text — PURE.",
+      "evidence": []
+    },
+    "core/public-catalog/policy.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Public catalog policy — PURE functions, no I/O, no database access.",
+      "evidence": []
+    },
+    "core/public-catalog/structured-data.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "JSON-LD builder for public catalog items — PURE, no I/O.",
+      "evidence": []
+    },
     "core/runtime/cockpit.ts": {
       "factoryOwner": "executive-office",
       "domain": "Strategy",
@@ -6353,6 +6768,13 @@
       "evidence": [
         "single source of truth types"
       ]
+    },
+    "core/webhook-signature.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Webhook signature header — shared rule for the two sides of the gateway:",
+      "evidence": []
     },
     "core/workspace/application.ts": {
       "factoryOwner": "software-factory",
@@ -7048,6 +7470,24 @@
         "business-domain engine (remaining)"
       ]
     },
+    "engines/authority/load.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "Authority context loader (WAVE 3, 2026-10-25 · STEP 1 hardening, 2026-10-25)",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/authority/session-scope.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "DataScope resolution for the two real actor kinds (STEP 1, 2026-10-25):",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
     "engines/bot-exchange-rate.ts": {
       "factoryOwner": "business-factory",
       "domain": "Business",
@@ -7125,6 +7565,24 @@
       "domain": "Business",
       "capability": "engines",
       "responsibility": "โมเดลเขียนต้นฉบับขาเข้าตาม canonical — normalize LINE/อัปโหลด/อีเมล/ธนาคารเข้า receipt_documents (ไฟล์+ผลสกัด+หลักฐาน) พร้อม provenance จริง ไม่เดา",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/canonical/internal-credit-evidence.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "Credit evidence orchestration. It does not write payment/debt authority.",
+      "evidence": [
+        "business-domain engine (remaining)"
+      ]
+    },
+    "engines/canonical/material-price-write.ts": {
+      "factoryOwner": "business-factory",
+      "domain": "Business",
+      "capability": "engines",
+      "responsibility": "Central material-price authority (WAVE 2, extended WAVE 3 2026-10-25).",
       "evidence": [
         "business-domain engine (remaining)"
       ]
@@ -7417,6 +7875,15 @@
         "document generation engine"
       ]
     },
+    "engines/documents/qa.ts": {
+      "factoryOwner": "document-factory",
+      "domain": "Documents",
+      "capability": "engines",
+      "responsibility": "DETERMINISTIC DOCUMENT Q&A (owner mission 2026-10-10, LINE BUSINESS AI).",
+      "evidence": [
+        "document generation engine"
+      ]
+    },
     "engines/documents/selfDescription.ts": {
       "factoryOwner": "document-factory",
       "domain": "Documents",
@@ -7593,6 +8060,15 @@
       "domain": "Infrastructure",
       "capability": "engines",
       "responsibility": "Integration Gateway: แปลง GitHub webhook payload จริง (push/pull_request/workflow_run) เป็น GatewayEvent (Observe Channel เท่านั้น) พร้อมตรวจ signature HMAC-...",
+      "evidence": [
+        "integration gateway adapter"
+      ]
+    },
+    "engines/integration-gateway/adapters/kbank.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "engines",
+      "responsibility": "\\",
       "evidence": [
         "integration gateway adapter"
       ]
@@ -8327,6 +8803,15 @@
       "domain": "Infrastructure",
       "capability": "gateway",
       "responsibility": "ประตูข้อมูล — เป็นประตูเดียวสำหรับเขียนข้อมูลลง DB (ตามกฎข้อ 71) โดยเรียกใช้จาก v2-rules/actions",
+      "evidence": [
+        "integration gateway (remaining)"
+      ]
+    },
+    "gateway/payment-acknowledgement.ts": {
+      "factoryOwner": "infrastructure-factory",
+      "domain": "Infrastructure",
+      "capability": "gateway",
+      "responsibility": "Payment acknowledgement (BATCH 40 — owner 2026-10-08).",
       "evidence": [
         "integration gateway (remaining)"
       ]
@@ -9579,6 +10064,13 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/ai-data-scope-live-check.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "STEP 5 — LIVE READ-ONLY CHECK (2026-10-25).",
+      "evidence": []
+    },
     "scripts/ai-deno-cutover-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -9691,6 +10183,22 @@
       "capability": null,
       "responsibility": "Real backup/restore script for registry and workspace state (npm run backup / npm run restore).",
       "evidence": []
+    },
+    "scripts/batch35-anchor-correction.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "BATCH 35 (owner 2026-10-08) — one-off, idempotent ledger correction for the",
+      "evidence": []
+    },
+    "scripts/batch42-payment-reminder-e2e-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Batch 42 — payment acknowledgement + reminder loop E2E proof.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
     },
     "scripts/build-arch-book.ts": {
       "factoryOwner": "architecture-office",
@@ -9918,6 +10426,15 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/connect-identity-cutover-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Connect identity authority cutover test (BATCH 28).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/connect-identity-model-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -10081,6 +10598,33 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/document-artifact-recovery-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "CANONICAL DOCUMENT ARTIFACT RECOVERY contract tests (owner mission 2026-10-10).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/document-delivery-ledger-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Document delivery ledger test (BATCH 38).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/document-image-preview-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "DOCUMENT IMAGE & PREVIEW contract tests (owner mission 2026-10-10).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/document-lifecycle-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -10089,6 +10633,13 @@
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
+    },
+    "scripts/document-preview-compare.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "T4 visual compare — stored ORIGINAL png vs fresh PREVIEW png (same document).",
+      "evidence": []
     },
     "scripts/document-source-rewire-test.ts": {
       "factoryOwner": "qa-factory",
@@ -10192,6 +10743,24 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "ชุดทดสอบสำหรับ factoryWorkspaceRuntime.ts — การสร้าง session, การรับเจตนา, การเปลี่ยนสถานะ, จุดอนุมัติของเจ้าของ, ตัวบล็อก และความถูกต้องของโมเดลผลลัพธ์",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/finance-admin-ui-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Finance Admin UI contract test (UNIFIED FINANCE ADMIN mission, 2026-10-11)",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/finance-doc-intelligence-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "FINANCIAL DOCUMENT & INTELLIGENCE RECOVERY — contract test (owner mission 2026-10-10)",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -10353,6 +10922,15 @@
       "responsibility": "สคริปต์ตรวจสอบชั้นโครงสร้างพื้นฐานและการเรียกเก็บเงิน DigitalOcean (FCR-028) — เทียบสถานะจริงของผู้ให้บริการกับสัญญาโครงสร้างพื้นฐานที่ประกาศไว้ก่อนยอมรับงาน",
       "evidence": []
     },
+    "scripts/internal-credit-evidence-integration-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Isolated contract test. It validates orchestration, not DB/Storage persistence.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/job-contract-cross-runtime-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -10413,6 +10991,15 @@
       "capability": null,
       "responsibility": "ตัวช่วยกลางของ canonical generators — ทำให้ rerun บน source เดิมได้ไฟล์เดิม (idempotent)",
       "evidence": []
+    },
+    "scripts/line-auto-reply-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "LINE auto-reply restoration test (owner mission 2026-10-10).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
     },
     "scripts/line-credential-path-test.ts": {
       "factoryOwner": "qa-factory",
@@ -10513,6 +11100,15 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/owner-company-routing-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Owner company-routing regression tests (owner business routing fix, 2026-10-11)",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/owner-verification-decide-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -10531,11 +11127,29 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/payment-acknowledgement-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Payment acknowledgement test (BATCH 40).",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/payment-atomic-boundary-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "B-04R2 — atomic payment commit boundary: structural checks + LOCAL database proof.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/payment-integrity-recovery-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "CANONICAL PAYMENT INTEGRITY & RECOVERY — T01–T20 regression suite.",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -10594,6 +11208,29 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/public-catalog-authority-audit.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "public-catalog-authority-audit — READ-ONLY inspection of the REAL database.",
+      "evidence": []
+    },
+    "scripts/public-catalog-policy-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "public-catalog-policy:test — OFFLINE policy tests, no database, no network.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/public-catalog-publish-e2e.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "public-catalog-e2e — ONE real price, from its source row to the public reader.",
+      "evidence": []
+    },
     "scripts/pwa-install-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -10617,6 +11254,15 @@
       "domain": "Quality",
       "capability": "scripts",
       "responsibility": "Operational Readiness Regression Suite (owner, 2026-08-07, Software Factory Step 10) — ตรวจ computeOperationalReadiness() ต่อ registry/business-coverage.json...",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
+    "scripts/receipt-company-assign-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Receipt debtor assignment path test (BATCH 33).",
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
@@ -10714,6 +11360,15 @@
         "real test file — QA Factory owns all test code regardless of domain"
       ]
     },
+    "scripts/revenue-metering-audit-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "REVENUE / METERING AUDIT TEST (WAVE 4, 2026-10-25) — offline only.",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
+    },
     "scripts/review-test.ts": {
       "factoryOwner": "qa-factory",
       "domain": "Quality",
@@ -10754,6 +11409,15 @@
       "capability": null,
       "responsibility": "สคริปต์เริ่มต้นครั้งเดียวที่เขียน checkpoint บริบทการดำเนินการจริงตัวแรก (Step 13.7 ยืนยันเสร็จสมบูรณ์, EXTERNAL_ATTACK_SURFACE_DISCOVERY=PARTIAL) รันซ้ำได้อ...",
       "evidence": []
+    },
+    "scripts/semantic-preflight-package-integration-test.ts": {
+      "factoryOwner": "qa-factory",
+      "domain": "Quality",
+      "capability": "scripts",
+      "responsibility": "Package-to-Core integration regression. The package receives no registry,",
+      "evidence": [
+        "real test file — QA Factory owns all test code regardless of domain"
+      ]
     },
     "scripts/settings-real-wiring-test.ts": {
       "factoryOwner": "qa-factory",
@@ -10831,6 +11495,13 @@
       "evidence": [
         "real test file — QA Factory owns all test code regardless of domain"
       ]
+    },
+    "scripts/test-kbank-oauth.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Manual one-off test for the KBank OAuth2 client (Phase 1).",
+      "evidence": []
     },
     "scripts/test-test.ts": {
       "factoryOwner": "qa-factory",
@@ -11096,6 +11767,15 @@
         "AI provider bridge"
       ]
     },
+    "services/ai/geminiCredential.ts": {
+      "factoryOwner": "ai-factory",
+      "domain": "AI",
+      "capability": "services",
+      "responsibility": "Resolve the enabled, connected system Gemini Connector credential for AI Gateway calls.",
+      "evidence": [
+        "AI provider bridge"
+      ]
+    },
     "services/ai/resolver.ts": {
       "factoryOwner": "ai-factory",
       "domain": "AI",
@@ -11163,6 +11843,20 @@
       "responsibility": "ประตูตรวจสอบความถูกต้องของข้อมูลที่ข้ามขอบเขต JSON/API/Queue/Worker/Storage แบบรวมศูนย์ — ตรวจจับ ID จำนวนเต็มไม่ปลอดภัย, ความคลาดเคลื่อนของทศนิยมเงิน, Date/...",
       "evidence": []
     },
+    "services/finance/unified-list.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Unified financial list model (UNIFIED FINANCE ADMIN mission, 2026-10-11).",
+      "evidence": []
+    },
+    "services/kbank/kapi-oauth.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "KBank K API OAuth2 client (sandbox).",
+      "evidence": []
+    },
     "services/knowledge/client.ts": {
       "factoryOwner": "ai-factory",
       "domain": "AI",
@@ -11180,6 +11874,13 @@
       "evidence": [
         "cross-cutting middleware utility"
       ]
+    },
+    "services/public-catalog/reader.ts": {
+      "factoryOwner": "UNKNOWN",
+      "domain": null,
+      "capability": null,
+      "responsibility": "Public catalog reader — the ONLY server-side path that turns business rows",
+      "evidence": []
     },
     "services/supabase/api-tokens.ts": {
       "factoryOwner": "infrastructure-factory",
@@ -11253,6 +11954,15 @@
         "Supabase Edge Function (remaining, not architecture-drift-alert)"
       ]
     },
+    "supabase/functions/_shared/bank-evidence.ts": {
+      "factoryOwner": "deployment-factory",
+      "domain": "Deployment",
+      "capability": "supabase",
+      "responsibility": "Shared bank-evidence helpers for incoming-payment verification",
+      "evidence": [
+        "Supabase Edge Function (remaining, not architecture-drift-alert)"
+      ]
+    },
     "supabase/functions/_shared/canonicalTransport.ts": {
       "factoryOwner": "deployment-factory",
       "domain": "Deployment",
@@ -11316,6 +12026,15 @@
         "Supabase Edge Function (remaining, not architecture-drift-alert)"
       ]
     },
+    "supabase/functions/_shared/connect-price.ts": {
+      "factoryOwner": "deployment-factory",
+      "domain": "Deployment",
+      "capability": "supabase",
+      "responsibility": "Connect price-offer transport (WAVE 2, 2026-10-25) — the provider tier's ONLY",
+      "evidence": [
+        "Supabase Edge Function (remaining, not architecture-drift-alert)"
+      ]
+    },
     "supabase/functions/_shared/gmail-client.ts": {
       "factoryOwner": "deployment-factory",
       "domain": "Deployment",
@@ -11330,15 +12049,6 @@
       "domain": "Deployment",
       "capability": "supabase",
       "responsibility": "คำนวณระยะทาง Haversine สำหรับ Supabase functions",
-      "evidence": [
-        "Supabase Edge Function (remaining, not architecture-drift-alert)"
-      ]
-    },
-    "supabase/functions/_shared/kis-inbound-core.ts": {
-      "factoryOwner": "deployment-factory",
-      "domain": "Deployment",
-      "capability": "supabase",
-      "responsibility": "KIS inbound core — pure logic shared by the edge function (Deno) and the",
       "evidence": [
         "Supabase Edge Function (remaining, not architecture-drift-alert)"
       ]
@@ -11424,15 +12134,6 @@
         "Supabase Edge Function (remaining, not architecture-drift-alert)"
       ]
     },
-    "supabase/functions/kis-webhook/index.ts": {
-      "factoryOwner": "deployment-factory",
-      "domain": "Deployment",
-      "capability": "supabase",
-      "responsibility": "Real Supabase Edge Function receiving real KIS (banking/payment) webhook events.",
-      "evidence": [
-        "Supabase Edge Function (remaining, not architecture-drift-alert)"
-      ]
-    },
     "supabase/functions/line-profile-reconcile/index.ts": {
       "factoryOwner": "deployment-factory",
       "domain": "Deployment",
@@ -11492,6 +12193,15 @@
       "domain": "Deployment",
       "capability": "supabase",
       "responsibility": "แยกการตอบกลับหลังส่งการ์ดแจ้งหนี้ — รับทราบเฉยๆ ถามวันที่ต่อ / ตอบวันที่จริงมา บันทึกจริง / ข้อความกำกวมไม่มีสัญญาณวันที่ (State-Specific Guard Rail, 2026-07...",
+      "evidence": [
+        "Supabase Edge Function (remaining, not architecture-drift-alert)"
+      ]
+    },
+    "supabase/functions/line-webhook-v2/engines/deterministic-response.ts": {
+      "factoryOwner": "deployment-factory",
+      "domain": "Deployment",
+      "capability": "supabase",
+      "responsibility": "Deterministic Response Engine (owner mission 2026-10-10: \"ข้อความทั่วไป:",
       "evidence": [
         "Supabase Edge Function (remaining, not architecture-drift-alert)"
       ]
