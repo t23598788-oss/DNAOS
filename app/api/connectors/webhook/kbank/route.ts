@@ -70,6 +70,34 @@ export async function POST(req: NextRequest, { params }: Params) {
     );
   }
 
+  // ===== PHASE 1: KBank raw staging =====
+  // Persist the exact raw webhook payload (and select headers) to
+  // kbank_webhook_events BEFORE normalising. This gives the Reconcile/Payout
+  // engines a raw-byte audit trail instead of only the normalised evidence.
+  // Fail-closed: a DB write problem must never 200-get a verified KBank body.
+  const kbankInsert = await supabaseAdmin()
+    .from("kbank_webhook_events")
+    .insert({
+      event_id: decision.eventKey.replace(/^id:/, ""),
+      raw_body: decision.payload,
+      headers: decision.storedHeaders ?? null,
+      status: "received",
+    })
+    .select("id, error")
+    .single();
+
+  if (kbankInsert.error) {
+    console.error(
+      `[kbank] failed to persist raw webhook to kbank_webhook_events: ${kbankInsert.error.message}`,
+    );
+    return NextResponse.json(
+      { error: "Failed to persist raw payload for KBank webhook" },
+      { status: 500 },
+    );
+  }
+
+  // ===== End of Phase 1 =====
+
   // Gate accepted: KBank webhook body verified, signature OK.
   // Normalize the verified payload into the canonical GatewayEvent and publish
   // it to the Integration Gateway's Observe Channel.
