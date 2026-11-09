@@ -17417,6 +17417,59 @@
         "GET"
       ],
       "status": "active"
+    },
+    "engines/integration-gateway/workers/order-dispatcher.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "entry_point": false,
+      "purpose": "Integration Gateway — Order Dispatcher (2026-11-09): turns a PAID order into exactly one BROADCASTED truck job (one dedicated truck per order) and scans the PAID pool for orders that still have no active job; the DB enforces the same rule with a partial unique index.",
+      "purpose_th": "Integration Gateway — Order Dispatcher (2026-11-09): เปลี่ยนออเดอร์ที่ชำระเงินแล้ว (PAID) ให้เป็นงานรถหนึ่งงานที่สถานะ BROADCASTED (หนึ่งออเดอร์ = หนึ่งคัน) และสแกนออเดอร์ PAID ที่ยังไม่มีงานรถ ฐานข้อมูลบังคับกฎเดียวกันด้วย partial unique index",
+      "exports": [
+        "DispatchPendingResult",
+        "DispatchResult",
+        "OrderDispatcherOptions",
+        "dispatchOrder",
+        "dispatchPendingOrders"
+      ],
+      "status": "active",
+      "declared_callers": [
+        "app/api/cron/gateway-workers/route.ts",
+        "app/api/admin/orders/[orderId]/dispatch/route.ts"
+      ]
+    },
+    "app/api/driver/available-jobs/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "entry_point": true,
+      "purpose": "GET /api/driver/available-jobs — the driver job board: BROADCASTED truck jobs, newest first, limit 50, behind the shared driver token check; what a driver browses before accepting.",
+      "purpose_th": "GET /api/driver/available-jobs — กระดานงานของคนขับ: งานรถที่ยัง BROADCASTED เรียงใหม่สุดก่อน จำกัด 50 รายการ ผ่านการตรวจ driver token ตัวเดียวกับ tracking; เป็นหน้าที่คนขับดูก่อนกดรับงาน",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/driver/_lib/driver-auth.ts": {
+      "owner": "app",
+      "layer": "app",
+      "entry_point": false,
+      "purpose": "The single driver token check (x-driver-token vs DRIVER_TRACKING_SECRET, sha256 + timingSafeEqual, 503 when unconfigured) shared by POST /api/driver/tracking and GET /api/driver/available-jobs so the two driver surfaces cannot drift apart.",
+      "purpose_th": "จุดเดียวที่ตรวจ driver token (x-driver-token เทียบ DRIVER_TRACKING_SECRET, sha256 + timingSafeEqual, 503 เมื่อยังไม่ตั้งค่า) ใช้ร่วมกันโดย POST /api/driver/tracking และ GET /api/driver/available-jobs เพื่อไม่ให้สอง endpoint ของคนขับแตกต่างกัน",
+      "exports": [
+        "DriverAuthResult",
+        "requireDriverToken"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/orders/[orderId]/dispatch/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "entry_point": true,
+      "purpose": "POST /api/admin/orders/[orderId]/dispatch — admin manual truck dispatch for one order, behind the canonical requireAuth(ADMIN_TIER) gate; dispatched:false (not PAID / already dispatched) is a 200 no-op, only a missing order is 404.",
+      "purpose_th": "POST /api/admin/orders/[orderId]/dispatch — ให้แอดมินสั่งปล่อยรถสำหรับออเดอร์เดียวด้วยมือ ผ่านด่าน requireAuth(ADMIN_TIER) เดิม; dispatched:false (ยังไม่ PAID หรือปล่อยรถไปแล้ว) ตอบ 200 แบบไม่ทำอะไร มีแค่กรณีไม่พบออเดอร์ที่เป็น 404",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

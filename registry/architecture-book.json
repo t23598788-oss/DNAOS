@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-09T09:02:26.597Z",
+  "generated_at": "2026-11-09T09:26:23.066Z",
   "version": 1,
   "nodes": [
     {
@@ -13586,6 +13586,7 @@
         "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
         "module:app/api/admin/line-profiles/route.ts",
         "module:app/api/admin/notifications/send/route.ts",
+        "module:app/api/admin/orders/[orderId]/dispatch/route.ts",
         "module:app/api/admin/outbound-drafts/[id]/reject/route.ts",
         "module:app/api/admin/outbound-drafts/[id]/send/route.ts",
         "module:app/api/admin/outbound-drafts/route.ts",
@@ -13633,6 +13634,7 @@
         "module:app/api/connectors/webhook/[slug]/route.ts",
         "module:app/api/connectors/webhook/kbank/route.ts",
         "module:app/api/cron/supabase-project-status/route.ts",
+        "module:app/api/driver/available-jobs/route.ts",
         "module:app/api/driver/tracking/route.ts",
         "module:app/api/explain/route.ts",
         "module:app/api/gateway/observe/github/route.ts",
@@ -18488,6 +18490,7 @@
         "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
         "module:app/api/admin/line-profiles/route.ts",
         "module:app/api/admin/notifications/send/route.ts",
+        "module:app/api/admin/orders/[orderId]/dispatch/route.ts",
         "module:app/api/admin/outbound-drafts/[id]/reject/route.ts",
         "module:app/api/admin/outbound-drafts/[id]/send/route.ts",
         "module:app/api/admin/outbound-drafts/route.ts",
@@ -18904,6 +18907,7 @@
         "module:app/api/admin/line-profiles/[lineUserId]/route.ts",
         "module:app/api/admin/line-profiles/route.ts",
         "module:app/api/admin/notifications/send/route.ts",
+        "module:app/api/admin/orders/[orderId]/dispatch/route.ts",
         "module:app/api/admin/outbound-drafts/[id]/reject/route.ts",
         "module:app/api/admin/outbound-drafts/[id]/send/route.ts",
         "module:app/api/admin/outbound-drafts/route.ts",
@@ -97862,6 +97866,8 @@
       "internal_dependencies": [],
       "dependents": [
         "module:app/api/driver/tracking/route.ts",
+        "module:engines/integration-gateway/workers/order-dispatcher.ts",
+        "module:tests/e2e/order-dispatch.test.ts",
         "module:tests/e2e/truck-tracking.test.ts"
       ],
       "data_tables": [
@@ -97960,6 +97966,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:app/api/driver/_lib/driver-auth.ts",
         "module:engines/integration-gateway/workers/truck-tracker.ts",
         "module:services/supabase/queries.ts"
       ],
@@ -97980,11 +97987,16 @@
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 58,
-          "line_end": 134
+          "line_start": 43,
+          "line_end": 101
         }
       ],
       "import_sites": [
+        {
+          "specifier": "../_lib/driver-auth",
+          "line": 13,
+          "resolved_target": "app/api/driver/_lib/driver-auth.ts"
+        },
         {
           "specifier": "@/services/supabase/queries",
           "line": 14,
@@ -98009,6 +98021,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:engines/integration-gateway/workers/order-dispatcher.ts",
         "module:engines/integration-gateway/workers/order-translator.ts",
         "module:engines/integration-gateway/workers/payout-worker.ts",
         "module:engines/integration-gateway/workers/reconciler.ts"
@@ -98030,25 +98043,268 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 39,
-          "line_end": 83
+          "line_start": 51,
+          "line_end": 111
         }
       ],
       "import_sites": [
         {
           "specifier": "@/engines/integration-gateway/workers/order-translator",
-          "line": 31,
+          "line": 42,
           "resolved_target": "engines/integration-gateway/workers/order-translator.ts"
         },
         {
           "specifier": "@/engines/integration-gateway/workers/reconciler",
-          "line": 32,
+          "line": 43,
           "resolved_target": "engines/integration-gateway/workers/reconciler.ts"
         },
         {
+          "specifier": "@/engines/integration-gateway/workers/order-dispatcher",
+          "line": 44,
+          "resolved_target": "engines/integration-gateway/workers/order-dispatcher.ts"
+        },
+        {
           "specifier": "@/engines/integration-gateway/workers/payout-worker",
-          "line": 33,
+          "line": 45,
           "resolved_target": "engines/integration-gateway/workers/payout-worker.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:engines/integration-gateway/workers/order-dispatcher.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/integration-gateway/workers/order-dispatcher.ts",
+      "purpose_th": "Integration Gateway — Order Dispatcher (2026-11-09): เปลี่ยนออเดอร์ที่ชำระเงินแล้ว (PAID) ให้เป็นงานรถหนึ่งงานที่สถานะ BROADCASTED (หนึ่งออเดอร์ = หนึ่งคัน) และสแกนออเดอร์ PAID ที่ยังไม่มีงานรถ ฐานข้อมูลบังคับกฎเดียวกันด้วย partial unique index",
+      "exports": [
+        "DispatchPendingResult",
+        "DispatchResult",
+        "OrderDispatcherOptions",
+        "dispatchOrder",
+        "dispatchPendingOrders"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:engines/integration-gateway/workers/truck-tracker.ts"
+      ],
+      "dependents": [
+        "module:app/api/admin/orders/[orderId]/dispatch/route.ts",
+        "module:app/api/cron/gateway-workers/route.ts",
+        "module:tests/e2e/order-dispatch.test.ts"
+      ],
+      "data_tables": [
+        "customer_orders",
+        "truck_jobs"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "OrderDispatcherOptions",
+          "kind": "interface",
+          "line_start": 34,
+          "line_end": 37
+        },
+        {
+          "name": "DispatchResult",
+          "kind": "interface",
+          "line_start": 40,
+          "line_end": 44
+        },
+        {
+          "name": "DispatchPendingResult",
+          "kind": "interface",
+          "line_start": 47,
+          "line_end": 52
+        },
+        {
+          "name": "dispatchOrder",
+          "kind": "function",
+          "line_start": 71,
+          "line_end": 127
+        },
+        {
+          "name": "dispatchPendingOrders",
+          "kind": "function",
+          "line_start": 135,
+          "line_end": 175
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./truck-tracker",
+          "line": 31,
+          "resolved_target": "engines/integration-gateway/workers/truck-tracker.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/driver/available-jobs/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/driver/available-jobs/route.ts",
+      "purpose_th": "GET /api/driver/available-jobs — กระดานงานของคนขับ: งานรถที่ยัง BROADCASTED เรียงใหม่สุดก่อน จำกัด 50 รายการ ผ่านการตรวจ driver token ตัวเดียวกับ tracking; เป็นหน้าที่คนขับดูก่อนกดรับงาน",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:app/api/driver/_lib/driver-auth.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:tests/e2e/order-dispatch.test.ts"
+      ],
+      "data_tables": [
+        "truck_jobs"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "GET",
+          "kind": "function",
+          "line_start": 24,
+          "line_end": 45
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 18,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "../_lib/driver-auth",
+          "line": 19,
+          "resolved_target": "app/api/driver/_lib/driver-auth.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/driver/_lib/driver-auth.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/driver/_lib/driver-auth.ts",
+      "purpose_th": "จุดเดียวที่ตรวจ driver token (x-driver-token เทียบ DRIVER_TRACKING_SECRET, sha256 + timingSafeEqual, 503 เมื่อยังไม่ตั้งค่า) ใช้ร่วมกันโดย POST /api/driver/tracking และ GET /api/driver/available-jobs เพื่อไม่ให้สอง endpoint ของคนขับแตกต่างกัน",
+      "exports": [
+        "DriverAuthResult",
+        "requireDriverToken"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/api/driver/available-jobs/route.ts",
+        "module:app/api/driver/tracking/route.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "DriverAuthResult",
+          "kind": "type",
+          "line_start": 28,
+          "line_end": 30
+        },
+        {
+          "name": "requireDriverToken",
+          "kind": "function",
+          "line_start": 39,
+          "line_end": 73
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/orders/[orderId]/dispatch/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/orders/[orderId]/dispatch/route.ts",
+      "purpose_th": "POST /api/admin/orders/[orderId]/dispatch — ให้แอดมินสั่งปล่อยรถสำหรับออเดอร์เดียวด้วยมือ ผ่านด่าน requireAuth(ADMIN_TIER) เดิม; dispatched:false (ยังไม่ PAID หรือปล่อยรถไปแล้ว) ตอบ 200 แบบไม่ทำอะไร มีแค่กรณีไม่พบออเดอร์ที่เป็น 404",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:core/auth/requireAuth.ts",
+        "module:core/auth/session.ts",
+        "module:engines/integration-gateway/workers/order-dispatcher.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:tests/e2e/order-dispatch.test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 23,
+          "line_end": 46
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/auth/requireAuth",
+          "line": 16,
+          "resolved_target": "core/auth/requireAuth.ts"
+        },
+        {
+          "specifier": "@/core/auth/session",
+          "line": 17,
+          "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 18,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/engines/integration-gateway/workers/order-dispatcher",
+          "line": 19,
+          "resolved_target": "engines/integration-gateway/workers/order-dispatcher.ts"
         }
       ]
     }
@@ -100331,6 +100587,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/admin/orders/[orderId]/dispatch/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/admin/outbound-drafts/[id]/reject/route.ts",
       "label": "contains"
     },
@@ -100627,6 +100888,16 @@
     {
       "source": "layer:app",
       "target": "module:app/api/cron/supabase-project-status/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/driver/_lib/driver-auth.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/driver/available-jobs/route.ts",
       "label": "contains"
     },
     {
@@ -102512,6 +102783,11 @@
     {
       "source": "layer:engines",
       "target": "module:engines/integration-gateway/workers/cancellation-worker.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
+      "target": "module:engines/integration-gateway/workers/order-dispatcher.ts",
       "label": "contains"
     },
     {
@@ -112475,6 +112751,26 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/orders/[orderId]/dispatch/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/orders/[orderId]/dispatch/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/orders/[orderId]/dispatch/route.ts",
+      "target": "module:engines/integration-gateway/workers/order-dispatcher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/orders/[orderId]/dispatch/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/outbound-drafts/[id]/reject/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -113861,6 +114157,11 @@
     },
     {
       "source": "module:app/api/cron/gateway-workers/route.ts",
+      "target": "module:engines/integration-gateway/workers/order-dispatcher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/cron/gateway-workers/route.ts",
       "target": "module:engines/integration-gateway/workers/order-translator.ts",
       "label": "imports"
     },
@@ -113952,6 +114253,21 @@
     {
       "source": "module:app/api/document/route.ts",
       "target": "module:engines/documents/engine.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/driver/available-jobs/route.ts",
+      "target": "module:app/api/driver/_lib/driver-auth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/driver/available-jobs/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/driver/tracking/route.ts",
+      "target": "module:app/api/driver/_lib/driver-auth.ts",
       "label": "imports"
     },
     {
@@ -118672,6 +118988,11 @@
     {
       "source": "module:engines/integration-gateway/workers/cancellation-worker.ts",
       "target": "module:services/kbank/kapi-refund.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/integration-gateway/workers/order-dispatcher.ts",
+      "target": "module:engines/integration-gateway/workers/truck-tracker.ts",
       "label": "imports"
     },
     {
@@ -124230,14 +124551,34 @@
       "label": "imports"
     },
     {
+      "source": "module:tests/e2e/order-dispatch.test.ts",
+      "target": "module:app/api/admin/orders/[orderId]/dispatch/route.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:tests/e2e/order-dispatch.test.ts",
+      "target": "module:app/api/driver/available-jobs/route.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:tests/e2e/order-dispatch.test.ts",
+      "target": "module:engines/integration-gateway/workers/order-dispatcher.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:tests/e2e/order-dispatch.test.ts",
+      "target": "module:engines/integration-gateway/workers/truck-tracker.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:tests/e2e/truck-tracking.test.ts",
       "target": "module:engines/integration-gateway/workers/truck-tracker.ts",
       "label": "imports"
     }
   ],
   "summary": {
-    "total": 1434,
-    "ok": 1434,
+    "total": 1438,
+    "ok": 1438,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

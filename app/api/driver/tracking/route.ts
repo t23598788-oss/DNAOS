@@ -9,8 +9,8 @@
 //   { "jobId": "...", "action": "accept", "truckId": "...", "driverId": "...",
 //     "metadata": { "lat": 13.75, "lng": 100.5, "note": "..." } }
 
-import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { requireDriverToken } from "../_lib/driver-auth";
 import { supabaseAdmin } from "@/services/supabase/queries";
 import {
   acceptJob,
@@ -40,45 +40,12 @@ function badRequest(message: string) {
   return NextResponse.json({ ok: false, error: message }, { status: 400 });
 }
 
-/**
- * Constant-time token comparison. Both sides are hashed first so the compared
- * buffers are always 32 bytes and timingSafeEqual never throws on a length
- * mismatch (which would itself leak the secret's length).
- *
- * TODO: Replace shared secret with per-driver tokens when driver provisioning
- * exists. This route is NOT covered by middleware.ts, so this check is the only
- * thing standing between the internet and "advance any job".
- */
-function tokenMatches(provided: string, expected: string): boolean {
-  const a = createHash("sha256").update(provided, "utf8").digest();
-  const b = createHash("sha256").update(expected, "utf8").digest();
-  return timingSafeEqual(a, b);
-}
-
 export async function POST(request: Request) {
-  // Fail-closed auth: an unset secret disables the endpoint (503), it never
-  // opens it. A wrong/absent token is 401 and is rejected before any parsing,
-  // and before any job can be accepted or advanced.
-  const expectedToken = process.env.DRIVER_TRACKING_SECRET;
-  if (!expectedToken) {
-    return NextResponse.json(
-      { ok: false, error: "driver tracking not configured" },
-      { status: 503 },
-    );
-  }
-  const providedToken = request.headers.get("x-driver-token");
-  if (!providedToken) {
-    return NextResponse.json(
-      { ok: false, error: "missing driver token" },
-      { status: 401 },
-    );
-  }
-  if (!tokenMatches(providedToken, expectedToken)) {
-    return NextResponse.json(
-      { ok: false, error: "invalid driver token" },
-      { status: 401 },
-    );
-  }
+  // Fail-closed driver auth (shared with the job board): an unset secret
+  // disables the endpoint (503), a wrong/absent token is 401, and both are
+  // rejected before any parsing — before any job can be accepted or advanced.
+  const auth = requireDriverToken(request);
+  if (!auth.ok) return auth.response;
 
   let body: TrackingBody;
   try {
