@@ -56,6 +56,10 @@ export async function POST(
   // decision point: guarded transition + audit row, then execute.
   const db = supabaseAdmin();
 
+  // Invoice statuses that represent real money owed. DRAFT is not issued yet
+  // and VOID is cancelled, so neither may contribute to a payout amount.
+  const ACTIVE_INVOICE_STATUSES = ["SENT", "PARTIALLY_PAID", "PAID"];
+
   try {
     const { data: order, error: fetchError } = await db
       .from("customer_orders")
@@ -77,6 +81,57 @@ export async function POST(
           ok: false,
           orderId,
           reason: `order is not pending payout approval (current: ${currentStatus || "unknown"})`,
+        },
+        { status: 409 },
+      );
+    }
+
+    // Resolve the payout amount from invoices.total_amount. customer_orders
+    // has no amount column, and the worker's executeApprovedPayout() takes no
+    // amount argument, so the resolved figure is recorded on the audit row for
+    // traceability — it is never invented.
+    const { data: invoiceRows, error: invoiceError } = await db
+      .from("invoices")
+      .select("id, total_amount, invoice_status")
+      .eq("customer_order_id", orderId);
+
+    if (invoiceError) {
+      return NextResponse.json(
+        { ok: false, orderId, reason: `invoice lookup failed: ${invoiceError.message}` },
+        { status: 500 },
+      );
+    }
+
+    const invoices = invoiceRows ?? [];
+    const activeInvoices = invoices.filter((invoice) =>
+      ACTIVE_INVOICE_STATUSES.includes(String(invoice.invoice_status ?? "").toUpperCase()),
+    );
+    const allActive =
+      invoices.length > 0 && activeInvoices.length === invoices.length;
+
+    const resolvedAmount = allActive
+      ? activeInvoices.reduce(
+          (total, invoice) => total + Number(invoice.total_amount ?? 0),
+          0,
+        )
+      : 0;
+
+    const amountNote =
+      invoices.length === 0
+        ? "amount resolved from invoices: 0.00 (no invoice for this order)"
+        : allActive
+          ? `amount resolved from invoices: ${resolvedAmount.toFixed(2)} (${invoices.length} invoice${invoices.length === 1 ? "" : "s"}, active)`
+          : `amount resolved from invoices: 0.00 (${invoices.length} invoice${invoices.length === 1 ? "" : "s"}, not all active)`;
+
+    // The worker still sends its own internal placeholder amount (it takes no
+    // amount argument), so approving with a zero/unresolved amount would mean
+    // sending a made-up number to the bank. Refuse instead of faking it.
+    if (resolvedAmount <= 0) {
+      return NextResponse.json(
+        {
+          ok: false,
+          orderId,
+          reason: `no payable invoice amount: ${amountNote}; refusing to approve a payout without a real amount`,
         },
         { status: 409 },
       );
@@ -116,7 +171,7 @@ export async function POST(
       order_id: orderId,
       action: "approve",
       actor_id: actorId,
-      reason: "payout approved by human via admin approval route",
+      reason: `payout approved by human via admin approval route; ${amountNote}`,
       created_at: new Date().toISOString(),
     });
 
