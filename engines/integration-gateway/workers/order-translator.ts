@@ -85,6 +85,99 @@ function asId(value: unknown): string | null {
 }
 
 /**
+ * The exact texts a customer may send to CONFIRM an existing draft order.
+ * Order creation (a description like "อยากได้ทราย 500 คิว") is never a
+ * confirmation: money may only follow an explicit yes.
+ */
+const CONFIRM_TEXT_RE = /^(ยืนยัน|ยืนยันครับ|ยืนยันค่ะ|ยืนยันการสั่งซื้อ|confirm|yes|ok)$/i;
+
+function isConfirmationText(value: unknown): boolean {
+  return typeof value === "string" && CONFIRM_TEXT_RE.test(value.trim());
+}
+
+/** The company a LINE sender is linked to, via the legacy identity projection. */
+async function companyForSender(db: SupabaseClient, senderId: string): Promise<string | null> {
+  const { data: profiles } = await db
+    .from("line_profiles")
+    .select("company_id")
+    .eq("line_user_id", senderId)
+    .limit(1);
+  const profile = (Array.isArray(profiles) ? profiles[0] : profiles) as
+    | { company_id?: unknown }
+    | null
+    | undefined;
+  const companyId = asId(profile?.company_id);
+  return companyId && UUID_RE.test(companyId) ? companyId : null;
+}
+
+/** Draft order ids of one sender's company, newest first. */
+async function draftOrderIdsForSender(db: SupabaseClient, senderId: string): Promise<string[]> {
+  const companyId = await companyForSender(db, senderId);
+  if (!companyId) return [];
+  const { data: drafts } = await db
+    .from("customer_orders")
+    .select("id")
+    .eq("customer_company_id", companyId)
+    .eq("status", "DRAFT")
+    .order("created_at", { ascending: false });
+  return ((drafts ?? []) as { id?: unknown }[])
+    .map((row) => asId(row?.id))
+    .filter((id): id is string => Boolean(id));
+}
+
+/**
+ * Confirm one draft order: DRAFT -> SUBMITTED. Idempotent by design — an order
+ * that is already past DRAFT is reported as-is, never moved backwards or
+ * re-written, and the UPDATE is guarded by `.in("status", ["DRAFT"])` so a
+ * concurrent confirm cannot double-fire.
+ */
+export async function confirmOrder(
+  orderId: string,
+  options: OrderTranslatorOptions = {},
+): Promise<{ ok: boolean; orderId: string; status: string }> {
+  const db = (options.db ?? supabaseAdmin()) as SupabaseClient;
+
+  const { data: order, error: readError } = await db
+    .from("customer_orders")
+    .select("id, status")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (readError || !order) {
+    return { ok: false, orderId, status: "not_found" };
+  }
+
+  const current = typeof order.status === "string" ? order.status : "";
+  if (current !== "DRAFT") {
+    return { ok: true, orderId, status: current };
+  }
+
+  const { data: updated, error: updateError } = await db
+    .from("customer_orders")
+    .update({ status: "SUBMITTED", updated_at: new Date().toISOString() })
+    .eq("id", orderId)
+    .in("status", ["DRAFT"])
+    .select("id, status")
+    .maybeSingle();
+
+  if (updateError) {
+    return { ok: false, orderId, status: "update_error" };
+  }
+
+  if (updated?.status) {
+    return { ok: true, orderId, status: String(updated.status) };
+  }
+
+  // The row changed between our read and our write — report what it is now.
+  const { data: after } = await db
+    .from("customer_orders")
+    .select("status")
+    .eq("id", orderId)
+    .maybeSingle();
+  return { ok: true, orderId, status: after?.status ? String(after.status) : "unknown" };
+}
+
+/**
  * Extract the identity fields a LINE message.received evidence payload carries.
  *
  * The adapter's evidence contract has no project/site resolver yet, so these
@@ -190,7 +283,13 @@ async function resolveOrderAnchors(
  */
 export async function translateLineMessageEvents(
   options: OrderTranslatorOptions = {},
-): Promise<{ translated: number; skipped: number; processed: number; unanchored: number }> {
+): Promise<{
+  translated: number;
+  skipped: number;
+  processed: number;
+  unanchored: number;
+  confirmed: number;
+}> {
   const db = (options.db ?? supabaseAdmin()) as SupabaseClient;
 
   // 1. Read inbound LINE events. channel='observe' is the only channel used
@@ -209,17 +308,18 @@ export async function translateLineMessageEvents(
     // Fail-open at the translator boundary: a transient DB problem must not
     // tear down the whole webhook ingest; the Reconcile/Payout phases will
     // retry from the persisted event log.
-    return { translated: 0, skipped: 0, processed: 0, unanchored: 0 };
+    return { translated: 0, skipped: 0, processed: 0, unanchored: 0, confirmed: 0 };
   }
 
   const rows = (events ?? []) as GatewayEvent[];
-  if (rows.length === 0) return { translated: 0, skipped: 0, processed: 0, unanchored: 0 };
+  if (rows.length === 0) return { translated: 0, skipped: 0, processed: 0, unanchored: 0, confirmed: 0 };
 
   const seen: SeenOrder[] = [];
   let translated = 0;
   let skipped = 0;
   let processed = 0;
   let unanchored = 0;
+  let confirmed = 0;
 
   for (const evt of rows) {
     const evidence = (evt.evidence ?? {}) as Record<string, unknown>;
@@ -236,6 +336,54 @@ export async function translateLineMessageEvents(
     const orderNo = buildOrderNo(evidence, provider);
     const fields = extractLineOrderFields(evidence);
     const senderId = typeof evidence.sender_id === "string" ? evidence.sender_id : null;
+
+    // 2a. Confirmation intent: "ยืนยัน" / "confirm" / "yes" / "ok" confirms an
+    //     existing DRAFT — it never creates a new order. Exactly one draft is
+    //     required; two or more is ambiguous and the event stays 'received'.
+    if (isConfirmationText(evidence.message_text)) {
+      const drafts = senderId ? await draftOrderIdsForSender(db, senderId) : [];
+
+      if (drafts.length > 1) {
+        console.warn(
+          `[order-translator] confirm ambiguous for ${senderId ?? "unknown"}: ${drafts.length} drafts`,
+        );
+        skipped += 1;
+        continue;
+      }
+
+      if (drafts.length === 0) {
+        // Nothing to confirm. A bare "ยืนยัน" must not become a draft order.
+        console.warn(
+          `[order-translator] confirm with no draft order for ${senderId ?? "unknown"} — ignoring`,
+        );
+        const { error: ignoreError } = await db
+          .from("integration_gateway_events")
+          .update({ status: "processed", updated_at: new Date().toISOString() })
+          .eq("event_id", evt.event_id)
+          .eq("status", "received");
+        if (ignoreError) skipped += 1;
+        else processed += 1;
+        continue;
+      }
+
+      const result = await confirmOrder(drafts[0], {
+        db: db as unknown as typeof supabaseAdmin,
+      });
+      const { error: confirmError } = await db
+        .from("integration_gateway_events")
+        .update({ status: "processed", updated_at: new Date().toISOString() })
+        .eq("event_id", evt.event_id)
+        .eq("status", "received");
+
+      if (confirmError) {
+        skipped += 1;
+        continue;
+      }
+
+      if (result.ok && result.status === "SUBMITTED") confirmed += 1;
+      processed += 1;
+      continue;
+    }
 
     const { anchors, missing } = await resolveOrderAnchors(db, fields, senderId);
     if (!anchors) {
@@ -289,7 +437,7 @@ export async function translateLineMessageEvents(
     processed += 1;
   }
 
-  return { translated, skipped, processed, unanchored };
+  return { translated, skipped, processed, unanchored, confirmed };
 }
 
 export { buildOrderNo, extractLineOrderFields, resolveOrderAnchors };

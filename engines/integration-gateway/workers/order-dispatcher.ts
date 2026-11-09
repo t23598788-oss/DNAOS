@@ -28,6 +28,7 @@
 // "already dispatched" guard makes every replay a no-op.
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { supabaseAdmin } from "@/services/supabase/queries";
 import { broadcastJob } from "./truck-tracker";
 
 /** Options carried through the dispatcher (db injected for testability). */
@@ -54,11 +55,17 @@ export interface DispatchPendingResult {
 /** How many PAID orders one run may look at (no rate limiting beyond this). */
 const MAX_ORDERS_PER_RUN = 100;
 
+/**
+ * The dispatcher's client: the injected one, otherwise the service_role client.
+ *
+ * This used to throw whenever the caller passed no options, which made the cron
+ * pipeline report `order-dispatcher: a Supabase client is required` on every
+ * run and never dispatch anything. Every other gateway worker already defaults
+ * to supabaseAdmin(); this one now does too. supabaseAdmin() itself is the only
+ * remaining failure path (missing NEXT_PUBLIC_SUPABASE_URL / service_role key).
+ */
 function requireDb(options: OrderDispatcherOptions): SupabaseClient {
-  if (!options.db) {
-    throw new Error("order-dispatcher: a Supabase client is required");
-  }
-  return options.db;
+  return options.db ?? supabaseAdmin();
 }
 
 /**

@@ -54,6 +54,9 @@ export const EVIDENCE_KEYS: readonly string[] = [
   "document_group_id",
   "project_id",
   "message_type",
+  // The customer's own words — required by the confirm-intent detector
+  // (order-translator.isConfirmationText). Nothing else reads it.
+  "message_text",
   "has_media",
   "is_redelivery",
   "channel_destination",
@@ -80,7 +83,7 @@ interface LineInboundEvent {
   timestamp?: number;
   deliveryContext?: { isRedelivery?: boolean };
   source?: { type?: string; userId?: string };
-  message?: { type?: string; id?: string };
+  message?: { type?: string; id?: string; text?: string };
   project_id?: string | null;
   document_group_id?: string | null;
   customer_company_id?: string | null;
@@ -126,6 +129,7 @@ export function normalizeLineWebhook(payload: unknown): { events: GatewayEvent[]
         // Identity as a VALUE for evidence/attribution — never as authority.
         sender_id: raw?.source?.userId ?? null,
         message_type: messageType,
+        message_text: typeof raw?.message?.text === "string" ? raw.message.text : null,
         has_media: messageType === "image" || messageType === "file" || messageType === "audio" || messageType === "video",
         is_redelivery: raw?.deliveryContext?.isRedelivery === true,
         channel_destination: typeof body.destination === "string" ? body.destination : null,

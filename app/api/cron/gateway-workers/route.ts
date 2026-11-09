@@ -43,6 +43,7 @@ import { translateLineMessageEvents } from "@/engines/integration-gateway/worker
 import { reconcileKBankPayments } from "@/engines/integration-gateway/workers/reconciler";
 import { dispatchPendingOrders } from "@/engines/integration-gateway/workers/order-dispatcher";
 import { reconcilePayouts } from "@/engines/integration-gateway/workers/payout-worker";
+import { supabaseAdmin } from "@/services/supabase/queries";
 
 function describe(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
@@ -57,12 +58,14 @@ export async function GET(req: Request) {
 
   const errors: string[] = [];
 
-  // 1. LINE events -> DRAFT orders.
+  // 1. LINE events -> DRAFT orders (and "ยืนยัน" -> SUBMITTED confirmations).
   let translated = 0;
+  let confirmed = 0;
   try {
     // No options: each worker defaults to the service_role client itself.
     const result = await translateLineMessageEvents();
     translated = result.translated;
+    confirmed = result.confirmed;
   } catch (err) {
     errors.push(`translateLineMessageEvents: ${describe(err)}`);
   }
@@ -70,6 +73,8 @@ export async function GET(req: Request) {
   // 2. Payments -> PAID.
   let reconciled = 0;
   try {
+    // reconcileKBankPayments defaults to supabaseAdmin() itself; passing one in
+    // is a type error today (its option is declared `db?: typeof supabaseAdmin`).
     const result = await reconcileKBankPayments();
     reconciled = result.matched;
   } catch (err) {
@@ -80,7 +85,7 @@ export async function GET(req: Request) {
   let dispatched = 0;
   let dispatchErrors: string[] = [];
   try {
-    const result = await dispatchPendingOrders();
+    const result = await dispatchPendingOrders({ db: supabaseAdmin() });
     dispatched = result.dispatched;
     dispatchErrors = result.errors;
   } catch (err) {
@@ -102,6 +107,7 @@ export async function GET(req: Request) {
   return NextResponse.json({
     ok: errors.length === 0 && dispatchErrors.length === 0,
     translated,
+    confirmed,
     reconciled,
     dispatched,
     dispatchErrors,
