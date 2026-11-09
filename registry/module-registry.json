@@ -599,7 +599,8 @@
       "purpose": "GET /start — Developer Portal: entry point for UI designers, developers, and external AI",
       "purpose_th": "หน้า Portal หลักสำหรับทุกคนที่ต้องการสร้างสิ่งใหม่บน DNA OS",
       "exports": [
-        "StartPage"
+        "StartPage",
+        "metadata"
       ],
       "access": "public",
       "status": "active"
@@ -610,7 +611,8 @@
       "purpose": "GET /examples — Screen-to-Command mapping for UI designers",
       "purpose_th": "แสดงว่าแต่ละหน้าจอต้องใช้ command อะไร — สำหรับ UI designer ที่เริ่มต้น",
       "exports": [
-        "ExamplesPage"
+        "ExamplesPage",
+        "metadata"
       ],
       "access": "public",
       "status": "active"
@@ -3643,7 +3645,8 @@
       "purpose": "Public capability page listing AI_REGISTRY.json agents + AI_SESSIONS.json live session statuses.",
       "purpose_th": "หน้าสาธารณะแสดงรายชื่อ AI agent และสถานะ session จริง",
       "exports": [
-        "AIServicesPage"
+        "AIServicesPage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -3693,7 +3696,8 @@
       "purpose": "Download Center portal page — honestly shows there's no downloadable package yet, lists real CLI commands from CONSTITUTION.json instead.",
       "purpose_th": "หน้า Download Center — บอกตรงๆ ว่ายังไม่มีไฟล์ดาวน์โหลด โชว์ชุดคำสั่ง CLI จริงแทน",
       "exports": [
-        "DownloadCenterPage"
+        "DownloadCenterPage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -3733,7 +3737,8 @@
       "purpose": "Public capability page — connector lifecycle stages + supported auth types from registry.",
       "purpose_th": "หน้าสาธารณะแสดงขั้นตอน connector lifecycle และ auth type ที่รองรับ",
       "exports": [
-        "MarketplacePage"
+        "MarketplacePage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -3784,7 +3789,8 @@
       "purpose": "Public capability page listing real Portals from portals.json.",
       "purpose_th": "หน้าสาธารณะแสดงรายชื่อ Portal จริงจาก portals.json",
       "exports": [
-        "ProductsPage"
+        "ProductsPage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -3794,7 +3800,8 @@
       "purpose": "Public capability page — existence/business/decision/rule coverage stats as report cards.",
       "purpose_th": "หน้าสาธารณะแสดงสถิติ coverage ต่างๆ เป็นการ์ดรายงาน",
       "exports": [
-        "ReportPage"
+        "ReportPage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -3814,7 +3821,8 @@
       "purpose": "Public capability page — business-coverage.json domains with covered/partial/missing pills.",
       "purpose_th": "หน้าสาธารณะแสดงโดเมนธุรกิจพร้อมสถานะ covered/partial/missing",
       "exports": [
-        "SolutionsPage"
+        "SolutionsPage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -15649,7 +15657,8 @@
       "purpose": "วิธีติดตั้งแอป (PWA) — หน้าช่วยติดตั้งสาธารณะ (ไม่มีข้อมูลบัญชี/ความลับใด ๆ)",
       "purpose_th": "วิธีติดตั้งแอป (PWA) — หน้าช่วยติดตั้งสาธารณะ (ไม่มีข้อมูลบัญชี/ความลับใด ๆ)",
       "exports": [
-        "InstallHelpPage"
+        "InstallHelpPage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -17286,6 +17295,7 @@
       "purpose": "Integration Gateway — Reconciliation Worker (Phase 2, worker).",
       "purpose_th": "Integration Gateway — Reconciliation Worker (Phase 2, worker).",
       "exports": [
+        "ReconciliationResult",
         "reconcileKBankPayments"
       ],
       "status": "active"
@@ -17312,9 +17322,13 @@
       "purpose": "Integration Gateway — Inbound Translator (Phase 1, worker).",
       "purpose_th": "Integration Gateway — Inbound Translator (Phase 1, worker).",
       "exports": [
+        "LineOrderFields",
+        "OrderAnchors",
         "OrderTranslatorOptions",
         "buildOrderNo",
+        "confirmOrder",
         "extractLineOrderFields",
+        "resolveOrderAnchors",
         "translateLineMessageEvents"
       ],
       "status": "active"
@@ -17491,6 +17505,272 @@
         "PLATFORM_COMPANY_ID",
         "PartyKind",
         "partyKindFromCompanyType"
+      ],
+      "status": "active"
+    },
+    "app/admin/payouts/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin payout approvals page: lists customer_orders stuck in PAYOUT_PENDING_APPROVAL so a human can approve the payout. Amount is not stored on the order (customer_orders has no amount column), so the column shows n/a.",
+      "purpose_th": "Admin payout approvals page: lists customer_orders stuck in PAYOUT_PENDING_APPROVAL so a human can approve the payout. Amount is not stored on the order (customer_orders has no amount column), so the column shows n/a.",
+      "exports": [
+        "AdminPayoutsPage",
+        "dynamic"
+      ],
+      "status": "active"
+    },
+    "app/admin/payouts/PayoutApprovalList.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Client list for /admin/payouts: keeps the admin secret in memory only, POSTs /api/admin/payouts/[orderId]/approve with the X-Admin-Secret header, and shows the returned HTTP status and JSON.",
+      "purpose_th": "Client list for /admin/payouts: keeps the admin secret in memory only, POSTs /api/admin/payouts/[orderId]/approve with the X-Admin-Secret header, and shows the returned HTTP status and JSON.",
+      "exports": [
+        "PayoutApprovalList"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/payouts/[orderId]/approve/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Local/admin-only approval gate. Money moves only when this route is called",
+      "purpose_th": "Local/admin-only approval gate. Money moves only when this route is called",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/payouts/[orderId]/reject/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin-only reject gate: a human says \"no\" to a payout. Metadata only — no",
+      "purpose_th": "Admin-only reject gate: a human says \"no\" to a payout. Metadata only — no",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "sim/run.ts": {
+      "owner": "sim",
+      "layer": "sim",
+      "purpose": "sim/run.ts — play one scenario against the REAL running system and print a",
+      "purpose_th": "sim/run.ts — play one scenario against the REAL running system and print a",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "sim/reset.ts": {
+      "owner": "sim",
+      "layer": "sim",
+      "purpose": "sim/reset.ts — remove anything a run created.",
+      "purpose_th": "sim/reset.ts — remove anything a run created.",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "sim/http.ts": {
+      "owner": "sim",
+      "layer": "sim",
+      "purpose": "Raw HTTP transport for the players. One place, no retries, no interpretation:",
+      "purpose_th": "Raw HTTP transport for the players. One place, no retries, no interpretation:",
+      "exports": [
+        "HttpResult",
+        "RequestSpec",
+        "oneLine",
+        "send"
+      ],
+      "status": "active"
+    },
+    "sim/env.ts": {
+      "owner": "sim",
+      "layer": "sim",
+      "purpose": "Simulator environment loader.",
+      "purpose_th": "Simulator environment loader.",
+      "exports": [
+        "BASE_URL",
+        "SECRET_NAMES",
+        "dbHost",
+        "loadEnv",
+        "secret",
+        "secretState"
+      ],
+      "status": "active"
+    },
+    "sim/db.ts": {
+      "owner": "sim",
+      "layer": "sim",
+      "purpose": "Read-mostly view of the database THE APP ACTUALLY USES.",
+      "purpose_th": "Read-mostly view of the database THE APP ACTUALLY USES.",
+      "exports": [
+        "SIM_MARK",
+        "Snapshot",
+        "TableState",
+        "deleteSimRows",
+        "diff",
+        "selectRows",
+        "snapshot",
+        "tableState"
+      ],
+      "status": "active"
+    },
+    "sim/clock.ts": {
+      "owner": "sim",
+      "layer": "sim",
+      "purpose": "Clock actor — the scheduler firing the gateway worker pipeline.",
+      "purpose_th": "Clock actor — the scheduler firing the gateway worker pipeline.",
+      "exports": [
+        "fireGatewayWorkers"
+      ],
+      "status": "active"
+    },
+    "app/opengraph-image.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/opengraph-image — default social preview for every route that does not",
+      "purpose_th": "/opengraph-image — default social preview for every route that does not",
+      "exports": [
+        "Image",
+        "alt",
+        "contentType",
+        "size"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "sim/scenarios/01-happy-path.ts": {
+      "owner": "sim",
+      "layer": "sim",
+      "purpose": "Scenario 01 — one order, end to end, fake money.",
+      "purpose_th": "Scenario 01 — one order, end to end, fake money.",
+      "exports": [
+        "ScenarioResult",
+        "StepRecord",
+        "Verdict",
+        "play"
+      ],
+      "status": "active"
+    },
+    "sim/actors/partner.ts": {
+      "owner": "sim",
+      "layer": "sim",
+      "purpose": "Partner actor — the supplier who must answer with a price / accept the order.",
+      "purpose_th": "Partner actor — the supplier who must answer with a price / accept the order.",
+      "exports": [
+        "replyPrice"
+      ],
+      "status": "active"
+    },
+    "sim/actors/driver.ts": {
+      "owner": "sim",
+      "layer": "sim",
+      "purpose": "Driver actor — the truck driver's phone.",
+      "purpose_th": "Driver actor — the truck driver's phone.",
+      "exports": [
+        "STAGES",
+        "acceptJob",
+        "advance",
+        "listJobs"
+      ],
+      "status": "active"
+    },
+    "sim/actors/customer.ts": {
+      "owner": "sim",
+      "layer": "sim",
+      "purpose": "Customer actor — a real LINE user sending a real webhook to the real ingress.",
+      "purpose_th": "Customer actor — a real LINE user sending a real webhook to the real ingress.",
+      "exports": [
+        "LineMessageInput",
+        "buildLinePayload",
+        "sendLineMessage"
+      ],
+      "status": "active"
+    },
+    "sim/actors/bank.ts": {
+      "owner": "sim",
+      "layer": "sim",
+      "purpose": "Bank actor — KBank sending a payment webhook.",
+      "purpose_th": "Bank actor — KBank sending a payment webhook.",
+      "exports": [
+        "PaymentInput",
+        "buildKBankPayload",
+        "sendPayment"
+      ],
+      "status": "active"
+    },
+    "sim/actors/admin.ts": {
+      "owner": "sim",
+      "layer": "sim",
+      "purpose": "Admin actor — the human who approves a payout.",
+      "purpose_th": "Admin actor — the human who approves a payout.",
+      "exports": [
+        "approvalPath",
+        "approvePayout",
+        "readPayoutQueue"
+      ],
+      "status": "active"
+    },
+    "sim/actors/_shared.ts": {
+      "owner": "sim",
+      "layer": "sim",
+      "purpose": "Shared actor plumbing: every actor observes the DB before and after its own",
+      "purpose_th": "Shared actor plumbing: every actor observes the DB before and after its own",
+      "exports": [
+        "ActorRequest",
+        "ActorResult",
+        "act"
+      ],
+      "status": "active"
+    },
+    "components/public/LineContactButtonClient.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Thin click-tracking wrapper for the SERVER-rendered LINE CTA.",
+      "purpose_th": "Thin click-tracking wrapper for the SERVER-rendered LINE CTA.",
+      "exports": [
+        "LineContactButtonClient",
+        "LineContactButtonClientProps"
+      ],
+      "status": "active"
+    },
+    "app/playground/layout.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Server-only metadata for this segment: the page file is \"use client\" and",
+      "purpose_th": "Server-only metadata for this segment: the page file is \"use client\" and",
+      "exports": [
+        "SegmentLayout",
+        "metadata"
+      ],
+      "status": "active"
+    },
+    "app/register/layout.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Server-only metadata for this segment: the page file is \"use client\" and",
+      "purpose_th": "Server-only metadata for this segment: the page file is \"use client\" and",
+      "exports": [
+        "SegmentLayout",
+        "metadata"
+      ],
+      "status": "active"
+    },
+    "app/login/layout.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Server-only metadata for this segment: the page file is \"use client\" and",
+      "purpose_th": "Server-only metadata for this segment: the page file is \"use client\" and",
+      "exports": [
+        "SegmentLayout",
+        "metadata"
+      ],
+      "status": "active"
+    },
+    "core/analytics.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Client-side analytics helper.",
+      "purpose_th": "Client-side analytics helper.",
+      "exports": [
+        "trackEvent"
       ],
       "status": "active"
     }
@@ -17904,6 +18184,13 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "skeleton ระหว่างโหลดหน้า Products"
+    },
+    {
+      "path": "lib/analytics.ts",
+      "retired_at": "2026-11-09T20:08:55.687Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "Client-side analytics helper."
     }
   ]
 }

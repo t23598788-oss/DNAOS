@@ -21,12 +21,15 @@
  * false advertising.
  */
 import Link from "next/link"
+import LineContactButtonClient from "./LineContactButtonClient"
 
 export interface LineContactButtonProps {
   /** published reference (e.g. catalog slug) forwarded into the LINE message */
   reference?: string
   variant?: "primary" | "inline"
   className?: string
+  /** where this CTA is rendered — analytics only, never used for behaviour */
+  location?: string
 }
 
 const CTA_TEXT = "ติดต่อ สอบถามราคา และส่งคำขอจองผ่าน LINE"
@@ -47,31 +50,47 @@ function lineOaUrl(reference?: string): string | null {
   }
 }
 
-export default function LineContactButton({ reference, variant = "primary", className = "" }: LineContactButtonProps) {
+export default function LineContactButton({
+  reference,
+  variant = "primary",
+  className = "",
+  location = "public",
+}: LineContactButtonProps) {
   const href = lineOaUrl(reference)
+  // The "is a real LINE link available" decision is made HERE, once, on the
+  // server (lineOaUrl above). The client wrapper only receives the result and
+  // reports the matching event — it never re-derives it.
+  const body = href ? renderLink(href, variant, className) : renderUnavailable(className)
+  return (
+    <LineContactButtonClient available={Boolean(href)} location={location}>
+      {body}
+    </LineContactButtonClient>
+  )
+}
 
-  if (!href) {
-    return (
-      <div
-        className={`rounded-xl border border-[#E9E1D6] bg-[#F7F4EF] px-4 py-3 text-sm text-stone-600 ${className}`}
-        data-line-status="not_configured"
-      >
-        <div className="font-semibold text-stone-800">ช่องทาง LINE ยังไม่เปิดใช้งาน</div>
-        <p className="mt-1 text-xs text-stone-500">
-          ระบบยังไม่ได้ตั้งค่าบัญชี LINE Official Account สาธารณะ — ระหว่างนี้ใช้{" "}
-          <Link href="/register" className="text-[#1e6fa8] hover:underline">
-            สมัครสมาชิก
-          </Link>{" "}
-          หรือ{" "}
-          <Link href="/login" className="text-[#1e6fa8] hover:underline">
-            เข้าสู่ระบบ
-          </Link>{" "}
-          เพื่อติดต่อทีมงาน
-        </p>
-      </div>
-    )
-  }
+function renderUnavailable(className: string) {
+  return (
+    <div
+      className={`rounded-xl border border-[#E9E1D6] bg-[#F7F4EF] px-4 py-3 text-sm text-stone-600 ${className}`}
+      data-line-status="not_configured"
+    >
+      <div className="font-semibold text-stone-800">ช่องทาง LINE ยังไม่เปิดใช้งาน</div>
+      <p className="mt-1 text-xs text-stone-500">
+        ระบบยังไม่ได้ตั้งค่าบัญชี LINE Official Account สาธารณะ — ระหว่างนี้ใช้{" "}
+        <Link href="/register" className="text-[#1e6fa8] hover:underline">
+          สมัครสมาชิก
+        </Link>{" "}
+        หรือ{" "}
+        <Link href="/login" className="text-[#1e6fa8] hover:underline">
+          เข้าสู่ระบบ
+        </Link>{" "}
+        เพื่อติดต่อทีมงาน
+      </p>
+    </div>
+  )
+}
 
+function renderLink(href: string, variant: "primary" | "inline", className: string) {
   const base =
     variant === "primary"
       ? "inline-flex items-center justify-center gap-2 rounded-xl bg-[#06C755] px-5 py-3 text-sm font-semibold text-black hover:brightness-105 transition"

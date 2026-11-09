@@ -300,7 +300,7 @@ export default async function PublicHomePage({ searchParams }: Props) {
             สอบถามราคา ส่งคำขอจอง หรือปรึกษาการใช้งานระบบธุรกิจ — ทีมงานตอบกลับผ่าน LINE Official Account
           </p>
           <div className="mt-5 max-w-xl">
-            <LineContactButton />
+            <LineContactButton location="home" />
           </div>
           <p className="mt-4 text-xs text-stone-400">
             ระบบยังไม่ประกาศเวลาตอบกลับอัตโนมัติ เนื่องจากเส้นทางตอบกลับอัตโนมัติยังไม่ได้ผ่านการทดสอบจริง

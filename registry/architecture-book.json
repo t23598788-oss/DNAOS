@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-09T15:17:08.617Z",
+  "generated_at": "2026-11-09T20:08:57.279Z",
   "version": 1,
   "nodes": [
     {
@@ -753,30 +753,30 @@
         {
           "name": "metadata",
           "kind": "const",
-          "line_start": 23,
-          "line_end": 33
+          "line_start": 42,
+          "line_end": 54
         },
         {
           "name": "RootLayout",
           "kind": "function",
-          "line_start": 54,
-          "line_end": 82
+          "line_start": 75,
+          "line_end": 118
         }
       ],
       "import_sites": [
         {
           "specifier": "./globals.css",
-          "line": 3,
+          "line": 4,
           "resolved_target": "app/globals.css.ts"
         },
         {
           "specifier": "@/components/pwa/PwaRegistration",
-          "line": 4,
+          "line": 5,
           "resolved_target": "components/pwa/PwaRegistration.tsx"
         },
         {
           "specifier": "@/config/system-links",
-          "line": 5,
+          "line": 6,
           "resolved_target": "config/system-links.ts"
         }
       ]
@@ -3518,7 +3518,8 @@
       "name_en": "app/start/page.tsx",
       "purpose_th": "หน้า Portal หลักสำหรับทุกคนที่ต้องการสร้างสิ่งใหม่บน DNA OS",
       "exports": [
-        "StartPage"
+        "StartPage",
+        "metadata"
       ],
       "status": "OK",
       "runtime_entry_point": true,
@@ -3543,31 +3544,37 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "metadata",
+          "kind": "const",
+          "line_start": 25,
+          "line_end": 40
+        },
+        {
           "name": "StartPage",
           "kind": "function",
-          "line_start": 141,
-          "line_end": 313
+          "line_start": 160,
+          "line_end": 332
         }
       ],
       "import_sites": [
         {
           "specifier": "@/registry/command-registry.json",
-          "line": 12,
+          "line": 13,
           "resolved_target": "registry/command-registry.json.ts"
         },
         {
           "specifier": "@/registry/module-registry.json",
-          "line": 13,
+          "line": 14,
           "resolved_target": "registry/module-registry.json.ts"
         },
         {
           "specifier": "@/registry/drivers.json",
-          "line": 14,
+          "line": 15,
           "resolved_target": "registry/drivers.json.ts"
         },
         {
           "specifier": "@/07-workflow-registry.json",
-          "line": 15,
+          "line": 16,
           "resolved_target": "07-workflow-registry.json.ts"
         }
       ]
@@ -3579,7 +3586,8 @@
       "name_en": "app/examples/page.tsx",
       "purpose_th": "แสดงว่าแต่ละหน้าจอต้องใช้ command อะไร — สำหรับ UI designer ที่เริ่มต้น",
       "exports": [
-        "ExamplesPage"
+        "ExamplesPage",
+        "metadata"
       ],
       "status": "OK",
       "runtime_entry_point": true,
@@ -3599,10 +3607,16 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "metadata",
+          "kind": "const",
+          "line_start": 15,
+          "line_end": 30
+        },
+        {
           "name": "ExamplesPage",
           "kind": "function",
-          "line_start": 262,
-          "line_end": 361
+          "line_start": 280,
+          "line_end": 379
         }
       ]
     },
@@ -13537,6 +13551,7 @@
       ],
       "dependents": [
         "module:app/admin/partners/page.tsx",
+        "module:app/admin/payouts/page.tsx",
         "module:app/api/admin/_lib/read-scope.ts",
         "module:app/api/admin/backup/route.ts",
         "module:app/api/admin/company-expenses/route.ts",
@@ -13603,6 +13618,8 @@
         "module:app/api/admin/partners/[id]/timeline/route.ts",
         "module:app/api/admin/partners/route.ts",
         "module:app/api/admin/payables/route.ts",
+        "module:app/api/admin/payouts/[orderId]/approve/route.ts",
+        "module:app/api/admin/payouts/[orderId]/reject/route.ts",
         "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
         "module:app/api/admin/pits/[pitId]/route.ts",
         "module:app/api/admin/pits/route.ts",
@@ -13640,6 +13657,7 @@
         "module:app/api/connectors/oauth/callback/[slug]/route.ts",
         "module:app/api/connectors/webhook/[slug]/route.ts",
         "module:app/api/connectors/webhook/kbank/route.ts",
+        "module:app/api/cron/gateway-workers/route.ts",
         "module:app/api/cron/supabase-project-status/route.ts",
         "module:app/api/driver/available-jobs/route.ts",
         "module:app/api/driver/tracking/route.ts",
@@ -13694,6 +13712,7 @@
         "module:engines/domains/railway-binding.ts",
         "module:engines/fuel.ts",
         "module:engines/impact/engine.ts",
+        "module:engines/integration-gateway/workers/order-dispatcher.ts",
         "module:engines/integration-gateway/workers/order-translator.ts",
         "module:engines/integration-gateway/workers/payout-worker.ts",
         "module:engines/integration-gateway/workers/reconciler.ts",
@@ -20617,7 +20636,8 @@
       "name_en": "app/ai-services/page.tsx",
       "purpose_th": "หน้าสาธารณะแสดงรายชื่อ AI agent และสถานะ session จริง",
       "exports": [
-        "AIServicesPage"
+        "AIServicesPage",
+        "metadata"
       ],
       "status": "OK",
       "runtime_entry_point": true,
@@ -20641,26 +20661,32 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "metadata",
+          "kind": "const",
+          "line_start": 17,
+          "line_end": 32
+        },
+        {
           "name": "AIServicesPage",
           "kind": "function",
-          "line_start": 15,
-          "line_end": 70
+          "line_start": 34,
+          "line_end": 89
         }
       ],
       "import_sites": [
         {
           "specifier": "@/registry/AI_REGISTRY.json",
-          "line": 1,
+          "line": 2,
           "resolved_target": "registry/AI_REGISTRY.json.ts"
         },
         {
           "specifier": "@/registry/AI_SESSIONS.json",
-          "line": 2,
+          "line": 3,
           "resolved_target": "registry/AI_SESSIONS.json.ts"
         },
         {
           "specifier": "@/presentation/shell/PortalShell",
-          "line": 4,
+          "line": 5,
           "resolved_target": "presentation/shell/PortalShell.tsx"
         }
       ]
@@ -20877,7 +20903,8 @@
       "name_en": "app/download/page.tsx",
       "purpose_th": "หน้า Download Center — บอกตรงๆ ว่ายังไม่มีไฟล์ดาวน์โหลด โชว์ชุดคำสั่ง CLI จริงแทน",
       "exports": [
-        "DownloadCenterPage"
+        "DownloadCenterPage",
+        "metadata"
       ],
       "status": "OK",
       "runtime_entry_point": true,
@@ -20901,26 +20928,32 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "metadata",
+          "kind": "const",
+          "line_start": 8,
+          "line_end": 23
+        },
+        {
           "name": "DownloadCenterPage",
           "kind": "function",
-          "line_start": 6,
-          "line_end": 32
+          "line_start": 25,
+          "line_end": 51
         }
       ],
       "import_sites": [
         {
           "specifier": "@/presentation/shell/PortalShell",
-          "line": 1,
+          "line": 2,
           "resolved_target": "presentation/shell/PortalShell.tsx"
         },
         {
           "specifier": "@/registry/CONSTITUTION.json",
-          "line": 2,
+          "line": 3,
           "resolved_target": "registry/CONSTITUTION.json.ts"
         },
         {
           "specifier": "@/presentation/feedback/CopyButton",
-          "line": 3,
+          "line": 4,
           "resolved_target": "presentation/feedback/CopyButton.tsx"
         }
       ]
@@ -21043,7 +21076,8 @@
       "name_en": "app/marketplace/page.tsx",
       "purpose_th": "หน้าสาธารณะแสดงขั้นตอน connector lifecycle และ auth type ที่รองรับ",
       "exports": [
-        "MarketplacePage"
+        "MarketplacePage",
+        "metadata"
       ],
       "status": "OK",
       "runtime_entry_point": true,
@@ -21067,26 +21101,32 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "metadata",
+          "kind": "const",
+          "line_start": 8,
+          "line_end": 23
+        },
+        {
           "name": "MarketplacePage",
           "kind": "function",
-          "line_start": 6,
-          "line_end": 72
+          "line_start": 25,
+          "line_end": 91
         }
       ],
       "import_sites": [
         {
           "specifier": "@/registry/architecture.json",
-          "line": 1,
+          "line": 2,
           "resolved_target": "registry/architecture.json.ts"
         },
         {
           "specifier": "@/registry/connector-lifecycle.json",
-          "line": 2,
+          "line": 3,
           "resolved_target": "registry/connector-lifecycle.json.ts"
         },
         {
           "specifier": "@/presentation/shell/PortalShell",
-          "line": 4,
+          "line": 5,
           "resolved_target": "presentation/shell/PortalShell.tsx"
         }
       ]
@@ -21165,13 +21205,13 @@
           "name": "metadata",
           "kind": "const",
           "line_start": 1,
-          "line_end": 4
+          "line_end": 10
         },
         {
           "name": "ObserverLayout",
           "kind": "function",
-          "line_start": 6,
-          "line_end": 8
+          "line_start": 12,
+          "line_end": 14
         }
       ]
     },
@@ -21268,7 +21308,8 @@
       "name_en": "app/products/page.tsx",
       "purpose_th": "หน้าสาธารณะแสดงรายชื่อ Portal จริงจาก portals.json",
       "exports": [
-        "ProductsPage"
+        "ProductsPage",
+        "metadata"
       ],
       "status": "OK",
       "runtime_entry_point": true,
@@ -21291,21 +21332,27 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "metadata",
+          "kind": "const",
+          "line_start": 8,
+          "line_end": 23
+        },
+        {
           "name": "ProductsPage",
           "kind": "function",
-          "line_start": 6,
-          "line_end": 39
+          "line_start": 25,
+          "line_end": 58
         }
       ],
       "import_sites": [
         {
           "specifier": "@/registry/portals.json",
-          "line": 2,
+          "line": 3,
           "resolved_target": "registry/portals.json.ts"
         },
         {
           "specifier": "@/presentation/shell/PortalShell",
-          "line": 4,
+          "line": 5,
           "resolved_target": "presentation/shell/PortalShell.tsx"
         }
       ]
@@ -21317,7 +21364,8 @@
       "name_en": "app/report/page.tsx",
       "purpose_th": "หน้าสาธารณะแสดงสถิติ coverage ต่างๆ เป็นการ์ดรายงาน",
       "exports": [
-        "ReportPage"
+        "ReportPage",
+        "metadata"
       ],
       "status": "OK",
       "runtime_entry_point": true,
@@ -21344,41 +21392,47 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "metadata",
+          "kind": "const",
+          "line_start": 28,
+          "line_end": 43
+        },
+        {
           "name": "ReportPage",
           "kind": "function",
-          "line_start": 26,
-          "line_end": 108
+          "line_start": 45,
+          "line_end": 127
         }
       ],
       "import_sites": [
         {
           "specifier": "@/registry/existence.json",
-          "line": 1,
+          "line": 2,
           "resolved_target": "registry/existence.json.ts"
         },
         {
           "specifier": "@/registry/business-coverage.json",
-          "line": 2,
+          "line": 3,
           "resolved_target": "registry/business-coverage.json.ts"
         },
         {
           "specifier": "@/registry/decision-coverage.json",
-          "line": 3,
+          "line": 4,
           "resolved_target": "registry/decision-coverage.json.ts"
         },
         {
           "specifier": "@/registry/rule-coverage.json",
-          "line": 4,
+          "line": 5,
           "resolved_target": "registry/rule-coverage.json.ts"
         },
         {
           "specifier": "@/registry/architecture-book.json",
-          "line": 5,
+          "line": 6,
           "resolved_target": "registry/architecture-book.json.ts"
         },
         {
           "specifier": "@/presentation/shell/PortalShell",
-          "line": 6,
+          "line": 7,
           "resolved_target": "presentation/shell/PortalShell.tsx"
         }
       ]
@@ -21433,7 +21487,8 @@
       "name_en": "app/solutions/page.tsx",
       "purpose_th": "หน้าสาธารณะแสดงโดเมนธุรกิจพร้อมสถานะ covered/partial/missing",
       "exports": [
-        "SolutionsPage"
+        "SolutionsPage",
+        "metadata"
       ],
       "status": "OK",
       "runtime_entry_point": true,
@@ -21456,21 +21511,27 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "metadata",
+          "kind": "const",
+          "line_start": 13,
+          "line_end": 28
+        },
+        {
           "name": "SolutionsPage",
           "kind": "function",
-          "line_start": 11,
-          "line_end": 44
+          "line_start": 30,
+          "line_end": 63
         }
       ],
       "import_sites": [
         {
           "specifier": "@/registry/business-coverage.json",
-          "line": 1,
+          "line": 2,
           "resolved_target": "registry/business-coverage.json.ts"
         },
         {
           "specifier": "@/presentation/shell/PortalShell",
-          "line": 3,
+          "line": 4,
           "resolved_target": "presentation/shell/PortalShell.tsx"
         }
       ]
@@ -83410,50 +83471,50 @@
         {
           "name": "LOCAL_UI_REVIEW_PREFIXES",
           "kind": "const",
-          "line_start": 24,
-          "line_end": 24
+          "line_start": 31,
+          "line_end": 36
         },
         {
           "name": "LOCAL_UI_REVIEW_PREFIX",
           "kind": "const",
-          "line_start": 27,
-          "line_end": 27
+          "line_start": 39,
+          "line_end": 39
         },
         {
           "name": "LOCAL_UI_REVIEW_HEADER",
           "kind": "const",
-          "line_start": 30,
-          "line_end": 30
+          "line_start": 42,
+          "line_end": 42
         },
         {
           "name": "isLocalUiGalleryReviewPath",
           "kind": "function",
-          "line_start": 36,
-          "line_end": 38
+          "line_start": 48,
+          "line_end": 50
         },
         {
           "name": "isLocalReviewPath",
           "kind": "function",
-          "line_start": 41,
-          "line_end": 43
+          "line_start": 53,
+          "line_end": 55
         },
         {
           "name": "isLoopbackHost",
           "kind": "function",
-          "line_start": 45,
-          "line_end": 49
+          "line_start": 57,
+          "line_end": 61
         },
         {
           "name": "isLocalUiGalleryReviewRequest",
           "kind": "function",
-          "line_start": 52,
-          "line_end": 54
+          "line_start": 64,
+          "line_end": 66
         },
         {
           "name": "isLocalReviewRequest",
           "kind": "function",
-          "line_start": 57,
-          "line_end": 63
+          "line_start": 69,
+          "line_end": 75
         }
       ]
     },
@@ -85485,20 +85546,20 @@
         {
           "name": "EVIDENCE_KEYS",
           "kind": "const",
-          "line_start": 37,
-          "line_end": 50
+          "line_start": 43,
+          "line_end": 64
         },
         {
           "name": "capabilityForInboundEvent",
           "kind": "function",
-          "line_start": 53,
-          "line_end": 64
+          "line_start": 67,
+          "line_end": 78
         },
         {
           "name": "normalizeLineWebhook",
           "kind": "function",
-          "line_start": 84,
-          "line_end": 126
+          "line_start": 102,
+          "line_end": 149
         }
       ],
       "import_sites": [
@@ -88823,7 +88884,8 @@
       "name_en": "app/install/page.tsx",
       "purpose_th": "วิธีติดตั้งแอป (PWA) — หน้าช่วยติดตั้งสาธารณะ (ไม่มีข้อมูลบัญชี/ความลับใด ๆ)",
       "exports": [
-        "InstallHelpPage"
+        "InstallHelpPage",
+        "metadata"
       ],
       "status": "OK",
       "runtime_entry_point": true,
@@ -88843,10 +88905,16 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "metadata",
+          "kind": "const",
+          "line_start": 8,
+          "line_end": 23
+        },
+        {
           "name": "InstallHelpPage",
           "kind": "function",
-          "line_start": 39,
-          "line_end": 95
+          "line_start": 59,
+          "line_end": 115
         }
       ]
     },
@@ -95100,7 +95168,9 @@
       ],
       "status": "OK",
       "runtime_entry_point": false,
-      "internal_dependencies": [],
+      "internal_dependencies": [
+        "module:components/public/LineContactButtonClient.tsx"
+      ],
       "dependents": [
         "module:app/page.tsx",
         "module:components/public/PublicPriceTable.tsx"
@@ -95121,14 +95191,21 @@
         {
           "name": "LineContactButtonProps",
           "kind": "interface",
-          "line_start": 25,
-          "line_end": 30
+          "line_start": 26,
+          "line_end": 33
         },
         {
           "name": "LineContactButton",
           "kind": "function",
-          "line_start": 50,
-          "line_end": 95
+          "line_start": 53,
+          "line_end": 69
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./LineContactButtonClient",
+          "line": 24,
+          "resolved_target": "components/public/LineContactButtonClient.tsx"
         }
       ]
     },
@@ -97323,19 +97400,19 @@
           "name": "KBANK_EVIDENCE_KEYS",
           "kind": "const",
           "line_start": 24,
-          "line_end": 35
+          "line_end": 36
         },
         {
           "name": "capabilityForKBankEvent",
           "kind": "function",
-          "line_start": 41,
-          "line_end": 80
+          "line_start": 42,
+          "line_end": 81
         },
         {
           "name": "normalizeKBankWebhook",
           "kind": "function",
-          "line_start": 132,
-          "line_end": 155
+          "line_start": 133,
+          "line_end": 156
         }
       ],
       "import_sites": [
@@ -97353,6 +97430,7 @@
       "name_en": "engines/integration-gateway/workers/reconciler.ts",
       "purpose_th": "Integration Gateway — Reconciliation Worker (Phase 2, worker).",
       "exports": [
+        "ReconciliationResult",
         "reconcileKBankPayments"
       ],
       "status": "OK",
@@ -97382,10 +97460,16 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
+          "name": "ReconciliationResult",
+          "kind": "interface",
+          "line_start": 84,
+          "line_end": 90
+        },
+        {
           "name": "reconcileKBankPayments",
           "kind": "function",
-          "line_start": 65,
-          "line_end": 199
+          "line_start": 100,
+          "line_end": 260
         }
       ],
       "import_sites": [
@@ -97421,11 +97505,13 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
+        "module:app/api/admin/payouts/[orderId]/approve/route.ts",
         "module:app/api/cron/gateway-workers/route.ts",
         "module:tests/e2e/kbank-payment-flow.test.ts"
       ],
       "data_tables": [
         "customer_orders",
+        "invoices",
         "payout_audit_log"
       ],
       "business_capabilities": "UNKNOWN",
@@ -97444,31 +97530,31 @@
           "name": "PayoutWorkerOptions",
           "kind": "interface",
           "line_start": 25,
-          "line_end": 29
+          "line_end": 34
         },
         {
           "name": "requestPayoutApproval",
           "kind": "function",
-          "line_start": 47,
-          "line_end": 106
+          "line_start": 92,
+          "line_end": 153
         },
         {
           "name": "executeApprovedPayout",
           "kind": "function",
-          "line_start": 123,
-          "line_end": 250
+          "line_start": 170,
+          "line_end": 340
         },
         {
           "name": "processOrderPayout",
           "kind": "function",
-          "line_start": 260,
-          "line_end": 342
+          "line_start": 350,
+          "line_end": 437
         },
         {
           "name": "reconcilePayouts",
           "kind": "function",
-          "line_start": 371,
-          "line_end": 406
+          "line_start": 466,
+          "line_end": 501
         }
       ],
       "import_sites": [
@@ -97491,9 +97577,13 @@
       "name_en": "engines/integration-gateway/workers/order-translator.ts",
       "purpose_th": "Integration Gateway — Inbound Translator (Phase 1, worker).",
       "exports": [
+        "LineOrderFields",
+        "OrderAnchors",
         "OrderTranslatorOptions",
         "buildOrderNo",
+        "confirmOrder",
         "extractLineOrderFields",
+        "resolveOrderAnchors",
         "translateLineMessageEvents"
       ],
       "status": "OK",
@@ -97508,7 +97598,8 @@
       ],
       "data_tables": [
         "customer_orders",
-        "integration_gateway_events"
+        "integration_gateway_events",
+        "line_profiles"
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "engines",
@@ -97529,10 +97620,28 @@
           "line_end": 42
         },
         {
+          "name": "LineOrderFields",
+          "kind": "interface",
+          "line_start": 65,
+          "line_end": 71
+        },
+        {
+          "name": "OrderAnchors",
+          "kind": "interface",
+          "line_start": 74,
+          "line_end": 79
+        },
+        {
+          "name": "confirmOrder",
+          "kind": "function",
+          "line_start": 134,
+          "line_end": 178
+        },
+        {
           "name": "translateLineMessageEvents",
           "kind": "function",
-          "line_start": 92,
-          "line_end": 183
+          "line_start": 284,
+          "line_end": 441
         }
       ],
       "import_sites": [
@@ -98039,7 +98148,8 @@
         "module:engines/integration-gateway/workers/order-dispatcher.ts",
         "module:engines/integration-gateway/workers/order-translator.ts",
         "module:engines/integration-gateway/workers/payout-worker.ts",
-        "module:engines/integration-gateway/workers/reconciler.ts"
+        "module:engines/integration-gateway/workers/reconciler.ts",
+        "module:services/supabase/queries.ts"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
@@ -98058,8 +98168,8 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 51,
-          "line_end": 111
+          "line_start": 52,
+          "line_end": 117
         }
       ],
       "import_sites": [
@@ -98082,6 +98192,11 @@
           "specifier": "@/engines/integration-gateway/workers/payout-worker",
           "line": 45,
           "resolved_target": "engines/integration-gateway/workers/payout-worker.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 46,
+          "resolved_target": "services/supabase/queries.ts"
         }
       ]
     },
@@ -98101,7 +98216,8 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
-        "module:engines/integration-gateway/workers/truck-tracker.ts"
+        "module:engines/integration-gateway/workers/truck-tracker.ts",
+        "module:services/supabase/queries.ts"
       ],
       "dependents": [
         "module:app/api/admin/orders/[orderId]/dispatch/route.ts",
@@ -98127,38 +98243,43 @@
         {
           "name": "OrderDispatcherOptions",
           "kind": "interface",
-          "line_start": 34,
-          "line_end": 37
+          "line_start": 35,
+          "line_end": 38
         },
         {
           "name": "DispatchResult",
           "kind": "interface",
-          "line_start": 40,
-          "line_end": 44
+          "line_start": 41,
+          "line_end": 45
         },
         {
           "name": "DispatchPendingResult",
           "kind": "interface",
-          "line_start": 47,
-          "line_end": 52
+          "line_start": 48,
+          "line_end": 53
         },
         {
           "name": "dispatchOrder",
           "kind": "function",
-          "line_start": 71,
-          "line_end": 127
+          "line_start": 78,
+          "line_end": 134
         },
         {
           "name": "dispatchPendingOrders",
           "kind": "function",
-          "line_start": 135,
-          "line_end": 175
+          "line_start": 142,
+          "line_end": 182
         }
       ],
       "import_sites": [
         {
-          "specifier": "./truck-tracker",
+          "specifier": "@/services/supabase/queries",
           "line": 31,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "./truck-tracker",
+          "line": 32,
           "resolved_target": "engines/integration-gateway/workers/truck-tracker.ts"
         }
       ]
@@ -98428,6 +98549,1379 @@
           "kind": "function",
           "line_start": 33,
           "line_end": 46
+        }
+      ]
+    },
+    {
+      "id": "module:app/admin/payouts/page.tsx",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/admin/payouts/page.tsx",
+      "purpose_th": "Admin payout approvals page: lists customer_orders stuck in PAYOUT_PENDING_APPROVAL so a human can approve the payout. Amount is not stored on the order (customer_orders has no amount column), so the column shows n/a.",
+      "exports": [
+        "AdminPayoutsPage",
+        "dynamic"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:app/admin/payouts/PayoutApprovalList.tsx",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "customer_orders"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "dynamic",
+          "kind": "const",
+          "line_start": 5,
+          "line_end": 5
+        },
+        {
+          "name": "AdminPayoutsPage",
+          "kind": "function",
+          "line_start": 7,
+          "line_end": 64
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 2,
+          "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "./PayoutApprovalList",
+          "line": 3,
+          "resolved_target": "app/admin/payouts/PayoutApprovalList.tsx"
+        }
+      ]
+    },
+    {
+      "id": "module:app/admin/payouts/PayoutApprovalList.tsx",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/admin/payouts/PayoutApprovalList.tsx",
+      "purpose_th": "Client list for /admin/payouts: keeps the admin secret in memory only, POSTs /api/admin/payouts/[orderId]/approve with the X-Admin-Secret header, and shows the returned HTTP status and JSON.",
+      "exports": [
+        "PayoutApprovalList"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:app/admin/payouts/page.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "PayoutApprovalList",
+          "kind": "function",
+          "line_start": 8,
+          "line_end": 103
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/payouts/[orderId]/approve/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/payouts/[orderId]/approve/route.ts",
+      "purpose_th": "Local/admin-only approval gate. Money moves only when this route is called",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:engines/integration-gateway/workers/payout-worker.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "customer_orders",
+        "invoices",
+        "payout_audit_log"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 17,
+          "line_end": 194
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/engines/integration-gateway/workers/payout-worker",
+          "line": 3,
+          "resolved_target": "engines/integration-gateway/workers/payout-worker.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 4,
+          "resolved_target": "services/supabase/queries.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/admin/payouts/[orderId]/reject/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/admin/payouts/[orderId]/reject/route.ts",
+      "purpose_th": "Admin-only reject gate: a human says \"no\" to a payout. Metadata only — no",
+      "exports": [
+        "POST"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [],
+      "data_tables": [
+        "customer_orders",
+        "payout_audit_log"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "POST",
+          "kind": "function",
+          "line_start": 16,
+          "line_end": 134
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 3,
+          "resolved_target": "services/supabase/queries.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:sim/run.ts",
+      "type": "Module",
+      "layer": "sim",
+      "name_en": "sim/run.ts",
+      "purpose_th": "sim/run.ts — play one scenario against the REAL running system and print a",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:sim/env.ts",
+        "module:sim/http.ts",
+        "module:sim/scenarios/01-happy-path.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "sim",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "./env",
+          "line": 11,
+          "resolved_target": "sim/env.ts"
+        },
+        {
+          "specifier": "./http",
+          "line": 12,
+          "resolved_target": "sim/http.ts"
+        },
+        {
+          "specifier": "./scenarios/01-happy-path",
+          "line": 13,
+          "resolved_target": "sim/scenarios/01-happy-path.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:sim/reset.ts",
+      "type": "Module",
+      "layer": "sim",
+      "name_en": "sim/reset.ts",
+      "purpose_th": "sim/reset.ts — remove anything a run created.",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:sim/db.ts",
+        "module:sim/env.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "sim",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "./db",
+          "line": 8,
+          "resolved_target": "sim/db.ts"
+        },
+        {
+          "specifier": "./env",
+          "line": 9,
+          "resolved_target": "sim/env.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:sim/http.ts",
+      "type": "Module",
+      "layer": "sim",
+      "name_en": "sim/http.ts",
+      "purpose_th": "Raw HTTP transport for the players. One place, no retries, no interpretation:",
+      "exports": [
+        "HttpResult",
+        "RequestSpec",
+        "oneLine",
+        "send"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:sim/actors/_shared.ts",
+        "module:sim/actors/admin.ts",
+        "module:sim/actors/bank.ts",
+        "module:sim/actors/customer.ts",
+        "module:sim/actors/driver.ts",
+        "module:sim/actors/partner.ts",
+        "module:sim/clock.ts",
+        "module:sim/run.ts",
+        "module:sim/scenarios/01-happy-path.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "sim",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "HttpResult",
+          "kind": "interface",
+          "line_start": 6,
+          "line_end": 16
+        },
+        {
+          "name": "RequestSpec",
+          "kind": "interface",
+          "line_start": 18,
+          "line_end": 23
+        },
+        {
+          "name": "send",
+          "kind": "function",
+          "line_start": 25,
+          "line_end": 71
+        },
+        {
+          "name": "oneLine",
+          "kind": "function",
+          "line_start": 73,
+          "line_end": 76
+        }
+      ]
+    },
+    {
+      "id": "module:sim/env.ts",
+      "type": "Module",
+      "layer": "sim",
+      "name_en": "sim/env.ts",
+      "purpose_th": "Simulator environment loader.",
+      "exports": [
+        "BASE_URL",
+        "SECRET_NAMES",
+        "dbHost",
+        "loadEnv",
+        "secret",
+        "secretState"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:sim/actors/bank.ts",
+        "module:sim/actors/customer.ts",
+        "module:sim/actors/driver.ts",
+        "module:sim/clock.ts",
+        "module:sim/db.ts",
+        "module:sim/reset.ts",
+        "module:sim/run.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "sim",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "loadEnv",
+          "kind": "function",
+          "line_start": 16,
+          "line_end": 34
+        },
+        {
+          "name": "BASE_URL",
+          "kind": "const",
+          "line_start": 37,
+          "line_end": 37
+        },
+        {
+          "name": "SECRET_NAMES",
+          "kind": "const",
+          "line_start": 40,
+          "line_end": 45
+        },
+        {
+          "name": "secret",
+          "kind": "function",
+          "line_start": 47,
+          "line_end": 50
+        },
+        {
+          "name": "secretState",
+          "kind": "function",
+          "line_start": 52,
+          "line_end": 54
+        },
+        {
+          "name": "dbHost",
+          "kind": "function",
+          "line_start": 57,
+          "line_end": 60
+        }
+      ]
+    },
+    {
+      "id": "module:sim/db.ts",
+      "type": "Module",
+      "layer": "sim",
+      "name_en": "sim/db.ts",
+      "purpose_th": "Read-mostly view of the database THE APP ACTUALLY USES.",
+      "exports": [
+        "SIM_MARK",
+        "Snapshot",
+        "TableState",
+        "deleteSimRows",
+        "diff",
+        "selectRows",
+        "snapshot",
+        "tableState"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:sim/env.ts"
+      ],
+      "dependents": [
+        "module:sim/actors/_shared.ts",
+        "module:sim/actors/bank.ts",
+        "module:sim/actors/customer.ts",
+        "module:sim/reset.ts",
+        "module:sim/scenarios/01-happy-path.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "sim",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "SIM_MARK",
+          "kind": "const",
+          "line_start": 18,
+          "line_end": 18
+        },
+        {
+          "name": "TableState",
+          "kind": "interface",
+          "line_start": 20,
+          "line_end": 25
+        },
+        {
+          "name": "tableState",
+          "kind": "function",
+          "line_start": 39,
+          "line_end": 57
+        },
+        {
+          "name": "selectRows",
+          "kind": "function",
+          "line_start": 59,
+          "line_end": 68
+        },
+        {
+          "name": "Snapshot",
+          "kind": "type",
+          "line_start": 70,
+          "line_end": 70
+        },
+        {
+          "name": "snapshot",
+          "kind": "function",
+          "line_start": 72,
+          "line_end": 78
+        },
+        {
+          "name": "diff",
+          "kind": "function",
+          "line_start": 81,
+          "line_end": 98
+        },
+        {
+          "name": "deleteSimRows",
+          "kind": "function",
+          "line_start": 101,
+          "line_end": 138
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./env",
+          "line": 14,
+          "resolved_target": "sim/env.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:sim/clock.ts",
+      "type": "Module",
+      "layer": "sim",
+      "name_en": "sim/clock.ts",
+      "purpose_th": "Clock actor — the scheduler firing the gateway worker pipeline.",
+      "exports": [
+        "fireGatewayWorkers"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:sim/actors/_shared.ts",
+        "module:sim/env.ts",
+        "module:sim/http.ts"
+      ],
+      "dependents": [
+        "module:sim/scenarios/01-happy-path.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "sim",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "fireGatewayWorkers",
+          "kind": "function",
+          "line_start": 24,
+          "line_end": 42
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "./env",
+          "line": 10,
+          "resolved_target": "sim/env.ts"
+        },
+        {
+          "specifier": "./http",
+          "line": 11,
+          "resolved_target": "sim/http.ts"
+        },
+        {
+          "specifier": "./actors/_shared",
+          "line": 12,
+          "resolved_target": "sim/actors/_shared.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/opengraph-image.tsx",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/opengraph-image.tsx",
+      "purpose_th": "/opengraph-image — default social preview for every route that does not",
+      "exports": [
+        "Image",
+        "alt",
+        "contentType",
+        "size"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "alt",
+          "kind": "const",
+          "line_start": 16,
+          "line_end": 16
+        },
+        {
+          "name": "size",
+          "kind": "const",
+          "line_start": 17,
+          "line_end": 17
+        },
+        {
+          "name": "contentType",
+          "kind": "const",
+          "line_start": 18,
+          "line_end": 18
+        },
+        {
+          "name": "Image",
+          "kind": "function",
+          "line_start": 20,
+          "line_end": 50
+        }
+      ]
+    },
+    {
+      "id": "module:sim/scenarios/01-happy-path.ts",
+      "type": "Module",
+      "layer": "sim",
+      "name_en": "sim/scenarios/01-happy-path.ts",
+      "purpose_th": "Scenario 01 — one order, end to end, fake money.",
+      "exports": [
+        "ScenarioResult",
+        "StepRecord",
+        "Verdict",
+        "play"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:sim/actors/_shared.ts",
+        "module:sim/actors/admin.ts",
+        "module:sim/actors/bank.ts",
+        "module:sim/actors/customer.ts",
+        "module:sim/actors/driver.ts",
+        "module:sim/actors/partner.ts",
+        "module:sim/clock.ts",
+        "module:sim/db.ts",
+        "module:sim/http.ts"
+      ],
+      "dependents": [
+        "module:sim/run.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "sim",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "Verdict",
+          "kind": "type",
+          "line_start": 17,
+          "line_end": 17
+        },
+        {
+          "name": "StepRecord",
+          "kind": "interface",
+          "line_start": 19,
+          "line_end": 26
+        },
+        {
+          "name": "ScenarioResult",
+          "kind": "interface",
+          "line_start": 30,
+          "line_end": 35
+        },
+        {
+          "name": "play",
+          "kind": "function",
+          "line_start": 44,
+          "line_end": 278
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "../http",
+          "line": 7,
+          "resolved_target": "sim/http.ts"
+        },
+        {
+          "specifier": "../clock",
+          "line": 8,
+          "resolved_target": "sim/clock.ts"
+        },
+        {
+          "specifier": "../actors/customer",
+          "line": 9,
+          "resolved_target": "sim/actors/customer.ts"
+        },
+        {
+          "specifier": "../actors/partner",
+          "line": 10,
+          "resolved_target": "sim/actors/partner.ts"
+        },
+        {
+          "specifier": "../actors/admin",
+          "line": 11,
+          "resolved_target": "sim/actors/admin.ts"
+        },
+        {
+          "specifier": "../actors/driver",
+          "line": 12,
+          "resolved_target": "sim/actors/driver.ts"
+        },
+        {
+          "specifier": "../actors/bank",
+          "line": 13,
+          "resolved_target": "sim/actors/bank.ts"
+        },
+        {
+          "specifier": "../db",
+          "line": 14,
+          "resolved_target": "sim/db.ts"
+        },
+        {
+          "specifier": "../actors/_shared",
+          "line": 15,
+          "resolved_target": "sim/actors/_shared.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:sim/actors/partner.ts",
+      "type": "Module",
+      "layer": "sim",
+      "name_en": "sim/actors/partner.ts",
+      "purpose_th": "Partner actor — the supplier who must answer with a price / accept the order.",
+      "exports": [
+        "replyPrice"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:sim/actors/_shared.ts",
+        "module:sim/http.ts"
+      ],
+      "dependents": [
+        "module:sim/scenarios/01-happy-path.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "sim",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "replyPrice",
+          "kind": "function",
+          "line_start": 15,
+          "line_end": 42
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "../http",
+          "line": 10,
+          "resolved_target": "sim/http.ts"
+        },
+        {
+          "specifier": "./_shared",
+          "line": 11,
+          "resolved_target": "sim/actors/_shared.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:sim/actors/driver.ts",
+      "type": "Module",
+      "layer": "sim",
+      "name_en": "sim/actors/driver.ts",
+      "purpose_th": "Driver actor — the truck driver's phone.",
+      "exports": [
+        "STAGES",
+        "acceptJob",
+        "advance",
+        "listJobs"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:sim/actors/_shared.ts",
+        "module:sim/env.ts",
+        "module:sim/http.ts"
+      ],
+      "dependents": [
+        "module:sim/scenarios/01-happy-path.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "sim",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "listJobs",
+          "kind": "function",
+          "line_start": 31,
+          "line_end": 40
+        },
+        {
+          "name": "acceptJob",
+          "kind": "function",
+          "line_start": 42,
+          "line_end": 73
+        },
+        {
+          "name": "STAGES",
+          "kind": "const",
+          "line_start": 75,
+          "line_end": 81
+        },
+        {
+          "name": "advance",
+          "kind": "function",
+          "line_start": 83,
+          "line_end": 114
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "../env",
+          "line": 11,
+          "resolved_target": "sim/env.ts"
+        },
+        {
+          "specifier": "../http",
+          "line": 12,
+          "resolved_target": "sim/http.ts"
+        },
+        {
+          "specifier": "./_shared",
+          "line": 13,
+          "resolved_target": "sim/actors/_shared.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:sim/actors/customer.ts",
+      "type": "Module",
+      "layer": "sim",
+      "name_en": "sim/actors/customer.ts",
+      "purpose_th": "Customer actor — a real LINE user sending a real webhook to the real ingress.",
+      "exports": [
+        "LineMessageInput",
+        "buildLinePayload",
+        "sendLineMessage"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:sim/actors/_shared.ts",
+        "module:sim/db.ts",
+        "module:sim/env.ts",
+        "module:sim/http.ts"
+      ],
+      "dependents": [
+        "module:sim/scenarios/01-happy-path.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "sim",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "LineMessageInput",
+          "kind": "interface",
+          "line_start": 20,
+          "line_end": 26
+        },
+        {
+          "name": "buildLinePayload",
+          "kind": "function",
+          "line_start": 28,
+          "line_end": 46
+        },
+        {
+          "name": "sendLineMessage",
+          "kind": "function",
+          "line_start": 48,
+          "line_end": 70
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "../env",
+          "line": 11,
+          "resolved_target": "sim/env.ts"
+        },
+        {
+          "specifier": "../http",
+          "line": 12,
+          "resolved_target": "sim/http.ts"
+        },
+        {
+          "specifier": "../db",
+          "line": 13,
+          "resolved_target": "sim/db.ts"
+        },
+        {
+          "specifier": "./_shared",
+          "line": 14,
+          "resolved_target": "sim/actors/_shared.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:sim/actors/bank.ts",
+      "type": "Module",
+      "layer": "sim",
+      "name_en": "sim/actors/bank.ts",
+      "purpose_th": "Bank actor — KBank sending a payment webhook.",
+      "exports": [
+        "PaymentInput",
+        "buildKBankPayload",
+        "sendPayment"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:sim/actors/_shared.ts",
+        "module:sim/db.ts",
+        "module:sim/env.ts",
+        "module:sim/http.ts"
+      ],
+      "dependents": [
+        "module:sim/scenarios/01-happy-path.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "sim",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "PaymentInput",
+          "kind": "interface",
+          "line_start": 24,
+          "line_end": 29
+        },
+        {
+          "name": "buildKBankPayload",
+          "kind": "function",
+          "line_start": 31,
+          "line_end": 50
+        },
+        {
+          "name": "sendPayment",
+          "kind": "function",
+          "line_start": 52,
+          "line_end": 75
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "../env",
+          "line": 15,
+          "resolved_target": "sim/env.ts"
+        },
+        {
+          "specifier": "../http",
+          "line": 16,
+          "resolved_target": "sim/http.ts"
+        },
+        {
+          "specifier": "../db",
+          "line": 17,
+          "resolved_target": "sim/db.ts"
+        },
+        {
+          "specifier": "./_shared",
+          "line": 18,
+          "resolved_target": "sim/actors/_shared.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:sim/actors/admin.ts",
+      "type": "Module",
+      "layer": "sim",
+      "name_en": "sim/actors/admin.ts",
+      "purpose_th": "Admin actor — the human who approves a payout.",
+      "exports": [
+        "approvalPath",
+        "approvePayout",
+        "readPayoutQueue"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:sim/actors/_shared.ts",
+        "module:sim/http.ts"
+      ],
+      "dependents": [
+        "module:sim/scenarios/01-happy-path.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "sim",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "approvalPath",
+          "kind": "function",
+          "line_start": 17,
+          "line_end": 19
+        },
+        {
+          "name": "approvePayout",
+          "kind": "function",
+          "line_start": 21,
+          "line_end": 42
+        },
+        {
+          "name": "readPayoutQueue",
+          "kind": "function",
+          "line_start": 44,
+          "line_end": 53
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "../http",
+          "line": 11,
+          "resolved_target": "sim/http.ts"
+        },
+        {
+          "specifier": "./_shared",
+          "line": 12,
+          "resolved_target": "sim/actors/_shared.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:sim/actors/_shared.ts",
+      "type": "Module",
+      "layer": "sim",
+      "name_en": "sim/actors/_shared.ts",
+      "purpose_th": "Shared actor plumbing: every actor observes the DB before and after its own",
+      "exports": [
+        "ActorRequest",
+        "ActorResult",
+        "act"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:sim/db.ts",
+        "module:sim/http.ts"
+      ],
+      "dependents": [
+        "module:sim/actors/admin.ts",
+        "module:sim/actors/bank.ts",
+        "module:sim/actors/customer.ts",
+        "module:sim/actors/driver.ts",
+        "module:sim/actors/partner.ts",
+        "module:sim/clock.ts",
+        "module:sim/scenarios/01-happy-path.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "sim",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ActorRequest",
+          "kind": "interface",
+          "line_start": 8,
+          "line_end": 15
+        },
+        {
+          "name": "ActorResult",
+          "kind": "interface",
+          "line_start": 17,
+          "line_end": 25
+        },
+        {
+          "name": "act",
+          "kind": "function",
+          "line_start": 27,
+          "line_end": 38
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "../db",
+          "line": 5,
+          "resolved_target": "sim/db.ts"
+        },
+        {
+          "specifier": "../http",
+          "line": 6,
+          "resolved_target": "sim/http.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:components/public/LineContactButtonClient.tsx",
+      "type": "Module",
+      "layer": "components",
+      "name_en": "components/public/LineContactButtonClient.tsx",
+      "purpose_th": "Thin click-tracking wrapper for the SERVER-rendered LINE CTA.",
+      "exports": [
+        "LineContactButtonClient",
+        "LineContactButtonClientProps"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:core/analytics.ts"
+      ],
+      "dependents": [
+        "module:components/public/LineContactButton.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "components",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "LineContactButtonClientProps",
+          "kind": "interface",
+          "line_start": 21,
+          "line_end": 25
+        },
+        {
+          "name": "LineContactButtonClient",
+          "kind": "function",
+          "line_start": 27,
+          "line_end": 39
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/analytics",
+          "line": 19,
+          "resolved_target": "core/analytics.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/playground/layout.tsx",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/playground/layout.tsx",
+      "purpose_th": "Server-only metadata for this segment: the page file is \"use client\" and",
+      "exports": [
+        "SegmentLayout",
+        "metadata"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "metadata",
+          "kind": "const",
+          "line_start": 5,
+          "line_end": 20
+        },
+        {
+          "name": "SegmentLayout",
+          "kind": "function",
+          "line_start": 22,
+          "line_end": 24
+        }
+      ]
+    },
+    {
+      "id": "module:app/register/layout.tsx",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/register/layout.tsx",
+      "purpose_th": "Server-only metadata for this segment: the page file is \"use client\" and",
+      "exports": [
+        "SegmentLayout",
+        "metadata"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "metadata",
+          "kind": "const",
+          "line_start": 5,
+          "line_end": 21
+        },
+        {
+          "name": "SegmentLayout",
+          "kind": "function",
+          "line_start": 23,
+          "line_end": 25
+        }
+      ]
+    },
+    {
+      "id": "module:app/login/layout.tsx",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/login/layout.tsx",
+      "purpose_th": "Server-only metadata for this segment: the page file is \"use client\" and",
+      "exports": [
+        "SegmentLayout",
+        "metadata"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "metadata",
+          "kind": "const",
+          "line_start": 5,
+          "line_end": 21
+        },
+        {
+          "name": "SegmentLayout",
+          "kind": "function",
+          "line_start": 23,
+          "line_end": 25
+        }
+      ]
+    },
+    {
+      "id": "module:core/analytics.ts",
+      "type": "Module",
+      "layer": "core",
+      "name_en": "core/analytics.ts",
+      "purpose_th": "Client-side analytics helper.",
+      "exports": [
+        "trackEvent"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:components/public/LineContactButtonClient.tsx"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "core",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "trackEvent",
+          "kind": "function",
+          "line_start": 17,
+          "line_end": 22
         }
       ]
     }
@@ -98856,6 +100350,16 @@
     {
       "source": "layer:app",
       "target": "module:app/admin/payment-voucher/page.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/admin/payouts/PayoutApprovalList.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/admin/payouts/page.tsx",
       "label": "contains"
     },
     {
@@ -100750,6 +102254,16 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/admin/payouts/[orderId]/approve/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/admin/payouts/[orderId]/reject/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/admin/pits/[pitId]/request-quote/route.ts",
       "label": "contains"
     },
@@ -101355,6 +102869,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/login/layout.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/login/page.tsx",
       "label": "contains"
     },
@@ -101386,6 +102905,11 @@
     {
       "source": "layer:app",
       "target": "module:app/observer/layout.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/opengraph-image.tsx",
       "label": "contains"
     },
     {
@@ -101440,6 +102964,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/playground/layout.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/products/[slug]/page.tsx",
       "label": "contains"
     },
@@ -101456,6 +102985,11 @@
     {
       "source": "layer:app",
       "target": "module:app/products/page.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/register/layout.tsx",
       "label": "contains"
     },
     {
@@ -101910,6 +103444,11 @@
     },
     {
       "source": "layer:components",
+      "target": "module:components/public/LineContactButtonClient.tsx",
+      "label": "contains"
+    },
+    {
+      "source": "layer:components",
       "target": "module:components/public/PublicPriceTable.tsx",
       "label": "contains"
     },
@@ -102006,6 +103545,11 @@
     {
       "source": "layer:config",
       "target": "module:next.config.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:core",
+      "target": "module:core/analytics.ts",
       "label": "contains"
     },
     {
@@ -105199,6 +106743,71 @@
       "label": "contains"
     },
     {
+      "source": "layer:sim",
+      "target": "module:sim/actors/_shared.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:sim",
+      "target": "module:sim/actors/admin.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:sim",
+      "target": "module:sim/actors/bank.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:sim",
+      "target": "module:sim/actors/customer.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:sim",
+      "target": "module:sim/actors/driver.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:sim",
+      "target": "module:sim/actors/partner.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:sim",
+      "target": "module:sim/clock.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:sim",
+      "target": "module:sim/db.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:sim",
+      "target": "module:sim/env.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:sim",
+      "target": "module:sim/http.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:sim",
+      "target": "module:sim/reset.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:sim",
+      "target": "module:sim/run.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:sim",
+      "target": "module:sim/scenarios/01-happy-path.ts",
+      "label": "contains"
+    },
+    {
       "source": "layer:supabase",
       "target": "module:supabase/functions/_shared/ai/contract.ts",
       "label": "contains"
@@ -105946,6 +107555,16 @@
     {
       "source": "module:app/admin/payment-voucher/page.tsx",
       "target": "module:components/documents/DocumentBuilder.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/admin/payouts/page.tsx",
+      "target": "module:app/admin/payouts/PayoutApprovalList.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/admin/payouts/page.tsx",
+      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
@@ -113079,6 +114698,21 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/admin/payouts/[orderId]/approve/route.ts",
+      "target": "module:engines/integration-gateway/workers/payout-worker.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/payouts/[orderId]/approve/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/payouts/[orderId]/reject/route.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/admin/pits/[pitId]/materials/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -114306,6 +115940,11 @@
     {
       "source": "module:app/api/cron/gateway-workers/route.ts",
       "target": "module:engines/integration-gateway/workers/reconciler.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/cron/gateway-workers/route.ts",
+      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
@@ -116814,6 +118453,16 @@
       "label": "imports"
     },
     {
+      "source": "module:components/public/LineContactButton.tsx",
+      "target": "module:components/public/LineContactButtonClient.tsx",
+      "label": "imports"
+    },
+    {
+      "source": "module:components/public/LineContactButtonClient.tsx",
+      "target": "module:core/analytics.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:components/public/PublicPriceTable.tsx",
       "target": "module:components/public/LineContactButton.tsx",
       "label": "imports"
@@ -119141,6 +120790,11 @@
     {
       "source": "module:engines/integration-gateway/workers/order-dispatcher.ts",
       "target": "module:engines/integration-gateway/workers/truck-tracker.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/integration-gateway/workers/order-dispatcher.ts",
+      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
@@ -123944,6 +125598,181 @@
       "label": "imports"
     },
     {
+      "source": "module:sim/actors/_shared.ts",
+      "target": "module:sim/db.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/_shared.ts",
+      "target": "module:sim/http.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/admin.ts",
+      "target": "module:sim/actors/_shared.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/admin.ts",
+      "target": "module:sim/http.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/bank.ts",
+      "target": "module:sim/actors/_shared.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/bank.ts",
+      "target": "module:sim/db.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/bank.ts",
+      "target": "module:sim/env.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/bank.ts",
+      "target": "module:sim/http.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/customer.ts",
+      "target": "module:sim/actors/_shared.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/customer.ts",
+      "target": "module:sim/db.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/customer.ts",
+      "target": "module:sim/env.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/customer.ts",
+      "target": "module:sim/http.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/driver.ts",
+      "target": "module:sim/actors/_shared.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/driver.ts",
+      "target": "module:sim/env.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/driver.ts",
+      "target": "module:sim/http.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/partner.ts",
+      "target": "module:sim/actors/_shared.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/actors/partner.ts",
+      "target": "module:sim/http.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/clock.ts",
+      "target": "module:sim/actors/_shared.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/clock.ts",
+      "target": "module:sim/env.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/clock.ts",
+      "target": "module:sim/http.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/db.ts",
+      "target": "module:sim/env.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/reset.ts",
+      "target": "module:sim/db.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/reset.ts",
+      "target": "module:sim/env.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/run.ts",
+      "target": "module:sim/env.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/run.ts",
+      "target": "module:sim/http.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/run.ts",
+      "target": "module:sim/scenarios/01-happy-path.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/scenarios/01-happy-path.ts",
+      "target": "module:sim/actors/_shared.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/scenarios/01-happy-path.ts",
+      "target": "module:sim/actors/admin.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/scenarios/01-happy-path.ts",
+      "target": "module:sim/actors/bank.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/scenarios/01-happy-path.ts",
+      "target": "module:sim/actors/customer.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/scenarios/01-happy-path.ts",
+      "target": "module:sim/actors/driver.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/scenarios/01-happy-path.ts",
+      "target": "module:sim/actors/partner.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/scenarios/01-happy-path.ts",
+      "target": "module:sim/clock.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/scenarios/01-happy-path.ts",
+      "target": "module:sim/db.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:sim/scenarios/01-happy-path.ts",
+      "target": "module:sim/http.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:supabase/functions/_shared/ai/runtime.ts",
       "target": "module:supabase/functions/_shared/ai/contract.ts",
       "label": "imports"
@@ -124730,8 +126559,8 @@
     }
   ],
   "summary": {
-    "total": 1440,
-    "ok": 1440,
+    "total": 1463,
+    "ok": 1463,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

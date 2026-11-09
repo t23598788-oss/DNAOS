@@ -1,7 +1,26 @@
+import type { Metadata } from 'next';
 import arch from '@/registry/architecture.json';
 import connectorLifecycle from '@/registry/connector-lifecycle.json';
 import { Cable, ShieldCheck, AlertOctagon } from 'lucide-react';
 import CapabilityPageShell from '@/presentation/shell/PortalShell';
+
+
+export const metadata: Metadata = {
+  title: "Marketplace | DNA OS",
+  description: "วงจรชีวิตการเชื่อมต่อบริการภายนอกของ DNA OS และประเภทการเชื่อมต่อที่ระบบรองรับ",
+  alternates: { canonical: "/marketplace" },
+  openGraph: {
+    title: "Marketplace | DNA OS",
+    description: "วงจรชีวิตการเชื่อมต่อบริการภายนอกของ DNA OS และประเภทการเชื่อมต่อที่ระบบรองรับ",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Marketplace | DNA OS",
+    description: "วงจรชีวิตการเชื่อมต่อบริการภายนอกของ DNA OS และประเภทการเชื่อมต่อที่ระบบรองรับ",
+    images: ["/opengraph-image"],
+  },
+};
 
 export default function MarketplacePage() {
   return (

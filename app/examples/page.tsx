@@ -9,7 +9,25 @@
  * Static — no DB
  */
 
+import type { Metadata } from "next"
 import Link from "next/link"
+
+export const metadata: Metadata = {
+  title: "Examples | DNA OS",
+  description: "Screen-to-Command mapping — แต่ละหน้าจอใช้ command อะไร โครงสร้างข้อมูลที่ได้เป็นอย่างไร และต้องใช้ token หรือไม่",
+  alternates: { canonical: "/examples" },
+  openGraph: {
+    title: "Examples | DNA OS",
+    description: "Screen-to-Command mapping — แต่ละหน้าจอใช้ command อะไร โครงสร้างข้อมูลที่ได้เป็นอย่างไร และต้องใช้ token หรือไม่",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Examples | DNA OS",
+    description: "Screen-to-Command mapping — แต่ละหน้าจอใช้ command อะไร โครงสร้างข้อมูลที่ได้เป็นอย่างไร และต้องใช้ token หรือไม่",
+    images: ["/opengraph-image"],
+  },
+};
 
 interface ScreenExample {
   id: string
