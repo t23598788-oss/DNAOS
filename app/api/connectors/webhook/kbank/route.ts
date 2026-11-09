@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
       headers: decision.storedHeaders ?? null,
       status: "received",
     })
-    .select("id, error")
+    .select("id")
     .single();
 
   if (kbankInsert.error) {
