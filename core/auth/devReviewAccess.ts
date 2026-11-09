@@ -21,7 +21,19 @@
 // ที่อยู่หลังเครื่องมือยังมี server guard ของตัวเองเหมือนเดิมทุกบรรทัด
 
 /** prefix ที่อนุญาตให้ review แบบ dev — ต้องตรงทั้งหมดหรือขึ้นต้นด้วย prefix + "/" เท่านั้น */
-export const LOCAL_UI_REVIEW_PREFIXES = ["/admin/ui-gallery", "/business-workspace-template", "/workspace"] as const;
+// Note (payout approval E2E, 2026-11-10): the admin payout approval API is
+// listed here ONLY so a dev server on loopback can exercise it end to end
+// without a Supabase session — the same three conditions still apply
+// (NODE_ENV !== "production", loopback host, exact path). It is not a second
+// auth system: the route itself is fail-closed behind X-Admin-Secret
+// (PAYOUT_APPROVAL_SECRET, constant-time compare), and in production this
+// predicate is always false, so /api/admin/* keeps the normal session gate.
+export const LOCAL_UI_REVIEW_PREFIXES = [
+  "/admin/ui-gallery",
+  "/business-workspace-template",
+  "/workspace",
+  "/api/admin/payouts",
+] as const;
 
 /** เดิม (2026-09-22) — คงไว้เพื่อความเข้ากันได้กับผู้เรียกที่มีอยู่จริง */
 export const LOCAL_UI_REVIEW_PREFIX = LOCAL_UI_REVIEW_PREFIXES[0];

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { timingSafeEqual } from "node:crypto";
 import { executeApprovedPayout } from "@/engines/integration-gateway/workers/payout-worker";
+import { supabaseAdmin } from "@/services/supabase/queries";
 
 // Local/admin-only approval gate. Money moves only when this route is called
 // with the internal secret, and only for an order already in
@@ -49,7 +50,76 @@ export async function POST(
 
   const { orderId } = await params;
 
+  // The worker only pays an order that is already PAYOUT_APPROVED (human
+  // decision), and nothing else in the system performs the
+  // PAYOUT_PENDING_APPROVAL -> PAYOUT_APPROVED step, so this route is that
+  // decision point: guarded transition + audit row, then execute.
+  const db = supabaseAdmin();
+
   try {
+    const { data: order, error: fetchError } = await db
+      .from("customer_orders")
+      .select("id, order_no, status")
+      .eq("id", orderId)
+      .single();
+
+    if (fetchError || !order) {
+      return NextResponse.json(
+        { ok: false, orderId, reason: "order not found" },
+        { status: 404 },
+      );
+    }
+
+    const currentStatus = String(order.status ?? "").toUpperCase();
+    if (currentStatus !== "PAYOUT_PENDING_APPROVAL") {
+      return NextResponse.json(
+        {
+          ok: false,
+          orderId,
+          reason: `order is not pending payout approval (current: ${currentStatus || "unknown"})`,
+        },
+        { status: 409 },
+      );
+    }
+
+    // Guarded on the exact current status so two concurrent approvals cannot
+    // both win, and so an already-approved order is never re-approved.
+    const { data: updated, error: updateError } = await db
+      .from("customer_orders")
+      .update({
+        status: "PAYOUT_APPROVED",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", orderId)
+      .eq("status", "PAYOUT_PENDING_APPROVAL")
+      .select("id");
+
+    if (updateError) {
+      return NextResponse.json(
+        { ok: false, orderId, reason: `approval update failed: ${updateError.message}` },
+        { status: 500 },
+      );
+    }
+
+    if (!updated || updated.length === 0) {
+      return NextResponse.json(
+        {
+          ok: false,
+          orderId,
+          reason: "order is not pending payout approval (already approved or settled)",
+        },
+        { status: 409 },
+      );
+    }
+
+    await db.from("payout_audit_log").insert({
+      order_id: orderId,
+      action: "approve",
+      actor_id: actorId,
+      reason: "payout approved by human via admin approval route",
+      created_at: new Date().toISOString(),
+    });
+
     const result = await executeApprovedPayout(orderId, actorId);
 
     // The worker reports { success, failed } rather than { ok }: success>0
