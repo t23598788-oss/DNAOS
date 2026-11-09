@@ -40,6 +40,18 @@ CREATE TABLE IF NOT EXISTS public.resource_transactions (
     source_event_id TEXT NOT NULL
 );
 
+-- ตารางอาจถูกสร้างไปแล้วโดย 20260620000000 (ซึ่งไม่มี source_event_id) —
+-- CREATE TABLE IF NOT EXISTS ข้างบนจึงเป็น no-op ต้องเพิ่มคอลัมน์เองตรงนี้
+ALTER TABLE public.resource_transactions
+    ADD COLUMN IF NOT EXISTS source_event_id TEXT;
+
+-- NOT NULL ตามดีไซน์เดิม แต่ไม่ทำลายแถวเก่าที่มีอยู่ก่อนมีคอลัมน์นี้
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM public.resource_transactions WHERE source_event_id IS NULL) THEN
+        ALTER TABLE public.resource_transactions ALTER COLUMN source_event_id SET NOT NULL;
+    END IF;
+END $$;
+
 -- Idempotency ระดับ DB (canonical writer ยิงค่าเดียวกันซ้ำ = unique violation
 -- ที่ writer แปลงเป็น duplicate:return-existing เอง)
 CREATE UNIQUE INDEX IF NOT EXISTS ux_resource_transactions_source_event

@@ -56,7 +56,6 @@ alter table public.receipt_documents
   add constraint receipt_documents_source_channel_chk
   check (source_channel is null or source_channel in ('line','upload','email','bank','drive','facebook','instagram'));
 
+-- COMMENT ON takes one string literal; concatenation is not allowed in its grammar.
 comment on constraint receipt_documents_source_channel_chk on public.receipt_documents is
-  'Inbound channel vocabulary for receipt_documents. ' ||
-  'Proposed 2026-10-07 (facebook/instagram) — see 20261007000002_propose_source_channel_meta.sql BEFORE applying. ' ||
-  'Original: 20260922000004_inbound_source_channel_v1_1.sql.';
+  'Inbound channel vocabulary for receipt_documents. Proposed 2026-10-07 (facebook/instagram) — see 20261007000002_propose_source_channel_meta.sql BEFORE applying. Original: 20260922000004_inbound_source_channel_v1_1.sql.';
