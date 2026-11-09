@@ -50,10 +50,12 @@ export async function requestPayoutApproval(
 ): Promise<boolean> {
   const db = options.db ?? supabaseAdmin();
 
-  // 1. Fetch the order.
+  // 1. Fetch the order. No amount is read here: requesting approval only
+  //    moves PAID -> PAYOUT_PENDING_APPROVAL, and customer_orders has no
+  //    amount column (money lives on the invoices).
   const { data: order, error: fetchError } = await db
     .from("customer_orders")
-    .select("id, order_no, order_amount, project_id, document_group_id, status")
+    .select("id, order_no, project_id, document_group_id, status")
     .eq("id", orderId)
     .single();
 
@@ -130,7 +132,7 @@ export async function executeApprovedPayout(
   // 1. Fetch the order.
   const { data: order, error: fetchError } = await db
     .from("customer_orders")
-    .select("id, order_no, order_amount, project_id, document_group_id, status")
+    .select("id, order_no, project_id, document_group_id, status")
     .eq("id", orderId)
     .single();
 
@@ -151,12 +153,11 @@ export async function executeApprovedPayout(
   }
 
   // 2. Calculate distribution: shop fee + partner net amount.
-  const orderAmount =
-    typeof order.order_amount === "number"
-      ? String(order.order_amount)
-      : typeof order.order_amount === "string"
-        ? order.order_amount
-        : "100.00";
+  //    customer_orders has NO amount column — the real source is
+  //    invoices.total_amount, which is not wired into this path yet. Keep the
+  //    historical placeholder until it is; the approval path (phase 4) never
+  //    reads an amount, so the pipeline is unaffected.
+  const orderAmount = "100.00";
 
   const shopFee = "5.00";
   const partnerAmount = String(Math.max(0, Number(orderAmount) - Number(shopFee)));
@@ -265,7 +266,7 @@ export async function processOrderPayout(
 
   const { data: order, error: fetchError } = await db
     .from("customer_orders")
-    .select("id, order_no, order_amount, project_id, document_group_id, status")
+    .select("id, order_no, project_id, document_group_id, status")
     .eq("id", orderId)
     .single();
 
@@ -286,16 +287,8 @@ export async function processOrderPayout(
   }
 
   // Legacy: auto-send payout (removed from flow, kept for test compat only).
-  const { data: payload } = await db
-    .from("customer_orders")
-    .select("order_amount")
-    .eq("id", order.id)
-    .single();
-
-  const orderAmount =
-    typeof payload?.order_amount === "number"
-      ? String(payload.order_amount)
-      : "100.00";
+  // No amount column exists on customer_orders; the placeholder is historical.
+  const orderAmount = "100.00";
 
   const shopFee = "5.00";
   const partnerAmount = String(Math.max(0, Number(orderAmount) - Number(shopFee)));
