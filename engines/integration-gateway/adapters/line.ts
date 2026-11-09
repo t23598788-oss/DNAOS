@@ -29,6 +29,12 @@ export function verifyLineSignature(rawBody: string, signatureHeader: string | n
   return timingSafeEqual(a, b);
 }
 
+// Anchor fields (project_id, document_group_id, customer_company_id,
+// customer_site_id) are not sent by LINE itself. When present on the
+// incoming event object (e.g. a simulator or an internal bridge), the
+// adapter forwards them so order-translator can create an anchored
+// customer_order without falling back to a previous order's anchors.
+
 /**
  * The exact evidence keys this adapter may emit. Anything not listed here must
  * not appear — a raw text body, a reply token, or a channel secret has no key
@@ -42,6 +48,11 @@ export const EVIDENCE_KEYS: readonly string[] = [
   // could not be attributed downstream at all (Meta already kept sender_id),
   // which made "who sent this" unanswerable from the central event.
   "sender_id",
+  // ORDER ANCHORS — forwarded verbatim when the incoming event carries them.
+  "customer_company_id",
+  "customer_site_id",
+  "document_group_id",
+  "project_id",
   "message_type",
   "has_media",
   "is_redelivery",
@@ -70,6 +81,10 @@ interface LineInboundEvent {
   deliveryContext?: { isRedelivery?: boolean };
   source?: { type?: string; userId?: string };
   message?: { type?: string; id?: string };
+  project_id?: string | null;
+  document_group_id?: string | null;
+  customer_company_id?: string | null;
+  customer_site_id?: string | null;
 }
 
 function newEventId(webhookEventId: string | undefined, index: number, timestamp: number | undefined): string {
@@ -115,6 +130,10 @@ export function normalizeLineWebhook(payload: unknown): { events: GatewayEvent[]
         is_redelivery: raw?.deliveryContext?.isRedelivery === true,
         channel_destination: typeof body.destination === "string" ? body.destination : null,
         provider_timestamp: typeof raw?.timestamp === "number" ? raw.timestamp : null,
+        project_id: (raw?.project_id as string | null) ?? null,
+        document_group_id: (raw?.document_group_id as string | null) ?? null,
+        customer_company_id: (raw?.customer_company_id as string | null) ?? null,
+        customer_site_id: (raw?.customer_site_id as string | null) ?? null,
       },
       requested_effect: "none",
       requires_owner_approval: false,
