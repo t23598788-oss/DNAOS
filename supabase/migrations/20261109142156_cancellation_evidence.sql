@@ -25,14 +25,14 @@ $$;
 -- 2. Cancellation evidence — why an order was cancelled and the proof held.
 --
 --   id          uuid
---   order_id    text  (FK -> customer_orders.id)
+--   order_id    uuid  (FK -> customer_orders.id)
 --   reason_type text  ('CUSTOMER_FAULT' | 'SELLER_FAULT')
 --   proof_url   text  (required by the worker for SELLER_FAULT)
 --   reason_text text
 --   created_at  timestamptz
 create table if not exists public.cancellation_evidence (
   id uuid primary key default gen_random_uuid(),
-  order_id text not null,
+  order_id uuid not null,
   reason_type text not null check (reason_type in ('CUSTOMER_FAULT', 'SELLER_FAULT')),
   proof_url text,
   reason_text text,
