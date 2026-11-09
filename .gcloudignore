@@ -1,0 +1,40 @@
+# กันไม่ให้อัปของหนักขึ้น Cloud Build
+.git/
+.github/
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+
+# native / rust
+src-tauri/target/
+src-tauri/gen/
+
+# ของสำรอง/กู้คืน
+backups/
+recovery/
+*.tar
+*.tar.gz
+*.zip
+
+# log / temp
+*.log
+tmp/
+.tmp/
+
+# env & secrets (ห้ามขึ้น build)
+.env
+.env.*
+!.env.example
+
+# editor / OS
+.DS_Store
+.vscode/
+.idea/
+
+# ไฟล์ทดสอบหนัก ๆ
+*.snap
+playwright-report/
+test-results/
