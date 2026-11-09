@@ -198,7 +198,7 @@ export default function PublicPriceTable({ items, filters, facets, notice }: Pub
                   </td>
                   <td className="px-4 py-3 text-stone-500 whitespace-nowrap">{item.updated_at.slice(0, 10)}</td>
                   <td className="px-4 py-3 whitespace-nowrap">
-                    <LineContactButton variant="inline" reference={item.slug} />
+                    <LineContactButton variant="inline" reference={item.slug} location="catalog" />
                   </td>
                 </tr>
               ))}

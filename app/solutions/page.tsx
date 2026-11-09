@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import businessCoverage from '@/registry/business-coverage.json';
 import { CheckCircle, AlertTriangle, XCircle } from 'lucide-react';
 import CapabilityPageShell from '@/presentation/shell/PortalShell';
@@ -6,6 +7,24 @@ const coverageStyle: { [key: string]: { icon: React.ElementType; label: string; 
   covered: { icon: CheckCircle, label: 'Covered', className: 'text-emerald-400 border-emerald-800 bg-emerald-950/40' },
   partial: { icon: AlertTriangle, label: 'Partial', className: 'text-amber-400 border-amber-800 bg-amber-950/40' },
   not_covered: { icon: XCircle, label: 'Planned', className: 'text-stone-500 border-stone-800 bg-stone-950/40' },
+};
+
+
+export const metadata: Metadata = {
+  title: "Solutions | DNA OS",
+  description: "ความครอบคลุมของโดเมนธุรกิจที่ DNA OS รองรับวันนี้ พร้อมช่องว่างที่ยังเป็น Partial หรือ Planned ตามที่ registry ระบุจริง",
+  alternates: { canonical: "/solutions" },
+  openGraph: {
+    title: "Solutions | DNA OS",
+    description: "ความครอบคลุมของโดเมนธุรกิจที่ DNA OS รองรับวันนี้ พร้อมช่องว่างที่ยังเป็น Partial หรือ Planned ตามที่ registry ระบุจริง",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Solutions | DNA OS",
+    description: "ความครอบคลุมของโดเมนธุรกิจที่ DNA OS รองรับวันนี้ พร้อมช่องว่างที่ยังเป็น Partial หรือ Planned ตามที่ registry ระบุจริง",
+    images: ["/opengraph-image"],
+  },
 };
 
 export default function SolutionsPage() {

@@ -1,7 +1,26 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import portals from '@/registry/portals.json';
 import { ArrowRight } from 'lucide-react';
 import CapabilityPageShell from '@/presentation/shell/PortalShell';
+
+
+export const metadata: Metadata = {
+  title: "Portals | DNA OS",
+  description: "ทุก Portal ใน DNA OS เป็น View ของระบบที่รันอยู่จริงชุดเดียว — Core, Gateway, Registry และ Database ไม่ใช่บิลด์แยก",
+  alternates: { canonical: "/products" },
+  openGraph: {
+    title: "Portals | DNA OS",
+    description: "ทุก Portal ใน DNA OS เป็น View ของระบบที่รันอยู่จริงชุดเดียว — Core, Gateway, Registry และ Database ไม่ใช่บิลด์แยก",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Portals | DNA OS",
+    description: "ทุก Portal ใน DNA OS เป็น View ของระบบที่รันอยู่จริงชุดเดียว — Core, Gateway, Registry และ Database ไม่ใช่บิลด์แยก",
+    images: ["/opengraph-image"],
+  },
+};
 
 export default function ProductsPage() {
   return (
