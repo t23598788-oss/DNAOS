@@ -120,7 +120,7 @@ export async function processOrderPayout(
       `[payout-worker] payout failed for order ${order.order_no} (id ${order.id}): ${message}`,
     );
 
-    const updateError = await db
+    const { error: updateError } = await db
       .from("customer_orders")
       .update({
         status: "PAYOUT_FAILED",
@@ -141,9 +141,7 @@ export async function processOrderPayout(
   // 6. On success: mark the order 'SETTLED'.
   console.log(
     `[payout-worker] payout sent for order ${order.order_no} (id ${order.id}): token ${String(result?.token ?? "")}`,
-  );
-
-  const updateError = await db
+  );    const { error: updateError } = await db
     .from("customer_orders")
     .update({
       status: "SETTLED",

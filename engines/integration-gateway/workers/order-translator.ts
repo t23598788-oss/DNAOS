@@ -163,7 +163,7 @@ export async function translateLineMessageEvents(
     }
 
     // 3. Mark the source event 'processed'.
-    const updateError = await db
+    const { error: updateError } = await db
         .from("integration_gateway_events")
       .update({ status: "processed", updated_at: new Date().toISOString() })
       .eq("event_id", evt.event_id)

@@ -137,7 +137,7 @@ export async function reconcileKBankPayments(
         `[reconciler] Payment ${eventId} of amount ${amount ?? "unknown"} has no matching order`,
       );
 
-      const updateError = await db
+      const { error: updateError } = await db
         .from("integration_gateway_events")
         .update({ status: "unmatched", updated_at: new Date().toISOString() })
         .eq("event_id", evt.event_id)
@@ -163,7 +163,7 @@ export async function reconcileKBankPayments(
     };
 
     // 4a. Matched: set the order to PAID.
-    const updateOrderError = await db
+    const { error: updateOrderError } = await db
       .from("customer_orders")
       .update({ status: "PAID", updated_at: new Date().toISOString() })
       .eq("id", order.id)
@@ -178,7 +178,7 @@ export async function reconcileKBankPayments(
     }
 
     // 4b. Matched: mark the source event 'processed'.
-    const updateEventError = await db
+    const { error: updateEventError } = await db
       .from("integration_gateway_events")
       .update({ status: "processed", updated_at: new Date().toISOString() })
       .eq("event_id", evt.event_id)
