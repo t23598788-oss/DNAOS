@@ -26,6 +26,51 @@ export interface PayoutWorkerOptions extends PayoutOptions {
   /** Supabase service_role client (injected for testability). Defaults to
    * supabaseAdmin() when omitted. */
   db?: SupabaseClient;
+  /** Payout amount decided by the caller (e.g. the admin approval route, which
+   * resolves it from invoices.total_amount). When omitted the worker resolves
+   * the amount itself from the order's invoices. Never falls back to a
+   * hardcoded placeholder. */
+  amount?: number;
+}
+
+/** Invoice statuses that represent real money owed (DRAFT is not issued yet,
+ * VOID is cancelled). */
+const PAYABLE_INVOICE_STATUSES = ["SENT", "PARTIALLY_PAID", "PAID"];
+
+/**
+ * Sum invoices.total_amount for the order's payable invoices.
+ * Returns 0 when the order has no payable invoice — callers must treat 0 as
+ * "cannot pay" and fail closed instead of sending a made-up amount.
+ */
+async function resolveInvoiceAmount(
+  db: SupabaseClient,
+  orderId: string,
+): Promise<number> {
+  const { data, error } = await db
+    .from("invoices")
+    .select("id, total_amount, invoice_status")
+    .eq("customer_order_id", orderId);
+
+  if (error) {
+    console.error(
+      `[payout-worker] invoice lookup failed for order ${orderId}: ${error.message}`,
+    );
+    return 0;
+  }
+
+  if (!Array.isArray(data)) return 0;
+
+  let total = 0;
+  for (const invoice of data as Array<{
+    total_amount?: unknown;
+    invoice_status?: unknown;
+  }>) {
+    const status = String(invoice.invoice_status ?? "").toUpperCase();
+    if (!PAYABLE_INVOICE_STATUSES.includes(status)) continue;
+    const value = Number(invoice.total_amount ?? 0);
+    if (Number.isFinite(value)) total += value;
+  }
+  return total;
 }
 
 // ------------------------------------------------------------------
@@ -152,12 +197,56 @@ export async function executeApprovedPayout(
     return { success: 0, failed: 0 };
   }
 
-  // 2. Calculate distribution: shop fee + partner net amount.
-  //    customer_orders has NO amount column — the real source is
-  //    invoices.total_amount, which is not wired into this path yet. Keep the
-  //    historical placeholder until it is; the approval path (phase 4) never
-  //    reads an amount, so the pipeline is unaffected.
-  const orderAmount = "100.00";
+  // 2. Resolve the real payout amount. customer_orders has NO amount column:
+  //    the money lives on the invoices, so the caller may pass the amount it
+  //    already resolved, otherwise the worker resolves it here itself.
+  const amountSource = options.amount !== undefined ? "options" : "invoices";
+  const resolvedAmount =
+    options.amount !== undefined
+      ? Number(options.amount)
+      : await resolveInvoiceAmount(db, order.id);
+
+  // Fail closed: never send a placeholder or a bogus number to the bank.
+  if (!Number.isFinite(resolvedAmount) || resolvedAmount <= 0) {
+    const failReason =
+      "no payable invoice amount for this order; refusing to send a placeholder amount to KBank";
+
+    const { error: updateError } = await db
+      .from("customer_orders")
+      .update({
+        status: "PAYOUT_FAILED",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", order.id)
+      .eq("status", "PAYOUT_APPROVED");
+
+    if (updateError) {
+      console.error(
+        `[executeApprovedPayout] failed to mark order ${order.order_no} as PAYOUT_FAILED: ${updateError.message}`,
+      );
+    }
+
+    await db.from("payout_audit_log").insert({
+      order_id: order.id,
+      action: "reject",
+      actor_id: approverId,
+      reason: failReason,
+      created_at: new Date().toISOString(),
+    });
+
+    console.error(
+      `[executeApprovedPayout] ${failReason} (order ${order.order_no}, id ${order.id}, resolved ${resolvedAmount})`,
+    );
+    return { success: 0, failed: 1 };
+  }
+
+  const orderAmount = resolvedAmount.toFixed(2);
+
+  if (process.env.NODE_ENV !== "production") {
+    console.log(
+      `[executeApprovedPayout] amount=${orderAmount} source=${amountSource} order=${order.order_no}`,
+    );
+  }
 
   const shopFee = "5.00";
   const partnerAmount = String(Math.max(0, Number(orderAmount) - Number(shopFee)));
@@ -287,8 +376,21 @@ export async function processOrderPayout(
   }
 
   // Legacy: auto-send payout (removed from flow, kept for test compat only).
-  // No amount column exists on customer_orders; the placeholder is historical.
-  const orderAmount = "100.00";
+  // No amount column exists on customer_orders, so derive it from the invoices
+  // exactly like the approved path — never a hardcoded placeholder.
+  const resolvedAmount =
+    options.amount !== undefined
+      ? Number(options.amount)
+      : await resolveInvoiceAmount(db, order.id);
+
+  if (!Number.isFinite(resolvedAmount) || resolvedAmount <= 0) {
+    console.error(
+      `[processOrderPayout] no payable invoice amount for order ${order.order_no} (id ${order.id}); refusing to send a placeholder amount to KBank`,
+    );
+    return { success: 0, failed: 1 };
+  }
+
+  const orderAmount = resolvedAmount.toFixed(2);
 
   const shopFee = "5.00";
   const partnerAmount = String(Math.max(0, Number(orderAmount) - Number(shopFee)));

@@ -123,20 +123,6 @@ export async function POST(
           ? `amount resolved from invoices: ${resolvedAmount.toFixed(2)} (${invoices.length} invoice${invoices.length === 1 ? "" : "s"}, active)`
           : `amount resolved from invoices: 0.00 (${invoices.length} invoice${invoices.length === 1 ? "" : "s"}, not all active)`;
 
-    // The worker still sends its own internal placeholder amount (it takes no
-    // amount argument), so approving with a zero/unresolved amount would mean
-    // sending a made-up number to the bank. Refuse instead of faking it.
-    if (resolvedAmount <= 0) {
-      return NextResponse.json(
-        {
-          ok: false,
-          orderId,
-          reason: `no payable invoice amount: ${amountNote}; refusing to approve a payout without a real amount`,
-        },
-        { status: 409 },
-      );
-    }
-
     // Guarded on the exact current status so two concurrent approvals cannot
     // both win, and so an already-approved order is never re-approved.
     const { data: updated, error: updateError } = await db
@@ -175,7 +161,12 @@ export async function POST(
       created_at: new Date().toISOString(),
     });
 
-    const result = await executeApprovedPayout(orderId, actorId);
+    // The worker resolves the amount from invoices when no amount is passed,
+    // but passing it explicitly keeps the source-of-truth decision here, next
+    // to the audit reason. The worker still fail-closes on ≤ 0.
+    const result = await executeApprovedPayout(orderId, actorId, {
+      amount: resolvedAmount,
+    });
 
     // The worker reports { success, failed } rather than { ok }: success>0
     // means the payout API accepted it and the order is SETTLED.

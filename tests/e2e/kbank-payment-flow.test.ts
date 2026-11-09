@@ -532,6 +532,16 @@ describe("KBank payment flow (E2E)", () => {
       error: null,
     };
 
+    // The production DB has invoices on payable orders; add one so
+    // resolveInvoiceAmount() has something to sum and the worker's fail-closed
+    // guard does not fire. Amount chosen to exceed buildPayoutPayload's shop
+    // fee (5.00) so the existing shopAmount assertion still holds.
+    const invoicesTable = db.from("invoices") as FakeTable;
+    invoicesTable.singleResult = {
+      data: [{ id: "inv-001", total_amount: 10000, invoice_status: "SENT" }],
+      error: null,
+    };
+
     // Mocked KBank payout succeeds.
     const payoutResponse = {
       token: "tok-e2e-001",
@@ -590,6 +600,16 @@ describe("KBank payment flow (E2E)", () => {
         order_no: LINE_ORDER_NO,
         status: "PAYOUT_APPROVED",
       },
+      error: null,
+    };
+
+    // The production DB has invoices on payable orders; add one so
+    // resolveInvoiceAmount() has something to sum and the worker's fail-closed
+    // guard does not fire. Amount chosen to exceed buildPayoutPayload's shop
+    // fee (5.00) so the existing shopAmount assertion still holds.
+    const invoicesTable = db.from("invoices") as FakeTable;
+    invoicesTable.singleResult = {
+      data: [{ id: "inv-001", total_amount: 10000, invoice_status: "SENT" }],
       error: null,
     };
 
