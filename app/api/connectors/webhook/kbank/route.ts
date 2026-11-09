@@ -1,5 +1,5 @@
 // KBank Webhook Receiver Skeleton.
-// MOCK-MODE BUILD while KBank sandbox approval is pending.
+// KBank sandbox integration (pending activation).
 //
 // KBank status (from KBank portal screenshot, 26/10/2026):
 //   - Applied: 26/10/2026
@@ -18,10 +18,10 @@
 //       401 signature_missing / signature_invalid
 //   - only a verified body is parsed and a response is returned
 //
-// TODO: signature_header config comes from the connector record
-// (the gate reads it from connector.config.signature_header + connector.secret
-// after KBank's webhook secret is provisioned). Until then the gate rejects
-// 503.
+// When KBank's webhook secret is provisioned, the verified body is normalized
+// by engines/integration-gateway/adapters/kbank.ts and published to the
+// Integration Gateway's Observe Channel via the event bus (engines/integration-gateway/event-bus/bus.ts).
+
 import { NextRequest, NextResponse } from "next/server";
 import { getConnectedConnector } from "@/core/connector-loader";
 import { supabaseAdmin } from "@/services/supabase/queries";
@@ -29,6 +29,8 @@ import {
   MAX_WEBHOOK_BODY_BYTES,
   evaluateWebhookRequest,
 } from "../[slug]/_lib/webhookGate";
+import { normalizeKBankWebhook } from "@/engines/integration-gateway/adapters/kbank";
+import { publish } from "@/engines/integration-gateway/event-bus/bus";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -69,8 +71,29 @@ export async function POST(req: NextRequest, { params }: Params) {
   }
 
   // Gate accepted: KBank webhook body verified, signature OK.
-  // TODO: when KBank's webhook secret is provisioned, map the event to the
-  // internal event bus here (payment_confirmed, payout_completed, etc.).
-  console.log("[KBank Webhook] received verified payload:", JSON.stringify(decision.payload));
-  return NextResponse.json({ received: true });
+  // Normalize the verified payload into the canonical GatewayEvent and publish
+  // it to the Integration Gateway's Observe Channel.
+  const events = normalizeKBankWebhook(decision.payload);
+
+  // Publish each translated event to the Observe Channel.
+  // (Failure here means the gateway is not ready — the connector is not wired
+  // into the event bus yet. Fail-closed: do not ack as success if publish
+  // fails until the wire is complete.)
+  let published = 0;
+  for (const event of events) {
+    const ok = await publish(supabaseAdmin(), event);
+    if (!ok) {
+      return NextResponse.json(
+        { error: `Failed to publish KBank event: ${event.capability}` },
+        { status: 500 },
+      );
+    }
+    published += 1;
+  }
+
+  if (published === 0) {
+    return NextResponse.json({ error: "No KBank event translated — no capability matched" }, { status: 400 });
+  }
+
+  return NextResponse.json({ received: true, published });
 }

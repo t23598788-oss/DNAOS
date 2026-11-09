@@ -4,9 +4,9 @@
  * The one shape every provider (GitHub, Supabase, Vercel, VS Code, ChatGPT
  * MCP, ...) gets translated into before anything inside DNA OS Core ever
  * sees it. Adapters (engines/integration-gateway/adapters/*) are the only
- * code allowed to construct one of these from a provider's native payload —
- * nothing downstream (event-bus, evidence, policy, Registry/Governance/
- * Runtime) ever reads a raw GitHub/Supabase/Vercel payload directly.
+ * code allowed to construct one of these from a provider's native payload — nothing
+ * downstream (event-bus, evidence, policy, Registry/Governance/Runtime) ever
+ * reads a raw GitHub/Supabase/Vercel payload directly.
  *
  * Three channels, built in this order (Observe first — safest, no side
  * effects; Proposal once Observe is proven for GitHub+Supabase+Vercel;
@@ -15,17 +15,23 @@
  *   - "observe"   — read-only status/event, never requests a change.
  *   - "propose"   — AI or system proposes a command; not run yet.
  *   - "execute"   — runs, but only once Deploy Gate + Owner have approved it.
- *
- * This file is scaffolding only, per explicit instruction: it does not move
- * or replace scripts/watch-registry.ts, scripts/impact-analyzer.ts,
- * scripts/deploy-gate.ts, or the dev_loop_* tables built 2026-08-05 — those
- * keep working exactly as they are. The Gateway is a new translation layer
- * ABOVE provider adapters, not a replacement for what already exists.
  */
 
 export type GatewayChannel = "observe" | "propose" | "execute";
 
-export type GatewayProvider = "github" | "supabase" | "vercel" | "railway" | "vscode" | "chatgpt-mcp" | "line" | "facebook" | "instagram";
+export type GatewayProvider =
+  | "github"
+  | "supabase"
+  | "vercel"
+  | "railway"
+  | "vscode"
+  | "chatgpt-mcp"
+  | "line"
+  | "facebook"
+  | "instagram"
+  | "kbank"
+  | "kplus"
+  | "truemoney";
 
 /**
  * Capability strings are dot-namespaced, provider-agnostic verbs — e.g.
@@ -68,8 +74,21 @@ export type GatewayCapability =
   // already marked removal_condition_met: true, and only after a real
   // dependents check. This never edits code — it's a visibility/review
   // record for the owner, same as every other proposal here.
-  | "transitional_layer.removal_proposed";
+  | "transitional_layer.removal_proposed"
+  // KBank (new provider, 2026-11-09) — payment / payout / transfer lifecycle
+  // events normalized by engines/integration-gateway/adapters/kbank.ts.
+  | "payment.received"
+  | "payment.refunded"
+  | "payment.completed"
+  | "payment.failed"
+  | "payout.completed"
+  | "payout.failed"
+  | "transfer.completed"
+  | "transfer.failed";
 
+/**
+ * The canonical event shape every provider adapter normalizes into.
+ */
 export interface GatewayEvent {
   event_id: string;
   provider: GatewayProvider;
