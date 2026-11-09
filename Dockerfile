@@ -1,19 +1,20 @@
 # syntax=docker/dockerfile:1
 # Next.js production image สำหรับ Cloud Run
-# จุดสำคัญ: NEXT_PUBLIC_* ต้องถูกส่งเป็น build ARG
-#           เพราะ Next ฝังค่าลง client bundle ตอน build
+# จุดสำคัญ: NEXT_PUBLIC_* ต้องถูกส่งเป็น BUILD ARG
+#           เพราะหน้า public ถูก prerender ตอน build -> ค่าถูกฝังลง HTML
 
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev=false
+RUN npm ci
 
 FROM node:20-alpine AS builder
 WORKDIR /app
-# package.json มี "prebuild": "npx tsx scripts/deploy-gate.ts" ซึ่ง execSync
-# "bash scripts/governance.sh" — alpine ไม่มี bash มาให้ ถ้าไม่ติดตั้ง build จะล้ม
-# ที่ prebuild ก่อนถึง next build (ตรวจแล้ว: governance.sh เรียกแค่ bash + npx)
+
+# bash จำเป็นเพราะ package.json มี prebuild -> scripts/deploy-gate.ts
+# ซึ่งเรียก execSync("bash scripts/governance.sh")
 RUN apk add --no-cache bash
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
