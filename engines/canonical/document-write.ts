@@ -17,6 +17,7 @@
 import { supabaseAdmin } from "@/services/supabase/queries";
 import { calculateDocumentTotals, type DocumentDraftInput } from "@/engines/documents/document-editor";
 import { recordCanonicalAudit } from "@/engines/canonical/audit";
+import { PLATFORM_COMPANY_ID } from "@/core/party/platform-company";
 
 export type WriteDocumentKind = "invoice" | "standalone_document";
 
@@ -169,6 +170,10 @@ export async function createDocument(input: WriteDocumentInput): Promise<WriteDo
     base.document_type = input.document_type;
     base.document_date = input.issue_date ?? null;
     base.status = input.status ?? "active";
+    // the platform issues this document — see docs/PRICING_DOMAIN.md §2
+    // Set by intent, not left to the DB default: the default exists only so
+    // pre-existing rows stay valid, not so writers can forget the issuer.
+    base.issuer_company_id = PLATFORM_COMPANY_ID;
   }
 
   // ── INVOICE: the DB atomic primitive (promoted public.confirm_invoice) ──────

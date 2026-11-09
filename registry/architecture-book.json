@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-09T13:12:50.865Z",
+  "generated_at": "2026-11-09T15:17:08.617Z",
   "version": 1,
   "nodes": [
     {
@@ -78870,6 +78870,7 @@
       "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
+        "module:core/party/platform-company.ts",
         "module:engines/canonical/audit.ts",
         "module:engines/documents/document-editor.ts",
         "module:services/supabase/queries.ts"
@@ -78906,62 +78907,62 @@
         {
           "name": "WriteDocumentKind",
           "kind": "type",
-          "line_start": 21,
-          "line_end": 21
+          "line_start": 22,
+          "line_end": 22
         },
         {
           "name": "DocumentLineItem",
           "kind": "interface",
-          "line_start": 23,
-          "line_end": 32
+          "line_start": 24,
+          "line_end": 33
         },
         {
           "name": "WriteDocumentInput",
           "kind": "interface",
-          "line_start": 34,
-          "line_end": 53
+          "line_start": 35,
+          "line_end": 54
         },
         {
           "name": "WriteDocumentResult",
           "kind": "interface",
-          "line_start": 55,
-          "line_end": 72
+          "line_start": 56,
+          "line_end": 73
         },
         {
           "name": "computeCanonicalTotals",
           "kind": "function",
-          "line_start": 77,
-          "line_end": 98
+          "line_start": 78,
+          "line_end": 99
         },
         {
           "name": "createDocument",
           "kind": "function",
-          "line_start": 148,
-          "line_end": 334
+          "line_start": 149,
+          "line_end": 339
         },
         {
           "name": "createVersion",
           "kind": "function",
-          "line_start": 401,
-          "line_end": 480
+          "line_start": 406,
+          "line_end": 485
         },
         {
           "name": "updateDocumentDraft",
           "kind": "function",
-          "line_start": 487,
-          "line_end": 559
+          "line_start": 492,
+          "line_end": 564
         },
         {
           "name": "issueDocument",
           "kind": "function",
-          "line_start": 566,
-          "line_end": 616
+          "line_start": 571,
+          "line_end": 621
         },
         {
           "name": "voidDocument",
           "kind": "function",
-          "line_start": 623,
-          "line_end": 661
+          "line_start": 628,
+          "line_end": 666
         }
       ],
       "import_sites": [
@@ -78979,6 +78980,11 @@
           "specifier": "@/engines/canonical/audit",
           "line": 19,
           "resolved_target": "engines/canonical/audit.ts"
+        },
+        {
+          "specifier": "@/core/party/platform-company",
+          "line": 20,
+          "resolved_target": "core/party/platform-company.ts"
         }
       ]
     },
@@ -98374,6 +98380,56 @@
           "resolved_target": "services/supabase/queries.ts"
         }
       ]
+    },
+    {
+      "id": "module:core/party/platform-company.ts",
+      "type": "Module",
+      "layer": "core",
+      "name_en": "core/party/platform-company.ts",
+      "purpose_th": "Party identity — the ONE place that knows which `companies` row is DNA OS.",
+      "exports": [
+        "PLATFORM_COMPANY_ID",
+        "PartyKind",
+        "partyKindFromCompanyType"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [],
+      "dependents": [
+        "module:engines/canonical/document-write.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "core",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "PLATFORM_COMPANY_ID",
+          "kind": "const",
+          "line_start": 18,
+          "line_end": 18
+        },
+        {
+          "name": "PartyKind",
+          "kind": "type",
+          "line_start": 21,
+          "line_end": 21
+        },
+        {
+          "name": "partyKindFromCompanyType",
+          "kind": "function",
+          "line_start": 33,
+          "line_end": 46
+        }
+      ]
     }
   ],
   "edges": [
@@ -102065,6 +102121,11 @@
     {
       "source": "layer:core",
       "target": "module:core/owner-verification-client.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:core",
+      "target": "module:core/party/platform-company.ts",
       "label": "contains"
     },
     {
@@ -118254,6 +118315,11 @@
     },
     {
       "source": "module:engines/canonical/document-write.ts",
+      "target": "module:core/party/platform-company.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/canonical/document-write.ts",
       "target": "module:engines/canonical/audit.ts",
       "label": "imports"
     },
@@ -124664,8 +124730,8 @@
     }
   ],
   "summary": {
-    "total": 1439,
-    "ok": 1439,
+    "total": 1440,
+    "ok": 1440,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

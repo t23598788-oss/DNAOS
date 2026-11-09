@@ -17481,6 +17481,18 @@
         "readCommissionRate"
       ],
       "status": "active"
+    },
+    "core/party/platform-company.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Party identity — the ONE place that knows which `companies` row is DNA OS.",
+      "purpose_th": "Party identity — the ONE place that knows which `companies` row is DNA OS.",
+      "exports": [
+        "PLATFORM_COMPANY_ID",
+        "PartyKind",
+        "partyKindFromCompanyType"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
