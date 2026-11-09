@@ -1252,16 +1252,22 @@
       "purpose_th": "การติดตามคำขอ — บันทึกทุกขั้นตอนของคำขอเพื่อให้สามารถเล่นซ้ำได้",
       "exports": [
         "DataSource",
+        "ExecutionEvent",
+        "ExecutionEventInput",
+        "ExecutionEventName",
+        "ExecutionEventStatus",
         "RequestTrace",
         "TraceStep",
         "addStep",
         "completeTrace",
+        "emitExecutionEvent",
         "getRecentTraces",
         "getTrace",
         "replayTrace",
         "setIntent",
         "startTrace",
-        "traceLineage"
+        "traceLineage",
+        "withExecutionContext"
       ],
       "status": "active"
     },
@@ -17126,6 +17132,7 @@
       "purpose": "Railway task-queue client (DNA-000218, RAILWAY NATIVE CLINE RUNTIME).",
       "purpose_th": "Railway task-queue client (DNA-000218, RAILWAY NATIVE CLINE RUNTIME).",
       "exports": [
+        "__resetClineQueueFailuresForTest",
         "runOwnerRequestViaRailwayTaskQueue"
       ],
       "status": "active"
@@ -17186,6 +17193,134 @@
       "purpose_th": "GET/POST /api/v1/mcp/business/dispatch — THE missing connection reported by",
       "exports": [
         "POST"
+      ],
+      "status": "active"
+    },
+    "scripts/test-kbank-oauth.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Manual one-off test for the KBank OAuth2 client (Phase 1).",
+      "purpose_th": "Manual one-off test for the KBank OAuth2 client (Phase 1).",
+      "exports": [],
+      "status": "active"
+    },
+    "core/webhook-signature.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Webhook signature header — shared rule for the two sides of the gateway:",
+      "purpose_th": "Webhook signature header — shared rule for the two sides of the gateway:",
+      "exports": [
+        "normalizeSignatureHeader",
+        "requireSignatureHeader"
+      ],
+      "status": "active"
+    },
+    "services/kbank/kapi-oauth.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "KBank K API OAuth2 client (sandbox).",
+      "purpose_th": "KBank K API OAuth2 client (sandbox).",
+      "exports": [
+        "clearKBankTokenCache",
+        "getKBankAccessToken",
+        "getKBankOAuthConfig",
+        "isTokenValid"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/kbank/token/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "KBank Token Bridge (internal API).",
+      "purpose_th": "KBank Token Bridge (internal API).",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/connectors/webhook/kbank/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "KBank Webhook Receiver Skeleton.",
+      "purpose_th": "KBank Webhook Receiver Skeleton.",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/connectors/webhook/[slug]/_lib/webhookGate.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Webhook Gate — the single place that decides whether an inbound webhook is",
+      "purpose_th": "Webhook Gate — the single place that decides whether an inbound webhook is",
+      "exports": [
+        "MAX_WEBHOOK_BODY_BYTES",
+        "WebhookGateConnector",
+        "WebhookGateInput",
+        "WebhookGateResult",
+        "WebhookRejectReason",
+        "deriveEventKey",
+        "evaluateWebhookRequest",
+        "readPath",
+        "requireSignatureHeader",
+        "verifySignature"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/adapters/kbank.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "\\",
+      "purpose_th": "\\",
+      "exports": [
+        "KBANK_EVIDENCE_KEYS",
+        "capabilityForKBankEvent",
+        "normalizeKBankWebhook"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/workers/reconciler.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "entry_point": true,
+      "purpose": "Integration Gateway — Reconciliation Worker (Phase 2, worker).",
+      "purpose_th": "Integration Gateway — Reconciliation Worker (Phase 2, worker).",
+      "exports": ["reconcileKBankPayments"],
+      "status": "active"
+    },
+
+    "engines/integration-gateway/workers/payout-worker.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "entry_point": true,
+      "purpose": "Integration Gateway — KBank Payout Worker (Phase 3, worker).",
+      "purpose_th": "Integration Gateway — KBank Payout Worker (Phase 3, worker).",
+      "exports": ["processOrderPayout", "reconcilePayouts"],
+      "status": "active"
+    },
+
+    "engines/integration-gateway/workers/order-translator.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "entry_point": true,
+      "purpose": "Integration Gateway — Reconciliation Worker (Phase 2, worker).",
+      "purpose_th": "Integration Gateway — Reconciliation Worker (Phase 2, worker).",
+      "exports": [
+        "reconcileKBankPayments"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/workers/order-translator.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "entry_point": true,
+      "purpose": "Integration Gateway — Inbound Translator (Phase 1, worker).",
+      "purpose_th": "Integration Gateway — Inbound Translator (Phase 1, worker).",
+      "exports": [
+        "OrderTranslatorOptions",
+        "buildOrderNo",
+        "extractLineOrderFields",
+        "translateLineMessageEvents"
       ],
       "status": "active"
     }
