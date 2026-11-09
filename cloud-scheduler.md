@@ -68,3 +68,24 @@ project เดียวกัน (`xeytcavxejhyzxwevgto`) endpoint จะถู�
 
 - ปิดฝั่ง Vercel: ลบ `crons` ใน `vercel.json` (หรือปิด project) — เป็นการแก้ repo
 - หรือชี้ Cloud Run ไปอีก Supabase project สำหรับทดสอบ
+
+## ก่อน build ครั้งแรก: สร้าง Artifact Registry repo
+
+`cloudbuild.yaml` push ไปที่ repo ชื่อ `cloud-run-source-deploy`
+ซึ่ง Cloud Run จะสร้างให้อัตโนมัติเฉพาะตอน deploy ด้วย `--source` ครั้งแรก
+ถ้า project ยังไม่เคย deploy จาก source มาก่อน repo จะยังไม่มี -> push ล้ม
+
+สร้างล่วงหน้าครั้งเดียวต่อ project:
+
+```bash
+gcloud artifacts repositories create cloud-run-source-deploy \
+  --repository-format=docker \
+  --location=asia-southeast1 \
+  --description="Cloud Run images"
+```
+
+ตรวจว่าสร้างแล้ว:
+
+```bash
+gcloud artifacts repositories list --location=asia-southeast1
+```

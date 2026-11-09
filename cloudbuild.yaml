@@ -1,13 +1,16 @@
 # Cloud Build: build image โดยส่ง NEXT_PUBLIC_* เป็น --build-arg
 # แล้ว push ขึ้น Artifact Registry -> Cloud Run deploy ด้วย --image
 #
+# ก่อนใช้ครั้งแรก ต้องสร้าง Artifact Registry repo ก่อน (ครั้งเดียวต่อ project):
+#   gcloud artifacts repositories create cloud-run-source-deploy \
+#     --repository-format=docker \
+#     --location=asia-southeast1 \
+#     --description="Cloud Run images"
+#
 # วิธีรัน:
 #   gcloud builds submit \
 #     --config cloudbuild.yaml \
 #     --substitutions=_REGION=asia-southeast1,_SERVICE=dna-runtime,_GA_ID=G-XXXX,_LINE_URL=https://line.me/R/ti/p/@yourOA,_SB_URL=https://xxx.supabase.co,_SB_ANON=eyJ...
-#
-# หลัง build เสร็จจะได้ image ที่:
-#   ${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}:${SHORT_SHA}
 
 substitutions:
   _REGION: asia-southeast1
@@ -30,13 +33,7 @@ steps:
       - '-t=${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}:latest'
       - '.'
 
-  # 2) push image
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      - 'push'
-      - '--all-tags'
-      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}'
-
+# ใช้ images: ให้ Cloud Build push ให้อัตโนมัติ (ไม่ต้องมี step push ซ้ำ)
 images:
   - '${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}:${SHORT_SHA}'
   - '${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}:latest'
