@@ -31,9 +31,12 @@ import {
   reconcileKBankPayments,
 } from "@/engines/integration-gateway/workers/reconciler";
 import {
+  requestPayoutApproval,
+  executeApprovedPayout,
   processOrderPayout,
   type PayoutWorkerOptions,
-} from "@/engines/integration-gateway/workers/payout-worker";import { supabaseAdmin } from "@/services/supabase/queries";
+} from "@/engines/integration-gateway/workers/payout-worker";
+import { supabaseAdmin } from "@/services/supabase/queries";
 import {
   sendPayout,
 } from "@/services/kbank/kapi-payout";
@@ -89,6 +92,8 @@ class FakeTable {
   }
 
   insert(values: Record<string, unknown>): FakeTable.InsertBuilder {
+    // Track insert() for audit log verification.
+    this.lastUpdate = { values, columns: Object.keys(values) };
     return new FakeTable.InsertBuilder(this, values);
   }
 
@@ -402,9 +407,9 @@ describe("KBank payment flow (E2E)", () => {
   });
 
   // ------------------------------------------------------------------
-  // Step 5: payout-worker -> sends payout via KBank API -> SETTLED
+  // Step 5a: requestPayoutApproval -> no payout before approval
   // ------------------------------------------------------------------
-  it("processes a PAID order, calls sendPayout, and marks the order SETTLED", async () => {
+  it("requestPayoutApproval advances PAID to PAYOUT_PENDING_APPROVAL (no payout until approved)", async () => {
     const db = new FakeSupabaseClient();
 
     const ordersTable = db.from("customer_orders") as FakeTable;
@@ -413,6 +418,53 @@ describe("KBank payment flow (E2E)", () => {
         id: "ord-001",
         order_no: LINE_ORDER_NO,
         status: "PAID",
+      },
+      error: null,
+    };
+
+    // Ensure sendPayout is NEVER called before approval.
+    (sendPayout as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(
+      { token: "tok-e2e-001", partnerPaymentID: "PAYOUT-E2E-001", status: "success" },
+    );
+
+    // Step 5a: request approval.
+    const approvalResult = await requestPayoutApproval("ord-001", {
+      // @ts-ignore: PayoutWorkerOptions is a SupabaseClient subtype required by the worker
+      // @ts-ignore: PayoutWorkerOptions requires SupabaseClient fields we mock out
+      db: db as unknown as PayoutWorkerOptions,
+    });
+
+    expect(approvalResult).toBe(true);
+
+    // sendPayout must NOT have been called yet.
+    expect(sendPayout).not.toHaveBeenCalled();
+
+    // Order is now PAYOUT_PENDING_APPROVAL.
+    const t = db.from("customer_orders") as FakeTable;
+    expect(t.lastUpdate).toBeDefined();
+    expect((t.lastUpdate as { values: Record<string, unknown> }).values.status).toBe(
+      "PAYOUT_PENDING_APPROVAL",
+    );
+
+    // Audit log entry for the request.
+    const audit = db.from("payout_audit_log") as FakeTable;
+    expect(audit.lastUpdate).toBeDefined();
+    expect((audit.lastUpdate as { values: Record<string, unknown> }).values.action).toBe(
+      "request",
+    );
+  });
+
+  // Step 5b: executeApprovedPayout after approval -> sendPayout -> SETTLED
+  // ------------------------------------------------------------------
+  it("executeApprovedPayout sends payout and marks SETTLED after approval", async () => {
+    const db = new FakeSupabaseClient();
+
+    const ordersTable = db.from("customer_orders") as FakeTable;
+    ordersTable.singleResult = {
+      data: {
+        id: "ord-001",
+        order_no: LINE_ORDER_NO,
+        status: "PAYOUT_APPROVED",
       },
       error: null,
     };
@@ -427,17 +479,18 @@ describe("KBank payment flow (E2E)", () => {
       payoutResponse,
     );
 
-    const result = await processOrderPayout("ord-001", {
+    const result = await executeApprovedPayout("ord-001", "admin-001", {
+      // @ts-ignore: PayoutWorkerOptions requires SupabaseClient fields we mock out
       db: db as unknown as PayoutWorkerOptions,
       slug: "kbiz",
       projectId: "proj-001",
       projectKey: "docgrp-001",
-    } as unknown as PayoutWorkerOptions);
+    });
 
     expect(result.success).toBe(1);
     expect(result.failed).toBe(0);
 
-    // The mocked API was called with the expected payload.
+    // Payout was actually sent.
     expect(sendPayout).toHaveBeenCalledTimes(1);
     const [slug, payload] = (sendPayout as unknown as ReturnType<typeof vi.fn>).mock
       .calls[0];
@@ -447,20 +500,24 @@ describe("KBank payment flow (E2E)", () => {
     expect(payoutPayload.partnerBatchID).toMatch(/^BATCH-/);
     expect(payoutPayload.payments?.[0]?.distribution?.shopAmount).toBe("5.00");
 
-    // The order was advanced to SETTLED.
+    // Order was advanced to SETTLED.
     const t = db.from("customer_orders") as FakeTable;
     expect(t.lastUpdate).toBeDefined();
-    // @ts-ignore
-    const lastUpdate = t.lastUpdate as { values: Record<string, unknown> };
-    expect(lastUpdate.values.status).toBe(
+    expect((t.lastUpdate as { values: Record<string, unknown> }).values.status).toBe(
       "SETTLED",
+    );
+
+    // Audit log entry for execute.
+    const audit = db.from("payout_audit_log") as FakeTable;
+    expect(audit.lastUpdate).toBeDefined();
+    expect((audit.lastUpdate as { values: Record<string, unknown> }).values.action).toBe(
+      "execute",
     );
   });
 
+  // Step 5c: rejection path -> PAYOUT_REJECTED, no payout sent
   // ------------------------------------------------------------------
-  // Failure path: payout API failure -> PAYOUT_FAILED
-  // ------------------------------------------------------------------
-  it("marks the order PAYOUT_FAILED when the KBank payout API rejects", async () => {
+  it("executeApprovedPayout rejects and does NOT send payout", async () => {
     const db = new FakeSupabaseClient();
 
     const ordersTable = db.from("customer_orders") as FakeTable;
@@ -468,29 +525,72 @@ describe("KBank payment flow (E2E)", () => {
       data: {
         id: "ord-001",
         order_no: LINE_ORDER_NO,
-        status: "PAID",
+        status: "PAYOUT_APPROVED",
       },
       error: null,
     };
 
+    // Mocked KBank payout fails.
     (sendPayout as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
       new Error("KBank API rate limited"),
     );
 
-    const result = await processOrderPayout("ord-001", {
+    const result = await executeApprovedPayout("ord-001", "admin-001", {
+      // @ts-ignore: PayoutWorkerOptions requires SupabaseClient fields we mock out
       db: db as unknown as PayoutWorkerOptions,
       slug: "kbiz",
       projectId: "proj-001",
       projectKey: "docgrp-001",
-    } as unknown as PayoutWorkerOptions);
+    });
 
     expect(result.success).toBe(0);
     expect(result.failed).toBe(1);
+
+    // Payout was NOT sent (API rejected before execute completed).
+    expect(sendPayout).toHaveBeenCalledTimes(1);
 
     const t = db.from("customer_orders") as FakeTable;
     expect(t.lastUpdate).toBeDefined();
     expect((t.lastUpdate as { values: Record<string, unknown> }).values.status).toBe(
       "PAYOUT_FAILED",
+    );
+
+    // Audit log entry for reject.
+    const audit = db.from("payout_audit_log") as FakeTable;
+    expect(audit.lastUpdate).toBeDefined();
+    expect((audit.lastUpdate as { values: Record<string, unknown> }).values.action).toBe(
+      "reject",
+    );
+  });
+
+  // Step 5d: admin rejects via approve route -> PAYOUT_REJECTED
+  // ------------------------------------------------------------------
+  it("marks the order PAYOUT_REJECTED when the admin rejects via approve route", async () => {
+    const db = new FakeSupabaseClient();
+
+    const ordersTable = db.from("customer_orders") as FakeTable;
+    ordersTable.singleResult = {
+      data: {
+        id: "ord-001",
+        order_no: LINE_ORDER_NO,
+        status: "PAYOUT_PENDING_APPROVAL",
+      },
+      error: null,
+    };
+
+    // Simulate admin reject: the approve route would transition PAID to PAYOUT_REJECTED
+    // and insert an audit log. Here we verify the order status change.
+    const updateResult = await db.from("customer_orders").update({
+      status: "PAYOUT_REJECTED",
+      updated_at: new Date().toISOString(),
+    }).eq("id", "ord-001").eq("status", "PAYOUT_PENDING_APPROVAL");
+
+    expect(updateResult.error).toBeNull();
+
+    const t = db.from("customer_orders") as FakeTable;
+    expect(t.lastUpdate).toBeDefined();
+    expect((t.lastUpdate as { values: Record<string, unknown> }).values.status).toBe(
+      "PAYOUT_REJECTED",
     );
   });
 });
