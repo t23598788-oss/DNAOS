@@ -30,4 +30,18 @@ create policy "live_commands_select_anon" on live_commands
   to anon, authenticated
   using (true);
 
-alter publication supabase_realtime add table live_commands;
+-- add to realtime only when the publication exists (Supabase); plain Postgres skips
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
+       select 1
+       from pg_publication_tables
+       where pubname = 'supabase_realtime'
+         and schemaname = 'public'
+         and tablename = 'live_commands'
+     ) then
+    alter publication supabase_realtime add table public.live_commands;
+  end if;
+end
+$$;

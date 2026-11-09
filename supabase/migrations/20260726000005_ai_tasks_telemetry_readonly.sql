@@ -9,7 +9,9 @@
 -- function — this is read-only telemetry, no new write surface.
 do $$
 begin
-  if not exists (
+  -- add to realtime only when the publication exists (Supabase); plain Postgres skips
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
     select 1
     from pg_publication_tables
     where pubname = 'supabase_realtime'

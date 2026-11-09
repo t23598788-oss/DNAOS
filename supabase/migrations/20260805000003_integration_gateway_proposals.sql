@@ -32,7 +32,15 @@ create policy "authenticated can read integration_gateway_proposals" on public.i
 
 do $$
 begin
-  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'integration_gateway_proposals') then
+  -- add to realtime only when the publication exists (Supabase); plain Postgres skips
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'integration_gateway_proposals'
+  ) then
     alter publication supabase_realtime add table public.integration_gateway_proposals;
   end if;
 end

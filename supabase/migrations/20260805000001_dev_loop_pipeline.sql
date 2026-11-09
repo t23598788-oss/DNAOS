@@ -69,13 +69,37 @@ create policy "authenticated can read dev_loop_registry_proposals" on public.dev
 
 do $$
 begin
-  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'dev_loop_evidence_events') then
+  -- add to realtime only when the publication exists (Supabase); plain Postgres skips
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'dev_loop_evidence_events'
+  ) then
     alter publication supabase_realtime add table public.dev_loop_evidence_events;
   end if;
-  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'dev_loop_check_results') then
+  -- add to realtime only when the publication exists (Supabase); plain Postgres skips
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'dev_loop_check_results'
+  ) then
     alter publication supabase_realtime add table public.dev_loop_check_results;
   end if;
-  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'dev_loop_registry_proposals') then
+  -- add to realtime only when the publication exists (Supabase); plain Postgres skips
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'dev_loop_registry_proposals'
+  ) then
     alter publication supabase_realtime add table public.dev_loop_registry_proposals;
   end if;
 end

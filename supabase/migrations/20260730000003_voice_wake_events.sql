@@ -37,7 +37,9 @@ create policy admin_workspace_read_voice_wake_events
 
 do $$
 begin
-  if not exists (
+  -- add to realtime only when the publication exists (Supabase); plain Postgres skips
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
     select 1
     from pg_publication_tables
     where pubname = 'supabase_realtime'
