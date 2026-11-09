@@ -61,27 +61,126 @@ function buildOrderNo(evidence: Record<string, unknown>, provider: string): stri
   return `T1-${short}-${Date.now().toString(36)}`;
 }
 
-/**
- * Extract the best available identity fields from a LINE message.received
- * evidence payload. Returns null for the fields we do not yet have a parser
- * for (the stub row passes NOT NULL columns with the real resolution deferred
- * to the OWNER-approved fix TASK-021).
- */
-function extractLineOrderFields(evidence: Record<string, unknown>): {
+/** The identity fields a LINE message can carry (or that we can resolve). */
+export interface LineOrderFields {
   projectId: string | null;
   documentGroupId: string | null;
   customerCompanyId: string | null;
   customerSiteId: string | null;
   deliveryNote: string | null;
-} {
-  // device_id / project_id / site_id / company_id will come from the real
-  // LINE message parser (device→company→project→site chain) in a future phase.
+}
+
+/** The four NOT NULL anchors every customer_orders row must carry. */
+export interface OrderAnchors {
+  projectId: string;
+  documentGroupId: string;
+  customerCompanyId: string;
+  customerSiteId: string;
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function asId(value: unknown): string | null {
+  return typeof value === "string" && value.trim() !== "" ? value.trim() : null;
+}
+
+/**
+ * Extract the identity fields a LINE message.received evidence payload carries.
+ *
+ * The adapter's evidence contract has no project/site resolver yet, so these
+ * keys are simply absent today; they are read here so that the day the parser
+ * starts emitting them the translator picks them up with no further change.
+ */
+function extractLineOrderFields(evidence: Record<string, unknown>): LineOrderFields {
   return {
-    projectId: null,
-    documentGroupId: null,
-    customerCompanyId: null,
-    customerSiteId: null,
-    deliveryNote: null,
+    projectId: asId(evidence.project_id),
+    documentGroupId: asId(evidence.document_group_id),
+    customerCompanyId: asId(evidence.customer_company_id),
+    customerSiteId: asId(evidence.customer_site_id),
+    deliveryNote: typeof evidence.delivery_note === "string" ? evidence.delivery_note : null,
+  };
+}
+
+/**
+ * Resolve the four NOT NULL anchors for an order — or refuse.
+ *
+ * customer_orders.project_id / document_group_id / customer_company_id /
+ * customer_site_id are uuid NOT NULL with no default and each carries an FK to
+ * projects / document_groups / companies / customer_sites, so a row inserted
+ * with `undefined` is rejected by Postgres (that was the silent-skip bug).
+ *
+ * ONE strategy, documented (do not mix):
+ *   1. use the value from the event's evidence when it carries one;
+ *   2. otherwise resolve the sending LINE contact through `line_profiles`
+ *      (`line_user_id = evidence.sender_id`) to its `company_id`. That is the
+ *      strongest real anchor the repo has: the profile table links a LINE user
+ *      to a company, but it carries no project/department site;
+ *   3. for the remaining project / document_group / site anchors, reuse the
+ *      most recent customer_orders row of THAT SAME company. This is the
+ *      "most recent order for the same contact" strategy the task allows,
+ *      adapted to the column we actually have (orders do not store a
+ *      line_user_id; the profile resolves the contact to a company first).
+ *   4. if any anchor is still missing, return null — the caller must NOT
+ *      insert. Nothing is invented, and no synthetic project/company is made.
+ */
+async function resolveOrderAnchors(
+  db: SupabaseClient,
+  fields: LineOrderFields,
+  senderId: string | null,
+): Promise<{ anchors: OrderAnchors | null; missing: string[] }> {
+  let companyId = fields.customerCompanyId && UUID_RE.test(fields.customerCompanyId)
+    ? fields.customerCompanyId
+    : null;
+
+  if (!companyId && senderId) {
+    const { data: profiles } = await db
+      .from("line_profiles")
+      .select("company_id")
+      .eq("line_user_id", senderId)
+      .limit(1);
+    const profile = (Array.isArray(profiles) ? profiles[0] : profiles) as
+      | { company_id?: unknown }
+      | null
+      | undefined;
+    const profileCompany = asId(profile?.company_id);
+    if (profileCompany && UUID_RE.test(profileCompany)) companyId = profileCompany;
+  }
+
+  let projectId = fields.projectId && UUID_RE.test(fields.projectId) ? fields.projectId : null;
+  let documentGroupId =
+    fields.documentGroupId && UUID_RE.test(fields.documentGroupId) ? fields.documentGroupId : null;
+  let customerSiteId =
+    fields.customerSiteId && UUID_RE.test(fields.customerSiteId) ? fields.customerSiteId : null;
+
+  if (companyId && (!projectId || !documentGroupId || !customerSiteId)) {
+    const { data: previousRows } = await db
+      .from("customer_orders")
+      .select("project_id, document_group_id, customer_site_id")
+      .eq("customer_company_id", companyId)
+      .order("created_at", { ascending: false })
+      .limit(1);
+    const previous = (Array.isArray(previousRows) ? previousRows[0] : previousRows) as
+      | { project_id?: unknown; document_group_id?: unknown; customer_site_id?: unknown }
+      | null
+      | undefined;
+    projectId = projectId ?? asId(previous?.project_id);
+    documentGroupId = documentGroupId ?? asId(previous?.document_group_id);
+    customerSiteId = customerSiteId ?? asId(previous?.customer_site_id);
+  }
+
+  const missing: string[] = [];
+  if (!projectId) missing.push("project_id");
+  if (!documentGroupId) missing.push("document_group_id");
+  if (!companyId) missing.push("customer_company_id");
+  if (!customerSiteId) missing.push("customer_site_id");
+
+  if (!projectId || !documentGroupId || !companyId || !customerSiteId) {
+    return { anchors: null, missing };
+  }
+
+  return {
+    anchors: { projectId, documentGroupId, customerCompanyId: companyId, customerSiteId },
+    missing: [],
   };
 }
 
@@ -91,7 +190,7 @@ function extractLineOrderFields(evidence: Record<string, unknown>): {
  */
 export async function translateLineMessageEvents(
   options: OrderTranslatorOptions = {},
-): Promise<{ translated: number; skipped: number; processed: number }> {
+): Promise<{ translated: number; skipped: number; processed: number; unanchored: number }> {
   const db = (options.db ?? supabaseAdmin()) as SupabaseClient;
 
   // 1. Read inbound LINE events. channel='observe' is the only channel used
@@ -110,16 +209,17 @@ export async function translateLineMessageEvents(
     // Fail-open at the translator boundary: a transient DB problem must not
     // tear down the whole webhook ingest; the Reconcile/Payout phases will
     // retry from the persisted event log.
-    return { translated: 0, skipped: 0, processed: 0 };
+    return { translated: 0, skipped: 0, processed: 0, unanchored: 0 };
   }
 
   const rows = (events ?? []) as GatewayEvent[];
-  if (rows.length === 0) return { translated: 0, skipped: 0, processed: 0 };
+  if (rows.length === 0) return { translated: 0, skipped: 0, processed: 0, unanchored: 0 };
 
   const seen: SeenOrder[] = [];
   let translated = 0;
   let skipped = 0;
   let processed = 0;
+  let unanchored = 0;
 
   for (const evt of rows) {
     const evidence = (evt.evidence ?? {}) as Record<string, unknown>;
@@ -130,22 +230,32 @@ export async function translateLineMessageEvents(
       continue;
     }
 
-    // 2. Build the stub order. project_id / customer_company_id / site_id are
-    //    NOT NULL today; they are deliberately null here and the real pipeline
-    //    MUST fill them before the order is "real" (see TASK-021). For the
-    //    stub we persist the row with the enum default DRAFT so the table
-    //    stays consistent with the live schema.
+    // 2. Resolve the four NOT NULL anchors BEFORE inserting anything. There is
+    //    no invented fallback: an event whose order cannot be anchored is left
+    //    in status 'received' so the next cron run can retry it.
     const orderNo = buildOrderNo(evidence, provider);
     const fields = extractLineOrderFields(evidence);
+    const senderId = typeof evidence.sender_id === "string" ? evidence.sender_id : null;
+
+    const { anchors, missing } = await resolveOrderAnchors(db, fields, senderId);
+    if (!anchors) {
+      unanchored += 1;
+      skipped += 1;
+      console.warn(
+        `[order-translator] cannot anchor order for event ${evt.event_id}: ` +
+          `missing ${missing.join(", ")} (sender ${senderId ?? "unknown"}) — event left 'received'`,
+      );
+      continue;
+    }
 
     const { data: order, error: insertError } = await db
-        .from("customer_orders")
+      .from("customer_orders")
       .insert({
         order_no: orderNo,
-        project_id: fields.projectId ?? undefined,
-        document_group_id: fields.documentGroupId ?? undefined,
-        customer_company_id: fields.customerCompanyId ?? undefined,
-        customer_site_id: fields.customerSiteId ?? undefined,
+        project_id: anchors.projectId,
+        document_group_id: anchors.documentGroupId,
+        customer_company_id: anchors.customerCompanyId,
+        customer_site_id: anchors.customerSiteId,
         status: "DRAFT",
         delivery_note: fields.deliveryNote ?? null,
         // updated_at is NOT NULL; customer_orders has no updated_at trigger,
@@ -179,7 +289,7 @@ export async function translateLineMessageEvents(
     processed += 1;
   }
 
-  return { translated, skipped, processed };
+  return { translated, skipped, processed, unanchored };
 }
 
-export { buildOrderNo, extractLineOrderFields };
+export { buildOrderNo, extractLineOrderFields, resolveOrderAnchors };

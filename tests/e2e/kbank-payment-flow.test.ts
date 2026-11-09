@@ -121,6 +121,9 @@ namespace FakeTable {
     eq(col: string, val: unknown): FakeTable.UpdateBuilder {
       return this;
     }
+    in(col: string, vals: unknown[]): FakeTable.UpdateBuilder {
+      return this;
+    }
     // Supabase query builders are thenables. Await on an UpdateBuilder
     // resolves to the write result `{ error: null }`.
     then<T>(resolve: (value: { error: Error | null }) => void): void {
@@ -205,6 +208,14 @@ import { sendRefund } from "@/services/kbank/kapi-refund";
 const LINE_EVENT_TYPE = "message/2916461334170554";
 const LINE_ORDER_NO = `T1-${LINE_EVENT_TYPE.slice(0, 8)}-0001`;
 
+// Real-shaped anchor ids: customer_orders.project_id / document_group_id /
+// customer_company_id / customer_site_id are uuid NOT NULL, so the translator
+// must resolve all four before inserting (see resolveOrderAnchors).
+const ANCHOR_COMPANY_ID = "5f3a1c2e-1111-4a2b-9c3d-00000000c001";
+const ANCHOR_PROJECT_ID = "5f3a1c2e-2222-4a2b-9c3d-00000000c002";
+const ANCHOR_DOCUMENT_GROUP_ID = "5f3a1c2e-3333-4a2b-9c3d-00000000c003";
+const ANCHOR_SITE_ID = "5f3a1c2e-4444-4a2b-9c3d-00000000c004";
+
 // Order row as it lives in the (mocked) customer_orders table.
 const FAKE_ORDER = {
   id: "ord-001" as const,
@@ -283,6 +294,10 @@ describe("KBank payment flow (E2E)", () => {
           evidence: {
             webhook_event_id: "ev-001",
             sender_id: "U-001",
+            // The LINE adapter always carries event_type (see
+            // engines/integration-gateway/adapters/line.ts EVIDENCE_KEYS);
+            // buildOrderNo() derives the order_no slug from it.
+            event_type: LINE_EVENT_TYPE,
           },
           occurred_at: "2026-11-09T00:00:00.000Z",
         },
@@ -290,10 +305,24 @@ describe("KBank payment flow (E2E)", () => {
       error: null,
     };
 
+    // The sender resolves to a company through line_profiles (the strongest
+    // real anchor the schema has), and that company's most recent order
+    // supplies the project / document_group / site anchors.
+    const profiles = db.from("line_profiles") as FakeTable;
+    profiles.singleResult = {
+      data: [{ company_id: ANCHOR_COMPANY_ID }],
+      error: null,
+    };
+
     const t = db.from("customer_orders") as FakeTable;
-    // The insert().single() returns the inserted row; configure it.
     t.singleResult = {
-      data: { id: "ord-001", order_no: LINE_ORDER_NO, status: "DRAFT" },
+      data: [
+        {
+          project_id: ANCHOR_PROJECT_ID,
+          document_group_id: ANCHOR_DOCUMENT_GROUP_ID,
+          customer_site_id: ANCHOR_SITE_ID,
+        },
+      ],
       error: null,
     };
 
@@ -312,19 +341,19 @@ describe("KBank payment flow (E2E)", () => {
 
     expect(result.translated).toBe(1);
     expect(result.processed).toBe(1);
+    expect(result.unanchored).toBe(0);
 
-    // The insert resolved to the row we declared.
-    const ins = t.insert({
-      order_no: LINE_ORDER_NO,
-      project_id: undefined,
-      document_group_id: undefined,
-      customer_company_id: undefined,
-      customer_site_id: undefined,
-      status: "DRAFT",
-      updated_at: expect.any(String),
-    }).single();
-    expect(ins.error).toBeNull();
-    expect((ins.data as { order_no?: string }).order_no).toBe(LINE_ORDER_NO);
+    // The row the worker actually wrote carries all four resolved anchors —
+    // no `undefined` reaches the NOT NULL columns any more.
+    const written = (t.lastUpdate?.values ?? {}) as Record<string, unknown>;
+    // buildOrderNo() derives T1-<event_type slug>-<base36 time>; the fixture
+    // constant LINE_ORDER_NO is only the reconciler's KBank reference label.
+    expect(String(written.order_no)).toMatch(/^T1-message-[0-9a-z]+$/);
+    expect(written.project_id).toBe(ANCHOR_PROJECT_ID);
+    expect(written.document_group_id).toBe(ANCHOR_DOCUMENT_GROUP_ID);
+    expect(written.customer_company_id).toBe(ANCHOR_COMPANY_ID);
+    expect(written.customer_site_id).toBe(ANCHOR_SITE_ID);
+    expect(written.status).toBe("DRAFT");
   });
 
   // ------------------------------------------------------------------
@@ -357,6 +386,9 @@ describe("KBank payment flow (E2E)", () => {
           capability: "payment.completed",
           evidence: {
             reference: LINE_ORDER_NO,
+            // The KBank adapter emits both keys (reference stays for readers
+            // that predate the fix); the reconciler matches on reference_id.
+            reference_id: LINE_ORDER_NO,
             amount: 100,
           },
           occurred_at: "2026-11-09T00:00:00.000Z",
@@ -372,7 +404,9 @@ describe("KBank payment flow (E2E)", () => {
         {
           id: "ord-001",
           order_no: LINE_ORDER_NO,
-          status: "DRAFT",
+          // Owner decision (binding): a KBank payment means the money has
+          // landed, so the match set is SUBMITTED or PAID — never DRAFT-only.
+          status: "SUBMITTED",
         },
       ],
       error: null,
@@ -401,6 +435,7 @@ describe("KBank payment flow (E2E)", () => {
     expect(result.matched).toBe(1);
     expect(result.unmatched).toBe(0);
     expect(result.failed).toBe(0);
+    expect(result.reasons).toHaveLength(0);
 
     // The order read resolved with the DRAFT row.
     // @ts-ignore: tsc cannot resolve the generic chain types on read2

@@ -55,6 +55,41 @@ interface ProcessedEvent {
 }
 
 /**
+ * The statuses a KBank payment may land on.
+ *
+ * OWNER DECISION (binding, 2026-11-09): the KBank webhook means "money has
+ * landed", so the order is expected to be SUBMITTED or PAID at that moment —
+ * matching DRAFT-only was wrong. SUBMITTED is kept so a payment that arrives
+ * before the status flip still matches. Do not narrow this back to DRAFT.
+ */
+const MATCHABLE_STATUSES: string[] = ["SUBMITTED", "PAID"];
+
+const ORDER_COLUMNS =
+  "id, order_no, customer_company_id, customer_site_id, status, updated_at";
+
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** One customer_orders row as the reconciler reads it. */
+interface ReconciliationCandidate {
+  id: string;
+  order_no: string;
+  customer_company_id: string;
+  customer_site_id: string;
+  status: string;
+  updated_at: string;
+}
+
+/** Summary returned to the caller (cron route / tests). */
+export interface ReconciliationResult {
+  matched: number;
+  unmatched: number;
+  failed: number;
+  /** One entry per event that could not be matched: "<event_id>: <why>". */
+  reasons: string[];
+}
+
+/**
  * Read all KBank payment.completed events that are still unreconciled and
  * attempt to match each one to a pending customer_order.
  *
@@ -64,11 +99,7 @@ interface ProcessedEvent {
  */
 export async function reconcileKBankPayments(
   options: ReconciliationOptions = {},
-): Promise<{
-  matched: number;
-  unmatched: number;
-  failed: number;
-}> {
+): Promise<ReconciliationResult> {
   const db = (options.db ?? supabaseAdmin()) as SupabaseClient;
 
   // 1. Read unreconciled KBank payment.completed events.
@@ -84,14 +115,15 @@ export async function reconcileKBankPayments(
     // Fail-open: the reconciliation engine must never halt the webhook
     // ingest pipeline. A transient problem is retried on the next run, and
     // the offending rows keep their 'received' status so they are not lost.
-    return { matched: 0, unmatched: 0, failed: 1 };
+    return { matched: 0, unmatched: 0, failed: 1, reasons: ["event read failed"] };
   }
 
   const rows = (events ?? []) as GatewayEvent[];
-  if (rows.length === 0) return { matched: 0, unmatched: 0, failed: 0 };
+  if (rows.length === 0) return { matched: 0, unmatched: 0, failed: 0, reasons: [] };
 
   let matched = 0;
   let unmatched = 0;
+  const reasons: string[] = [];
 
   for (const evt of rows) {
     const evidence = (evt.evidence ?? {}) as Record<string, unknown>;
@@ -113,28 +145,67 @@ export async function reconcileKBankPayments(
           ? evidence.order_id
           : null;
 
-    // 3. Search customer_orders for a match. The identifier we matched on
-    //    is either the KBank event's reference_id (in which case we compare
-    //    to order_no) or the order's own id (in which case we compare to id).
-    //    We filter status to DRAFT / SUBMITTED so only pending orders can
-    //    be matched, and we deduplicate with limit(1) per term below.
-    const { data: candidates, error: searchError } = await db
-      .from("customer_orders")
-      .select("id, order_no, customer_company_id, customer_site_id, status, updated_at")
-      .or(
-        `order_no.eq.${referenceId ?? ""}`,
-      )
-      .or(
-        `id.eq.${referenceId ?? ""}`,
-      )
-      .in("status", ["DRAFT", "SUBMITTED"])
-      .limit(10);
+    // 3. Search customer_orders for a match. The identifier is either the
+    //    KBank reference (compare to order_no) or the order's own uuid
+    //    (compare to id).
+    //
+    //    TWO separate queries instead of chained `.or()` on purpose:
+    //      - PostgREST ANDs chained `.or()` filters together, so the old
+    //        `.or(order_no).or(id)` required BOTH conditions to hold; and
+    //      - `id.eq.<order_no>` compared a uuid column to a non-uuid string,
+    //        raising 22P02 for every order-number reference.
+    //
+    //    Status: see MATCHABLE_STATUSES (owner decision — PAID counts as
+    //    payable-landed, SUBMITTED is kept for an early payment).
+    const candidates: ReconciliationCandidate[] = [];
+    let reason: string | null = null;
 
-    if (searchError || !candidates || candidates.length === 0) {
-      // 5. NO match: mark the payment 'unmatched' and warn.
+    if (!referenceId) {
+      reason = "no reference_id / order_id in evidence";
+    } else {
+      const { data: byOrderNo, error: orderNoError } = await db
+        .from("customer_orders")
+        .select(ORDER_COLUMNS)
+        .eq("order_no", referenceId)
+        .in("status", MATCHABLE_STATUSES)
+        .limit(1);
+
+      if (orderNoError) {
+        reason = `order_no lookup failed: ${orderNoError.message}`;
+      } else if (Array.isArray(byOrderNo) && byOrderNo.length > 0) {
+        candidates.push(byOrderNo[0] as ReconciliationCandidate);
+      }
+
+      // Only a real uuid may be compared against the uuid `id` column.
+      if (!reason && candidates.length === 0) {
+        if (UUID_RE.test(referenceId)) {
+          const { data: byId, error: idError } = await db
+            .from("customer_orders")
+            .select(ORDER_COLUMNS)
+            .eq("id", referenceId)
+            .in("status", MATCHABLE_STATUSES)
+            .limit(1);
+
+          if (idError) {
+            reason = `id lookup failed: ${idError.message}`;
+          } else if (Array.isArray(byId) && byId.length > 0) {
+            candidates.push(byId[0] as ReconciliationCandidate);
+          }
+        } else {
+          reason = `reference ${referenceId} is not a uuid, so id lookup was skipped`;
+        }
+      }
+    }
+
+    const order = candidates[0] ?? null;
+
+    if (!order) {
+      // 5. NO match: mark the payment 'unmatched' and record why.
       unmatched += 1;
+      const why = reason ?? `no order found for reference ${referenceId}`;
+      reasons.push(`${eventId}: ${why}`);
       console.warn(
-        `[reconciler] Payment ${eventId} of amount ${amount ?? "unknown"} has no matching order`,
+        `[reconciler] Payment ${eventId} of amount ${amount ?? "unknown"} has no matching order (${why})`,
       );
 
       const { error: updateError } = await db
@@ -151,29 +222,19 @@ export async function reconcileKBankPayments(
       continue;
     }
 
-    // Use the first candidate in the same tenant (the gateway is single-org
-    // today, so no cross-tenant disambiguation is needed).
-    const order = (candidates ?? [])[0] as {
-      id: string;
-      order_no: string;
-      status: string;
-      customer_company_id: string;
-      customer_site_id: string;
-      updated_at: string;
-    };
-
     // 4a. Matched: set the order to PAID.
     const { error: updateOrderError } = await db
       .from("customer_orders")
       .update({ status: "PAID", updated_at: new Date().toISOString() })
       .eq("id", order.id)
-      .eq("status", "DRAFT");
+      .in("status", MATCHABLE_STATUSES);
 
     if (updateOrderError) {
       // A paid order must not overwrite a live order; log and continue so
       // one bad row does not skip the rest of the reconciliation run.
       console.error(`[reconciler] Failed to mark order ${order.order_no} paid`, updateOrderError);
       unmatched += 1;
+      reasons.push(`${eventId}: order ${order.order_no} could not be marked PAID`);
       continue;
     }
 
@@ -195,6 +256,6 @@ export async function reconcileKBankPayments(
     );
   }
 
-  return { matched, unmatched, failed: 0 };
+  return { matched, unmatched, failed: 0, reasons };
 }
 
