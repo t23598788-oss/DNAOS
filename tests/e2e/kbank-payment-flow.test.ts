@@ -163,11 +163,39 @@ vi.mock("@/services/kbank/kapi-payout", async (importOriginal) => {
   };
 });
 
+// Mock the KBank refund client used by the cancellation worker.
+// `buildRefundPayload` stays real; only `sendRefund` is replaced.
+vi.mock("@/services/kbank/kapi-refund", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/services/kbank/kapi-refund")>();
+  return {
+    ...actual,
+    sendRefund: vi.fn<
+      (
+        slug: "kbiz" | "kplus" | "truemoney",
+        payload: unknown,
+        opts?: unknown,
+      ) => Promise<Record<string, unknown>>
+    >(),
+  };
+});
+
 // Deterministic RequestID header value.
 const fakeUuid = "e2e-uuid-0000";
 vi.stubGlobal("crypto", Object.create(global.crypto, {
   randomUUID: { value: () => fakeUuid },
 }));
+
+
+import {
+  computeCancellationRefund,
+  type CancellationReasonType,
+  type DeliveryStage,
+} from "@/services/finance/cancellation-policy";
+import {
+  cancelOrderWithRefund,
+  type CancellationWorkerOptions,
+} from "@/engines/integration-gateway/workers/cancellation-worker";
+import { sendRefund } from "@/services/kbank/kapi-refund";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -592,5 +620,178 @@ describe("KBank payment flow (E2E)", () => {
     expect((t.lastUpdate as { values: Record<string, unknown> }).values.status).toBe(
       "PAYOUT_REJECTED",
     );
+  });
+
+  // ------------------------------------------------------------------
+  // Step 6: fault-based cancellation (customer fault vs seller fault)
+  // ------------------------------------------------------------------
+
+  it("CUSTOMER_FAULT at PICKED_UP refunds 70% minus 500 (order 10,000 -> 6,500)", async () => {
+    const db = new FakeSupabaseClient();
+    (db.from("customer_orders") as FakeTable).singleResult = {
+      data: {
+        id: "ord-001",
+        order_no: LINE_ORDER_NO,
+        order_amount: 10000,
+        status: "PAID",
+      },
+      error: null,
+    };
+    (sendRefund as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      token: "refund-tok-001",
+      status: "success",
+    });
+
+    const result = await cancelOrderWithRefund(
+      "ord-001",
+      "CUSTOMER_FAULT",
+      undefined,
+      "customer changed mind",
+      "CANCELLED_PICKED_UP",
+      { db: db as unknown as CancellationWorkerOptions["db"] },
+    );
+
+    // (10,000 * 70 / 100) - 500 = 6,500
+    expect(result.refundAmount).toBe(6500);
+    expect(result.deductionAmount).toBe(500);
+    expect(result.status).toBe("CANCELLED_PARTIAL_REFUND");
+
+    // KBank refund is called with exactly the computed amount.
+    expect(sendRefund).toHaveBeenCalledTimes(1);
+    const [, payload] = (sendRefund as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect((payload as { refunds: { amount: string }[] }).refunds[0].amount).toBe("6500.00");
+
+    // Order is marked partially refunded.
+    const orders = db.from("customer_orders") as FakeTable;
+    expect((orders.lastUpdate?.values as Record<string, unknown>).status).toBe(
+      "CANCELLED_PARTIAL_REFUND",
+    );
+
+    // Evidence recorded with the fault type.
+    const evidence = db.from("cancellation_evidence") as FakeTable;
+    expect((evidence.lastUpdate?.values as Record<string, unknown>).reason_type).toBe(
+      "CUSTOMER_FAULT",
+    );
+  });
+
+  it("SELLER_FAULT without proof throws and moves no money", async () => {
+    const db = new FakeSupabaseClient();
+    (db.from("customer_orders") as FakeTable).singleResult = {
+      data: {
+        id: "ord-001",
+        order_no: LINE_ORDER_NO,
+        order_amount: 10000,
+        status: "PAID",
+      },
+      error: null,
+    };
+
+    await expect(
+      cancelOrderWithRefund("ord-001", "SELLER_FAULT", undefined, "wrong specs", "CANCELLED_PICKED_UP", {
+        db: db as unknown as CancellationWorkerOptions["db"],
+      }),
+    ).rejects.toThrow("Proof required for seller fault");
+
+    expect(sendRefund).not.toHaveBeenCalled();
+  });
+
+  it("SELLER_FAULT with proof refunds 100% and records the seller liability", async () => {
+    const db = new FakeSupabaseClient();
+    (db.from("customer_orders") as FakeTable).singleResult = {
+      data: {
+        id: "ord-001",
+        order_no: LINE_ORDER_NO,
+        order_amount: 10000,
+        status: "PAID",
+      },
+      error: null,
+    };
+    (sendRefund as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      token: "refund-tok-002",
+      status: "success",
+    });
+
+    const result = await cancelOrderWithRefund(
+      "ord-001",
+      "SELLER_FAULT",
+      "https://example.com/proof.jpg",
+      "wrong item delivered",
+      "CANCELLED_PICKED_UP",
+      { db: db as unknown as CancellationWorkerOptions["db"] },
+    );
+
+    // Seller pays everything: full refund, zero deduction.
+    expect(result.refundAmount).toBe(10000);
+    expect(result.deductionAmount).toBe(0);
+    expect(result.status).toBe("CANCELLED_REFUNDED");
+
+    // KBank refund is called with the full order amount.
+    expect(sendRefund).toHaveBeenCalledTimes(1);
+    const [, payload] = (sendRefund as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect((payload as { refunds: { amount: string }[] }).refunds[0].amount).toBe("10000.00");
+
+    // Order is marked fully refunded.
+    const orders = db.from("customer_orders") as FakeTable;
+    expect((orders.lastUpdate?.values as Record<string, unknown>).status).toBe(
+      "CANCELLED_REFUNDED",
+    );
+
+    // Evidence records the proof + the seller liability.
+    const evidence = db.from("cancellation_evidence") as FakeTable;
+    const values = evidence.lastUpdate?.values as Record<string, unknown>;
+    expect(values.reason_type).toBe("SELLER_FAULT");
+    expect(values.proof_url).toBe("https://example.com/proof.jpg");
+    expect(values.reason_text).toBe("wrong item delivered");
+  });
+
+  it("CUSTOMER_FAULT before departure refunds 100% with zero deduction", async () => {
+    const db = new FakeSupabaseClient();
+    (db.from("customer_orders") as FakeTable).singleResult = {
+      data: {
+        id: "ord-001",
+        order_no: LINE_ORDER_NO,
+        order_amount: 10000,
+        status: "PAID",
+      },
+      error: null,
+    };
+    (sendRefund as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+      token: "refund-tok-003",
+      status: "success",
+    });
+
+    const result = await cancelOrderWithRefund(
+      "ord-001",
+      "CUSTOMER_FAULT",
+      undefined,
+      "cancelled in time",
+      "CANCELLED_BEFORE_DEPARTURE",
+      { db: db as unknown as CancellationWorkerOptions["db"] },
+    );
+
+    expect(result.refundAmount).toBe(10000);
+    expect(result.deductionAmount).toBe(0);
+    expect(result.status).toBe("CANCELLED_REFUNDED");
+
+    const [, payload] = (sendRefund as unknown as ReturnType<typeof vi.fn>).mock.calls[0];
+    expect((payload as { refunds: { amount: string }[] }).refunds[0].amount).toBe("10000.00");
+  });
+
+  it("policy routes the two fault types without arbitrating", () => {
+    const customer = computeCancellationRefund(
+      10000,
+      "CUSTOMER_FAULT" as CancellationReasonType,
+      "CANCELLED_PICKED_UP" as DeliveryStage,
+    );
+    const seller = computeCancellationRefund(
+      10000,
+      "SELLER_FAULT" as CancellationReasonType,
+      "CANCELLED_PICKED_UP" as DeliveryStage,
+    );
+
+    expect(customer.refundAmount).toBe(6500);
+    expect(customer.deductionAmount).toBe(500);
+    expect(seller.refundAmount).toBe(10000);
+    expect(seller.deductionAmount).toBe(0);
   });
 });
