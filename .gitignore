@@ -86,3 +86,6 @@ _inventory/
 
 # Contractor pull-model runtime artifacts (NEW-2)
 .agents/
+
+# โปรไฟล์ Chromium ที่ sim/_browser สร้างตอนรัน (29 MB, มี JWT ของ Chrome ข้างใน)
+.sim-browser-profile/

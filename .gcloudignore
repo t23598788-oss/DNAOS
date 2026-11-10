@@ -38,3 +38,8 @@ tmp/
 *.snap
 playwright-report/
 test-results/
+
+# โปรไฟล์ browser ของ sim/ — มี JWT ของ Chrome อยู่ข้างใน ทำให้ drift check (Rule 67) พัง
+.sim-browser-profile/
+
+# ไฟล์ซ้ำจาก Finder copy (untracked) — อย่าให้ next build สร้าง route มั่ว

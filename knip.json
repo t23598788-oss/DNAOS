@@ -7,7 +7,8 @@
     "engines/business.ts",
     "plugins/index.ts",
     "gateway/index.ts",
-    "registry/index.ts"
+    "registry/index.ts",
+    "tests/e2e/*.test.ts"
   ],
   "project": [
     "app/**/*.{ts,tsx}",
@@ -19,14 +20,19 @@
     "presenter/**/*.ts",
     "services/**/*.ts",
     "plugins/**/*.ts",
-    "registry/**/*.ts"
+    "registry/**/*.ts",
+    "tests/**/*.ts"
   ],
   "ignore": [
     "next-env.d.ts",
     "supabase/functions/**",
     "src-tauri/**",
     "plugins/line/**",
-    "**/*.test.ts",
+    "cognitive/**/*.test.ts",
+    "dna-os-contractor/**/*.test.ts",
+    "external-packages/**/*.test.ts",
+    "scripts/**/*.test.ts",
+    "services/**/*.test.ts",
     "scripts/**",
     "local-runtime/**",
     "core/workspace/composer/**",
@@ -60,7 +66,6 @@
     "dna-os-mcp-server/_diag-token-test.mjs",
     "engine.ts",
     "gateway/index.ts",
-    "app/admin/system/page 2.tsx",
     "app/api/admin/ide/_lib/openCapabilityArchitecture.ts",
     "e2e/**",
     "playwright.config.ts",
@@ -71,12 +76,19 @@
     "public/sw.js",
     "device-connector/dnaos-device.mjs",
     "core/authority/rights.ts",
-    "external-packages/semantic-preflight/**"
+    "external-packages/semantic-preflight/**",
+    "sim/**"
   ],
   "workspaces": {
     "dna-os-mcp-server": {
-      "entry": ["src/index.ts", "src/index-http.ts", "src/index-governance-http.ts"],
-      "project": ["src/**/*.ts"]
+      "entry": [
+        "src/index.ts",
+        "src/index-http.ts",
+        "src/index-governance-http.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
     }
   },
   "ignoreDependencies": [

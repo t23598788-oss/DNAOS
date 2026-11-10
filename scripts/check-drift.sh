@@ -97,7 +97,14 @@ echo "--- Checking for undeclared top-level directories ---"
 # installs into the fontconfig user dir before SVG→PNG render (the production
 # container ships zero fonts; real tofu incident). Data-only folder, no code imports
 # it directly. RESTORED 2026-10-25 for the same reason as architecture/ above.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff architecture connections assets external-packages reports"
+# deploy/ tests/ sim/ (2026-11-10, deploy-ready pass) — deploy/ holds the
+# non-secret env template for deploy-full.sh (Cloud Run); tests/e2e/ holds the
+# KBank/order-dispatch/truck-tracking e2e suites; sim/ is the simulator CLI
+# (`npx tsx sim/run.ts`) that drives the real endpoints. All three are tracked
+# source folders the build never imports, so they were flagged as Shadow Layers
+# on every run. Declared rather than deleted — deleting them would drop tests
+# and the deploy template.
+DECLARED_TOP_LEVEL="deploy sim tests core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff architecture connections assets external-packages reports"
 
 for dir in */; do
   dirname=$(basename "$dir")
@@ -143,8 +150,11 @@ if find lib/drivers -maxdepth 1 -name "*.ts" 2>/dev/null | grep -q .; then
 fi
 
 # Rule: No hardcoded credentials in source
+# .sim-browser-profile/ คือโปรไฟล์ Chromium ที่ sim/_browser สร้าง (gitignored, ไม่ใช่ source
+# และไม่อัปขึ้น Cloud Build) — manifest ของ Chrome เองมี eyJ อยู่ ข้ามไป
 if grep -rn "eyJ" --include="*.json" --include="*.ts" \
-   --exclude-dir=node_modules --exclude-dir=.next . 2>/dev/null | grep -v "package" | grep -q .; then
+   --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.sim-browser-profile . 2>/dev/null \
+   | grep -v "package" | grep -q .; then
   echo "  DRIFT: JWT token found hardcoded in source — Rule 67, 69"
   DRIFT=$((DRIFT + 1))
 fi

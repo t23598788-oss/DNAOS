@@ -33,7 +33,7 @@ done
 GCP_PROJECT_ID="${GCP_PROJECT_ID:-}"
 GCP_REGION="${GCP_REGION:-asia-southeast1}"
 SERVICE_NAME="${SERVICE_NAME:-dna-runtime}"
-BRANCH_TO_DEPLOY="${BRANCH_TO_DEPLOY:-chore/gcp-deploy-prep}"
+BRANCH_TO_DEPLOY="${BRANCH_TO_DEPLOY:-feature/payment-webhook-integration}"
 
 GA_ID="${GA_ID:-}"
 LINE_URL="${LINE_URL:-}"
@@ -97,22 +97,40 @@ fi
 
 if [ "$DRY_RUN" != "1" ]; then
   command -v gcloud >/dev/null 2>&1 \
-    || err "ไม่พบ gcloud ในเครื่อง — ติดตั้งก่อน: brew install --cask google-cloud-sdk"
+    || err "ไม่พบ gcloud — ติดตั้งตามเอกสารทางการ: https://cloud.google.com/sdk/docs/install-sdk (หรือ brew install --cask google-cloud-sdk)"
 fi
 
-# project id ต้องมีจริง
+# ต้อง login และ project ต้องมีจริง (แยกสาเหตุให้ตรงความจริง)
 if [ "$DRY_RUN" = "1" ]; then
   note "gcloud projects describe $GCP_PROJECT_ID --format=value(projectId)"
 else
-  gcloud projects describe "$GCP_PROJECT_ID" --format="value(projectId)" >/dev/null 2>&1 \
-    || err "project '$GCP_PROJECT_ID' ไม่มีจริง หรือบัญชีนี้ไม่มีสิทธิ์เข้าถึง"
+  ACTIVE_ACCOUNT=$(gcloud auth list --filter=status:ACTIVE --format="value(account)" 2>/dev/null || true)
+  [ -n "$ACTIVE_ACCOUNT" ] \
+    || err "ยังไม่มีบัญชีที่ login ใน gcloud — รัน: gcloud auth login  แล้วรันสคริปต์นี้ซ้ำ"
+
+  proj_out=$(gcloud projects describe "$GCP_PROJECT_ID" --format="value(projectId)" 2>&1) || {
+    case "$proj_out" in
+      *"active account"*|*"gcloud auth login"*|*Reauthentication*|*reauth*)
+        err "บัญชี $ACTIVE_ACCOUNT ต้อง login ใหม่ — รัน: gcloud auth login" ;;
+      *"not found"*|*"NOT_FOUND"*|*"does not exist"*)
+        err "project '$GCP_PROJECT_ID' ไม่มีในบัญชีนี้ — ตรวจ Project ID ที่ https://console.cloud.google.com" ;;
+      *permission*|*PERMISSION*|*403*|*forbidden*|*Forbidden*)
+        err "บัญชี $ACTIVE_ACCOUNT ไม่มีสิทธิ์เข้าถึง project '$GCP_PROJECT_ID' (ต้องมี role เช่น roles/owner หรือ roles/editor)" ;;
+      *)
+        err "describe project '$GCP_PROJECT_ID' ไม่สำเร็จ: $(printf '%s' "$proj_out" | tail -1)" ;;
+    esac
+  }
+  echo "OK: login เป็น $ACTIVE_ACCOUNT"
 fi
 
 # branch: hard-fail ไม่ใช่ || true
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 [ "$CURRENT_BRANCH" = "$BRANCH_TO_DEPLOY" ] \
   || err "อยู่ branch $CURRENT_BRANCH แต่ต้องเป็น $BRANCH_TO_DEPLOY (สลับเองก่อน)"
-[ -z "$(git status --porcelain)" ] || { git status -sb; err "มีไฟล์ค้าง — commit/stash ก่อน"; }
+# ไฟล์ที่ deploy-gate เขียนใหม่ทุกครั้ง (timestamp/metrics) — ไม่นับเป็น "ไฟล์ค้าง"
+GEN_PATHS="DNA_OS_HEALTH.json registry/VALIDATION_RESULTS.json registry/architecture-book.json local-runtime/dev-loop-problem-report.json"
+dirty=$(git status --porcelain | awk -v list="$GEN_PATHS" 'BEGIN{n=split(list,a," ");for(i=1;i<=n;i++)skip[a[i]]=1} {if(!($2 in skip)) print}')
+[ -z "$dirty" ] || { printf '%s\n' "$dirty"; err "มีไฟล์ค้าง — commit/stash ก่อน"; }
 for f in Dockerfile cloudbuild.yaml; do
   [ -f "$f" ] || err "ไม่พบ $f ใน branch นี้"
 done

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-09T20:08:57.279Z",
+  "generated_at": "2026-11-10T03:13:30.992Z",
   "version": 1,
   "nodes": [
     {
@@ -97083,6 +97083,39 @@
       ]
     },
     {
+      "id": "module:services/kbank/__tests__/kapi-oauth.test.ts",
+      "type": "Module",
+      "layer": "services",
+      "name_en": "services/kbank/__tests__/kapi-oauth.test.ts",
+      "purpose_th": "ชุดทดสอบของ KBank K API OAuth2 client (token cache และ signature header)",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:services/kbank/kapi-oauth.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "services",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "import_sites": [
+        {
+          "specifier": "../kapi-oauth",
+          "line": 2,
+          "resolved_target": "services/kbank/kapi-oauth.ts"
+        }
+      ]
+    },
+    {
       "id": "module:services/kbank/kapi-oauth.ts",
       "type": "Module",
       "layer": "services",
@@ -106655,6 +106688,11 @@
     {
       "source": "layer:services",
       "target": "module:services/finance/unified-list.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:services",
+      "target": "module:services/kbank/__tests__/kapi-oauth.test.ts",
       "label": "contains"
     },
     {
@@ -126559,8 +126597,8 @@
     }
   ],
   "summary": {
-    "total": 1463,
-    "ok": 1463,
+    "total": 1464,
+    "ok": 1464,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

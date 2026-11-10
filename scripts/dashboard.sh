@@ -78,7 +78,7 @@ SHADOW=${SHADOW:-0}
 # config file, letting jscpd scan registry/VALIDATION_RESULTS.json's own JSON
 # content and inflate the real clone count. Same fix applied identically in
 # scripts/governance.sh (both copies of this exact command, per KM-001).
-CLONE_COUNT=$(npx jscpd -f typescript,tsx -i '**/*.json,**/*.md' core/ gateway/ engines/ cognitive/ presenter/ services/ plugins/ registry/ app/ components/ 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep "Found" | grep -o "[0-9]* clones" | grep -o "[0-9]*" || true)
+CLONE_COUNT=$(npx jscpd -f typescript,tsx -i '**/*.json,**/*.md' core/ gateway/ engines/ cognitive/ presenter/ services/ plugins/ registry/ app/ components/ 2>&1 | sed 's/\x1b\[[0-9;]*m//g' | grep "Found" | grep -o "[0-9]* clones" | grep -o "[0-9]*" || echo "0")
 CLONE_COUNT=${CLONE_COUNT:-0}
 
 # Ghost rules
