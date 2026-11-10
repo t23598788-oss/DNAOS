@@ -71,12 +71,24 @@
     "public/sw.js",
     "device-connector/dnaos-device.mjs",
     "core/authority/rights.ts",
-    "external-packages/semantic-preflight/**"
+    "external-packages/semantic-preflight/**",
+    "sim/**",
+    "tests/**",
+    "vitest.config.mts",
+    "services/finance/cancellation-policy.ts",
+    "services/kbank/kapi-refund.ts",
+    "engines/integration-gateway/workers/cancellation-worker.ts"
   ],
   "workspaces": {
     "dna-os-mcp-server": {
-      "entry": ["src/index.ts", "src/index-http.ts", "src/index-governance-http.ts"],
-      "project": ["src/**/*.ts"]
+      "entry": [
+        "src/index.ts",
+        "src/index-http.ts",
+        "src/index-governance-http.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
     }
   },
   "ignoreDependencies": [

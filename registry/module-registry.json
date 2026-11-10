@@ -17224,6 +17224,14 @@
       ],
       "status": "active"
     },
+    "services/kbank/__tests__/kapi-oauth.test.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Unit tests for the KBank K API OAuth2 client (token cache, signature headers).",
+      "purpose_th": "ชุดทดสอบของ KBank K API OAuth2 client (token cache และ signature header)",
+      "exports": [],
+      "status": "active"
+    },
     "services/kbank/kapi-oauth.ts": {
       "owner": "services",
       "layer": "services",

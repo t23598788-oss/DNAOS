@@ -2,10 +2,10 @@
   "report_id": "dev-loop-c2NyaXB0cy9kZXBsb3ktZ2F0ZS50c3xE",
   "status": "resolved",
   "source": "scripts/deploy-gate.ts",
-  "occurred_at": "2026-10-25T01:23:06.697Z",
+  "occurred_at": "2026-11-10T03:14:51.340Z",
   "severity": "critical",
   "check_name": "DNA OS Deploy Gate",
-  "cause": "Dead Code Policy (knip) failed; Architecture Drift failed; Required Supabase environment values are missing; Dev Loop evidence gate cannot be evaluated",
+  "cause": "Dead Code Policy (knip) failed; Module Registry (No Shadow) failed; Architecture Drift failed",
   "evidence_refs": [
     "registry/VALIDATION_RESULTS.json",
     "public.dev_loop_check_results",
@@ -13,12 +13,13 @@
   ],
   "affected_files": [
     "governance",
+    "governance",
     "governance"
   ],
   "recommended_owner_action": "ตรวจหลักฐานใน Governance UI แล้วให้ Owner ตัดสินใจแก้ไข/อนุมัติ/ปฏิเสธตามขั้นตอน ห้ามระบบแก้หรืออนุมัติเอง",
   "owner_alert": {
     "channel": "dna_os_governance_ui",
-    "spoken_summary": "DNA OS ตรวจพบ DNA OS Deploy Gate: Dead Code Policy (knip) failed; Architecture Drift failed; Required Supabase environment values are missing; Dev Loop evidence gate cannot be evaluated",
+    "spoken_summary": "DNA OS ตรวจพบ DNA OS Deploy Gate: Dead Code Policy (knip) failed; Module Registry (No Shadow) failed; Architecture Drift failed",
     "voice_session_note": "แสดงข้อความนี้ในบทสนทนาที่กำลังเปิดอยู่ได้ แต่ background process ไม่สามารถเปิดหรือพูดเข้า voice session ที่ปิดไปแล้วได้"
   }
 }
