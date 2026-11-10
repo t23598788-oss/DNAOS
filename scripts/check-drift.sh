@@ -97,10 +97,20 @@ echo "--- Checking for undeclared top-level directories ---"
 # installs into the fontconfig user dir before SVG→PNG render (the production
 # container ships zero fonts; real tofu incident). Data-only folder, no code imports
 # it directly. RESTORED 2026-10-25 for the same reason as architecture/ above.
-DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff architecture connections assets external-packages reports"
+# tests/ (owner-approved, 2026-11-11) — the real, tracked test folder
+# (tests/eta-calculator.test.ts landed with the ETA engine). Real tracked
+# content, same treatment as docs/ and styles/ above.
+DECLARED_TOP_LEVEL="core gateway engines cognitive presenter services plugins registry app components scripts supabase config node_modules backups public observatory docs styles src-tauri local-runtime dna-os-mcp-server _inventory platform project system workers e2e presentation dna-os-contractor device-connector tmp output sites handoff architecture connections assets external-packages reports tests"
 
 for dir in */; do
   dirname=$(basename "$dir")
+  # Local-only folders that hold no tracked content: recovery/ (owner-side
+  # backup dumps, gitignored) and Lab/ (experiment scratch — `git ls-files Lab`
+  # is empty). Neither is an architecture layer, so neither is declared below
+  # nor allowed to flag as a Shadow Layer on every run.
+  case "$dirname" in
+    recovery|Lab) continue ;;
+  esac
   FOUND=0
   for declared in $DECLARED_TOP_LEVEL; do
     if [ "$dirname" = "$declared" ]; then

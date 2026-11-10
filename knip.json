@@ -71,7 +71,13 @@
     "public/sw.js",
     "device-connector/dnaos-device.mjs",
     "core/authority/rights.ts",
-    "external-packages/semantic-preflight/**"
+    "external-packages/semantic-preflight/**",
+    "engines/eta-calculator.ts",
+    "engines/integration-gateway/workers/cancellation-worker.ts",
+    "engines/integration-gateway/workers/order-translator.ts",
+    "engines/integration-gateway/workers/payout-worker.ts",
+    "services/finance/cancellation-policy.ts",
+    "services/kbank/kapi-payout.ts"
   ],
   "workspaces": {
     "dna-os-mcp-server": {
