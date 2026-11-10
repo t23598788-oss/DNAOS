@@ -127,7 +127,10 @@ fi
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 [ "$CURRENT_BRANCH" = "$BRANCH_TO_DEPLOY" ] \
   || err "อยู่ branch $CURRENT_BRANCH แต่ต้องเป็น $BRANCH_TO_DEPLOY (สลับเองก่อน)"
-[ -z "$(git status --porcelain)" ] || { git status -sb; err "มีไฟล์ค้าง — commit/stash ก่อน"; }
+# ไฟล์ที่ deploy-gate เขียนใหม่ทุกครั้ง (timestamp/metrics) — ไม่นับเป็น "ไฟล์ค้าง"
+GEN_PATHS="DNA_OS_HEALTH.json registry/VALIDATION_RESULTS.json registry/architecture-book.json local-runtime/dev-loop-problem-report.json"
+dirty=$(git status --porcelain | awk -v list="$GEN_PATHS" 'BEGIN{n=split(list,a," ");for(i=1;i<=n;i++)skip[a[i]]=1} {if(!($2 in skip)) print}')
+[ -z "$dirty" ] || { printf '%s\n' "$dirty"; err "มีไฟล์ค้าง — commit/stash ก่อน"; }
 for f in Dockerfile cloudbuild.yaml; do
   [ -f "$f" ] || err "ไม่พบ $f ใน branch นี้"
 done
