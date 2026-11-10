@@ -114,6 +114,7 @@ export function ConnectionsCredentialsBoard() {
   const [drafts, setDrafts] = useState<Record<string, Record<string, string>>>({});
   const [envDraft, setEnvDraft] = useState<Record<string, string>>({});
   const [rotateOpen, setRotateOpen] = useState<Record<string, boolean>>({});
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
@@ -473,7 +474,7 @@ export function ConnectionsCredentialsBoard() {
           const rotateProp = b.proposals?.rotate;
           const discProp = b.proposals?.disconnect;
           return (
-            <section key={p} className="flex flex-col rounded-xl border border-stone-200 bg-white p-4">
+            <section key={p} className="flex flex-col rounded-xl border border-stone-200 bg-white p-4 connector-card">
               <header className="mb-3 flex items-start justify-between gap-2">
                 <div className="flex min-w-0 items-center gap-1.5">
                   <button
@@ -496,24 +497,62 @@ export function ConnectionsCredentialsBoard() {
                   >
                     ↓
                   </button>
+                  <img
+                    src={`/brands/${({ line: "line", github: "github", supabase: "supabase", google: "google", deepseek: "deepseek", kbank: "kbank", kobchat: "kobchat", "kob-chat": "kobchat" }[p.toLowerCase()] ?? "supabase")}.svg`}
+                    alt=""
+                    className="h-5 w-5 shrink-0 rounded"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                  />
                   <h3 className="truncate text-sm font-semibold text-stone-800">{b.title}</h3>
                   <span className="font-mono text-[10px] text-stone-400">{p}</span>
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <span className={`rounded-full border px-2 py-0.5 text-[10px] font-medium ${pillStyle}`}>{pillText}</span>
-                  <select
-                    value={env}
-                    onChange={(e) => setEnvDraft((d) => ({ ...d, [p]: e.target.value }))}
-                    className="rounded border border-stone-200 bg-white px-1 py-0.5 text-[10px] text-stone-600"
-                    aria-label="environment"
-                  >
-                    <option value="local">local</option>
-                    <option value="staging">staging</option>
-                    <option value="production">production</option>
-                  </select>
+                  <span className="rounded border border-stone-200 bg-stone-50 px-1.5 py-0.5 text-[10px] text-stone-500">
+                    {b.settings?.environment ?? "production"}
+                  </span>
                 </div>
               </header>
 
+              {!conn ? (
+                <div className="mt-3">
+                  <a
+                    href={`/admin/connectors?provider=${encodeURIComponent(p)}`}
+                    className="inline-flex items-center rounded-lg bg-stone-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-stone-800"
+                  >
+                    Setup Provider
+                  </a>
+                  <p className="mt-1.5 text-[10px] text-stone-400">
+                    ยังไม่มี connector — กด Setup Provider เพื่อเชื่อมต่อครั้งแรก (Connect → Register → Test → Enable)
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setExpanded((e) => ({ ...e, [p]: !e[p] }))}
+                      className="rounded-lg border border-stone-300 bg-white px-2.5 py-1 text-[11px] text-stone-700 hover:bg-stone-50"
+                    >
+                      {expanded[p] ? "ซ่อนการตั้งค่า" : "จัดการ / ตั้งค่า"}
+                    </button>
+                    <span className="text-[10px] text-stone-400">env: {env}</span>
+                  </div>
+                  {expanded[p] && (
+                    <>
+              <div className="mt-3 flex items-center gap-2">
+                <label className="text-[11px] text-stone-500">Environment</label>
+                <select
+                  value={env}
+                  onChange={(e) => setEnvDraft((d) => ({ ...d, [p]: e.target.value }))}
+                  className="rounded border border-stone-200 bg-white px-1.5 py-0.5 text-[10px] text-stone-600"
+                  aria-label="environment"
+                >
+                  <option value="local">local</option>
+                  <option value="staging">staging</option>
+                  <option value="production">production</option>
+                </select>
+              </div>
               {/* ── Fields render 100% FROM the registry rows ── */}
               <div className="space-y-2.5">
                 {b.reqs.length === 0 && (
@@ -723,6 +762,11 @@ export function ConnectionsCredentialsBoard() {
                 <p className="mt-1.5 text-[10px] text-stone-400">
                   ยังไม่มี connector — ฟอร์มปิดอยู่ กด &quot;Setup Provider&quot; เพื่อเชื่อมต่อครั้งแรกผ่าน lifecycle เดิม
                 </p>
+              )}
+
+                    </>
+                  )}
+                </>
               )}
               {notes[p] && <p className="mt-2 rounded-lg bg-stone-100 px-2 py-1.5 text-[10px] text-stone-700">{notes[p]}</p>}
             </section>

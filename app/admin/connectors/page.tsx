@@ -416,8 +416,8 @@ export default function ConnectorsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <div className="bg-white border-b border-stone-200 px-6 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-white">
+      <div className="bg-white border-b border-stone-200 px-6 py-4 flex items-center justify-between shadow-sm">
         <div>
           <h1 className="text-base font-bold text-stone-800">Connectors</h1>
           <p className="text-[11px] text-stone-400 mt-0.5">
@@ -657,7 +657,7 @@ export default function ConnectorsPage() {
         ) : (
           <div className="space-y-2">
             {connectors.map((c) => (
-              <div key={c.id} className="bg-white border border-stone-200 rounded-xl p-4">
+              <div key={c.id} className="bg-white border border-stone-200 rounded-xl p-4 connector-card">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">

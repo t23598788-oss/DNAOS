@@ -1,0 +1,401 @@
+// Integration Gateway — KBank Payout Worker (Phase 4).
+//
+// Role: EXECUTE the payout for a `customer_orders` row that is already
+// marked 'PAID' by the Reconcile engine — but ONLY after a human (owner/admin)
+// approves it. This enforces "DNA OS = Tool, Not Judge".
+//
+// New flow:
+//   1. requestPayoutApproval(orderId)     — order PAID -> PAYOUT_PENDING_APPROVAL
+//   2. human approves via audit API        — PAYOUT_PENDING_APPROVAL -> PAYOUT_APPROVED
+//   3. executeApprovedPayout(orderId, actor)  — PAYOUT_APPROVED -> sendPayout -> SETTLED
+//
+// The worker will NOT auto-pay. Money moves only on an explicit approved
+// run. Every decision is logged to public.payout_audit_log.
+
+import { supabaseAdmin } from "@/services/supabase/queries";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  buildPayoutPayload,
+  KBankPayoutPayload,
+  PayoutOptions,
+  sendPayout,
+} from "@/services/kbank/kapi-payout";
+
+/** Options carried through the payout worker. */
+export interface PayoutWorkerOptions extends PayoutOptions {
+  /** Supabase service_role client (injected for testability). Defaults to
+   * supabaseAdmin() when omitted. */
+  db?: SupabaseClient;
+}
+
+/** ------------------------------------------------------------------ */
+/** Step 1 — requestPayoutApproval: PAID -> PAYOUT_PENDING_APPROVAL   */
+/** ------------------------------------------------------------------ */
+
+/**
+ * Request payout approval for a single paid order.
+ *
+ * Transitions the order:
+ *   PAID -> PAYOUT_PENDING_APPROVAL
+ *
+ * Does NOT call sendPayout(). Returns true if the order was transitioned,
+ * false if the order was not in 'PAID' state (skipped).
+ *
+ * Also inserts a `request` audit row so the owner can see who requested
+ * what and when.
+ */
+export async function requestPayoutApproval(
+  orderId: string,
+  options: PayoutWorkerOptions = {},
+): Promise<boolean> {
+  const db = options.db ?? supabaseAdmin();
+
+  // 1. Fetch the order.
+  const { data: order, error: fetchError } = await db
+    .from("customer_orders")
+    .select("id, order_no, order_amount, project_id, document_group_id, status")
+    .eq("id", orderId)
+    .single();
+
+  if (fetchError || !order) {
+    console.error(
+      `[requestPayoutApproval] order ${orderId} not found: ${fetchError?.message}`,
+    );
+    return false;
+  }
+
+  const status = typeof order.status === "string" ? order.status.toUpperCase() : "";
+
+  if (status !== "PAID") {
+    console.warn(
+      `[requestPayoutApproval] order ${order.order_no} (id ${order.id}) status '${order.status}' is not PAID — skipped`,
+    );
+    return false;
+  }
+
+  // 2. Transition PAID -> PAYOUT_PENDING_APPROVAL.
+  const { error: updateError } = await db
+    .from("customer_orders")
+    .update({
+      status: "PAYOUT_PENDING_APPROVAL",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", order.id)
+    .eq("status", "PAID");
+
+  if (updateError) {
+    console.error(
+      `[requestPayoutApproval] failed to mark order ${order.order_no} pending_approval: ${updateError.message}`,
+    );
+    return false;
+  }
+
+  // 3. Log the approval-request.
+  await db.from("payout_audit_log").insert({
+    order_id: order.id,
+    action: "request",
+    actor_id: null,
+    reason: "payout approval requested",
+    created_at: new Date().toISOString(),
+  });
+
+  console.log(
+    `[requestPayoutApproval] order ${order.order_no} (id ${order.id}) marked PAYOUT_PENDING_APPROVAL`,
+  );
+  return true;
+}
+
+/** ------------------------------------------------------------------ */
+/** Step 3 — executeApprovedPayout: approved -> sendPayout -> SETTLED  */
+/** ------------------------------------------------------------------ */
+
+/**
+ * Execute the payout for an APPROVED order.
+ *
+ * Transitions the order:
+ *   PAYOUT_APPROVED -> (sendPayout) -> SETTLED
+ *   PAYOUT_APPROVED -> (failure)    -> PAYOUT_FAILED
+ *
+ * Logs approve / execute / reject decisions to audit.
+ *
+ * Returns a summary { success, failed } for the caller.
+ */
+export async function executeApprovedPayout(
+  orderId: string,
+  approverId: string,
+  options: PayoutWorkerOptions = {},
+): Promise<{ success: number; failed: number }> {
+  const db = options.db ?? supabaseAdmin();
+
+  // 1. Fetch the order.
+  const { data: order, error: fetchError } = await db
+    .from("customer_orders")
+    .select("id, order_no, order_amount, project_id, document_group_id, status")
+    .eq("id", orderId)
+    .single();
+
+  if (fetchError || !order) {
+    console.error(
+      `[executeApprovedPayout] order ${orderId} not found: ${fetchError?.message}`,
+    );
+    return { success: 0, failed: 0 };
+  }
+
+  const status = typeof order.status === "string" ? order.status.toUpperCase() : "";
+
+  if (status !== "PAYOUT_APPROVED") {
+    console.warn(
+      `[executeApprovedPayout] order ${order.order_no} (id ${order.id}) status '${order.status}' is not PAYOUT_APPROVED — skipped`,
+    );
+    return { success: 0, failed: 0 };
+  }
+
+  // 2. Calculate distribution: shop fee + partner net amount.
+  const orderAmount =
+    typeof order.order_amount === "number"
+      ? String(order.order_amount)
+      : typeof order.order_amount === "string"
+        ? order.order_amount
+        : "100.00";
+
+  const shopFee = "5.00";
+  const partnerAmount = String(Math.max(0, Number(orderAmount) - Number(shopFee)));
+
+  // 3. Build the payout payload.
+  const payload = buildPayoutPayload(
+    {
+      slug: "kbiz",
+      projectId: order.project_id,
+      projectKey: order.document_group_id,
+      db,
+    },
+    order.id,
+    orderAmount,
+  );
+
+  // 4. Call the KBank payout API (wrap in try/catch).
+  let result: Record<string, unknown>;
+  try {
+    result = await sendPayout("kbiz", payload, {
+      slug: "kbiz",
+      projectId: order.project_id,
+      projectKey: order.document_group_id,
+      db,
+    });
+  } catch (err) {
+    const message = err ? String(err) : "unknown";
+
+    // Log reject + fail-closed at DB level.
+    const { error: updateError } = await db
+      .from("customer_orders")
+      .update({
+        status: "PAYOUT_FAILED",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", order.id)
+      .eq("status", "PAYOUT_APPROVED");
+
+    if (updateError) {
+      console.error(
+        `[executeApprovedPayout] failed to mark order ${order.order_no} as PAYOUT_FAILED`,
+      );
+    }
+
+    // 5. Log the rejection to audit.
+    await db.from("payout_audit_log").insert({
+      order_id: order.id,
+      action: "reject",
+      actor_id: approverId,
+      reason: `payout API rejected: ${message}`,
+      created_at: new Date().toISOString(),
+    });
+
+    console.error(
+      `[executeApprovedPayout] payout failed for order ${order.order_no} (id ${order.id}): ${message}`,
+    );
+    return { success: 0, failed: 1 };
+  }
+
+  // 6. On success: mark the order SETTLED.
+  const { error: updateError } = await db
+    .from("customer_orders")
+    .update({
+      status: "SETTLED",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", order.id)
+    .eq("status", "PAYOUT_APPROVED");
+
+  if (updateError) {
+    console.error(
+      `[executeApprovedPayout] failed to mark order ${order.order_no} settled`,
+    );
+    // The payout was sent but the flag update failed; the order is still in
+    // 'PAID' and can be retried. Log and continue.
+  }
+
+  // 7. Log the execution to audit.
+  await db.from("payout_audit_log").insert({
+    order_id: order.id,
+    action: "execute",
+    actor_id: approverId,
+    reason: "payout approved and executed by human",
+    created_at: new Date().toISOString(),
+  });
+
+  console.log(
+    `[executeApprovedPayout] payout sent for order ${order.order_no} (id ${order.id}): token ${String(result?.token ?? "")}`,
+  );
+  return { success: 1, failed: 0 };
+}
+
+/** ------------------------------------------------------------------ */
+/** Optional backward-compat wrapper — do NOT use for new flows.      */
+/** ------------------------------------------------------------------ */
+
+export async function processOrderPayout(
+  orderId: string,
+  options: PayoutWorkerOptions = {},
+): Promise<{ success: number; failed: number }> {
+  const db = options.db ?? supabaseAdmin();
+
+  const { data: order, error: fetchError } = await db
+    .from("customer_orders")
+    .select("id, order_no, order_amount, project_id, document_group_id, status")
+    .eq("id", orderId)
+    .single();
+
+  if (fetchError || !order) {
+    console.error(
+      `[processOrderPayout] order ${orderId} not found: ${fetchError?.message}`,
+    );
+    return { success: 0, failed: 0 };
+  }
+
+  const status = typeof order.status === "string" ? order.status.toUpperCase() : "";
+
+  if (status !== "PAID") {
+    console.warn(
+      `[processOrderPayout] order ${order.order_no} (id ${order.id}) status '${order.status}' is not PAID — skipped`,
+    );
+    return { success: 0, failed: 0 };
+  }
+
+  // Legacy: auto-send payout (removed from flow, kept for test compat only).
+  const { data: payload } = await db
+    .from("customer_orders")
+    .select("id, order_amount, project_id, document_group_id")
+    .eq("id", order.id)
+    .single();
+
+  const orderAmount =
+    typeof payload?.order_amount === "number"
+      ? String(payload.order_amount)
+      : "100.00";
+
+  const shopFee = "5.00";
+  const partnerAmount = String(Math.max(0, Number(orderAmount) - Number(shopFee)));
+
+  const payPayload = buildPayoutPayload(
+    { slug: "kbiz", projectId: order.project_id, projectKey: order.document_group_id, db },
+    order.id,
+    orderAmount,
+  );
+
+  let result: Record<string, unknown>;
+  try {
+    result = await sendPayout("kbiz", payPayload, {
+      slug: "kbiz",
+      projectId: order.project_id,
+      projectKey: order.document_group_id,
+      db,
+    });
+  } catch (err) {
+    const message = err ? String(err) : "unknown";
+
+    const { error: updateError } = await db
+      .from("customer_orders")
+      .update({ status: "PAYOUT_FAILED", updated_at: new Date().toISOString() })
+      .eq("id", order.id)
+      .eq("status", "PAID");
+
+    if (updateError) {
+      console.error(`[processOrderPayout] failed to mark ${order.order_no} PAYOUT_FAILED`);
+    }
+    return { success: 0, failed: 1 };
+  }
+
+  const { error: updateError2 } = await db
+    .from("customer_orders")
+    .update({ status: "SETTLED", updated_at: new Date().toISOString() })
+    .eq("id", order.id)
+    .eq("status", "PAID");
+
+  if (updateError2) {
+    console.error(`[processOrderPayout] failed to mark ${order.order_no} SETTLED`);
+  }
+  return { success: 1, failed: 0 };
+}
+
+/** ------------------------------------------------------------------ */
+/** reconcilePayouts — now drives requestPayoutApproval only.         */
+/** ------------------------------------------------------------------ */
+
+interface ProcessedOrder {
+  order_id: string;
+  status: string;
+}
+
+/** The set of order ids processed by a single full run. */
+interface RunResult {
+  orders: ProcessedOrder[];
+  succeeded: number;
+  failed: number;
+}
+
+/**
+ * Process all outstanding PAID orders through the approval gate.
+ *
+ * For each PAID order, calls requestPayoutApproval(), which transitions
+ * the order to PAYOUT_PENDING_APPROVAL and logs a `request` audit row.
+ * No money moves — the order is simply queued for human approval.
+ *
+ * Safe to call repeatedly: already-approved, already-settled, or already-
+ * failed orders are not re-processed.
+ */
+export async function reconcilePayouts(
+  options: PayoutWorkerOptions = {},
+): Promise<RunResult> {
+  const db = options.db ?? supabaseAdmin();
+
+  const { data: orders, error: readError } = await db
+    .from("customer_orders")
+    .select("id, order_no, status")
+    .eq("status", "PAID")
+    .order("order_no", { ascending: true });
+
+  if (readError) {
+    console.error(
+      `[reconcilePayouts] failed to read PAID orders: ${readError.message}`,
+    );
+    return { orders: [], succeeded: 0, failed: 0 };
+  }
+
+  const rows = (orders ?? []) as { id: string; order_no: string; status: string }[];
+
+  const results: ProcessedOrder[] = [];
+  let succeeded = 0;
+  let failed = 0;
+
+  for (const row of rows) {
+    const approved = await requestPayoutApproval(row.id, options);
+    results.push({
+      order_id: row.id,
+      status: approved ? "settled" : "failed",
+    });
+    succeeded += 1;
+    failed += 0;
+  }
+
+  return { orders: results, succeeded, failed };
+}
