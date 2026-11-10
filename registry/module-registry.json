@@ -17491,12 +17491,12 @@
     "supabase/functions/line-webhook-v2/handlers/driver.ts": {
       "owner": "supabase",
       "layer": "supabase",
-      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/handlers/driver.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/handlers/driver.ts",
+      "purpose": "LINE webhook handler for driver replies: maps Thai ETA commands",
+      "purpose_th": "LINE webhook handler for driver replies: maps Thai ETA commands",
       "exports": [
         "handleDriver"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "supabase/functions/line-webhook-v2/engines/driver-eta.ts": {
       "owner": "supabase",
@@ -17538,12 +17538,12 @@
     "app/api/admin/partner-profiles/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/partner-profiles/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/partner-profiles/route.ts",
+      "purpose": "Admin read route: list partner business profiles (name, phone, category,",
+      "purpose_th": "Admin read route: list partner business profiles (name, phone, category,",
       "exports": [
         "GET"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/api/admin/god-view/route.ts": {
       "owner": "app",
@@ -17617,12 +17617,12 @@
     "app/api/admin/line-customers/[lineUserId]/bind-partner/route.ts": {
       "owner": "app",
       "layer": "app",
-      "purpose": "[Auto-detected] app/api/admin/line-customers/[lineUserId]/bind-partner/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/line-customers/[lineUserId]/bind-partner/route.ts",
+      "purpose": "Admin binding route: link a LINE contact to a partner/customer business",
+      "purpose_th": "Admin binding route: link a LINE contact to a partner/customer business",
       "exports": [
         "POST"
       ],
-      "status": "unregistered"
+      "status": "active"
     },
     "app/admin/docs/page.tsx": {
       "owner": "app",

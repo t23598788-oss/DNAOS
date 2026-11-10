@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-10T23:29:26.479Z",
+  "generated_at": "2026-11-10T23:30:13.504Z",
   "version": 1,
   "nodes": [
     {
@@ -101980,11 +101980,11 @@
       "type": "Module",
       "layer": "supabase",
       "name_en": "supabase/functions/line-webhook-v2/handlers/driver.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/handlers/driver.ts",
+      "purpose_th": "LINE webhook handler for driver replies: maps Thai ETA commands",
       "exports": [
         "handleDriver"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:supabase/functions/line-webhook-v2/engines/driver-eta.ts",
@@ -101998,7 +101998,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "supabase",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -102007,55 +102007,54 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "handleDriver",
           "kind": "function",
-          "line_start": 6,
-          "line_end": 45
+          "line_start": 8,
+          "line_end": 47
         },
         {
           "name": "handleDriver",
           "kind": "function",
-          "line_start": 51,
-          "line_end": 90
+          "line_start": 53,
+          "line_end": 92
         }
       ],
       "import_sites": [
         {
           "specifier": "../events/types.ts",
-          "line": 1,
+          "line": 3,
           "resolved_target": "supabase/functions/line-webhook-v2/events/types.ts"
         },
         {
           "specifier": "../events/store.ts",
-          "line": 2,
+          "line": 4,
           "resolved_target": "supabase/functions/line-webhook-v2/events/store.ts"
         },
         {
           "specifier": "../engines/response.ts",
-          "line": 3,
+          "line": 5,
           "resolved_target": "supabase/functions/line-webhook-v2/engines/response.ts"
         },
         {
           "specifier": "../engines/driver-eta.ts",
-          "line": 4,
+          "line": 6,
           "resolved_target": "supabase/functions/line-webhook-v2/engines/driver-eta.ts"
         },
         {
           "specifier": "../events/store.ts",
-          "line": 47,
+          "line": 49,
           "resolved_target": "supabase/functions/line-webhook-v2/events/store.ts"
         },
         {
           "specifier": "../engines/response.ts",
-          "line": 48,
+          "line": 50,
           "resolved_target": "supabase/functions/line-webhook-v2/engines/response.ts"
         },
         {
           "specifier": "../engines/driver-eta.ts",
-          "line": 49,
+          "line": 51,
           "resolved_target": "supabase/functions/line-webhook-v2/engines/driver-eta.ts"
         }
       ]
@@ -102282,11 +102281,11 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/admin/partner-profiles/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/partner-profiles/route.ts",
+      "purpose_th": "Admin read route: list partner business profiles (name, phone, category,",
       "exports": [
         "GET"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:app/api/admin/_lib/read-scope.ts",
@@ -102300,7 +102299,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -102309,34 +102308,33 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 7,
-          "line_end": 31
+          "line_start": 9,
+          "line_end": 33
         }
       ],
       "import_sites": [
         {
           "specifier": "@/core/auth/requireAuth",
-          "line": 2,
+          "line": 4,
           "resolved_target": "core/auth/requireAuth.ts"
         },
         {
           "specifier": "@/core/auth/session",
-          "line": 3,
+          "line": 5,
           "resolved_target": "core/auth/session.ts"
         },
         {
           "specifier": "@/services/supabase/queries",
-          "line": 4,
+          "line": 6,
           "resolved_target": "services/supabase/queries.ts"
         },
         {
           "specifier": "@/app/api/admin/_lib/read-scope",
-          "line": 5,
+          "line": 7,
           "resolved_target": "app/api/admin/_lib/read-scope.ts"
         }
       ]
@@ -102751,11 +102749,11 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/admin/line-customers/[lineUserId]/bind-partner/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/line-customers/[lineUserId]/bind-partner/route.ts",
+      "purpose_th": "Admin binding route: link a LINE contact to a partner/customer business",
       "exports": [
         "POST"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:app/api/admin/_lib/read-scope.ts",
@@ -102767,7 +102765,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -102776,34 +102774,33 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 9,
-          "line_end": 40
+          "line_start": 12,
+          "line_end": 43
         }
       ],
       "import_sites": [
         {
           "specifier": "@/core/auth/requireAuth",
-          "line": 2,
+          "line": 5,
           "resolved_target": "core/auth/requireAuth.ts"
         },
         {
           "specifier": "@/core/auth/session",
-          "line": 3,
+          "line": 6,
           "resolved_target": "core/auth/session.ts"
         },
         {
           "specifier": "@/app/api/admin/_lib/read-scope",
-          "line": 4,
+          "line": 7,
           "resolved_target": "app/api/admin/_lib/read-scope.ts"
         },
         {
           "specifier": "@/engines/canonical/partner-binding-write",
-          "line": 5,
+          "line": 8,
           "resolved_target": "engines/canonical/partner-binding-write.ts"
         }
       ]
@@ -166840,9 +166837,9 @@
   ],
   "summary": {
     "total": 1453,
-    "ok": 1450,
+    "ok": 1453,
     "broken": 0,
     "unused": 0,
-    "unregistered": 3
+    "unregistered": 0
   }
 }
