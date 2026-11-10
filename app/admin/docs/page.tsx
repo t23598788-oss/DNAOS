@@ -1,5 +1,6 @@
 /**
- * /admin/docs — System Docs & Integration Hub (ศูนย์รวมคู่มือและ API ทั้งระบบ)
+ * /admin/docs — System Docs & Integration Hub
+ * หมวดหมู่ที่ 1: ภาพรวมสถาปัตยกรรมระบบ (System Architecture & Runtime Flow)
  */
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -16,167 +17,179 @@ function readText(rel: string): string {
   }
 }
 
-const DOC_FILES = ["ARCHITECTURE.md", "DNA_OS_SYSTEM_OPERATING_GRAPH.md", "PROJECT_CLOSEOUT.md"];
+// ไฟล์ Markdown ด้านสถาปัตยกรรมที่ใช้ในหมวดหมู่ที่ 1
+const ARCH_DOCS = [
+  "ARCHITECTURE.md",
+  "ARCHITECTURE_INTEGRATION_PLAN.md",
+  "DNA_OS_SYSTEM_OPERATING_GRAPH.md",
+  "DNA_OS_EXECUTION_LIFECYCLE.md",
+];
 
-export default async function SystemDocsHubPage() {
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function inline(s: string): string {
+  // inline code
+  s = s.replace(/`([^`]+)`/g, (_m, code) => `<code class="px-1 py-0.5 rounded bg-stone-100 text-[0.85em] font-mono">${escapeHtml(code)}</code>`);
+  // bold
+  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  // italic
+  s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  // links
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, text, url) => `<a href="${escapeHtml(url)}" class="text-blue-600 underline" target="_blank" rel="noreferrer">${escapeHtml(text)}</a>`);
+  return s;
+}
+
+function renderMarkdown(md: string): string {
+  const lines = md.split(/\r?\n/);
+  const out: string[] = [];
+  let i = 0;
+  let inCode = false;
+  let codeLang = "";
+  let codeLines: string[] = [];
+  let inUl = false;
+  let inOl = false;
+
+  function closeLists() {
+    if (inUl) { out.push("</ul>"); inUl = false; }
+    if (inOl) { out.push("</ol>"); inOl = false; }
+  }
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // fenced code block
+    const fence = line.match(/^```(\w*)\s*$/);
+    if (fence) {
+      if (!inCode) {
+        closeLists();
+        inCode = true;
+        codeLang = fence[1] || "";
+        codeLines = [];
+      } else {
+        const langClass = codeLang ? ` class="language-${escapeHtml(codeLang)}"` : "";
+        out.push(`<pre class="bg-stone-900 text-green-300 rounded-lg p-4 overflow-auto text-xs my-3"><code${langClass}>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+        inCode = false;
+        codeLines = [];
+      }
+      i++;
+      continue;
+    }
+    if (inCode) {
+      codeLines.push(line);
+      i++;
+      continue;
+    }
+
+    // blank line
+    if (line.trim() === "") {
+      closeLists();
+      i++;
+      continue;
+    }
+
+    // headings
+    const h = line.match(/^(#{1,6})\s+(.*)$/);
+    if (h) {
+      closeLists();
+      const level = h[1].length;
+      const text = inline(escapeHtml(h[2]));
+      out.push(`<h${level} class="font-bold text-stone-800 mt-6 mb-2 ${level <= 2 ? "text-base border-b border-stone-200 pb-1" : "text-sm"}">${text}</h${level}>`);
+      i++;
+      continue;
+    }
+
+    // horizontal rule
+    if (/^(-{3,}|\*{3,})$/.test(line.trim())) {
+      closeLists();
+      out.push("<hr class=\"my-4 border-stone-200\" />");
+      i++;
+      continue;
+    }
+
+    // unordered list
+    const ul = line.match(/^[-*]\s+(.*)$/);
+    if (ul) {
+      if (!inUl) { closeLists(); out.push('<ul class="list-disc pl-6 space-y-1 text-sm my-2">'); inUl = true; }
+      out.push(`<li>${inline(escapeHtml(ul[1]))}</li>`);
+      i++;
+      continue;
+    }
+
+    // ordered list
+    const ol = line.match(/^\d+\.\s+(.*)$/);
+    if (ol) {
+      if (!inOl) { closeLists(); out.push('<ol class="list-decimal pl-6 space-y-1 text-sm my-2">'); inOl = true; }
+      out.push(`<li>${inline(escapeHtml(ol[1]))}</li>`);
+      i++;
+      continue;
+    }
+
+    // blockquote
+    if (line.startsWith(">")) {
+      closeLists();
+      out.push(`<blockquote class="border-l-4 border-stone-300 pl-3 text-sm text-stone-600 my-2">${inline(escapeHtml(line.replace(/^>\s?/, "")))}</blockquote>`);
+      i++;
+      continue;
+    }
+
+    // paragraph (collect consecutive non-blank lines)
+    closeLists();
+    const paraLines: string[] = [line];
+    let j = i + 1;
+    while (j < lines.length && lines[j].trim() !== "" && !lines[j].match(/^#{1,6}\s/) && !lines[j].match(/^```/) && !lines[j].match(/^[-*]\s/) && !lines[j].match(/^\d+\.\s/) && !lines[j].startsWith(">")) {
+      paraLines.push(lines[j]);
+      j++;
+    }
+    out.push(`<p class="text-sm text-stone-700 leading-relaxed my-2">${inline(escapeHtml(paraLines.join(" ")))}</p>`);
+    i = j;
+  }
+
+  closeLists();
+  if (inCode) {
+    out.push(`<pre class="bg-stone-900 text-green-300 rounded-lg p-4 overflow-auto text-xs my-3"><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+  }
+  return out.join("\n");
+}
+
+export default async function DocsCategoryOnePage() {
   await requireAuthPage("/admin/docs", ADMIN_TIER);
 
-  const moduleRegistry = JSON.parse(readText("registry/module-registry.json") || "{}");
-  const modules = (moduleRegistry?.modules ?? {}) as Record<string, any>;
-  const moduleEntries = Object.entries(modules);
-  const byLayer = moduleEntries.reduce<Record<string, number>>((acc, [, m]) => {
-    const layer = m?.layer ?? "unknown";
-    acc[layer] = (acc[layer] ?? 0) + 1;
-    return acc;
-  }, {});
-  const entryPoints = moduleEntries
-    .filter(([, m]) => m?.entry_point === true)
-    .map(([k]) => k)
-    .slice(0, 12);
-
-  const docs = DOC_FILES.map((f) => ({ name: f, content: readText(f) }));
-
-  const curlSnippet = `curl -X POST https://<BASE_URL>/api/v1/query \\
-  -H "Content-Type: application/json" \\
-  -H "X-DNA-Token: <TOKEN>" \\
-  -d '{"command":"status","args":{}}'`;
-
-  const nodeSnippet = `const res = await fetch("https://<BASE_URL>/api/v1/query", {
-  method: "POST",
-  headers: { "Content-Type": "application/json", "X-DNA-Token": process.env.DNA_TOKEN },
-  body: JSON.stringify({ command: "status", args: {} }),
-});
-console.log(await res.json());`;
+  const docs = ARCH_DOCS.map((name) => ({ name, content: readText(name) }));
 
   return (
     <div className="min-h-screen bg-white text-stone-800">
       <div className="sticky top-0 z-10 bg-white border-b border-stone-200 px-6 py-4">
-        <h1 className="text-lg font-bold">System Docs &amp; Integration Hub</h1>
-        <p className="text-[11px] text-stone-400 mt-0.5">ศูนย์รวมคู่มือและ API ทั้งระบบ — Long-form Wiki</p>
-        <nav className="mt-2 flex flex-wrap gap-2 text-[11px]">
-          {[
-            ["#arch", "Architecture"],
-            ["#ai", "AI Agents"],
-            ["#mcp", "MCP & Deno"],
-            ["#logistics", "Logistics"],
-            ["#external", "External APIs"],
-            ["#code", "Code Snippets"],
-            ["#markdown", "Markdown"],
-          ].map(([href, label]) => (
-            <a key={href} href={href} className="px-2 py-1 rounded border border-stone-200 hover:bg-stone-50">
-              {label}
-            </a>
-          ))}
-        </nav>
+        <h1 className="text-lg font-bold">หมวดหมู่ที่ 1: ภาพรวมสถาปัตยกรรมระบบ (System Architecture &amp; Runtime Flow)</h1>
+        <p className="text-[11px] text-stone-400 mt-0.5">
+          แสดงเนื้อหาเต็มจากไฟล์ Markdown จริงในโปรเจกต์ — หมวดหมู่อื่นจะทำทีละหมวดหลังจากนี้
+        </p>
       </div>
 
-      <div className="p-6 max-w-5xl mx-auto space-y-10">
-        <section id="arch" className="space-y-3">
-          <h2 className="text-base font-bold border-b border-stone-200 pb-1">1. ภาพรวมสถาปัตยกรรมระบบ (System Architecture &amp; Runtime Flow)</h2>
-          <p className="text-sm text-stone-600">DNA OS, Multi-node local network routing, และ Model Context Protocol (MCP) endpoints</p>
-          <div className="bg-stone-50 border border-stone-200 rounded-xl p-4 overflow-auto">
-            <svg viewBox="0 0 760 180" className="w-full h-auto" role="img" aria-label="architecture graph">
-              <rect x="20" y="60" width="120" height="60" rx="8" fill="#fff" stroke="#d6d3d1" />
-              <text x="80" y="95" textAnchor="middle" fontSize="12" fill="#44403c">Client</text>
-              <rect x="190" y="60" width="140" height="60" rx="8" fill="#fff" stroke="#d6d3d1" />
-              <text x="260" y="95" textAnchor="middle" fontSize="12" fill="#44403c">Next.js App</text>
-              <rect x="380" y="60" width="160" height="60" rx="8" fill="#fff" stroke="#d6d3d1" />
-              <text x="460" y="95" textAnchor="middle" fontSize="12" fill="#44403c">Cognitive Pipeline</text>
-              <rect x="590" y="60" width="150" height="60" rx="8" fill="#fff" stroke="#d6d3d1" />
-              <text x="665" y="95" textAnchor="middle" fontSize="12" fill="#44403c">Engines / Supabase</text>
-              <line x1="140" y1="90" x2="190" y2="90" stroke="#a8a29e" strokeWidth="2" />
-              <line x1="330" y1="90" x2="380" y2="90" stroke="#a8a29e" strokeWidth="2" />
-              <line x1="540" y1="90" x2="590" y2="90" stroke="#a8a29e" strokeWidth="2" />
-            </svg>
-          </div>
-          <p className="text-sm text-stone-600">Local AI Inference &amp; Server Clusters: รัน AI ในเครื่องเองแบบไม่ต้องพึ่งพาคลาวด์ภายนอก (ดู DIGITALOCEAN_AI_INFERENCE_DISCOVERY_REPORT.md)</p>
-        </section>
+      <div className="p-6 max-w-4xl mx-auto space-y-8">
+        {docs.map((d) => (
+          <article key={d.name} className="bg-white border border-stone-200 rounded-xl p-5">
+            <h2 className="text-sm font-bold text-stone-500 mb-3">{d.name}</h2>
+            {d.content ? (
+              <div
+                className="markdown-body"
+                dangerouslySetInnerHTML={{ __html: renderMarkdown(d.content) }}
+              />
+            ) : (
+              <p className="text-sm text-stone-400">ไม่พบไฟล์ {d.name}</p>
+            )}
+          </article>
+        ))}
 
-        <section id="ai" className="space-y-3">
-          <h2 className="text-base font-bold border-b border-stone-200 pb-1">2. ศูนย์ควบคุม AI Agents &amp; โมเดล (AI Agents &amp; LLM Control)</h2>
-          <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-2 text-sm">
-            <p>รายชื่อโมเดลและสิทธิ์การใช้งาน: การเชื่อมต่อโมเดลระดับสูง (เช่น ระบบความปลอดภัยหรือ AI Defense tasks)</p>
-            <p>วิธีการควบคุมและสั่งการ: คู่มือการออกคำสั่ง, การใช้ Prompt Playbooks, และแนวทางการเชื่อมต่อ AI เข้ากับระบบปฏิบัติการภายใน</p>
-            <p className="text-xs text-stone-400">ดู registry/ai-adapter-registry.json และ services/ai/*</p>
-          </div>
-        </section>
-
-        <section id="mcp" className="space-y-3">
-          <h2 className="text-base font-bold border-b border-stone-200 pb-1">3. MCP Server &amp; Deno Infrastructure (ระบบหลังบ้านและ Deno)</h2>
-          <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-2 text-sm">
-            <p>Deno MCP Servers: รายการ Server ทั้งหมดที่เขียนด้วย Deno, วิธีการรัน, การจัดการ Environment Variables</p>
-            <p>Runtime Lifecycles: การสร้างและจัดการ disposable workspace environments สำหรับงานเฉพาะกิจ</p>
-            <p className="text-xs text-stone-400">ดู dna-os-mcp-server/, supabase/functions/deno.json, mcp.json</p>
-          </div>
-        </section>
-
-        <section id="logistics" className="space-y-3">
-          <h2 className="text-base font-bold border-b border-stone-200 pb-1">4. ระบบโลจิสติกส์ ขนส่ง และห่วงโซ่อุปทาน (Logistics &amp; Transport Systems)</h2>
-          <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-2 text-sm">
-            <p>ระบบจัดการขนส่ง (Transportation Management): หน้าจอสรุปการทำงานของ AppSheet, การคำนวณเส้นทาง และการจัดส่ง</p>
-            <p>โมเดลโลจิสติกส์วัตถุดิบ: ระบบรวบรวมความต้องการวัตถุดิบ (เช่น โรงงานคอนกรีตและทราย)</p>
-            <p className="text-xs text-stone-400">ดู engines/transportation-management, /admin/jobs, /admin/debt-tracking</p>
-          </div>
-        </section>
-
-        <section id="external" className="space-y-3">
-          <h2 className="text-base font-bold border-b border-stone-200 pb-1">5. คู่มือเชื่อมต่อ API ภายนอก (External APIs &amp; Integrations)</h2>
-          <div className="bg-white border border-stone-200 rounded-xl p-4 space-y-2 text-sm">
-            <p><strong>Kob Chat Bot API:</strong> Base URL, Token, การส่งข้อความ/Flex Message, Webhook, Bot Menu</p>
-            <p><strong>ระบบชำระเงินและกระเป๋าเงิน:</strong> Mobile Banking (K PLUS, K BIZ) และ LINE Pay</p>
-            <p><strong>External Webhooks &amp; Messaging APIs:</strong> โครงสร้างข้อมูล, Billing, ต้นทุนการส่งข้อความ</p>
-            <p className="text-xs text-stone-400">ดู /admin/connectors, /admin/api-tokens, /admin/api-explorer</p>
-          </div>
-        </section>
-
-        <section id="code" className="space-y-3">
-          <h2 className="text-base font-bold border-b border-stone-200 pb-1">6. คลังโค้ดตัวอย่างสำหรับนักพัฒนา (Code Snippets &amp; Repositories)</h2>
-          <div className="space-y-3">
-            <div>
-              <div className="text-xs font-semibold mb-1">cURL</div>
-              <pre className="bg-stone-900 text-green-400 rounded-lg p-3 text-xs overflow-auto whitespace-pre-wrap">{curlSnippet}</pre>
-            </div>
-            <div>
-              <div className="text-xs font-semibold mb-1">Node.js</div>
-              <pre className="bg-stone-900 text-green-400 rounded-lg p-3 text-xs overflow-auto whitespace-pre-wrap">{nodeSnippet}</pre>
-            </div>
-            <p className="text-sm text-stone-600">ลิงก์แหล่งเก็บโค้ด: การเชื่อมโยงกับ GitHub Organizations และโปรเจกต์ที่เกี่ยวข้อง</p>
-          </div>
-        </section>
-
-        <section id="modules" className="space-y-3">
-          <h2 className="text-base font-bold border-b border-stone-200 pb-1">Modules &amp; Capabilities Catalog</h2>
-          <p className="text-sm text-stone-600">จำนวนโมดูลตาม layer (จาก registry/module-registry.json)</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {Object.entries(byLayer).map(([layer, count]) => (
-              <div key={layer} className="bg-white border border-stone-200 rounded-lg p-3">
-                <div className="text-xs text-stone-400">{layer}</div>
-                <div className="text-lg font-bold">{count}</div>
-              </div>
-            ))}
-          </div>
-          <div className="text-xs text-stone-500">
-            Entry points: {entryPoints.join(", ") || "—"}
-          </div>
-        </section>
-
-        <section id="markdown" className="space-y-3">
-          <h2 className="text-base font-bold border-b border-stone-200 pb-1">Markdown Documentation Viewer</h2>
-          <div className="space-y-4">
-            {docs.map((d) => (
-              <details key={d.name} className="bg-white border border-stone-200 rounded-xl">
-                <summary className="px-4 py-2 cursor-pointer text-sm font-semibold">{d.name}</summary>
-                <pre className="px-4 py-3 text-xs whitespace-pre-wrap text-stone-700 overflow-auto max-h-96">{d.content}</pre>
-              </details>
-            ))}
-          </div>
-        </section>
-
-        <section id="settings" className="space-y-3">
-          <h2 className="text-base font-bold border-b border-stone-200 pb-1">Settings</h2>
-          <p className="text-sm text-stone-600">จัดการ Connections &amp; Credentials, Environment Variables, Roles &amp; Permissions, System Links</p>
-          <a href="/admin/settings" className="inline-block px-3 py-2 bg-stone-900 text-white rounded-lg text-xs">ไปหน้า Settings</a>
-        </section>
+        <div className="text-xs text-stone-400 border-t border-stone-200 pt-4">
+          หมวดหมู่ที่ 1 เสร็จสมบูรณ์ — รอคำสั่งเพื่อลุยหมวดหมู่ถัดไป
+        </div>
       </div>
     </div>
   );
