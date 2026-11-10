@@ -1,55 +1,64 @@
-# DNA OS — A4 document style extracted from photo
+# DNA OS — A4 company document — THE single format
 
-This is a reconstruction of layout, not an exact font identification or a live
-invoice. Paper texture and yellow/gray photographic lighting are not reproduced.
-Customer identifiers, bank account, stamp and verification hash are placeholders.
-Company text was transcribed from the photograph; confirm before issuance.
+แม่แบบเดียวของเอกสารบริษัท DNA OS คือไฟล์นี้: `presentation/assets/document-a4/template.html`
+เอกสารทุกชนิด (ใบแจ้งหนี้ ใบเสร็จ ใบเสนอราคา หนังสือ แจ้งหนี้ค้างชำระ) ต้องใช้ **รูปแบบนี้เท่านั้น**
+ถ้าเจอเอกสารรูปแบบอื่น ให้ย้ายมาใช้ไฟล์นี้ แล้วลบรูปแบบเดิมทิ้ง — ห้ามมีรูปแบบที่สองในระบบ
 
-## Page and structure
+## ไฟล์ในชุดนี้ (ครบชุด มีเท่านี้)
 
-- A4 portrait: 210 × 297 mm, top margin 14 mm, side margins 12 mm.
-- Header: company/logo on the left; document title, number and date on the right.
-- Black 2 pt divider; two bordered party boxes underneath.
-- Table columns: transaction date 12%, description 42%, quantity 9%, unit 9%,
-  unit price 14%, amount 14%. Black header; numeric columns right aligned.
-- Summary on right (74 mm); grand total white on black.
-- Full-width amount-in-words, payment note, terms and evidence reference.
-- Two signature columns; reserved stamp space; company footer.
-
-## Palette (visual approximations, not calibrated color samples)
-
-| Use | Hex |
+| ไฟล์ | หน้าที่ |
 | --- | --- |
-| Clean digital paper | #FFFFFF |
-| Main type / table / grand total | #101010 |
-| Secondary labels | #737980 |
-| Box borders | #D9D9D5 |
-| Amount / terms accent | #163B70 |
-| Terms background | #EEF2F7 |
-| Payment-note accent | #92512F |
-| Payment-note background | #FAF4E9 |
+| `template.html` | แม่แบบจริง — มี CSS, ฟอนต์ฝังในตัว, ช่องกรอก `data-field` |
+| `layout-tokens.json` | ค่าที่วัดได้จากแม่แบบ (ขนาดกระดาษ ฟอนต์ สี ระยะ) ใช้อ้างอิงตอนเขียนโค้ด |
+| `style-spec.md` | เอกสารนี้ — กฎการใช้งาน |
 
-## Typography
+ไม่มี `layout.html` และไม่มีชั้นลายน้ำอีกแล้ว (ถอดออกพร้อมรูปแบบเดิม เมื่อ 2026-11-10)
 
-Exact family cannot be proven from the photograph. The existing repository
-template (`engines/documents/template.ts`) specifies Sarabun, but is a different
-layout and does not prove the photographed document used that font.
+## หน้ากระดาษ
 
-This standalone reconstruction embeds the locally available **Noto Sans Thai**
-400 and 700 as a substitute. Latin letters use its Latin subset. Logo uses Arial
-Bold; document numbers and transaction references use monospace.
+- A4 portrait 210 × 297 mm, margin ซ้าย/ขวา 13 mm, ขอบบน 22 mm, footer ล่าง 12 mm
+- พิมพ์: `@page{size:A4;margin:0}` + `@media print` ตั้ง `break-after:page` ที่ `.sheet`
+  พื้นหลังจอเป็น `#E6E8E5` แต่ตอนพิมพ์เป็นกระดาษขาว
+- หนึ่งเอกสาร = หนึ่ง `.sheet` = หนึ่งหน้า A4
 
-| Element | Size / weight |
+## ฟอนต์ (ฝังในไฟล์ ไม่ต้องติดตั้งเพิ่ม)
+
+Thai ใช้ `Thonburi` ก่อน ถ้าเครื่องไม่มีจึงใช้ `'Document Thai'` ที่ฝังไว้
+ละติน/ตัวเลขใช้ `Arial` ก่อน แล้วตกไปที่ `'Document Thai'` ชุดละตินที่ฝังไว้ (ไม่ตกไปที่ฟอนต์ระบบอื่น)
+
+ฝังไว้ 4 หน้า (data URI woff2 ใน `<style>`): น้ำหนัก 400 และ 700 อย่างละชุดไทย `U+0E00-0E7F`
+และชุดละติน `U+0000-00FF, U+2000-206F, U+20A0-20CF`
+เพราะฝังในไฟล์ เอกสารจึงหน้าตาเหมือนกันทุกเครื่องและใน PDF ที่ render บนเซิร์ฟเวอร์
+
+| องค์ประกอบ | ขนาด |
 | --- | --- |
-| DNA OS wordmark | 25 pt / 700, 3 pt tracking |
-| Tagline | 6 pt / 400, 2.5 pt tracking |
-| Document title | 12 pt / 700 |
-| Company name | 11 pt / 700 |
-| Party names | 10 pt / 700 |
-| Body / amounts | 8–9 pt / 400–700 |
-| Grand total | 12 pt / 700 |
-| Labels / footer | 6–7.5 pt / 400 |
+| wordmark `DNA OS` | 27 pt / 700, tracking 1.5 pt |
+| ชื่อเรื่องเอกสาร | 17 pt |
+| ชื่อผู้ออกเอกสาร | 12 pt / 700 |
+| เนื้อหา | 9 pt, line-height 1.55 |
+| ป้ายกำกับ | 8.2 pt |
+| จำนวนเงิน | 10 pt / 700, tabular-nums |
+| footer | 7 pt |
 
-`template.html` is editable and printable; `output/pdf/dna-os-document-a4.pdf`
-is its A4 print export. This template is not wired into the production document
-engine, does not issue a document, and does not calculate authoritative totals.
+## สี
+
+`--ink #202321` · `--label #777D79` · `--rule #D5DAD6` · `--brand #183E32` · กระดาษ `#FFFFFF`
+
+## ช่องกรอกข้อมูล (30 ช่อง, `data-field`)
+
+เอกสารเป็นแบบฟอร์ม: ทุกช่องเป็น `<span data-field="...">` มีเส้นประและข้อความตัวอย่าง `[ชื่อช่อง]`
+ตัวเติมเอกสารแทนที่ **ข้อความข้างใน** เท่านั้น ห้ามลบ `data-field` และห้ามแก้ CSS ในไฟล์นี้
+
+`ISSUER_NAME` `ISSUER_NAME_EN` `ISSUER_TAX_ID` `ISSUER_ADDRESS` · `DOCUMENT_TYPE` `DOCUMENT_TYPE_EN`
+`DOCUMENT_NUMBER` `DOCUMENT_DATE` `DOCUMENT_SUBJECT` `DOCUMENT_SUBJECT_EN` `DOCUMENT_NOTE`
+`RECIPIENT_NAME` `RECIPIENT_NAME_EN` `RECIPIENT_TAX_ID` `RECIPIENT_ADDRESS`
+`TRANSACTION_DATE` `DUE_DATE` `TRANSACTION_CHANNEL` `ORDER_REFERENCE`
+`ITEM_ROWS` `ITEM_AMOUNTS` `SUBTOTAL` `VAT_RATE` `VAT_AMOUNT` `TOTAL_AMOUNT` `AMOUNT_IN_WORDS`
+`PAYMENT_TERMS` `PAYMENT_STATUS` `PAYMENT_REFERENCE` `AUTHORIZED_SIGNATURE`
+
+รายการที่ยาว (`ITEM_ROWS`, `ITEM_AMOUNTS`) เติมเป็นแถวในตารางได้ ไม่ต้องแก้โครง
+
+## ขอบเขต
+
+แม่แบบนี้กำหนด **หน้าตา** ของเอกสาร ไม่คำนวณยอดเงินเองและไม่ออกเลขที่เอกสารเอง
+ตัวเลขทุกตัวต้องมาจาก engines ที่คำนวณแล้ว (ห้ามเดา ห้ามปัดเศษเอง)

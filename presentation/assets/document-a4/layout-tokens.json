@@ -1,11 +1,110 @@
 {
-  "version": 2,
-  "reference": "IMG_3188.jpeg — position and hierarchy reference, not bank branding",
-  "page": { "format": "A4", "widthMm": 210, "heightMm": 297, "marginHorizontalMm": 13, "marginTopMm": 22, "footerBottomMm": 12 },
-  "typography": { "thaiPreferred": "Thonburi", "thaiEmbeddedFallback": "Noto Sans Thai", "exactReferenceFontVerified": false, "titlePt": 17, "bodyPt": 9, "labelPt": 8.2, "amountPt": 10, "referencePt": 9 },
-  "colors": { "text": "#202321", "label": "#777D79", "rule": "#D5DAD6", "brand": "#183E32", "paper": "#FFFFFF", "watermarkStroke": "#ECF0ED" },
-  "layout": { "dateColumnMm": 47, "metadataColumns": 4, "metadataGapMm": 6, "detailAmountColumnMm": 33, "detailGapMm": 7, "totalAmountColumnMm": 47, "rulePt": 0.65 },
-  "layers": ["white-paper", "original-dna-vector-watermark", "rules", "labels", "values"],
-  "quality": { "text": "PDF embedded font glyphs; not a screenshot", "background": "original SVG paths; no source JPEG enlargement", "imageReferenceDpi": "not determinable from screenshot", "bankSourcePdfInspected": false },
-  "scope": "presentation template only; not yet production document engine; one sample item"
+  "version": 3,
+  "singleFormat": true,
+  "master": "presentation/assets/document-a4/template.html",
+  "rule": "เอกสารทุกใบของ DNA OS ใช้รูปแบบนี้เท่านั้น — ไม่มีรูปแบบที่สอง (owner, 2026-11-10)",
+  "page": {
+    "format": "A4",
+    "widthMm": 210,
+    "heightMm": 297,
+    "marginHorizontalMm": 13,
+    "marginTopMm": 22,
+    "footerBottomMm": 12,
+    "printRule": "@page{size:A4;margin:0}"
+  },
+  "typography": {
+    "familyStack": "Thonburi, 'Document Thai', sans-serif",
+    "latinStack": "Arial, 'Document Thai', sans-serif",
+    "thaiPreferred": "Thonburi",
+    "embedded": true,
+    "embeddedFamily": "Document Thai",
+    "embeddedSubsets": [
+      {
+        "weight": 400,
+        "unicodeRange": "U+0E00-0E7F",
+        "script": "thai"
+      },
+      {
+        "weight": 400,
+        "unicodeRange": "U+0000-00FF,U+2000-206F,U+20A0-20CF",
+        "script": "latin"
+      },
+      {
+        "weight": 700,
+        "unicodeRange": "U+0E00-0E7F",
+        "script": "thai"
+      },
+      {
+        "weight": 700,
+        "unicodeRange": "U+0000-00FF,U+2000-206F,U+20A0-20CF",
+        "script": "latin"
+      }
+    ],
+    "sizesPt": {
+      "wordmark": 27,
+      "title": 17,
+      "body": 9,
+      "label": 8.2,
+      "amount": 10,
+      "reference": 9,
+      "issuer": 12,
+      "footer": 7
+    }
+  },
+  "colors": {
+    "text": "#202321",
+    "label": "#777D79",
+    "rule": "#D5DAD6",
+    "brand": "#183E32",
+    "paper": "#FFFFFF",
+    "screenBackdrop": "#E6E8E5"
+  },
+  "layout": {
+    "dateColumnMm": 47,
+    "metadataColumns": 4,
+    "metadataGapMm": 6,
+    "detailAmountColumnMm": 33,
+    "detailGapMm": 7,
+    "totalAmountColumnMm": 47,
+    "rulePt": 0.65
+  },
+  "layers": [
+    "white-paper",
+    "rules",
+    "labels",
+    "values"
+  ],
+  "fields": [
+    "AMOUNT_IN_WORDS",
+    "AUTHORIZED_SIGNATURE",
+    "DOCUMENT_DATE",
+    "DOCUMENT_NOTE",
+    "DOCUMENT_NUMBER",
+    "DOCUMENT_SUBJECT",
+    "DOCUMENT_SUBJECT_EN",
+    "DOCUMENT_TYPE",
+    "DOCUMENT_TYPE_EN",
+    "DUE_DATE",
+    "ISSUER_ADDRESS",
+    "ISSUER_NAME",
+    "ISSUER_NAME_EN",
+    "ISSUER_TAX_ID",
+    "ITEM_AMOUNTS",
+    "ITEM_ROWS",
+    "ORDER_REFERENCE",
+    "PAYMENT_REFERENCE",
+    "PAYMENT_STATUS",
+    "PAYMENT_TERMS",
+    "RECIPIENT_ADDRESS",
+    "RECIPIENT_NAME",
+    "RECIPIENT_NAME_EN",
+    "RECIPIENT_TAX_ID",
+    "SUBTOTAL",
+    "TOTAL_AMOUNT",
+    "TRANSACTION_CHANNEL",
+    "TRANSACTION_DATE",
+    "VAT_AMOUNT",
+    "VAT_RATE"
+  ],
+  "scope": "presentation template only; no watermark layer; not yet wired into the production document renderer"
 }
