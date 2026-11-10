@@ -1,7 +1,7 @@
 {
   "version": 3,
   "singleFormat": true,
-  "master": "presentation/assets/document-a4/template.html",
+  "master": "public/documents/dna-os-a4-master.html",
   "rule": "เอกสารทุกใบของ DNA OS ใช้รูปแบบนี้เท่านั้น — ไม่มีรูปแบบที่สอง (owner, 2026-11-10)",
   "page": {
     "format": "A4",
@@ -89,7 +89,6 @@
     "ISSUER_NAME",
     "ISSUER_NAME_EN",
     "ISSUER_TAX_ID",
-    "ITEM_AMOUNTS",
     "ITEM_ROWS",
     "ORDER_REFERENCE",
     "PAYMENT_REFERENCE",
@@ -106,5 +105,6 @@
     "VAT_AMOUNT",
     "VAT_RATE"
   ],
-  "scope": "presentation template only; no watermark layer; not yet wired into the production document renderer"
+  "scope": "presentation template only; no watermark layer; not yet wired into the production document renderer",
+  "servedAt": "/documents/dna-os-a4-master.html"
 }

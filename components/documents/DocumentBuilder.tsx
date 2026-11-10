@@ -15,6 +15,7 @@ import {
   draftToDocData,
 } from "@/engines/documents/document-editor"
 import { generateDoc } from "@/engines/documents/engine"
+import { loadA4Master, renderA4Document } from "@/engines/documents/a4-master"
 import { DOCUMENT_SERVICE_CATEGORIES } from "@/config/document-service-categories"
 import { getLinkRule } from "@/engines/transactions/document-link"
 import { NEXT_DOC_SUGGESTIONS } from "@/engines/documents/draft-builders"
@@ -25,9 +26,14 @@ import type { DebtTrackingSummary } from "@/engines/debt/tracking"
 import DocumentPreview from "./DocumentPreview"
 import FileUpload, { type UploadedFile } from "@/presentation/documents/FileUpload"
 
-function printDraft(draft: DocumentDraftInput, settings: CompanySettings) {
+// พิมพ์/ส่งออก PDF ต้องออกมาเป็น "แม่แบบเดียวของบริษัท" ตัวเดียวกับที่ preview แสดง
+// (public/documents/dna-os-a4-master.html) ไม่ใช่ HTML ชุดเก่าของ engines/documents/template.ts
+async function printDraft(draft: DocumentDraftInput, settings: CompanySettings) {
   const docNumber = draft.documentNumber?.trim() || "ร่าง"
-  const html = generateDoc(draftToDocData(draft, docNumber, settings)).html
+  const data = draftToDocData(draft, docNumber, settings)
+  const doc = generateDoc(data)
+  const master = await loadA4Master()
+  const html = renderA4Document(master, data, doc)
   const w = window.open("", "_blank", "width=900,height=700")
   if (!w) return
   w.document.write(html)
@@ -560,7 +566,7 @@ export default function DocumentBuilder({ mode, type, initialDraft, initialDocId
                 {selectedDoc.status === "draft" && (
                   <button onClick={() => confirmDoc(selectedDoc.id)} className="text-xs px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition">ยืนยันเอกสาร</button>
                 )}
-                <button onClick={() => companySettings && printDraft(selectedDraft, companySettings)} disabled={!companySettings} className="text-xs px-3 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition disabled:opacity-40">พิมพ์</button>
+                <button onClick={() => { if (companySettings) void printDraft(selectedDraft, companySettings) }} disabled={!companySettings} className="text-xs px-3 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition disabled:opacity-40">พิมพ์</button>
                 <button onClick={() => deleteDoc(selectedDoc.id)} className="text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition">ลบ</button>
               </div>
               {/* Attachments — ไฟล์อ้างอิงที่แนบกับเอกสารนี้ */}
@@ -646,7 +652,7 @@ export default function DocumentBuilder({ mode, type, initialDraft, initialDocId
                 <button onClick={saveDebtNotice} disabled={savingDebtNotice} className="text-xs px-3 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition disabled:opacity-40">
                   {savingDebtNotice ? "กำลังบันทึก..." : "บันทึกเอกสาร"}
                 </button>
-                <button onClick={() => companySettings && printDraft(selectedDraft, companySettings)} disabled={!companySettings} className="text-xs px-3 py-1.5 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50 transition disabled:opacity-40">พิมพ์ / ส่งออก PDF</button>
+                <button onClick={() => { if (companySettings) void printDraft(selectedDraft, companySettings) }} disabled={!companySettings} className="text-xs px-3 py-1.5 rounded-lg border border-amber-200 text-amber-700 hover:bg-amber-50 transition disabled:opacity-40">พิมพ์ / ส่งออก PDF</button>
               </div>
               <div className="p-6">
                 <DocumentPreview draft={selectedDraft} settings={companySettings} />
@@ -985,7 +991,7 @@ export default function DocumentBuilder({ mode, type, initialDraft, initialDocId
         <div className="flex items-center gap-3 px-6 py-3 bg-white border-b border-stone-200 sticky top-0 z-10">
           <span className="text-xs text-stone-500">Preview (ตัวอย่าง)</span>
           <div className="flex-1" />
-          <button onClick={() => companySettings && printDraft(draft, companySettings)} disabled={!companySettings} className="text-xs px-3 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition disabled:opacity-40">พิมพ์</button>
+          <button onClick={() => { if (companySettings) void printDraft(draft, companySettings) }} disabled={!companySettings} className="text-xs px-3 py-1.5 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-600 transition disabled:opacity-40">พิมพ์</button>
         </div>
         <div className="p-6">
           <DocumentPreview draft={draft} settings={companySettings} />

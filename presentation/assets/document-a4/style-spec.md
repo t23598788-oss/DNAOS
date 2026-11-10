@@ -1,6 +1,6 @@
 # DNA OS — A4 company document — THE single format
 
-แม่แบบเดียวของเอกสารบริษัท DNA OS คือไฟล์นี้: `presentation/assets/document-a4/template.html`
+แม่แบบเดียวของเอกสารบริษัท DNA OS คือไฟล์นี้: `public/documents/dna-os-a4-master.html` (เปิด/พิมพ์ได้ตรงที่ `/documents/dna-os-a4-master.html`)
 เอกสารทุกชนิด (ใบแจ้งหนี้ ใบเสร็จ ใบเสนอราคา หนังสือ แจ้งหนี้ค้างชำระ) ต้องใช้ **รูปแบบนี้เท่านั้น**
 ถ้าเจอเอกสารรูปแบบอื่น ให้ย้ายมาใช้ไฟล์นี้ แล้วลบรูปแบบเดิมทิ้ง — ห้ามมีรูปแบบที่สองในระบบ
 
@@ -8,7 +8,7 @@
 
 | ไฟล์ | หน้าที่ |
 | --- | --- |
-| `template.html` | แม่แบบจริง — มี CSS, ฟอนต์ฝังในตัว, ช่องกรอก `data-field` |
+| `public/documents/dna-os-a4-master.html` | แม่แบบจริง — มี CSS, ฟอนต์ฝังในตัว, ช่องกรอก `data-field` (แอปเสิร์ฟไฟล์นี้ให้ preview/print ใช้) |
 | `layout-tokens.json` | ค่าที่วัดได้จากแม่แบบ (ขนาดกระดาษ ฟอนต์ สี ระยะ) ใช้อ้างอิงตอนเขียนโค้ด |
 | `style-spec.md` | เอกสารนี้ — กฎการใช้งาน |
 
@@ -44,7 +44,7 @@ Thai ใช้ `Thonburi` ก่อน ถ้าเครื่องไม่�
 
 `--ink #202321` · `--label #777D79` · `--rule #D5DAD6` · `--brand #183E32` · กระดาษ `#FFFFFF`
 
-## ช่องกรอกข้อมูล (30 ช่อง, `data-field`)
+## ช่องกรอกข้อมูล (29 ช่อง, `data-field`)
 
 เอกสารเป็นแบบฟอร์ม: ทุกช่องเป็น `<span data-field="...">` มีเส้นประและข้อความตัวอย่าง `[ชื่อช่อง]`
 ตัวเติมเอกสารแทนที่ **ข้อความข้างใน** เท่านั้น ห้ามลบ `data-field` และห้ามแก้ CSS ในไฟล์นี้
@@ -53,10 +53,19 @@ Thai ใช้ `Thonburi` ก่อน ถ้าเครื่องไม่�
 `DOCUMENT_NUMBER` `DOCUMENT_DATE` `DOCUMENT_SUBJECT` `DOCUMENT_SUBJECT_EN` `DOCUMENT_NOTE`
 `RECIPIENT_NAME` `RECIPIENT_NAME_EN` `RECIPIENT_TAX_ID` `RECIPIENT_ADDRESS`
 `TRANSACTION_DATE` `DUE_DATE` `TRANSACTION_CHANNEL` `ORDER_REFERENCE`
-`ITEM_ROWS` `ITEM_AMOUNTS` `SUBTOTAL` `VAT_RATE` `VAT_AMOUNT` `TOTAL_AMOUNT` `AMOUNT_IN_WORDS`
+`ITEM_ROWS` `SUBTOTAL` `VAT_RATE` `VAT_AMOUNT` `TOTAL_AMOUNT` `AMOUNT_IN_WORDS`
 `PAYMENT_TERMS` `PAYMENT_STATUS` `PAYMENT_REFERENCE` `AUTHORIZED_SIGNATURE`
 
-รายการที่ยาว (`ITEM_ROWS`, `ITEM_AMOUNTS`) เติมเป็นแถวในตารางได้ ไม่ต้องแก้โครง
+### รายการสินค้า (`ITEM_ROWS`)
+
+`ITEM_ROWS` เป็น **ตารางเดียว** เต็มความกว้าง (`.items > table`) หนึ่งแถว = คำอธิบาย + จำนวน × ราคาต่อหน่วย
++ ยอดของแถวนั้นในคอลัมน์ `td.amt` (กว้าง 43 mm) ยอดจึงตรงกับบรรทัดสินค้าเสมอ
+ห้ามแยกยอดไปช่องอื่น (โครงเดิมมี `ITEM_AMOUNTS` แยกคอลัมน์ ซึ่งทำให้ยอดลอยคนละที่ — ตัดออกแล้ว)
+
+ชั้นความหนาแน่น: 5–8 รายการใส่ `table.compact` (8 pt), 9+ ใส่ `table.tight` (7.2 pt)
+ถ้ายังยาวเกินหนึ่งหน้า ตัวประกอบเอกสาร (`renderA4Document`) จะแบ่งเป็นหลาย `.sheet` A4
+หน้าละ 10 แถว (compact 8 แถว) โดยหน้ากลางไม่มีส่วนยอดรวม/บันทึก/ลายเซ็น และมีเลขหน้า `หน้า X / Y`
+— เนื้อหาจึงไม่ล้นออกนอกขอบกระดาษและไม่มีแถวหาย
 
 ## ขอบเขต
 
