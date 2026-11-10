@@ -11,6 +11,10 @@
 #   gcloud builds submit \
 #     --config cloudbuild.yaml \
 #     --substitutions=_REGION=asia-southeast1,_SERVICE=dna-runtime,_GA_ID=G-XXXX,_LINE_URL=https://line.me/R/ti/p/@yourOA,_SB_URL=https://xxx.supabase.co,_SB_ANON=eyJ...
+#
+# tag ใช้ $BUILD_ID ไม่ใช่ $SHORT_SHA: `gcloud builds submit` (ส่ง source dir ขึ้นไป)
+# ไม่ได้ตั้ง SHORT_SHA ให้ — ตัวนั้นมีค่าเฉพาะ build ที่ trigger จาก Git repo
+# เท่านั้น ถ้าใช้จะได้ tag ว่าง (`dna-runtime:`) แล้ว docker ปฏิเสธ reference format
 
 substitutions:
   _REGION: asia-southeast1
@@ -29,13 +33,13 @@ steps:
       - '--build-arg=NEXT_PUBLIC_LINE_OA_URL=${_LINE_URL}'
       - '--build-arg=NEXT_PUBLIC_SUPABASE_URL=${_SB_URL}'
       - '--build-arg=NEXT_PUBLIC_SUPABASE_ANON_KEY=${_SB_ANON}'
-      - '-t=${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}:${SHORT_SHA}'
+      - '-t=${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}:$BUILD_ID'
       - '-t=${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}:latest'
       - '.'
 
 # ใช้ images: ให้ Cloud Build push ให้อัตโนมัติ (ไม่ต้องมี step push ซ้ำ)
 images:
-  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}:${SHORT_SHA}'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}:$BUILD_ID'
   - '${_REGION}-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/${_SERVICE}:latest'
 
 options:

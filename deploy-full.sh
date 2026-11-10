@@ -188,6 +188,23 @@ if [ -z "$SUPABASE_MGMT_TOKEN" ]; then
 fi
 echo ""
 
+# --------------------------------------- ขั้น 0.5: deploy-gate (ก่อนจ่าย build)
+echo "===== ขั้น 0.5: deploy-gate (ต้องผ่านก่อนจ่ายนาที Cloud Build) ====="
+# gate ต้องใช้ SUPABASE_SERVICE_ROLE_KEY เพื่ออ่าน dev_loop_check_results ตัวจริง
+# secret นี้ห้ามถูก bake ลง image layer เด็ดขาด -> Dockerfile จึงเรียกแค่
+# `npx next build` และ gate ถูกรันตรงนี้ บนเครื่องที่มี .env.deploy; ล้มตรงนี้
+# เท่ากับไม่เสีย Cloud Build minute และไม่ปล่อย image ที่ governance ไม่ผ่าน
+if [ "$DRY_RUN" = "1" ]; then
+  note "npx tsx scripts/deploy-gate.ts  (NEXT_PUBLIC_SUPABASE_URL=SB_URL, SUPABASE_SERVICE_ROLE_KEY=SB_SERVICE_ROLE)"
+else
+  if ! NEXT_PUBLIC_SUPABASE_URL="$SB_URL" SUPABASE_SERVICE_ROLE_KEY="$SB_SERVICE_ROLE" \
+       npx tsx scripts/deploy-gate.ts; then
+    err "deploy-gate ไม่ผ่าน — แก้ตามรายการข้างบน (ห้ามข้ามด้วยการ bypass)"
+  fi
+  echo "OK: deploy-gate ผ่าน"
+fi
+echo ""
+
 # ------------------------------------------- ขั้น 1: project + API
 echo "===== ขั้น 1: ตั้ง project + เปิด API ====="
 run gcloud config set project "$GCP_PROJECT_ID"

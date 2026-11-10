@@ -29,7 +29,11 @@ ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=$NEXT_PUBLIC_SUPABASE_ANON_KEY
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN npm run build
+# ไม่รัน `npm run build` ที่นี่ เพราะ prebuild = scripts/deploy-gate.ts ต้องใช้
+# SUPABASE_SERVICE_ROLE_KEY เพื่ออ่าน dev_loop_check_results จริง และ service role
+# ห้ามถูก bake ลง image layer เด็ดขาด — gate จึงรันที่ deploy-full.sh ขั้น 0.5
+# (บนเครื่องที่มี .env.deploy) ก่อน upload ขึ้น Cloud Build แล้วมาถึงตรงนี้แค่ compile
+RUN npx next build
 
 FROM node:20-alpine AS runner
 WORKDIR /app
