@@ -43,4 +43,3 @@ test-results/
 .sim-browser-profile/
 
 # ไฟล์ซ้ำจาก Finder copy (untracked) — อย่าให้ next build สร้าง route มั่ว
-app/admin/system/page 2.tsx

@@ -13,6 +13,7 @@
     "check-transitional-layers": "npx tsx scripts/check-transitional-layers.ts",
     "accounting-financial-statements:test": "npx tsx scripts/accounting-financial-statements-test.ts",
     "build": "next build",
+    "test:e2e": "vitest run",
     "start": "next start",
     "lint": "eslint",
     "type-check": "tsc --noEmit",
@@ -217,6 +218,7 @@
     "knip": "^6.22.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.1.9"
   }
 }
