@@ -1,9 +1,10 @@
 'use client'
 
-import { useMemo, useRef, useEffect } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { type DocumentDraftInput, draftToDocData } from "@/engines/documents/document-editor"
 import type { CompanySettings } from "@/core/config/company-settings"
 import { generateDoc } from "@/engines/documents/engine"
+import { A4_PAGE, countA4Sheets, loadA4Master, renderA4Document } from "@/engines/documents/a4-master"
 
 interface Props {
   draft: DocumentDraftInput
@@ -11,25 +12,62 @@ interface Props {
 }
 
 /**
- * Preview เอกสาร — ใช้ template เดียวกับ engine.ts/template.ts เสมอ (Single Template Policy)
- * Render ผ่าน iframe เพราะ template.ts ใช้ CSS แบบ unscoped (body, h1 ฯลฯ)
+ * Preview เอกสาร — แม่แบบเดียวของบริษัท: public/documents/dna-os-a4-master.html
+ * (renderer: engines/documents/a4-master.ts)
+ *
+ * Render ผ่าน iframe เพราะแม่แบบมี CSS ของ body/html เป็นของตัวเอง
+ *
+ * LOCKED TO PAGE (owner, 2026-11-10): เดิม iframe กว้าง w-full สูง 1100px ทำให้
+ * กระดาษ A4 (794px + margin) กว้างกว่ากรอบ → เกิด scroll แนวนอน เห็นเอกสารไม่ครบ
+ * ตอนนี้ iframe ตรึงที่ขนาดกระดาษจริงแล้วย่อด้วย transform: scale ให้พอดีกรอบ
+ * เสมอ (ไม่มี scroll แนวนอน และเห็นทั้งหน้าในครั้งเดียว)
  */
 export default function DocumentPreview({ draft, settings }: Props) {
-  const iframeRef = useRef<HTMLIFrameElement>(null)
+  const frameWrapRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(0)
+  const [masterHtml, setMasterHtml] = useState<string | null>(null)
+  const [masterError, setMasterError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    loadA4Master()
+      .then((html) => { if (alive) setMasterHtml(html) })
+      .catch((error: unknown) => { if (alive) setMasterError(error instanceof Error ? error.message : String(error)) })
+    return () => { alive = false }
+  }, [])
 
   const html = useMemo(() => {
-    if (!settings) return null
+    if (!masterHtml || !settings) return null
     const docNumber = draft.documentNumber?.trim() || "ร่าง"
     const data = draftToDocData(draft, docNumber, settings)
     if (data.items.length === 0 && !data.customer?.name) return null
-    return generateDoc(data).html
-  }, [draft, settings])
+    const doc = generateDoc(data)
+    return renderA4Document(masterHtml, data, doc)
+  }, [masterHtml, draft, settings])
 
+  // ย่อให้พอดีความกว้างของกรอบจริง — วัดจาก container ไม่ใช่จากหน้าจอ
   useEffect(() => {
-    const iframe = iframeRef.current
-    if (!iframe || !html) return
-    iframe.srcdoc = html
+    const wrap = frameWrapRef.current
+    if (!wrap) return
+    const measure = () => {
+      const width = wrap.clientWidth
+      if (width > 0) setScale(Math.min(1, width / A4_PAGE.width))
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(wrap)
+    return () => observer.disconnect()
   }, [html])
+
+  const pageHeight = A4_PAGE.height * (html ? countA4Sheets(html) : 1)
+
+  if (masterError) {
+    return (
+      <div className="flex items-center justify-center h-64 px-6 text-center text-sm text-rose-600 bg-rose-50 rounded-xl border border-rose-200">
+        {masterError}
+      </div>
+    )
+  }
 
   if (!html) {
     return (
@@ -40,11 +78,24 @@ export default function DocumentPreview({ draft, settings }: Props) {
   }
 
   return (
-    <iframe
-      ref={iframeRef}
-      title="document-preview"
-      className="w-full bg-white rounded-xl border border-stone-200 shadow-sm"
-      style={{ height: "1100px" }}
-    />
+    <div ref={frameWrapRef} className="w-full overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm">
+      <div style={{ height: Math.round(pageHeight * (scale || 0)) }} className="relative w-full">
+        <iframe
+          title="document-preview"
+          srcDoc={html}
+          scrolling="no"
+          style={{
+            width: A4_PAGE.width,
+            height: pageHeight,
+            border: 0,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            transform: `scale(${scale || 0})`,
+            transformOrigin: "top left",
+          }}
+        />
+      </div>
+    </div>
   )
 }
