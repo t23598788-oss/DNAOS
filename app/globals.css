@@ -190,46 +190,10 @@ html:has(#dna-frame), body:has(#dna-frame) {
 .floating-home-menu .fh-logout:hover { background: rgba(180, 35, 24, 0.06); border-color: rgba(180, 35, 24, 0.2); }
 
 
-/* Pure White Theme (owner) — โมดอล/การ์ด/เมนู ขาวล้วน ไม่มีเส้นขอบ/เงา */
-.tool-launcher-modal,
-.connector-card,
-.admin-dropdown-menu {
-  background-color: #FFFFFF !important;
-  border: none !important;
-  box-shadow: none !important;
-  border-radius: 12px;
-}
-.tool-item-box {
-  background-color: #FFFFFF !important;
-  border: none !important;
-  box-shadow: none !important;
-}
-.tool-item-box:hover {
-  background-color: #F8F9FA !important;
-  border: none !important;
-}
-
-
-/* Pure White Global Override (owner) — บังคับทุกหน้าจอเป็นขาวล้วน ไม่มีเส้นขอบ/เงา */
+/* Pure White Theme (owner) — พื้นหลังขาวล้วน; เส้นขอบ/เงาคงตาม Tailwind classes ของแต่ละ component */
 .bg-stone-50,
 .bg-gray-50,
 .bg-gray-100,
 .bg-slate-50 {
   background-color: #FFFFFF !important;
-}
-.border,
-.border-stone-100,
-.border-stone-200,
-.border-stone-300,
-.border-gray-100,
-.border-gray-200,
-.border-gray-300 {
-  border: none !important;
-}
-.shadow,
-.shadow-sm,
-.shadow-md,
-.shadow-lg,
-.shadow-xl {
-  box-shadow: none !important;
 }

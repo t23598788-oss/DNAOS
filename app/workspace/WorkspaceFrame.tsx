@@ -11,12 +11,12 @@
  * route/backend เดิมใช้ต่อ — ไม่แตะ business logic/canonical/auth/migration
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
-  Grid2X2, Ellipsis, MessageSquare, Settings, FileText, MessageCircle,
+  Ellipsis, MessageSquare, Settings, FileText, MessageCircle,
   Wallet, MapPin, Briefcase, Users, ScanLine, Files, FileOutput, Printer,
-  Download, Share2, History, Paperclip, ArrowUp, Mic, X,
-  FileSignature, Banknote, Mountain, Server, Cloud,
+  Download, History, Paperclip, ArrowUp, Mic, X,
+  FileSignature, Banknote, Mountain, Server, Cloud, Search,
 } from "lucide-react";
 import { openExternal } from "@/components/admin/openExternal";
 import FlexPreview from "@/presentation/viewer/FlexPreview";
@@ -123,12 +123,17 @@ const ACTIONS: FrameItem[] = [
   { icon: FileOutput, label: "แปลงไฟล์", disabledNote: "ยังไม่มี backend แปลงไฟล์" },
   { icon: Printer, label: "พิมพ์", disabledNote: "ใช้ในหน้าเอกสาร (ปุ่ม พิมพ์ / ส่งออก PDF)" },
   { icon: Download, label: "ดาวน์โหลด", disabledNote: "ยังไม่มี backend ดาวน์โหลดรวม" },
-  { icon: Share2, label: "แชร์ / ส่งต่อ", disabledNote: "ยังไม่มี backend แชร์/ส่ง" },
 ];
 
 /** CSS ยึด tokens + โครงสร้างของ reference (paper/ink/line/soft · edge drawer · stage โล่ง) */
 const FRAME_CSS = `
-#dna-frame{--paper:#fdfbf8;--ink:#36332f;--line:#e9e1d6;--soft:#f0ebe5;position:relative;background:var(--paper);color:var(--ink);font:14px/1.6 system-ui,sans-serif;border:1px solid var(--line);border-radius:16px;overflow:hidden;height:100dvh;display:flex;flex-direction:column}
+#dna-frame{--paper:#ffffff;--ink:#36332f;--line:rgba(0,0,0,.08);--soft:#f5f5f5;position:relative;background:var(--paper);color:var(--ink);font:14px/1.6 system-ui,sans-serif;border:1px solid var(--line);border-radius:16px;overflow:hidden;height:100dvh;display:flex;flex-direction:column}
+/* ── GLASS ────────────────────────────────────────────────────────────────
+   ชั้นบรรยากาศ (gradient) + พื้นผิวโปร่งแสง: backdrop-filter จะมองไม่เห็นเลย
+   ถ้าพื้นหลังเป็นสีเรียบ — gradient ข้างล่างคือสิ่งที่ทำให้กระจกมีอะไรให้เบลอ
+   ลำดับชั้น: stage(gradient) → panel(glass) → content(โปร่งใส) → bubble(glass เข้มขึ้น) */
+#dna-frame{--glass:rgba(255,255,255,.32);--glass-strong:rgba(255,255,255,.48);--glass-line:rgba(255,255,255,.50);--glass-shadow:0 4px 14px rgba(31,38,63,.045);--glass-blur:saturate(110%) blur(14px)}
+#dna-frame .stage{background:#ffffff;background-attachment:fixed}
 #dna-frame *{box-sizing:border-box}
 #dna-frame,#dna-frame *{scrollbar-width:none}
 #dna-frame::-webkit-scrollbar,#dna-frame *::-webkit-scrollbar{display:none;width:0;height:0}
@@ -137,34 +142,32 @@ const FRAME_CSS = `
 #dna-frame button:hover,#dna-frame button[aria-pressed=true]{background:var(--soft)}
 #dna-frame button[aria-disabled=true]{opacity:.45;cursor:not-allowed}
 #dna-frame button[aria-disabled=true]:hover{background:transparent}
-#dna-frame .corner{position:absolute;z-index:4;right:14px;top:16px;background:var(--paper)}
-#dna-frame .gear{position:absolute;left:12px;bottom:16px;z-index:3;background:var(--paper)}
+#dna-frame .corner{position:absolute;z-index:4;right:14px;top:16px;background:var(--glass);border:1px solid var(--glass-line);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
 #dna-frame .stage{position:relative;flex:1 1 auto;min-height:0;padding:12px 64px 16px;display:flex;flex-direction:column}
 #dna-frame .stage--bleed{padding:76px 12px 12px}
 #dna-frame .edge{position:absolute;top:20px;padding:8px;z-index:6}
-#dna-frame .edge.left{left:8px}
 /* top:82px = ตำแหน่ง reference (sites/workspace-frame) — ตอนนี้ stage เริ่มที่ y=0
    หลังถอด header จึงต้องเว้นมุมขวาบนให้ปุ่ม .corner (ข้อความ) ไม่ซ้อน Ellipsis */
 #dna-frame .edge.right{right:8px;top:82px}
-#dna-frame .drawer{position:absolute;top:144px;max-height:calc(100dvh - 160px);overflow-y:auto;overscroll-behavior:contain;left:12px;right:12px;z-index:2;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 12px 24px #0002}
+#dna-frame .drawer{position:absolute;top:144px;max-height:calc(100dvh - 160px);overflow-y:auto;overscroll-behavior:contain;left:12px;right:12px;z-index:2;background:var(--glass-strong);border:1px solid var(--glass-line);border-radius:16px;padding:16px;box-shadow:var(--glass-shadow);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
 #dna-frame .drawer .row,#dna-frame .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #dna-frame .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;margin-top:12px}
 #dna-frame .tools button{display:flex;align-items:center;gap:8px;justify-content:flex-start;text-align:left}
 #dna-frame .canvas{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
-#dna-frame .msg-panel{position:absolute;top:76px;right:12px;bottom:76px;width:min(420px,calc(100% - 24px));z-index:5;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 24px #0002;display:flex;flex-direction:column;padding:14px;gap:10px;overflow:hidden}
+#dna-frame .msg-panel{position:absolute;top:76px;right:12px;bottom:76px;width:min(420px,calc(100% - 24px));z-index:5;background:var(--glass-strong);border:1px solid var(--glass-line);border-radius:16px;box-shadow:var(--glass-shadow);display:flex;flex-direction:column;padding:14px;gap:10px;overflow:hidden;-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
 #dna-frame .msg-panel .row strong{margin-right:auto;font-weight:500}
 #dna-frame .msg-panel .panel-body{flex:1;min-height:0;overflow:auto}
 #dna-frame .content{flex:1;padding:0 0 12px;min-height:0;overflow:hidden;display:flex;flex-direction:column}
 #dna-frame .content--fill{padding:0;min-height:0;overflow:hidden}
 #dna-frame .content--fill>div{flex:1 1 0%;min-height:0}
 #dna-frame .count{background:#c93232;color:#fff;min-width:18px;border-radius:10px;font-size:11px;padding:0 5px;margin-left:auto}
-#dna-frame .msg-list{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain;padding-bottom:12px;width:min(100%,860px);margin-inline:auto}
+#dna-frame .msg-list{flex:1 1 auto;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:14px;overscroll-behavior:contain;padding-bottom:12px;width:min(100%,760px);margin-inline:auto}
 #dna-frame .content:not(.content--fill) .msg-list{max-height:none}
 #dna-frame .content--fill .msg-list{flex:0 1 auto;max-height:42vh}
 #dna-frame button[disabled]{opacity:.5;cursor:not-allowed}
 #dna-frame button[disabled]:hover{background:transparent}
 #dna-frame .blank{text-align:center;padding:42px 0}
-#dna-frame .compose{border:1px solid var(--line);border-radius:16px;padding:8px 10px;margin-top:auto;width:min(100%,860px);margin-inline:auto}
+#dna-frame .compose{border:1px solid var(--glass-line);border-radius:18px;padding:8px 10px;max-width:760px;width:100%;margin:0 auto;background:var(--glass);box-shadow:var(--glass-shadow);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
 #dna-frame textarea{width:100%;resize:none;height:36px;min-height:36px;max-height:36px;background:transparent;border:0;outline:none}
 #dna-frame .compose .compose-tools{display:flex;align-items:center;gap:6px}
 #dna-frame .compose button{min-height:32px;width:32px;height:32px;padding:6px;display:inline-flex;align-items:center;justify-content:center}
@@ -175,14 +178,35 @@ const FRAME_CSS = `
 #dna-frame .stage:not(.stage--bleed) .msg-list{padding:0 0 12px}
 #dna-frame .stage:not(.stage--bleed) .msg-col{width:100%}
 #dna-frame .note{font-size:12px;opacity:.75}
+/* THINKING CHIP — trace ของข้อความที่จบแล้ว: บรรทัดจิ๋วจางชิดขวา ยุบไว้ กดถึงกาง */
+#dna-frame .thinking-chip{display:inline-block;vertical-align:baseline;margin:0;font-size:10px;color:#999999;opacity:.7;line-height:1.4}
+#dna-frame .thinking-chip>summary{display:inline-flex;align-items:center;gap:4px;cursor:pointer;list-style:none;user-select:none;font-size:10px;color:#999999}
+#dna-frame .thinking-chip>summary::-webkit-details-marker{display:none}
+#dna-frame .thinking-chip>summary:hover{color:#777777;opacity:1}
+#dna-frame .thinking-chip svg{width:10px;height:10px}
+#dna-frame .thinking-body{margin-top:6px;padding:8px 10px;border:1px solid var(--glass-line);border-radius:10px;background:var(--glass);text-align:left;max-width:min(560px,100%);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur)}
+#dna-frame .thinking-body span{color:#888888;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px}
+#dna-frame .thinking-line{display:flex;gap:6px;align-items:baseline;overflow-wrap:anywhere;color:#888888;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px}
+/* CHAT BACKGROUND / BUBBLES — ข้อความดำบนพื้นอ่อน อ่านง่าย ไม่แสบตา */
+#dna-frame .content:not(.content--fill){background:transparent}
+#dna-frame .msg-header{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+#dna-frame .msg-header .msg-sender{margin-bottom:0}
+/* IMAGE RESULT — พอดีจอ ไม่ครอป */
+#dna-frame .image-fit{max-width:100%;max-height:60vh;overflow:hidden;display:flex;justify-content:center;border-radius:8px}
+#dna-frame .image-fit img{max-width:100%;max-height:60vh;width:auto;height:auto;object-fit:contain}
 /* BUSINESS RESULT PRESENTATION (spec §1): user ขวา/ตามเนื้อหา · DNA OS ซ้าย/พื้นที่ผลลัพธ์ */
-#dna-frame .msg-row{display:flex;flex-direction:column}
-#dna-frame .msg-row-user{align-items:flex-end}
+/* MESSAGE = TEXT ON THE SURFACE — ไม่มีกล่อง/กระจก · คั่นด้วยเส้นบาง ไม่ใช่ขอบ */
+#dna-frame .msg-row{display:flex;flex-direction:column;padding-bottom:20px;border-bottom:1px solid rgba(0,0,0,.045);margin-bottom:20px}
+#dna-frame .msg-row:last-child{padding-bottom:0;border-bottom:none;margin-bottom:0}
+#dna-frame .msg-row-user{align-items:flex-start;width:100%}
 #dna-frame .msg-row-dna{align-items:flex-start;width:100%}
-#dna-frame .msg-col{display:flex;flex-direction:column;gap:6px;min-width:0;max-width:100%}
-#dna-frame .msg-sender{font-size:11px;color:#a8a29e;letter-spacing:.02em}
-#dna-frame .bubble-user{background:#36332f;color:#fdfbf8;border-radius:16px 16px 4px 16px;padding:8px 14px;max-width:min(560px,78%);white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.55}
-#dna-frame .bubble-dna{background:#fff;border:1px solid var(--line);border-radius:16px 16px 16px 4px;padding:10px 14px;max-width:min(760px,94%)}
+#dna-frame .msg-col{display:flex;flex-direction:column;gap:6px;min-width:0;max-width:100%;width:100%}
+#dna-frame .msg-sender{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#a0a0a0;margin-bottom:6px}
+#dna-frame .bubble-dna,
+#dna-frame .bubble-user{background:transparent;border:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;border-radius:0;padding:0;max-width:100%;color:#0a0a0a;font-size:15px;line-height:1.65;font-weight:400}
+#dna-frame .bubble-user{white-space:pre-wrap;overflow-wrap:anywhere}
+/* เส้นคั่นเป็นจังหวะหลัก — ปิด gap เดิมไม่ให้ระยะซ้อนกับ padding/margin 20px */
+#dna-frame .msg-list{gap:0}
 #dna-frame .bubble-error{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:14px;padding:10px 14px;max-width:min(760px,94%)}
 #dna-frame .result-block{width:100%;max-width:760px;display:flex;flex-direction:column;gap:8px;min-width:0}
 #dna-frame .result-title{font-weight:600;font-size:13px}
@@ -593,6 +617,18 @@ export function WorkspaceFrame({
       {/* ONE SURFACE (B): permanent header "DNA OS · พื้นที่ทำงาน" + note ถูกถอด —
           หน้าเริ่มต้น = canvas โล่งตาม Owner reference · ปุ่มควบคุมทั้งหมดอยู่ที่ขอบจอ */}
 
+      {/* ปุ่ม Settings ย้ายมาที่มุมขวาบน (ไม่อยู่ในกล่องพิมพ์ข้อความ) */}
+      <button
+        type="button"
+        aria-label="ตั้งค่า"
+        title="ตั้งค่า"
+        onClick={() => router.push("/admin/settings")}
+        className="corner"
+        style={{ right: 64 }}
+      >
+        <Settings />
+      </button>
+
       {/* ONE SURFACE: ปุ่มมุมขวาบน = ทางเข้าแผง "ประวัติการสื่อสาร" (ถ้าหน้าส่ง
           messagePanel มา) — หน้าที่ไม่มีแผงยังไป /admin/event-inbox เหมือนเดิม */}
       <button
@@ -607,9 +643,6 @@ export function WorkspaceFrame({
       >
         <MessageSquare />
       </button>
-      <button className="gear" onClick={() => router.push("/admin/settings")} aria-label="Settings">
-        <Settings />
-      </button>
 
       {/* แผง "ประวัติการสื่อสาร" — รูปแบบตาม reference .inbox: เปิดทับ canvas (stage ซ่อน) */}
       {panelIsOpen && messagePanel && (
@@ -623,10 +656,6 @@ export function WorkspaceFrame({
           <div className="panel-body">{messagePanel}</div>
         </aside>
       )}
-
-        <button className="edge left" data-drawer="apps" aria-expanded={drawer === "apps"} onClick={() => toggle("apps")} aria-label="เปิดกล่องเครื่องมือ">
-          <Grid2X2 />
-        </button>
 
       {!panelIsOpen && (
       <section className={children ? "stage stage--bleed" : "stage"} data-screen="work">
@@ -651,7 +680,7 @@ export function WorkspaceFrame({
                   title={item.disabledNote ?? item.route ?? item.external}
                   onClick={() => go(item)}
                 >
-                  <item.icon /> {item.label}
+                  <item.icon size={18} /> {item.label}
                   {(itemBadges?.[item.label] ?? 0) > 0 && (
                     <span className="count">{itemBadges![item.label]}</span>
                   )}
@@ -669,20 +698,24 @@ export function WorkspaceFrame({
         <div className={children ? "content content--fill" : "content"} aria-live="polite">
           {messages.length > 0 && (
             <div className="msg-list">
-              {messages.map((m, idx) => {
+              {messages.map((m) => {
                 if (m.role === "user") {
-                  // spec §1 USER: ฝั่งขวา · ความกว้างตามเนื้อหา · ไม่มี label ซ้ำ
+                  // owner 2026-11-02: ชิดซ้ายเท่ากันทุกข้อความ ระบุผู้ส่งด้วย label ไม่ใช่กล่อง
                   return (
                     <div className="msg-row msg-row-user" key={m.id}>
-                      <div className="bubble-user">{m.text}</div>
+                      <div className="msg-col">
+                        <div className="msg-sender">คุณ</div>
+                        <div className="bubble-user">{m.text}</div>
+                      </div>
                     </div>
                   );
                 }
-                const firstDna = !messages.slice(0, idx).some((x) => x.role !== "user");
                 return (
                   <div className="msg-row msg-row-dna" key={m.id}>
                     <div className="msg-col">
-                      {firstDna && <div className="msg-sender">{m.role === "ai" ? "DNA OS" : "ระบบ"}</div>}
+                      <div className="msg-header">
+                      <span className="msg-sender">{m.role === "ai" ? "DNA OS" : "ระบบ"}</span>
+                    </div>
                       {m.result ? (
                         <ChatResultView result={m.result} fallbackText={m.text} />
                       ) : m.text ? (
@@ -703,7 +736,9 @@ export function WorkspaceFrame({
                         </div>
                       )}
                       {m.executionEvents && m.executionEvents.length > 0 && (
-                        <ExecutionTimeline events={m.executionEvents} />
+                        <div style={{ display: "flex", justifyContent: "flex-start", marginTop: 6 }}>
+                          <ThinkingChip events={m.executionEvents} />
+                        </div>
                       )}
                       {m.confirm && (
                         <div className="row msg-actions">
@@ -769,6 +804,7 @@ export function WorkspaceFrame({
             disabled={sending}
           />
           <div className="row compose-tools">
+            {/* ไอคอนแนบไฟล์/ไมค์/ส่ง อยู่ด้านขวาของกล่องคอมโพสต์ (ไม่ยัดใน textarea) */}
             <button type="button" aria-label="แนบไฟล์" title="แนบไฟล์" onClick={() => fileRef.current?.click()} disabled={uploading}>
               <Paperclip />
             </button>
@@ -807,10 +843,51 @@ export function WorkspaceFrame({
   );
 }
 
+// ของข้อความที่จบแล้ว — บรรทัดเดียว ยุบไว้ กดถึงกาง (ไม่มีสีในเนื้อความ)
+function ThinkingChip({ events }: { events: ChatExecutionEvent[] }) {
+  if (events.length === 0) return null;
+  const first = Date.parse(events[0].timestamp);
+  const lastEv = events[events.length - 1];
+  const spanMs = Math.max(0, Date.parse(lastEv.timestamp) - first + (lastEv.durationMs ?? 0));
+  const elapsed = Math.max(0.1, spanMs / 1000).toFixed(1);
+  const stepLabels = events.map((e) => `${e.event} ${e.toolId}`).join(" → ");
+
+  return (
+    <details className="thinking-chip">
+      <summary title={stepLabels}>
+        <span>คิดเป็นเวลา {elapsed}s</span>
+        <span aria-hidden="true">›</span>
+      </summary>
+      <div className="thinking-body">
+        {events.map((event) => (
+          <div key={`${event.traceId}-${event.sequence}`} className="thinking-line">
+            <span aria-hidden="true">→</span>
+            <span>{event.event}</span>
+            <span>{event.toolId}</span>
+            <span>
+              {event.status}
+              {event.recordCount === undefined ? "" : ` · ${event.recordCount} รายการ`}
+              {event.durationMs === undefined ? "" : ` · ${event.durationMs} ms`}
+            </span>
+            <span>{event.sourceReference.startsWith("/api/") ? "API" : event.sourceReference}</span>
+          </div>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 function ExecutionTimeline({ events, active = false }: { events: ChatExecutionEvent[]; active?: boolean }) {
   if (events.length === 0) return null;
   const traceId = events[0].traceId;
-  return (
+  const steps = events.length;
+  const first = Date.parse(events[0].timestamp);
+  const lastEv = events[events.length - 1];
+  const spanMs = Math.max(0, Date.parse(lastEv.timestamp) - first + (lastEv.durationMs ?? 0));
+  const dur = spanMs < 1000 ? `${spanMs}ms` : `${(spanMs / 1000).toFixed(1)}s`;
+  const stepLabels = events.map((e) => e.event).join(" → ");
+
+  const body = (
     <div className="note" aria-label="หลักฐานการประมวลผล" style={{ marginTop: 8, maxWidth: 760 }}>
       <div style={{ fontSize: 11, marginBottom: 3 }}>
         {active ? "กำลังทำงาน" : "หลักฐานการทำงาน"} · Trace {traceId}
@@ -838,6 +915,20 @@ function ExecutionTimeline({ events, active = false }: { events: ChatExecutionEv
         </div>
       ))}
     </div>
+  );
+
+  if (active) {
+    return body;
+  }
+
+  return (
+    <details className="trace">
+      <summary className="trace-chip" title={stepLabels}>
+        <Search size={11} aria-hidden />
+        <span>{steps} ขั้น · {dur}</span>
+      </summary>
+      {body}
+    </details>
   );
 }
 
@@ -1020,7 +1111,9 @@ function AttachmentResult({ result }: { result: Extract<ChatResult, { type: "fil
       <div className="result-block">
         <div className="result-title">🖼 {result.name}</div>
         {url ? (
-          <Viewer kind="image" src={url} alt={result.name} />
+          <div className="image-fit" style={{ maxWidth: "100%", maxHeight: "60vh", overflow: "hidden", display: "flex", justifyContent: "center", borderRadius: "8px" }}>
+            <Viewer kind="image" src={url} alt={result.name} />
+          </div>
         ) : (
           <div className="note">กำลังโหลดรูป...</div>
         )}
@@ -1164,42 +1257,3 @@ function ChatResultView({ result, fallbackText }: { result: ChatResult; fallback
   }
 }
 
-/** Shared tool access for admin destinations that do not render WorkspaceFrame. */
-export function WorkspaceToolNavigation() {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [open, setOpen] = useState(false);
-  useEffect(() => { setOpen(false); }, [pathname]);
-
-  return (
-    <nav className="dna-tool-access" aria-label="เครื่องมือ DNA OS">
-      <style>{`
-        .dna-tool-access{position:relative;grid-row:1;align-self:stretch;padding:16px 8px;z-index:40;color:#36332f;font:14px/1.6 system-ui,sans-serif}
-        body:has(#dna-frame) .dna-tool-access{display:none}
-        .dna-tool-access button{background:#fdfbf8;border:1px solid #e9e1d6;border-radius:9px;min-height:44px;padding:8px;cursor:pointer;color:inherit;font:inherit}
-        .dna-tool-access button:hover{background:#f0ebe5}
-        .dna-tool-access svg{width:18px;height:18px}
-        .dna-tool-menu{position:fixed;top:76px;left:12px;right:12px;max-height:calc(100dvh - 92px);overflow:auto;padding:16px;border:1px solid #e9e1d6;border-radius:12px;background:#fdfbf8;box-shadow:0 12px 24px #0002}
-        .dna-tool-menu .menu-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-        .dna-tool-menu section{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
-        .dna-tool-menu section button{display:flex;gap:8px;align-items:center;text-align:left}
-      `}</style>
-      <button type="button" aria-label="เปิดกล่องเครื่องมือ" aria-expanded={open} onClick={() => setOpen(!open)}><Grid2X2 /></button>
-      {open && (
-        <div className="dna-tool-menu">
-          <div className="menu-heading"><strong>เครื่องมือ</strong><button type="button" aria-label="ปิดกล่องเครื่องมือ" onClick={() => setOpen(false)}><X /></button></div>
-          <section>
-            <button type="button" onClick={() => { setOpen(false); router.push("/workspace"); }}><MessageSquare />พื้นที่ทำงาน</button>
-            {APPS.map((item) => (
-              <button key={item.label} type="button" onClick={() => {
-                setOpen(false);
-                if (item.external) void openExternal(item.external);
-                else if (item.route && item.route !== pathname) router.push(item.route);
-              }}><item.icon />{item.label}</button>
-            ))}
-          </section>
-        </div>
-      )}
-    </nav>
-  );
-}
