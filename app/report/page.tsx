@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import existence from '@/registry/existence.json';
 import businessCoverage from '@/registry/business-coverage.json';
 import decisionCoverage from '@/registry/decision-coverage.json';
@@ -23,6 +24,23 @@ function StatCard({ title, value, sub, delayMs = 0 }: { title: string; value: st
  * core/runtime/existence-intelligence.ts's Morning Report (CLI-only today).
  * Every number here is computed from a live registry file, not restated as a snapshot.
  */
+export const metadata: Metadata = {
+  title: 'Report | DNA OS',
+  description: 'ตัวเลขจริงจาก registry ของ DNA OS: business coverage, decision coverage, rule coverage และ architecture book',
+  alternates: { canonical: '/report' },
+  openGraph: {
+    title: 'Report | DNA OS',
+    description: 'ตัวเลขจริงจาก registry ของ DNA OS: business, decision และ rule coverage',
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Report | DNA OS',
+    description: 'ตัวเลขจริงจาก registry ของ DNA OS: business, decision และ rule coverage',
+    images: ['/opengraph-image'],
+  },
+};
+
 export default function ReportPage() {
   const domainEntries = Object.entries(businessCoverage.domains);
   const coveredCount = domainEntries.filter(([, d]) => d.status === 'covered').length;

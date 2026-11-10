@@ -65,32 +65,77 @@ export async function saveEvent(
   let profileError: string | null = null
 
   if (input.userId) {
-    // Do we already know this contact's identity (name AND picture) from a
-    // previous event? Name-only isn't "fully known" — LINE occasionally
-    // returns a profile with displayName but no pictureUrl yet (propagation
-    // lag), and we don't want that partial result to permanently block future
-    // retries for the picture.
+    // Avatar URL dynamic sync (owner request): always re-fetch the real
+    // LINE profile on every inbound message so a changed pictureUrl is
+    // picked up, instead of freezing the first-seen avatar forever. Fall
+    // back to the last known stored identity only if the fetch fails.
     const { data: known } = await supabase
       .from("line_events")
       .select("line_name, line_picture")
       .eq("line_user_id", input.userId)
       .not("line_name", "is", null)
-      .not("line_picture", "is", null)
+      .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle()
+      .then((r: any) => r, () => ({ data: null }))
 
-    if (known) {
-      lineName = known.line_name
-      linePicture = known.line_picture
+    const profile = await fetchLineProfile(input.userId)
+    if (profile && (profile.displayName || profile.pictureUrl)) {
+      lineName = profile.displayName ?? known?.line_name ?? null
+      linePicture = profile.pictureUrl ?? known?.line_picture ?? null
+      profileError = profile.error ?? null
     } else {
-      // Either never seen this user, or seen them but still missing a
-      // picture — fetch their real profile again.
-      const profile = await fetchLineProfile(input.userId)
-      if (profile) {
-        lineName = profile.displayName
-        linePicture = profile.pictureUrl
-        profileError = profile.error ?? null
+      lineName = known?.line_name ?? null
+      linePicture = known?.line_picture ?? null
+      profileError = profile?.error ?? null
+    }
+  }
+
+  // Dynamic avatar sync to partner_channel_bindings (LINE identity) — upsert so a
+  // changed pictureUrl propagates on every inbound message. Run BEFORE the
+  // line_events insert so Supabase Realtime (which fires on the insert) reads
+  // the already-updated binding/avatar when refreshing the admin UI.
+  // Also resolve/create the Master ID (core_identities) and provider account
+  // so Layer 1/2 stay in sync on every inbound event.
+  if (input.userId) {
+    try {
+      const { data: coreIdentityId } = await supabase
+        .rpc("resolve_or_create_core_identity", {
+          p_provider: "LINE",
+          p_provider_user_id: input.userId,
+          p_display_name: lineName,
+          p_avatar_url: linePicture,
+        })
+        .then((r: { data: unknown }) => r, () => ({ data: null }))
+
+      let providerAccountId: string | null = null
+      if (coreIdentityId) {
+        const { data: pa } = await supabase
+          .from("identity_provider_accounts")
+          .select("id")
+          .eq("provider", "LINE")
+          .eq("provider_user_id", input.userId)
+          .maybeSingle()
+          .then((r: { data: { id: string } | null }) => r, () => ({ data: null }))
+        providerAccountId = pa?.id ?? null
       }
+
+      const upsertPayload: Record<string, unknown> = {
+        channel_type: "LINE",
+        channel_user_id: input.userId,
+        display_name: lineName,
+        avatar_url: linePicture,
+        last_seen_at: new Date().toISOString(),
+      }
+      if (coreIdentityId) upsertPayload.core_identity_id = coreIdentityId
+      if (providerAccountId) upsertPayload.provider_account_id = providerAccountId
+
+      await supabase.from("partner_channel_bindings").upsert(
+        upsertPayload,
+        { onConflict: "channel_type,channel_user_id" },
+      )
+    } catch (e) {
+      console.error("[store] channel binding upsert failed:", (e as Error).message)
     }
   }
 

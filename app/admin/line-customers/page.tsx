@@ -3,29 +3,34 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import Link from "next/link"
 import {
-  MessageCircle, Briefcase, Building2, FileText, Wallet, Mountain, FolderOpen,
+  FileText,
   MapPin, FileSignature, Receipt, Truck, Banknote, Phone, Paperclip, Bot,
 } from "lucide-react"
 import { formatMoney } from "@/engines/documents/document-editor"
 import AppShell from "@/presentation/shell/AppShell";
+import { createBrowserSupabase } from "@/services/supabase/browser";
 import { ConnectionsCredentialsBoard } from "@/components/admin/ConnectionsCredentialsBoard";
 import ActionBar, { type ActionBarItem } from "@/presentation/panels/ActionBar";
 import MapView from "@/presentation/viewer/MapView";
-import type { IconRailItem } from "@/presentation/shell/navigation/IconRail";
 import type { ListColumnItem } from "@/presentation/shell/navigation/ListColumn";
 
 interface Contact {
   line_user_id: string
   line_name: string | null
   line_picture: string | null
+  avatar_url: string | null
   message_count: number
   first_message_at: string
   last_message_at: string
   last_message: string
   matched_company: { id: string; name: string; tax_id: string | null; phone: string | null } | null
+  partner_binding: { id: string; partner_profile_id: string | null; partner_name: string | null; display_name: string | null; avatar_url: string | null; verified: boolean; confidence: number } | null
+  is_unidentified: boolean
   debt: { total_outstanding: number; collection_state: string; days_overdue: number } | null
   has_pending_draft: boolean
 }
+
+interface PartnerProfile { id: string; name: string; phone: string | null; business_category: string | null; readiness_status: string | null }
 
 interface Draft {
   id: string
@@ -143,20 +148,9 @@ interface BizEvent {
   created_at: string
 }
 
-// 7 ฟังก์ชันหลักของ DNA OS ยุบมาจาก 13 เมนูเดิม (registry/portals.json) — หน้านี้
-// (ลูกค้า LINE) เป็นหน้าแรกที่ใช้โครง AppShell เต็มรูปแบบ ที่เหลืออีก 6 ยังพาไป
-// หน้าเดิมตามปกติก่อน รอดูหน้าตานี้แล้วค่อยขยาย (owner request 2026-07-11)
-const RAIL_ITEMS: IconRailItem[] = [
-  { key: "line-customers", label: "LINE", icon: MessageCircle, href: "/admin/line-customers" },
-  { key: "jobs", label: "งาน", icon: Briefcase, href: "/admin/jobs" },
-  { key: "partners", label: "คู่ค้า", icon: Building2, href: "/admin/partners" },
-  { key: "transactions", label: "เอกสาร", icon: FileText, href: "/admin/transactions" },
-  // DOCUMENTS workspace (owner mission 2026-10-10): ค้นหา/เปิด/ดาวน์โหลด/พิมพ์/
-  // ตรวจประวัติเอกสาร แยกจากหน้าจอแชท — เรียก canonical API เดิม (/api/admin/documents)
-  { key: "documents", label: "คลังเอกสาร", icon: FolderOpen, href: "/admin/documents" },
-  { key: "debt-tracking", label: "การเงิน", icon: Wallet, href: "/admin/debt-tracking" },
-  { key: "pits", label: "บ่อวัสดุ", icon: Mountain, href: "/admin/pits" },
-]
+// ONE NAVIGATION (owner 2026-11-02): RAIL_ITEMS/IconRail ถูกลบ — เมนูทั้งระบบ
+// มาจาก <FloatingHomeButton /> ที่ root layout ∴ หน้านี้เหลือ AppShell แบบ
+// ListColumn + content (รายการผู้ติดต่อคือ "เนื้อหา" ไม่ใช่ navigation)
 
 // P5 display split (owner display-first directive, 2026-09-24): แยกโซนปุ่มเป็น
 // "งานธุรกิจ" (เอกสาร/ข้อมูล/พิกัด — ข้อมูลที่อ่าน/สร้างฝั่งธุรกิจ) กับ
@@ -217,12 +211,61 @@ export default function LineCustomersPage() {
       : "#"
 
 
+  const [partnerProfiles, setPartnerProfiles] = useState<PartnerProfile[]>([])
+  const [bindingPartnerId, setBindingPartnerId] = useState<string>("")
+  const [bindingLoading, setBindingLoading] = useState(false)
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set())
+
   useEffect(() => {
-    fetch("/api/admin/line-customers")
-      .then((r) => r.json())
-      .then((d) => setContacts(d.contacts ?? []))
-      .finally(() => setLoading(false))
+    try {
+      const saved = JSON.parse(localStorage.getItem("line-customers.pinned") || "[]")
+      setPinnedIds(new Set(saved))
+    } catch {}
   }, [])
+
+  const fetchContacts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/line-customers")
+      const d = await res.json()
+      const list = (d.contacts ?? []) as Contact[]
+      // Sort: pinned first, then last_message_at desc (unknown-first still included)
+      list.sort((a, b) => {
+        const ap = pinnedIds.has(a.line_user_id) ? 1 : 0
+        const bp = pinnedIds.has(b.line_user_id) ? 1 : 0
+        if (ap !== bp) return bp - ap
+        if (a.has_pending_draft !== b.has_pending_draft) return a.has_pending_draft ? -1 : 1
+        return new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+      })
+      setContacts(list)
+    } finally {
+      setLoading(false)
+    }
+  }, [pinnedIds])
+
+  const fetchPartnerProfiles = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/partner-profiles")
+      const d = await res.json()
+      setPartnerProfiles(d.profiles ?? [])
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    fetchContacts()
+    fetchPartnerProfiles()
+  }, [fetchContacts, fetchPartnerProfiles])
+
+  // Realtime subscription: re-fetch chat list on any line_events change
+  useEffect(() => {
+    const client = createBrowserSupabase()
+    const channel = client
+      .channel("line-customers-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "line_events" }, () => {
+        fetchContacts()
+      })
+      .subscribe()
+    return () => { client.removeChannel(channel) }
+  }, [fetchContacts])
 
   useEffect(() => {
     let cancelled = false
@@ -539,14 +582,42 @@ export default function LineCustomersPage() {
     }
   }, [])
 
-  const listItems: ListColumnItem[] = contacts.map((c) => ({
-    id: c.line_user_id,
-    title: c.line_name ?? "ไม่ทราบชื่อ",
-    subtitle: c.last_message,
-    timestamp: fmtTime(c.last_message_at),
-    avatarUrl: c.line_picture ?? undefined,
-    highlighted: c.has_pending_draft,
-  }))
+  useEffect(() => {
+    setContacts((prev) => {
+      const list = [...prev]
+      list.sort((a, b) => {
+        const ap = pinnedIds.has(a.line_user_id) ? 1 : 0
+        const bp = pinnedIds.has(b.line_user_id) ? 1 : 0
+        if (ap !== bp) return bp - ap
+        if (a.has_pending_draft !== b.has_pending_draft) return a.has_pending_draft ? -1 : 1
+        return new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+      })
+      return list
+    })
+  }, [pinnedIds])
+
+  const togglePin = useCallback((lineUserId: string) => {
+    setPinnedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(lineUserId)) { next.delete(lineUserId) } else { next.add(lineUserId) }
+      try { localStorage.setItem("line-customers.pinned", JSON.stringify([...next])) } catch {}
+      return next
+    })
+  }, [])
+
+  const listItems: ListColumnItem[] = contacts.map((c) => {
+    const isUnidentified = c.is_unidentified
+    const displayName = c.partner_binding?.display_name || c.line_name || (isUnidentified ? "ลูกค้าใหม่ (Unidentified Lead)" : "ไม่ทราบชื่อ")
+    return {
+      id: c.line_user_id,
+      title: isUnidentified ? `${displayName} · ลูกค้าใหม่ (Unidentified Lead)` : displayName,
+      subtitle: c.last_message,
+      timestamp: fmtTime(c.last_message_at),
+      avatarUrl: (c.avatar_url || c.line_picture || c.partner_binding?.avatar_url || "/default-avatar.png"),
+      highlighted: c.has_pending_draft || isUnidentified,
+      pinned: pinnedIds.has(c.line_user_id),
+    }
+  })
 
   const activeContact = contacts.find((c) => c.line_user_id === activeId) ?? null
   const pendingDrafts = detail?.drafts.filter((d) => d.status === "pending_review") ?? []
@@ -614,10 +685,6 @@ export default function LineCustomersPage() {
     },
   ] : []
 
-  const railItems: IconRailItem[] = RAIL_ITEMS.map((item) =>
-    item.key === "pits" && pendingQuotesCount > 0 ? { ...item, badge: pendingQuotesCount } : item
-  )
-
   // P5 display split — แยกปุ่มเป็น 2 โซน (display-only: ปุ่ม/onClick/route เดิมทุกตัว)
   // · งานธุรกิจ = เอกสาร/ข้อมูล/พิกัด (รวม overflow BOQ/ใบวางบิล)
   // · การสื่อสาร = เส้นทางถึงลูกค้าผ่านผู้ให้บริการ LINE (แนบไฟล์/ถาม AI)
@@ -626,8 +693,6 @@ export default function LineCustomersPage() {
 
   return (
     <AppShell
-      railItems={railItems}
-      activeRailKey="line-customers"
       listItems={listItems}
       activeListId={activeId}
       onSelectList={selectContact}
@@ -672,14 +737,16 @@ export default function LineCustomersPage() {
         <div className="flex flex-col h-full">
           {/* Header */}
           <div className="flex items-center gap-3 px-4 py-3 border-b border-stone-200 flex-shrink-0 bg-white">
-            {activeContact.line_picture ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={activeContact.line_picture} alt="" className="w-9 h-9 rounded-full object-cover bg-stone-100" referrerPolicy="no-referrer" />
-            ) : (
-              <div className="w-9 h-9 rounded-full bg-stone-200" />
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={activeContact.avatar_url || activeContact.line_picture || activeContact.partner_binding?.avatar_url || "/default-avatar.png"}
+              alt=""
+              className="w-9 h-9 rounded-full object-cover bg-stone-100"
+              referrerPolicy="no-referrer"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = "/default-avatar.png" }}
+            />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-stone-800 truncate">{activeContact.line_name ?? "ไม่ทราบชื่อ"}</p>
+              <p className="text-sm font-semibold text-stone-800 truncate">{activeContact.partner_binding?.display_name || activeContact.line_name || (activeContact.is_unidentified ? "ลูกค้าใหม่ (Unidentified Lead)" : "ไม่ทราบชื่อ")}</p>
               {activeContact.matched_company ? (
                 <Link href={`/admin/partners/${activeContact.matched_company.id}`} className="text-[11px] text-emerald-600 hover:underline">
                   {activeContact.matched_company.name} →
@@ -688,6 +755,75 @@ export default function LineCustomersPage() {
                 <p className="text-[11px] text-stone-400">ยังไม่จับคู่กับบริษัทในระบบ</p>
               )}
             </div>
+            {/* Unknown-first binding UI */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <button
+                onClick={() => togglePin(activeContact.line_user_id)}
+                className={`text-[11px] font-medium px-2.5 py-1.5 rounded-lg border transition ${pinnedIds.has(activeContact.line_user_id) ? "border-amber-300 text-amber-700 bg-amber-50" : "border-stone-200 text-stone-600 hover:bg-stone-50"}`}
+              >
+                {pinnedIds.has(activeContact.line_user_id) ? "📌 ปักหมุดแล้ว" : "📌 ปักหมุด"}
+              </button>
+              {activeContact.is_unidentified && (
+                <span className="text-[10px] font-semibold px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                  ลูกค้าใหม่ (Unidentified Lead)
+                </span>
+              )}
+              {activeContact.partner_binding?.partner_name && (
+                <span className="text-[10px] font-medium px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  ผูกแล้ว: {activeContact.partner_binding.partner_name}
+                </span>
+              )}
+            </div>
+            {activeContact.is_unidentified && (
+              <div className="px-4 py-2 border-b border-stone-200 bg-amber-50 flex items-center gap-2 flex-shrink-0">
+                <select
+                  value={bindingPartnerId}
+                  onChange={(e) => setBindingPartnerId(e.target.value)}
+                  className="flex-1 text-xs border border-stone-200 rounded-lg px-2.5 py-1.5"
+                >
+                  <option value="">-- เลือกโปรไฟล์พาร์ทเนอร์ --</option>
+                  {partnerProfiles.map((pp) => (
+                    <option key={pp.id} value={pp.id}>{pp.name}</option>
+                  ))}
+                </select>
+                <button
+                  disabled={bindingLoading || (!bindingPartnerId)}
+                  onClick={async () => {
+                    if (!bindingPartnerId) return
+                    setBindingLoading(true)
+                    try {
+                      await fetch(`/api/admin/line-customers/${activeContact.line_user_id}/bind-partner`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ partner_profile_id: bindingPartnerId }),
+                      })
+                      setBindingPartnerId("")
+                      await fetchContacts()
+                    } finally { setBindingLoading(false) }
+                  }}
+                  className="text-xs font-medium px-3 py-1.5 rounded-lg bg-emerald-600 text-white disabled:opacity-40"
+                >
+                  {bindingLoading ? "กำลังผูก..." : "ผูก"}
+                </button>
+                <button
+                  disabled={bindingLoading}
+                  onClick={async () => {
+                    setBindingLoading(true)
+                    try {
+                      await fetch(`/api/admin/line-customers/${activeContact.line_user_id}/bind-partner`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ create: true, name: activeContact.line_name }),
+                      })
+                      await fetchContacts()
+                    } finally { setBindingLoading(false) }
+                  }}
+                  className="text-xs font-medium px-3 py-1.5 rounded-lg border border-stone-200 text-stone-700 disabled:opacity-40"
+                >
+                  สร้างโปรไฟล์ใหม่
+                </button>
+              </div>
+            )}
             {activeContact.debt && (
               <div className="text-right flex-shrink-0 flex items-center gap-2">
                 <div>

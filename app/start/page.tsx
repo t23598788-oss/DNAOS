@@ -8,6 +8,7 @@
  * Playground are real tools, not marketing content.
  */
 
+import type { Metadata } from "next"
 import Link from "next/link"
 import commandRegistry from "@/registry/command-registry.json"
 import moduleRegistry  from "@/registry/module-registry.json"
@@ -19,6 +20,23 @@ const MODULE_COUNT   = Object.keys(moduleRegistry.modules).filter(k => !k.starts
 const COMMAND_COUNT  = Object.keys(commandRegistry.commands).filter(k => !k.startsWith("_")).length
 const DRIVER_COUNT   = Object.keys(driversRegistry.drivers).length
 const WORKFLOW_COUNT = Object.keys((workflowRegistry as any).workflows ?? {}).length
+
+export const metadata: Metadata = {
+  title: "Engineering Workspace | DNA OS",
+  description: "รวมเครื่องมือ Inspect / Build / Test ของ DNA OS — Observer, JSON registries, API spec และ Playground",
+  alternates: { canonical: "/start" },
+  openGraph: {
+    title: "Engineering Workspace | DNA OS",
+    description: "รวมเครื่องมือ Inspect / Build / Test ของ DNA OS",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Engineering Workspace | DNA OS",
+    description: "รวมเครื่องมือ Inspect / Build / Test ของ DNA OS",
+    images: ["/opengraph-image"],
+  },
+}
 
 // ── Data ──
 

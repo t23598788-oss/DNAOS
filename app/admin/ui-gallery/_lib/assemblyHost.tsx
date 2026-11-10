@@ -506,12 +506,7 @@ export function AsmAdminOwnerWorkspace() {
   return (
     <div className="space-y-3 p-3">
       <div className="h-[440px] overflow-hidden rounded-xl border border-stone-200 bg-white">
-        <WorkspaceShell
-          navItems={navItems}
-          activeKey={activeKey}
-          userEmail="(preview — ไม่มี session)"
-          theme="light"
-        >
+        <WorkspaceShell theme="light">
           <div className="space-y-3 p-4">
             <LabRow label="active nav (state จริงของ WorkspaceShell)">
               {navItems.map((n) => (

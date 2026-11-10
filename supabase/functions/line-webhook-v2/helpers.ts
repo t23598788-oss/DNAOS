@@ -397,8 +397,20 @@ export async function executeBusinessValidation(
     if (state.quantity === null || state.quantity === undefined || state.quantity <= 0 || state.quantity > 1000) {
       // Calculate price per cubic meter dynamically
       let resolvedMatName = matType.name;
-      let materialBasePrice = parseFloat(pitMat.price) || 120.00;
-      let targetDistance = 15.00;
+      // Owner rule (2026-11-02): no invented price. The `|| 120.00` that used
+      // to sit here quoted a made-up 120 baht whenever the stored price
+      // wasn't parseable. If the real price isn't a number, fail closed with
+      // the same "no price, human checks" answer already used above.
+      let materialBasePrice = parseFloat(pitMat.price);
+      if (!Number.isFinite(materialBasePrice)) {
+        return {
+          isValid: false,
+          missingFields: ['material_price'],
+          message: `ขออภัยครับ ราคาของ "${resolvedMatName}" ในระบบไม่ใช่ตัวเลขที่นำมาคำนวณได้ ขออนุญาตส่งเรื่องให้เจ้าหน้าที่ตรวจสอบราคาด้วยตนเองครับ`
+        };
+      }
+      // no default: a real distance is required (see the null check below)
+      let targetDistance: number | null = null;
 
       // Find nearest pit that sells this material
       const { data: pitMats } = await supabase
@@ -426,6 +438,13 @@ export async function executeBusinessValidation(
         materialBasePrice = parseFloat(bestPitMat.price) || materialBasePrice;
       }
 
+      // Owner rule (2026-11-02): the old 15.00 default quoted a freight number
+      // for a distance nobody measured. A real distance exists only when a
+      // pit has real GPS — otherwise fail closed, never estimate.
+      if (targetDistance === null) {
+        throw new Error('[DISTANCE MISSING] หาระยะทางจริงไปยังแหล่งวัสดุไม่ได้ (pit_profiles ไม่มีพิกัด GPS) — คำนวณค่าขนส่งไม่ได้');
+      }
+
       // Load configurations
       const { data: configs } = await supabase
         .from('app_configs')
@@ -436,29 +455,51 @@ export async function executeBusinessValidation(
       // to them from real distance x real fuel price only, no separate
       // driver-wage line. Also no minimum-distance floor (owner, same day:
       // "ไม่มีขั้นต่ำระยะทาง") — real distance applies even under 15km.
-      // fuel-price is real now (auto-synced from Bangchak's public API daily,
-      // supabase/functions/fuel-price-sync) — 43.00 default kept only as a
-      // last-resort if that sync has never run yet.
-      let fuelPrice = 43.00;
-      let markupPercent = 25.00;
+      // fuel-price is real (auto-synced from Bangchak's public API daily,
+      // supabase/functions/fuel-price-sync).
+      // Owner rule (2026-11-02): the `|| 43.00` / `= 25.00` defaults that used
+      // to sit here invented both a fuel price and a markup percent. Both are
+      // price numbers and must come from app_configs, or there is no estimate.
+      const requiredConfigNum = (title: string): number => {
+        const row = (configs ?? []).find((c: any) => c.title === title);
+        const value = row ? parseFloat(row.data) : NaN;
+        if (!Number.isFinite(value)) {
+          throw new Error(`[CONFIG MISSING] key="${title}" — ต้องใส่ใน app_configs table ก่อนใช้งาน`);
+        }
+        return value;
+      };
 
-      if (configs) {
-        configs.forEach((c: any) => {
-          if (c.title === 'fuel-price') fuelPrice = parseFloat(c.data) || fuelPrice;
-          if (c.title === 'pricing-markup-percent') markupPercent = parseFloat(c.data) || markupPercent;
-        });
+      const fuelPrice = requiredConfigNum('fuel-price');
+      const markupPercent = requiredConfigNum('pricing-markup-percent');
+
+      // Owner rule (2026-11-02): the `/ 5` divisor was a hardcoded "6-wheeler,
+      // 5 tons" assumption. The per-trip tonnage must be a real capacity —
+      // the smallest truck the system actually has (vehicle_types.load_capacity),
+      // which is what that 5-ton truck was standing in for. Fail closed if no
+      // real vehicle exists to derive it from.
+      const { data: vehicleRows } = await supabase
+        .from('vehicle_types')
+        .select('load_capacity')
+        .is('deleted_at', null)
+        .not('load_capacity', 'is', null);
+      const loadCapacities = (vehicleRows ?? [])
+        .map((v: any) => Number(v.load_capacity))
+        .filter((n: number) => Number.isFinite(n) && n > 0);
+      if (loadCapacities.length === 0) {
+        throw new Error('[TONNAGE MISSING] ไม่มีข้อมูลความจุรถ (vehicle_types.load_capacity) — คำนวณค่าขนส่งต่อตันไม่ได้');
       }
+      const perTripTons = Math.min(...loadCapacities);
 
       const transportCostPerTrip = targetDistance * fuelPrice;
       const retailMaterialUnitPrice = Math.round(materialBasePrice * (1 + markupPercent / 100));
-      const retailTransportUnitPrice = Math.round((transportCostPerTrip * (1 + markupPercent / 100)) / 5);
+      const retailTransportUnitPrice = Math.round((transportCostPerTrip * (1 + markupPercent / 100)) / perTripTons);
       const totalPricePerQ = retailMaterialUnitPrice + retailTransportUnitPrice;
 
       return {
         isValid: false,
         missingFields: ['quantity'],
         message: `ราคาประเมินสำหรับ ${resolvedMatName}:\n` +
-                 `ราคาประมาณ ${totalPricePerQ.toLocaleString()} บาท/ตัน (คำนวณที่ระยะทางประมาณ ${targetDistance.toFixed(1)} กม. ขนส่งด้วยรถหกล้อขั้นต่ำ 5 ตัน)\n\n` +
+                 `ราคาประมาณ ${totalPricePerQ.toLocaleString()} บาท/ตัน (คำนวณที่ระยะทางประมาณ ${targetDistance.toFixed(1)} กม. ขนส่งด้วยรถบรรทุกขั้นต่ำ ${perTripTons} ตัน)\n\n` +
                  `ต้องการกี่ตันแจ้งได้เลยครับ`
       };
     }

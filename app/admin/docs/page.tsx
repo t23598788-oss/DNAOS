@@ -35,14 +35,17 @@ function escapeHtml(s: string): string {
 }
 
 function inline(s: string): string {
+  // NOTE: callers pass text that escapeHtml() has already encoded once.
+  // Escaping again inside these branches double-encoded entities
+  // ("&" -> "&amp;amp;", "<" -> "&amp;lt;") and showed HTML/Thai text wrong.
   // inline code
-  s = s.replace(/`([^`]+)`/g, (_m, code) => `<code class="px-1 py-0.5 rounded bg-stone-100 text-[0.85em] font-mono">${escapeHtml(code)}</code>`);
+  s = s.replace(/`([^`]+)`/g, (_m, code) => `<code class="px-1 py-0.5 rounded bg-stone-100 text-[0.85em] font-mono">${code}</code>`);
   // bold
   s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
   // italic
   s = s.replace(/\*([^*]+)\*/g, "<em>$1</em>");
   // links
-  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, text, url) => `<a href="${escapeHtml(url)}" class="text-blue-600 underline" target="_blank" rel="noreferrer">${escapeHtml(text)}</a>`);
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, text, url) => `<a href="${url}" class="text-blue-600 underline" target="_blank" rel="noreferrer">${text}</a>`);
   return s;
 }
 

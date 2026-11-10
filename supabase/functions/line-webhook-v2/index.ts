@@ -12,6 +12,7 @@ import { handleFollow }   from "./handlers/follow.ts"
 import { handleUnfollow } from "./handlers/unfollow.ts"
 import { handleText }     from "./handlers/text.ts"
 import { handleLocation } from "./handlers/location.ts"
+import { handleDriver }   from "./handlers/driver.ts"
 import { handlePostback } from "./handlers/postback.ts"
 import { handleImage }    from "./handlers/image.ts"
 import { handleFile }     from "./handlers/file.ts"
@@ -23,6 +24,18 @@ import type { LineWebhookPayload, HandlerContext, LineMessageEvent } from "./eve
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-line-signature",
+};
+
+/** Detect driver commands: "eta [plate]" or Thai equivalents */
+export function textStartsWithDriverCmd(text: string): boolean {
+  const t = text.trim().toLowerCase();
+  if (t === "eta" || t === "คำนวณเอต้า" || t === "คำนวณเอต้า") return true;
+  if (t.startsWith("eta ") || t.startsWith("etaปะระนียบัตร")) return true;
+  // Thai: "รถ [plate] ถึงไหน" or "แผ่นที่ [plate]"
+  if (t.startsWith("รถ") && t.includes("ถึง")) return true;
+  if (/แผ่นที่\s*\S+/.test(t)) return true;
+  if (/\d{2,3}[-]\d{3,4}/.test(t)) return true; // plate pattern like AA-1234
+  return false;
 }
 
 Deno.serve(async (req: Request) => {
@@ -99,11 +112,21 @@ Deno.serve(async (req: Request) => {
       case "postback": await handlePostback(ctx); break
       case "message": {
         const msgType = (event as LineMessageEvent).message?.type
-        if (msgType === "text")     await handleText(ctx)
-        else if (msgType === "location") await handleLocation(ctx)
-        else if (msgType === "image")    await handleImage(ctx)
-        else if (msgType === "file")     await handleFile(ctx)
-        else if (msgType === "audio")    await handleAudio(ctx)
+        const msgText = (event as LineMessageEvent).message?.text ?? ""
+        if (msgType === "text") {
+        // Driver commands first — "eta [plate]" is text, not video
+        const isDriverCmd = textStartsWithDriverCmd(msgText);
+        if (isDriverCmd) {
+          await handleDriver(ctx);
+          return;
+        }
+        await handleText(ctx);
+      } else if (msgType === "location") await handleLocation(ctx)
+      else if (msgType === "image")    await handleImage(ctx)
+      else if (msgType === "video" || msgType === "sticker" || msgType === "audio" || msgType === "file") await handleFallback(ctx)
+      else if (msgType === "file")     await handleFile(ctx)
+      else if (msgType === "audio")    await handleAudio(ctx)
+      else if (msgType === "video")    await handleDriver(ctx)
         else                             await handleFallback(ctx)
         break
       }

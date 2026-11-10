@@ -5,36 +5,63 @@
       "table": "invoice_payments",
       "primaryKey": "id",
       "description": "ประวัติการชำระเงิน — ผูกกับ invoice_debts",
-      "columns": ["id", "invoice_debt_id", "payment_amount", "paid_at", "principal_before_payment", "outstanding_before_payment", "outstanding_after_payment", "note"],
-      "softDelete": false
+      "columns": ["id", "invoice_debt_id", "payment_amount", "paid_at", "principal_before_payment", "outstanding_before_payment", "outstanding_after_payment", "note"]
+    },
+    {
+      "table": "payment_callbacks",
+      "primaryKey": "id",
+      "description": "บันทึก callback จากผู้ให้บริการ — map bank transaction → document",
+      "columns": ["id", "provider", "provider_transaction_id", "connector_id", "amount", "currency", "status", "invoice_id", "standalone_document_id", "receipt_document_id", "debt_event_id", "matched_bank_reference", "raw_payload", "received_at", "created_by", "created_at", "updated_at"]
+    },
+    {
+      "table": "settlements",
+      "primaryKey": "id",
+      "description": "บันทึก service fee ต่อ transaction — customer_paid, fee_rate snapshot, platform_fee, partner_paid",
+      "columns": ["id", "provider", "bank_reference", "payment_callback_id", "source_type", "source_id", "partner_id", "customer_paid", "fee_rate", "platform_fee", "partner_paid", "currency", "status", "settled_at", "created_by", "created_at", "updated_at"]
     }
   ],
   "relations": [
-    { "table": "invoice_debts", "foreignKey": "invoice_debt_id", "type": "foreign_key" }
+    { "table": "invoice_debts", "foreignKey": "invoice_debt_id", "type": "foreign_key" },
+    { "table": "payment_callbacks", "foreignKey": "provider_transaction_id", "type": "unique" },
+    { "table": "payment_callbacks", "foreignKey": "invoice_id", "type": "foreign_key" },
+    { "table": "payment_callbacks", "foreignKey": "receipt_document_id", "type": "foreign_key" },
+    { "table": "payment_callbacks", "foreignKey": "debt_event_id", "type": "foreign_key" },
+    { "table": "settlements", "foreignKey": "payment_callback_id", "type": "foreign_key" },
+    { "table": "settlements", "foreignKey": "source_id", "type": "foreign_key" },
+    { "table": "settlements", "foreignKey": "partner_id", "type": "foreign_key" }
   ],
   "indexes": [
     { "table": "invoice_payments", "column": "invoice_debt_id", "type": "btree" },
-    { "table": "invoice_payments", "column": "paid_at", "type": "btree" }
+    { "table": "invoice_payments", "column": "paid_at", "type": "btree" },
+    { "table": "payment_callbacks", "column": "provider,status,received_at desc", "type": "btree" },
+    { "table": "payment_callbacks", "column": "invoice_id", "type": "btree" },
+    { "table": "payment_callbacks", "column": "receipt_document_id", "type": "btree" },
+    { "table": "settlements", "column": "source_type,source_id", "type": "btree" },
+    { "table": "settlements", "column": "partner_id,created_at desc", "type": "btree" },
+    { "table": "settlements", "column": "status,created_at desc", "type": "btree" }
   ],
   "permissions": {
-    "read": ["Review Board", "Debt Engine", "Document Engine"],
-    "write": ["V6 Executor"]
+    "read": ["Review Board", "Debt Engine", "Document Engine", "Finance"],
+    "write": ["V6 Executor", "Finance Executor"]
   },
-  "commands": ["preview_payment", "execute_payment"],
-  "events": ["payment.created", "payment.confirmed", "debt.status_changed"],
+  "commands": ["preview_payment", "execute_payment", "settle_transaction"],
+  "events": ["payment.created", "payment.confirmed", "payment.settled", "debt.status_changed"],
   "engines": [
-    { "name": "Payment Action", "file": "lib/v2-rules/actions.ts", "function": "executePayment" }
+    { "name": "Payment Action", "file": "lib/v2-rules/actions.ts", "function": "executePayment" },
+    { "name": "Settlement Action", "file": "engines/canonical/settlement-write.ts", "function": "settleTransaction" }
   ],
   "queries": [
     { "name": "previewPayment", "file": "lib/v2-rules/actions.ts", "action": "read" },
-    { "name": "executePayment", "file": "lib/v2-rules/actions.ts", "action": "write" }
+    { "name": "executePayment", "file": "lib/v2-rules/actions.ts", "action": "write" },
+    { "name": "settleTransaction", "file": "engines/canonical/settlement-write.ts", "action": "write" }
   ],
-  "dependencies": ["debt"],
+  "dependencies": ["debt", "documents"],
   "validators": [
-    { "rule": "ต้องมี invoice_debt_id", "field": "invoice_debt_id", "type": "required" },
-    { "rule": "payment_amount > 0", "field": "payment_amount", "type": "positive" },
-    { "rule": "หนี้ต้องยังไม่ PAID", "field": "invoice_status", "type": "state_check" },
-    { "rule": "ต้อง preview ก่อน execute", "constitution": "Rule 72", "type": "confirmation" }
+    { "rule": "ต้องมี provider_transaction_id", "field": "provider_transaction_id", "type": "required" },
+    { "rule": "payment_amount > 0", "field": "amount", "type": "positive" },
+    { "rule": "currency A-Z 3 ตัวอักษร", "field": "currency", "type": "pattern" },
+    { "rule": "status ต้องอยู่ในเซ็ต", "field": "status", "type": "enum" },
+    { "rule": "customer_paid >= 100", "field": "customer_paid", "type": "positive_min" }
   ],
   "documents": ["receipt"],
   "api": [

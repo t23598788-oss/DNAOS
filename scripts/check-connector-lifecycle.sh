@@ -27,7 +27,10 @@ echo "--- Guard A: connectors table access confined to Core/Gateway ---"
 
 TOUCHING_FILES=$(grep -rlE '\.from\((\x27|")connectors(\x27|")\)|\.from\((\x27|")connector_webhook_events(\x27|")\)' \
   --include="*.ts" --include="*.tsx" . 2>/dev/null \
-  | grep -v node_modules | grep -v '\.next' || true)
+  | grep -v node_modules | grep -v '/.next/' | grep -v '/recovery/' || true)
+# recovery/** holds local owner-side backup dumps (gitignored, never committed) —
+# scanning them as app source reported the backup copies themselves as
+# violations of a law they do not take part in.
 
 for f in $TOUCHING_FILES; do
   FOUND=0

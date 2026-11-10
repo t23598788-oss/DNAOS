@@ -196,6 +196,11 @@ async function syncRegistry() {
       // which would otherwise get flagged as new "unregistered" modules.
       "external-packages/**",
       ".dnaos-trash/**",
+      // Local recovery/evidence dumps (owner-side backups under recovery/**):
+      // not app source and never committed, so registering them made
+      // registry-integrity-gate.ts classify thousands of UNTRACKED entries as
+      // part of every commit and block it. Same class as .dnaos-trash/**.
+      "recovery/**",
       "**/*.d.ts",
       "**/*.test.ts",
       "**/*.spec.ts",

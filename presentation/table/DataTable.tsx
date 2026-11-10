@@ -110,7 +110,7 @@ export default function DataTable<Row>({
   }
 
   return (
-    <div className={"flex flex-col bg-white border border-stone-200 rounded-xl overflow-hidden " + className}>
+    <div className={"flex flex-col bg-white border border-[rgba(0,0,0,0.08)] rounded-xl overflow-hidden " + className}>
       {toolbar && (
         <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-stone-100 flex-shrink-0">
           {toolbar}

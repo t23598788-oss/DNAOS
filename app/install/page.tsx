@@ -2,6 +2,25 @@
 // สำหรับผู้ใช้ที่เปิดลิงก์แล้วต้องการเพิ่มลงหน้าจอโฮม. ทุกฟังก์ชันต้อง
 // ออนไลน์ (ไม่มีโหมดออฟไลน์) และถ้าอุปกรณ์ติดตั้งไม่ได้ ใช้ผ่านเบราว์เซอร์
 // ได้ครบทุกอย่าง. แจกเฉพาะตัวแอปนี้เท่านั้น — ไม่มีซอร์สโค้ด/ไฟล์ env/ความลับ.
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "ติดตั้งแอป | DNA OS",
+  description: "วิธีติดตั้ง DNA OS เป็นแอป (PWA) บน Android, iPhone/iPad และเดสก์ท็อป — ทุกฟังก์ชันต้องออนไลน์",
+  alternates: { canonical: "/install" },
+  openGraph: {
+    title: "ติดตั้งแอป | DNA OS",
+    description: "วิธีติดตั้ง DNA OS เป็นแอป (PWA) บนทุกอุปกรณ์",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ติดตั้งแอป | DNA OS",
+    description: "วิธีติดตั้ง DNA OS เป็นแอป (PWA) บนทุกอุปกรณ์",
+    images: ["/opengraph-image"],
+  },
+};
+
 const STEPS: { device: string; how: string[] }[] = [
   {
     device: "Android — Chrome",

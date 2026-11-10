@@ -41,6 +41,11 @@ export const CANONICAL_AUDIT_ACTIONS = [
   "price.offer_recorded",
   "price.updated",
   "price.created",
+  // Layer 3 identity overlay — binding a channel to a partner profile is a
+  // canonical write with its own actor/evidence, now that it no longer happens
+  // in the provider tier (Connect boundary census T1c).
+  "partner.profile_created",
+  "partner.bound",
 ] as const;
 
 export type CanonicalAuditAction = (typeof CANONICAL_AUDIT_ACTIONS)[number];

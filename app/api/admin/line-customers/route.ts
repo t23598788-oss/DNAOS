@@ -17,24 +17,18 @@ export async function GET() {
   const ctx = await resolveAdminReadScope(auth)
   const denied = denyUnscoped(ctx)
   if (denied) return denied
-  if (ctx.companyIds && ctx.companyIds.size === 0) return NextResponse.json({ contacts: [] })
+  // Open inbound pipeline: chat identity/avatar stream is NOT gated by
+  // business scope. An org with no visible companies still sees inbound
+  // conversations; business overlay (company/debt) simply stays null.
 
   const db = supabase()
 
-  // Organization scope narrows the message read itself: only LINE accounts
-  // explicitly linked to an in-scope company are fetched at all.
-  let eventsQuery = db
+  // Open inbound pipeline: fetch EVERY inbound LINE event regardless of
+  // business binding/company scope, so avatar/name/message are available for
+  // all contacts immediately.
+  const eventsQuery = db
     .from("line_events")
     .select("id, line_user_id, line_name, line_picture, raw_type, raw_text, created_at")
-  if (ctx.companyIds) {
-    const { data: scopedLinks } = await db
-      .from("company_line_links")
-      .select("line_user_id")
-      .in("company_id", [...ctx.companyIds])
-    const linkedIds = [...new Set((scopedLinks ?? []).map((l) => l.line_user_id as string))]
-    if (linkedIds.length === 0) return NextResponse.json({ contacts: [] })
-    eventsQuery = eventsQuery.in("line_user_id", linkedIds)
-  }
   const { data: events, error } = await eventsQuery.order("created_at", { ascending: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -67,7 +61,8 @@ export async function GET() {
       existing.last_message_at = e.created_at
       existing.last_message = e.raw_text || (e.raw_type === "sticker" ? "(ส่งสติกเกอร์)" : e.raw_type === "image" ? "(ส่งรูปภาพ)" : e.raw_type)
       if (!existing.line_name && e.line_name) existing.line_name = e.line_name
-      if (!existing.line_picture && e.line_picture) existing.line_picture = e.line_picture
+      // Keep the most recent LINE picture so avatar updates on every inbound.
+      if (e.line_picture) existing.line_picture = e.line_picture
     }
   }
 
@@ -88,6 +83,20 @@ export async function GET() {
     (links ?? []).filter((l: any) => l.companies).map((l: any) => [l.line_user_id as string, l.companies])
   )
   const allCompanyIds = [...companyByLineUserId.values()].map((c: any) => c.id)
+
+  // Partner channel bindings (auto-learned LINE identity → partner_business_profiles).
+  // Unknown-first: a LINE id may have no binding yet (unidentified lead); it is
+  // still returned and tagged as unidentified instead of being dropped.
+  const { data: bindings } = lineUserIds.length
+    ? await db
+        .from("partner_channel_bindings")
+        .select("id, channel_user_id, partner_business_profile_id, display_name, avatar_url, verified, confidence, partner_business_profiles(id, pit_profiles(pit_name, registered_name))")
+        .eq("channel_type", "LINE")
+        .in("channel_user_id", lineUserIds)
+    : { data: [] }
+  const bindingByUserId = new Map(
+    (bindings ?? []).map((b: any) => [b.channel_user_id as string, b]),
+  )
 
   const { data: debts } = allCompanyIds.length
     ? await db.from("company_debt_current").select("company_id, ledger_outstanding, ledger_event_count, snapshot_collection_state, snapshot_days_overdue").in("company_id", allCompanyIds)
@@ -116,21 +125,39 @@ export async function GET() {
     : { data: [] }
   const pendingByUserId = new Set((pendingDrafts ?? []).map((d) => d.line_user_id))
 
-  // An unmatched contact has no company — that is unattributed data and stays
-  // platform-only, same as the relationships list.
-  const scopedContacts = ctx.companyIds === null
-    ? contacts
-    : contacts.filter((c) => companyByLineUserId.has(c.line_user_id))
-
-  const result = scopedContacts
+  // Open inbound pipeline: return all contacts; business overlay is attached
+  // only where an in-scope company link exists.
+  const result = contacts
     .map((c) => {
       const company = companyByLineUserId.get(c.line_user_id) ?? null
       const debt = company ? debtByCompanyId.get(company.id) : null
+      const binding = bindingByUserId.get(c.line_user_id) ?? null
+      const partnerProfileRaw = (binding?.partner_business_profiles as any)
+      const partnerProfile = Array.isArray(partnerProfileRaw) ? partnerProfileRaw[0] : partnerProfileRaw
+      const pitRaw = partnerProfile?.pit_profiles
+      const pitProfile = Array.isArray(pitRaw) ? pitRaw[0] : pitRaw
+      const partnerName = pitProfile?.pit_name ?? pitProfile?.registered_name ?? null
+      const isUnidentified = !binding || !binding.partner_business_profile_id
       return {
         ...c,
+        line_name: binding?.display_name ?? c.line_name,
+        line_picture: c.line_picture,
+        avatar_url: binding?.avatar_url ?? c.line_picture ?? null,
         matched_company: company
           ? { id: company.id, name: company.name, tax_id: company.tax_id, phone: company.phone }
           : null,
+        partner_binding: binding
+          ? {
+              id: binding.id,
+              partner_profile_id: binding.partner_business_profile_id,
+              partner_name: partnerName,
+              display_name: binding.display_name,
+              avatar_url: binding.avatar_url,
+              verified: binding.verified,
+              confidence: binding.confidence,
+            }
+          : null,
+        is_unidentified: isUnidentified,
         debt: debt ?? null,
         has_pending_draft: pendingByUserId.has(c.line_user_id),
       }

@@ -9,9 +9,14 @@ import type { ReactNode } from "react";
 import IconRail, { type IconRailItem } from "./navigation/IconRail";
 import ListColumn, { type ListColumnItem } from "./navigation/ListColumn";
 
+// railItems เป็น optional (owner 2026-11-02): ONE NAVIGATION ย้ายไป
+// presentation/ui/FloatingHomeButton — หน้าที่ไม่ส่ง railItems จึงได้
+// ListColumn + content เท่านั้น ไม่มีแถบไอคอนซ้าย · ผู้เรียกเดิม
+// (ui-gallery) ที่ยังส่ง railItems มาอยู่ ทำงานเหมือนเดิมทุกอย่าง
+
 export default function AppShell({
-  railItems,
-  activeRailKey,
+  railItems = [],
+  activeRailKey = "",
   onSelectRail,
   listItems,
   activeListId,
@@ -21,8 +26,8 @@ export default function AppShell({
   listCollapsible,
   children,
 }: {
-  railItems: IconRailItem[];
-  activeRailKey: string;
+  railItems?: IconRailItem[];
+  activeRailKey?: string;
   onSelectRail?: (key: string) => void;
   listItems: ListColumnItem[];
   activeListId?: string | null;
@@ -34,7 +39,7 @@ export default function AppShell({
 }) {
   return (
     <div className="flex w-full h-screen bg-white overflow-hidden">
-      <IconRail items={railItems} activeKey={activeRailKey} onSelect={onSelectRail} />
+      {railItems.length > 0 && <IconRail items={railItems} activeKey={activeRailKey} onSelect={onSelectRail} />}
       <ListColumn
         items={listItems}
         activeId={activeListId}

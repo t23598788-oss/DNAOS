@@ -1,8 +1,6 @@
 import { requireAuthPage } from "@/core/auth/requireAuthPage";
 import permissions from "@/registry/permissions.json";
-import portals from "@/registry/portals.json";
 import type { AppRole } from "@/core/auth/session";
-import { resolveNavItems } from "@/core/navigation/resolveNavItems";
 import WorkspaceShell from "@/components/workspace/WorkspaceShell";
 
 const USER_ROLES = permissions.route_access.find((r) => r.prefix === "/user")!.roles as AppRole[];
@@ -12,18 +10,10 @@ const USER_ROLES = permissions.route_access.find((r) => r.prefix === "/user")!.r
 // pattern), page.tsx is content only. Same requireAuthPage call, same roles,
 // same redirect behavior as before this file existed — nothing about the
 // auth flow itself changed, only where the call is made from.
+// owner 2026-11-02: shell ไม่มี IconRail/top bar แล้ว (เมนู + logout มาจาก
+// <FloatingHomeButton /> ที่ root layout)
 export default async function UserLayout({ children }: { children: React.ReactNode }) {
-  const user = await requireAuthPage("/user", USER_ROLES);
-  const navItems = resolveNavItems(user.role);
+  await requireAuthPage("/user", USER_ROLES);
 
-  return (
-    <WorkspaceShell
-      navItems={navItems}
-      activeKey="user"
-      userEmail={user.email}
-      portalStatus={portals.portals.user_portal.status as "shell" | "official"}
-    >
-      {children}
-    </WorkspaceShell>
-  );
+  return <WorkspaceShell>{children}</WorkspaceShell>;
 }

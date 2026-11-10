@@ -26,8 +26,13 @@ export async function calcPricing(input: PricingInput): Promise<PricingResult> {
   const markupPercent = getNum(configs, "pricing-markup-percent");
   const systemFeePercent = getNum(configs, "system-fee-percent");
   const urgentFeePercent = getNum(configs, "urgent-fee-percent");
-  // wear-percent defaults to 1.7 per business law — configurable via app_configs
-  const wearPercent = (configs["wear-percent"] as number | undefined) ?? 1.7;
+  // Owner rule (2026-11-02): no silent default. The old `?? 1.7` invented a
+  // wear rate whenever the config row was absent — a price number with no
+  // stored cause. getNum() already throws [CONFIG MISSING] for that exact case.
+  const wearPercent = getNum(configs, "wear-percent");
+  // Owner rule (2026-11-02): VAT is a price number too — read it, never
+  // hardcode 0.07. Stored as a FRACTION in app_configs (0.07 = 7%).
+  const vatRate = getNum(configs, "vat-rate");
 
   // wear applies to transport cost only (real GPS distance x real fuel
   // price — no separate driver-wage constant, owner correction 2026-07-25:
@@ -42,7 +47,7 @@ export async function calcPricing(input: PricingInput): Promise<PricingResult> {
   const profit = markup - systemFee;
 
   const sellingExVAT = totalWithWear + markup + urgentFee;
-  const vat = sellingExVAT * 0.07;
+  const vat = sellingExVAT * vatRate;
   const sellingPrice = sellingExVAT + vat;
   const pricePerTrip = input.trips > 0 ? sellingPrice / input.trips : sellingPrice;
 
@@ -51,8 +56,8 @@ export async function calcPricing(input: PricingInput): Promise<PricingResult> {
     system_fee_percent: systemFeePercent,
     urgent_fee_percent: urgentFeePercent,
     wear_percent: wearPercent,
-    vat_percent: 7,
-    formula: "(cost + wear) + markup% + urgent_fee + VAT 7%",
+    vat_percent: vatRate * 100,
+    formula: `(cost + wear) + markup% + urgent_fee + VAT ${vatRate * 100}%`,
   };
 
   return {

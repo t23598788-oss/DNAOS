@@ -84,3 +84,6 @@ _inventory/
 
 # Contractor pull-model runtime artifacts (NEW-2)
 .agents/
+
+# Local recovery/evidence dumps (owner-side backups, never source of truth)
+recovery/

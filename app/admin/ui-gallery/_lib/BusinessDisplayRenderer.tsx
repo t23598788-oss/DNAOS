@@ -60,7 +60,7 @@ function Row({ children, indent = 0, itemId, onSelect }: { children: React.React
       data-item-id={itemId}
       onClick={itemId && onSelect ? () => onSelect(itemId) : undefined}
       className={
-        "flex items-baseline gap-2 border-b border-[#F0EBE5] px-2 py-1 text-xs leading-relaxed hover:bg-[#F7F4EF]" +
+        "flex items-baseline gap-2 border-b border-[rgba(0,0,0,0.05)] px-2 py-1 text-xs leading-relaxed hover:bg-[rgba(0,0,0,0.02)]" +
         (itemId && onSelect ? " cursor-pointer" : "")
       }
       style={indent ? { paddingLeft: 8 + indent * 14 } : undefined}
@@ -73,7 +73,7 @@ function Row({ children, indent = 0, itemId, onSelect }: { children: React.React
 function BlockHeader({ title }: { title?: string }) {
   if (!title) return null;
   return (
-    <div className="border-b border-[#E9E1D6] px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-stone-500">
+    <div className="border-b border-[rgba(0,0,0,0.08)] px-2 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-stone-500">
       {title}
     </div>
   );
@@ -116,11 +116,11 @@ function Block({ block, onSelectItem }: { block: DisplayBlock; onSelectItem?: (i
                 {node.label}
               </span>
               {typeof node.badge === "number" && (
-                <span className="rounded-md border border-[#E9E1D6] bg-[#F7F4EF] px-1.5 text-[10px] text-stone-500">
+                <span className="rounded-md border border-[rgba(0,0,0,0.08)] bg-[rgba(0,0,0,0.02)] px-1.5 text-[10px] text-stone-500">
                   {node.badge}
                 </span>
               )}
-              {node.selected && <span className="text-[10px] text-[#B49C7C]">selected</span>}
+              {node.selected && <span className="text-[10px] text-stone-400">selected</span>}
             </Row>
           ))}
         </div>
@@ -135,7 +135,7 @@ function Block({ block, onSelectItem }: { block: DisplayBlock; onSelectItem?: (i
         tone: !f.tone || f.tone === "muted" ? "default" : f.tone,
       }));
       return (
-        <div className="h-[240px] overflow-hidden rounded-lg border border-[#E9E1D6]">
+        <div className="h-[240px] overflow-hidden rounded-lg border border-[rgba(0,0,0,0.08)]">
           <Inspector title={block.title ?? "Fields"} fields={fields} onClose={() => {}} variant="panel" />
         </div>
       );
@@ -143,7 +143,7 @@ function Block({ block, onSelectItem }: { block: DisplayBlock; onSelectItem?: (i
 
     case "table":
       return (
-        <div className="overflow-hidden rounded-lg border border-[#E9E1D6]">
+        <div className="overflow-hidden rounded-lg border border-[rgba(0,0,0,0.08)]">
           {block.title && <BlockHeader title={block.title} />}
           <DataTable<string[]>
             columns={block.columns.map((c) => ({ key: c.key, label: c.label }))}
@@ -220,7 +220,7 @@ function Block({ block, onSelectItem }: { block: DisplayBlock; onSelectItem?: (i
 
     case "document":
       return (
-        <div className="overflow-hidden rounded-lg border border-[#E9E1D6]">
+        <div className="overflow-hidden rounded-lg border border-[rgba(0,0,0,0.08)]">
           {block.title && <BlockHeader title={block.title} />}
           <Viewer kind="document" html={block.html} documentHeight={260} />
         </div>
@@ -234,7 +234,7 @@ function Block({ block, onSelectItem }: { block: DisplayBlock; onSelectItem?: (i
         text: m.text,
       }));
       return (
-        <div className="overflow-hidden rounded-lg border border-[#E9E1D6]">
+        <div className="overflow-hidden rounded-lg border border-[rgba(0,0,0,0.08)]">
           {block.title && <BlockHeader title={block.title} />}
           <div className="h-[180px] overflow-y-auto">
             <ChatMessageList messages={messages} activeClarifyId={null} onChoose={() => {}} running={false} />
@@ -251,13 +251,13 @@ function Block({ block, onSelectItem }: { block: DisplayBlock; onSelectItem?: (i
 
 export function BusinessDisplayRenderer({ model, onSelectItem }: { model: BusinessDisplayModel; onSelectItem?: (id: string) => void }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-[#E9E1D6] bg-[#FDFBF8]">
-      <div className="flex flex-wrap items-baseline gap-2 border-b border-[#E9E1D6] px-2.5 py-2">
+    <div className="overflow-hidden rounded-xl border border-[rgba(0,0,0,0.08)] bg-white">
+      <div className="flex flex-wrap items-baseline gap-2 border-b border-[rgba(0,0,0,0.08)] px-2.5 py-2">
         <span className="text-xs font-semibold text-stone-800">{model.title}</span>
         <span className="text-[10px] text-stone-400">{model.domain}</span>
         <span className="ml-auto font-mono text-[10px] text-stone-400">{model.blocks.map((b) => b.kind).join(" · ")}</span>
       </div>
-      <div className="divide-y divide-[#F0EBE5]">
+      <div className="divide-y divide-[rgba(0,0,0,0.05)]">
         {model.blocks.map((b) => (
           <Block key={b.id} block={b} onSelectItem={onSelectItem} />
         ))}

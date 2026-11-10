@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-10-25T01:24:40Z",
-  "governance_score": 100,
+  "generated_at": "2026-11-10T20:32:17Z",
+  "governance_score": 65,
   "checks": {
     "type_check": 1,
-    "pre_commit_guards": 1,
-    "dead_code_policy": 1,
+    "pre_commit_guards": 0,
+    "dead_code_policy": 0,
     "duplicate_detector": 1,
     "shadow_system": 1,
     "command_registry": 1,
     "dependency_graph": 1,
-    "architecture_drift": 1
+    "architecture_drift": 0
   },
   "metrics": {
-    "total_modules": 1045,
-    "unused_files": 0,
-    "unused_exports": 510,
+    "total_modules": 1077,
+    "unused_files": 2866,
+    "unused_exports": 525,
     "ghost_rules": 0,
-    "code_clones": 451,
+    "code_clones": 463,
     "layer_violations": 0,
     "shadow_files": 0,
     "dependency_cycles": 0,
@@ -25,8 +25,8 @@
     "business_coverage_pct": 70
   },
   "summary": {
-    "passed": 8,
-    "failed": 0,
+    "passed": 5,
+    "failed": 3,
     "total": 8
   }
 }

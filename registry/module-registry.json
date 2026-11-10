@@ -599,7 +599,8 @@
       "purpose": "GET /start — Developer Portal: entry point for UI designers, developers, and external AI",
       "purpose_th": "หน้า Portal หลักสำหรับทุกคนที่ต้องการสร้างสิ่งใหม่บน DNA OS",
       "exports": [
-        "StartPage"
+        "StartPage",
+        "metadata"
       ],
       "access": "public",
       "status": "active"
@@ -610,7 +611,8 @@
       "purpose": "GET /examples — Screen-to-Command mapping for UI designers",
       "purpose_th": "แสดงว่าแต่ละหน้าจอต้องใช้ command อะไร — สำหรับ UI designer ที่เริ่มต้น",
       "exports": [
-        "ExamplesPage"
+        "ExamplesPage",
+        "metadata"
       ],
       "access": "public",
       "status": "active"
@@ -1252,16 +1254,22 @@
       "purpose_th": "การติดตามคำขอ — บันทึกทุกขั้นตอนของคำขอเพื่อให้สามารถเล่นซ้ำได้",
       "exports": [
         "DataSource",
+        "ExecutionEvent",
+        "ExecutionEventInput",
+        "ExecutionEventName",
+        "ExecutionEventStatus",
         "RequestTrace",
         "TraceStep",
         "addStep",
         "completeTrace",
+        "emitExecutionEvent",
         "getRecentTraces",
         "getTrace",
         "replayTrace",
         "setIntent",
         "startTrace",
-        "traceLineage"
+        "traceLineage",
+        "withExecutionContext"
       ],
       "status": "active"
     },
@@ -3637,7 +3645,8 @@
       "purpose": "Public capability page listing AI_REGISTRY.json agents + AI_SESSIONS.json live session statuses.",
       "purpose_th": "หน้าสาธารณะแสดงรายชื่อ AI agent และสถานะ session จริง",
       "exports": [
-        "AIServicesPage"
+        "AIServicesPage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -3687,7 +3696,8 @@
       "purpose": "Download Center portal page — honestly shows there's no downloadable package yet, lists real CLI commands from CONSTITUTION.json instead.",
       "purpose_th": "หน้า Download Center — บอกตรงๆ ว่ายังไม่มีไฟล์ดาวน์โหลด โชว์ชุดคำสั่ง CLI จริงแทน",
       "exports": [
-        "DownloadCenterPage"
+        "DownloadCenterPage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -3727,7 +3737,8 @@
       "purpose": "Public capability page — connector lifecycle stages + supported auth types from registry.",
       "purpose_th": "หน้าสาธารณะแสดงขั้นตอน connector lifecycle และ auth type ที่รองรับ",
       "exports": [
-        "MarketplacePage"
+        "MarketplacePage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -3778,7 +3789,8 @@
       "purpose": "Public capability page listing real Portals from portals.json.",
       "purpose_th": "หน้าสาธารณะแสดงรายชื่อ Portal จริงจาก portals.json",
       "exports": [
-        "ProductsPage"
+        "ProductsPage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -3788,7 +3800,8 @@
       "purpose": "Public capability page — existence/business/decision/rule coverage stats as report cards.",
       "purpose_th": "หน้าสาธารณะแสดงสถิติ coverage ต่างๆ เป็นการ์ดรายงาน",
       "exports": [
-        "ReportPage"
+        "ReportPage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -3808,7 +3821,8 @@
       "purpose": "Public capability page — business-coverage.json domains with covered/partial/missing pills.",
       "purpose_th": "หน้าสาธารณะแสดงโดเมนธุรกิจพร้อมสถานะ covered/partial/missing",
       "exports": [
-        "SolutionsPage"
+        "SolutionsPage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -10508,7 +10522,9 @@
       "layer": "supabase",
       "purpose": "Real Supabase Edge Function receiving real LINE messaging platform webhook events (v2).",
       "purpose_th": "Real Supabase Edge Function receiving real LINE messaging platform webhook events (v2).",
-      "exports": [],
+      "exports": [
+        "textStartsWithDriverCmd"
+      ],
       "status": "active"
     },
     "supabase/functions/bank-email-sync/index.ts": {
@@ -15643,7 +15659,8 @@
       "purpose": "วิธีติดตั้งแอป (PWA) — หน้าช่วยติดตั้งสาธารณะ (ไม่มีข้อมูลบัญชี/ความลับใด ๆ)",
       "purpose_th": "วิธีติดตั้งแอป (PWA) — หน้าช่วยติดตั้งสาธารณะ (ไม่มีข้อมูลบัญชี/ความลับใด ๆ)",
       "exports": [
-        "InstallHelpPage"
+        "InstallHelpPage",
+        "metadata"
       ],
       "status": "active"
     },
@@ -15948,8 +15965,7 @@
       "purpose": "WORKSPACE FRAME — BUSINESS UI SHELL ใหม่ตาม reference ของ Owner",
       "purpose_th": "WORKSPACE FRAME — BUSINESS UI SHELL ใหม่ตาม reference ของ Owner",
       "exports": [
-        "WorkspaceFrame",
-        "WorkspaceToolNavigation"
+        "WorkspaceFrame"
       ],
       "status": "active"
     },
@@ -17126,6 +17142,7 @@
       "purpose": "Railway task-queue client (DNA-000218, RAILWAY NATIVE CLINE RUNTIME).",
       "purpose_th": "Railway task-queue client (DNA-000218, RAILWAY NATIVE CLINE RUNTIME).",
       "exports": [
+        "__resetClineQueueFailuresForTest",
         "runOwnerRequestViaRailwayTaskQueue"
       ],
       "status": "active"
@@ -17186,6 +17203,450 @@
       "purpose_th": "GET/POST /api/v1/mcp/business/dispatch — THE missing connection reported by",
       "exports": [
         "POST"
+      ],
+      "status": "active"
+    },
+    "engines/eta-calculator.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "ETA calculator — pure function, no DB access.",
+      "purpose_th": "ETA calculator — pure function, no DB access.",
+      "exports": [
+        "CurrentEtaInput",
+        "CurrentEtaResult",
+        "EtaInput",
+        "EtaResult",
+        "calculatePlannedEta",
+        "estimateCurrentEta"
+      ],
+      "status": "active"
+    },
+    "core/webhook-signature.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Webhook signature header — shared rule for the two sides of the gateway:",
+      "purpose_th": "Webhook signature header — shared rule for the two sides of the gateway:",
+      "exports": [
+        "normalizeSignatureHeader",
+        "requireSignatureHeader"
+      ],
+      "status": "active"
+    },
+    "app/opengraph-image.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/opengraph-image — default social preview for every route that does not",
+      "purpose_th": "/opengraph-image — default social preview for every route that does not",
+      "exports": [
+        "Image",
+        "alt",
+        "contentType",
+        "size"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "services/kbank/kapi-payout.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Minimal stub for KBank payout adapter.",
+      "purpose_th": "Minimal stub for KBank payout adapter.",
+      "exports": [
+        "KBankPayoutPayload",
+        "PayoutOptions",
+        "buildPayoutPayload",
+        "sendPayout"
+      ],
+      "status": "active"
+    },
+    "services/finance/cancellation-policy.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Cancellation policy — fault-based refund routing.",
+      "purpose_th": "Cancellation policy — fault-based refund routing.",
+      "exports": [
+        "CancellationReasonType",
+        "DeliveryStage",
+        "RefundResult",
+        "STAGE_DEDUCTIONS",
+        "StageDeduction",
+        "computeCancellationRefund"
+      ],
+      "status": "active"
+    },
+    "presentation/ui/FloatingHomeButton.tsx": {
+      "owner": "presentation",
+      "layer": "presentation",
+      "purpose": "FLOATING HOME BUTTON — ทางเข้าเมนูเดียวของทั้งระบบ (owner 2026-11-02)",
+      "purpose_th": "FLOATING HOME BUTTON — ทางเข้าเมนูเดียวของทั้งระบบ (owner 2026-11-02)",
+      "exports": [
+        "FloatingHomeButton"
+      ],
+      "status": "active"
+    },
+    "engines/rules/types.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Rules engine — shared types.",
+      "purpose_th": "Rules engine — shared types.",
+      "exports": [
+        "BusinessEvent",
+        "EventRule",
+        "NETWORK_ROLE_CODES",
+        "NetworkRoleCode",
+        "Recipient",
+        "RuleAction",
+        "RuleChannel",
+        "RuleRunOutcome",
+        "RuleRunResult"
+      ],
+      "status": "active"
+    },
+    "engines/rules/recipients.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Rules engine — recipient resolution.",
+      "purpose_th": "Rules engine — recipient resolution.",
+      "exports": [
+        "RecipientResolution",
+        "resolveRecipients"
+      ],
+      "status": "active"
+    },
+    "engines/rules/matching.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Rules engine — condition matching.",
+      "purpose_th": "Rules engine — condition matching.",
+      "exports": [
+        "explainMatch",
+        "matchesEvent",
+        "readPath"
+      ],
+      "status": "active"
+    },
+    "engines/rules/index.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Rules engine — public surface.",
+      "purpose_th": "Rules engine — public surface.",
+      "exports": [
+        "explainMatch",
+        "matchesEvent",
+        "readPath",
+        "renderTemplate",
+        "resolveRecipients",
+        "runRulesForEvent"
+      ],
+      "status": "active"
+    },
+    "engines/rules/dispatch.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Rules engine — dispatch.",
+      "purpose_th": "Rules engine — dispatch.",
+      "exports": [
+        "DispatchOptions",
+        "LineSender",
+        "SendResult",
+        "renderTemplate",
+        "runRulesForEvent"
+      ],
+      "status": "active"
+    },
+    "engines/documents/a4-master.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "DNA OS — A4 master renderer",
+      "purpose_th": "DNA OS — A4 master renderer",
+      "exports": [
+        "A4Field",
+        "A4Values",
+        "A4_MASTER_URL",
+        "A4_PAGE",
+        "a4ValuesFromDoc",
+        "fillA4Master",
+        "loadA4Master"
+      ],
+      "status": "active"
+    },
+    "app/register/layout.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Server-only metadata for /register (client page — see app/login/layout.tsx).",
+      "purpose_th": "Server-only metadata for /register (client page — see app/login/layout.tsx).",
+      "exports": [
+        "RegisterLayout",
+        "metadata"
+      ],
+      "status": "active"
+    },
+    "app/playground/layout.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Server-only metadata for /playground (client page — see app/login/layout.tsx).",
+      "purpose_th": "Server-only metadata for /playground (client page — see app/login/layout.tsx).",
+      "exports": [
+        "PlaygroundLayout",
+        "metadata"
+      ],
+      "status": "active"
+    },
+    "app/login/layout.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Server-only metadata for /login (the page itself is \"use client\" and cannot",
+      "purpose_th": "Server-only metadata for /login (the page itself is \"use client\" and cannot",
+      "exports": [
+        "LoginLayout",
+        "metadata"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/workers/payout-worker.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway — KBank Payout Worker (Phase 4).",
+      "purpose_th": "Integration Gateway — KBank Payout Worker (Phase 4).",
+      "exports": [
+        "PayoutWorkerOptions",
+        "executeApprovedPayout",
+        "processOrderPayout",
+        "reconcilePayouts",
+        "requestPayoutApproval"
+      ],
+      "status": "active",
+      "known_gap_ref": "TASK-003"
+    },
+    "engines/integration-gateway/workers/order-translator.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Integration Gateway — Inbound Translator (Phase 1, worker).",
+      "purpose_th": "Integration Gateway — Inbound Translator (Phase 1, worker).",
+      "exports": [
+        "OrderTranslatorOptions",
+        "buildOrderNo",
+        "extractLineOrderFields",
+        "translateLineMessageEvents"
+      ],
+      "status": "active",
+      "known_gap_ref": "TASK-003"
+    },
+    "engines/integration-gateway/workers/cancellation-worker.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Cancellation worker — fault-based refund routing.",
+      "purpose_th": "Cancellation worker — fault-based refund routing.",
+      "exports": [
+        "CancellationEvidenceRow",
+        "CancellationStatus",
+        "CancellationWorkerOptions",
+        "cancelOrderWithRefund"
+      ],
+      "status": "active",
+      "known_gap_ref": "TASK-003"
+    },
+    "engines/integration-gateway/adapters/kbank.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "\\",
+      "purpose_th": "\\",
+      "exports": [
+        "KBANK_EVIDENCE_KEYS",
+        "capabilityForKBankEvent",
+        "normalizeKBankWebhook"
+      ],
+      "status": "active"
+    },
+    "app/admin/roles/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/admin/roles — USER ROLE MAPPING (owner, 2026-11-10).",
+      "purpose_th": "/admin/roles — USER ROLE MAPPING (owner, 2026-11-10).",
+      "exports": [
+        "RolesPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/rules/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/admin/rules — EVENT-DRIVEN RULES ENGINE (owner, 2026-11-10).",
+      "purpose_th": "/admin/rules — EVENT-DRIVEN RULES ENGINE (owner, 2026-11-10).",
+      "exports": [
+        "RulesPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/god-view/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/admin/god-view — the owner's dashboard (2026-11-10).",
+      "purpose_th": "/admin/god-view — the owner's dashboard (2026-11-10).",
+      "exports": [
+        "GodViewPage"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/line-webhook-v2/handlers/driver.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "[Auto-detected] supabase/functions/line-webhook-v2/handlers/driver.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] supabase/functions/line-webhook-v2/handlers/driver.ts",
+      "exports": [
+        "handleDriver"
+      ],
+      "status": "unregistered"
+    },
+    "supabase/functions/line-webhook-v2/engines/driver-eta.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Driver LINE bot — reads app_configs, computes ETA, replies to the driver.",
+      "purpose_th": "Driver LINE bot — reads app_configs, computes ETA, replies to the driver.",
+      "exports": [
+        "DriverEtaInput",
+        "DriverEtaResult",
+        "computeDriverEta"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/rules/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/api/admin/rules — EVENT-DRIVEN RULES.",
+      "purpose_th": "/api/admin/rules — EVENT-DRIVEN RULES.",
+      "exports": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/roles/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/api/admin/roles — USER ROLE MAPPING.",
+      "purpose_th": "/api/admin/roles — USER ROLE MAPPING.",
+      "exports": [
+        "DELETE",
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/partner-profiles/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/partner-profiles/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/partner-profiles/route.ts",
+      "exports": [
+        "GET"
+      ],
+      "status": "unregistered"
+    },
+    "app/api/admin/god-view/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/api/admin/god-view — the owner's \"God View\" snapshot.",
+      "purpose_th": "/api/admin/god-view — the owner's \"God View\" snapshot.",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/connectors/webhook/kbank/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "KBank Webhook Receiver Skeleton.",
+      "purpose_th": "KBank Webhook Receiver Skeleton.",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/rules/run/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/api/admin/rules/run — evaluate the rulebook for ONE event.",
+      "purpose_th": "/api/admin/rules/run — evaluate the rulebook for ONE event.",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/god-view/override/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/api/admin/god-view/override — the owner's manual override on an exception.",
+      "purpose_th": "/api/admin/god-view/override — the owner's manual override on an exception.",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/connectors/webhook/[slug]/_lib/webhookGate.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Webhook Gate — the single place that decides whether an inbound webhook is",
+      "purpose_th": "Webhook Gate — the single place that decides whether an inbound webhook is",
+      "exports": [
+        "MAX_WEBHOOK_BODY_BYTES",
+        "WebhookGateConnector",
+        "WebhookGateInput",
+        "WebhookGateResult",
+        "WebhookRejectReason",
+        "deriveEventKey",
+        "evaluateWebhookRequest",
+        "readPath",
+        "requireSignatureHeader",
+        "verifySignature"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/payouts/[orderId]/approve/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin approval route for payout execution.",
+      "purpose_th": "Admin approval route for payout execution.",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/line-customers/[lineUserId]/bind-partner/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "[Auto-detected] app/api/admin/line-customers/[lineUserId]/bind-partner/route.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/line-customers/[lineUserId]/bind-partner/route.ts",
+      "exports": [
+        "POST"
+      ],
+      "status": "unregistered"
+    },
+    "app/admin/docs/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "/admin/docs — System Docs & Integration Hub",
+      "purpose_th": "/admin/docs — System Docs & Integration Hub",
+      "exports": [
+        "DocsCategoryOnePage",
+        "dynamic"
+      ],
+      "status": "active"
+    },
+    "engines/canonical/partner-binding-write.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Canonical partner binding write model (Layer 3 identity overlay).",
+      "purpose_th": "Canonical partner binding write model (Layer 3 identity overlay).",
+      "exports": [
+        "BindLinePartnerInput",
+        "CreateCustomerPartnerProfileInput",
+        "CreatedPartnerProfile",
+        "PartnerBindingResult",
+        "bindLineChannelToPartner",
+        "createCustomerPartnerProfile"
       ],
       "status": "active"
     }

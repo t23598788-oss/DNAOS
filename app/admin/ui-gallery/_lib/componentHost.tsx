@@ -265,7 +265,9 @@ export function renderHost(hostKey: string | undefined, props: HostProps = {}): 
     case "shell-workspace-shell":
       return (
         <Stage>
-          <WorkspaceShell navItems={REAL_NAV_ITEMS} activeKey="admin" userEmail={NO_SESSION} theme={theme}>
+          {/* 2026-11-02: WorkspaceShell ไม่มี IconRail/top bar แล้ว —
+              navItems/activeKey/userEmail ไม่ใช่ props อีกต่อไป */}
+          <WorkspaceShell theme={theme}>
             <NeutralContent label={`WorkspaceShell — theme="${theme}"`} />
           </WorkspaceShell>
         </Stage>

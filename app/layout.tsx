@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import PwaRegistration from "@/components/pwa/PwaRegistration";
+import FloatingHomeButton from "@/presentation/ui/FloatingHomeButton";
 import { appBaseUrl } from "@/config/system-links";
 
 const geistSans = Geist({
@@ -20,11 +21,23 @@ const geistMono = Geist_Mono({
 // dev without the var → metadataBase/url are simply omitted, nothing invented.
 const siteBase = appBaseUrl();
 
+const SITE_DESCRIPTION = "Command-driven liquidity & logistics OS";
+
+const DEFAULT_OG = {
+  title: "DNA OS",
+  description: SITE_DESCRIPTION,
+  // File-based convention: app/opengraph-image.tsx (1200x630). Relative on
+  // purpose — metadataBase above makes it absolute on the serving origin.
+  images: ["/opengraph-image"],
+};
+
 export const metadata: Metadata = {
   metadataBase: siteBase ? new URL(siteBase) : undefined,
-  title: "DNA OS — Dead Board",
-  description: "Command-driven liquidity & logistics OS",
+  title: "DNA OS",
+  description: SITE_DESCRIPTION,
   manifest: "/manifest.json",
+  openGraph: { type: "website", ...DEFAULT_OG },
+  twitter: { card: "summary_large_image", ...DEFAULT_OG },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -73,8 +86,11 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-white">
         <PwaRegistration />
+        {/* ONE NAVIGATION — ปุ่มลอยปุ่มเดียวของทั้งระบบ (ไม่มี sidebar/topbar แล้ว)
+            อยู่ที่ root ⇒ ทุก route ได้ปุ่มเดียวกัน ไม่ต้อง mount ซ้ำรายหน้า */}
+        <FloatingHomeButton />
         {children}
       </body>
     </html>

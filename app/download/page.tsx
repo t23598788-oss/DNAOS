@@ -1,7 +1,25 @@
+import type { Metadata } from "next";
 import PortalShell from "@/presentation/shell/PortalShell";
 import constitution from "@/registry/CONSTITUTION.json";
 import CopyButton from "@/presentation/feedback/CopyButton";
 import { Terminal } from "lucide-react";
+
+export const metadata: Metadata = {
+  title: "CLI Commands | DNA OS",
+  description: "ชุดคำสั่งของระบบ (CLI) ที่มีอยู่จริงใน DNA OS — ยังไม่มีไฟล์ดาวน์โหลด (แอป/แพ็กเกจ) ที่กำหนดไว้",
+  alternates: { canonical: "/download" },
+  openGraph: {
+    title: "CLI Commands | DNA OS",
+    description: "ชุดคำสั่งของระบบ (CLI) ที่มีอยู่จริงใน DNA OS",
+    images: ["/opengraph-image"],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CLI Commands | DNA OS",
+    description: "ชุดคำสั่งของระบบ (CLI) ที่มีอยู่จริงใน DNA OS",
+    images: ["/opengraph-image"],
+  },
+};
 
 export default function DownloadCenterPage() {
   const commands = Object.entries(constitution.commands);

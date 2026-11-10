@@ -25,7 +25,7 @@
 
 export type GatewayChannel = "observe" | "propose" | "execute";
 
-export type GatewayProvider = "github" | "supabase" | "vercel" | "railway" | "vscode" | "chatgpt-mcp" | "line" | "facebook" | "instagram";
+export type GatewayProvider = "github" | "supabase" | "vercel" | "railway" | "vscode" | "chatgpt-mcp" | "line" | "facebook" | "instagram" | "kbank" | "kplus" | "truemoney";
 
 /**
  * Capability strings are dot-namespaced, provider-agnostic verbs — e.g.
@@ -68,7 +68,18 @@ export type GatewayCapability =
   // already marked removal_condition_met: true, and only after a real
   // dependents check. This never edits code — it's a visibility/review
   // record for the owner, same as every other proposal here.
-  | "transitional_layer.removal_proposed";
+  | "transitional_layer.removal_proposed"
+  | "payment.received"
+  | "payment.completed"
+  | "payment.failed"
+  | "payment.refunded"
+  | "payout.completed"
+  | "payout.failed"
+  | "settlement.completed"
+  | "transfer.completed"
+  | "transfer.failed"
+  | "transfer.rejected"
+  | "transfer.success";
 
 export interface GatewayEvent {
   event_id: string;

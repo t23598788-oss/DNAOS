@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
-import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
+import { denyUnscoped, isCompanyVisible, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -22,17 +22,8 @@ export async function GET(_req: Request, { params }: Params) {
 
   const db = supabase()
 
-  // Scope is decided by the explicit link, before any message is read: a
-  // contact linked to another organization's company must look non-existent.
-  if (ctx.companyIds !== null) {
-    const { data: scopeLink } = await db
-      .from("company_line_links")
-      .select("company_id")
-      .eq("line_user_id", lineUserId)
-      .maybeSingle()
-    if (!isCompanyVisible(ctx, scopeLink?.company_id)) return notFound()
-  }
-
+  // Open inbound pipeline: message history is readable for every inbound
+  // contact. Business overlay (company/debt) is gated separately below.
   const { data: rawMessages, error } = await db
     .from("line_events")
     .select("id, raw_type, raw_text, line_name, direction, extracted, created_at, line_message_id, status, media_path")
@@ -71,8 +62,9 @@ export async function GET(_req: Request, { params }: Params) {
   // account, so the link table is the identity edge. STEP 2 (2026-10-25): the
   // old exact-name fallback was removed; a LINE display name is not identity and
   // could resolve to a different company.
-  const { data: link } = await db.from("company_line_links").select("companies(id, name, tax_id, phone)").eq("line_user_id", lineUserId).maybeSingle()
-  const company = (link as any)?.companies ?? null
+  const { data: link } = await db.from("company_line_links").select("company_id, companies(id, name, tax_id, phone)").eq("line_user_id", lineUserId).maybeSingle()
+  const companyVisible = ctx.companyIds === null || isCompanyVisible(ctx, (link as any)?.company_id)
+  const company = companyVisible ? ((link as any)?.companies ?? null) : null
 
   if (company) {
     const [{ data: invoices }, { data: standalone }, { data: debtRow }] = await Promise.all([

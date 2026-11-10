@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import aiRegistry from '@/registry/AI_REGISTRY.json';
 import aiSessions from '@/registry/AI_SESSIONS.json';
 import { CheckCircle } from 'lucide-react';
@@ -10,6 +11,23 @@ const sessionStatusStyle: { [key: string]: string } = {
   token_exhausted: 'text-rose-400 border-rose-800 bg-rose-950/40',
   submitted: 'text-sky-400 border-sky-800 bg-sky-950/40',
   unknown: 'text-stone-500 border-stone-800 bg-stone-950/40',
+};
+
+export const metadata: Metadata = {
+  title: 'AI Services | DNA OS',
+  description: 'รายชื่อ AI agent ที่ทำงานตาม Constitution และ Execution Contract ของ DNA OS — AI-agnostic by design',
+  alternates: { canonical: '/ai-services' },
+  openGraph: {
+    title: 'AI Services | DNA OS',
+    description: 'รายชื่อ AI agent ที่ทำงานตาม Constitution และ Execution Contract ของ DNA OS',
+    images: ['/opengraph-image'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'AI Services | DNA OS',
+    description: 'รายชื่อ AI agent ที่ทำงานตาม Constitution และ Execution Contract ของ DNA OS',
+    images: ['/opengraph-image'],
+  },
 };
 
 export default function AIServicesPage() {

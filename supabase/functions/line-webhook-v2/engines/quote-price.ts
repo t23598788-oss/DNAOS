@@ -232,12 +232,22 @@ export async function tryQuoteMaterialPrice(
   // Real business rule (owner, 2026-07-26): pit_materials.price is the real
   // COST/gate price, not the customer-facing sell price — quoting it
   // directly (as this file used to) means selling at cost or a loss once
-  // transport is added. 25% markup, same figure already used in
-  // middleware/sanitizer.ts's markupPercent default (that file's own path
-  // isn't live today, but the number is a real existing business figure,
-  // not invented here).
-  const MARKUP_MULTIPLIER = 1.25
-  const unitPrice = costPrice * MARKUP_MULTIPLIER
+  // transport is added.
+  //
+  // Owner rule (2026-11-02): the markup is a PRICE NUMBER and every price
+  // number must come from app_configs — the literal 1.25 that used to sit
+  // here was a hardcoded business constant overriding the owner's own
+  // authority. Read the real row and FAIL CLOSED: no row, no quote. Never
+  // fall back to a made-up percentage.
+  const { data: markupConfig } = await supabase
+    .from("app_configs").select("data").eq("title", "pricing-markup-percent").maybeSingle()
+  const pricingMarkupPercent = Number(markupConfig?.data)
+  if (!markupConfig || markupConfig.data === null || !Number.isFinite(pricingMarkupPercent)) {
+    return { ok: false, text: "ยังไม่ได้ตั้งค่าอัตรากำไร (pricing-markup-percent)" }
+  }
+  // Same unit semantics as the old literal: config holds 25 (percent) → 1.25.
+  const markupMultiplier = 1 + pricingMarkupPercent / 100
+  const unitPrice = costPrice * markupMultiplier
 
   const qty = quantityInTons
   const materialTotal = unitPrice * qty
@@ -285,7 +295,7 @@ export async function tryQuoteMaterialPrice(
   // owner's own words: "งานพวกนี้มันเป็นงานกำไรอยู่กับงานขนส่ง" (the profit
   // really lives in the transport leg), so transport cost gets the same
   // markup as material, not passed through at raw cost.
-  const transportCostPerTrip = (roundTripKm / picked.vehicle.fuelConsumptionRate) * fuelPricePerLiter * MARKUP_MULTIPLIER
+  const transportCostPerTrip = (roundTripKm / picked.vehicle.fuelConsumptionRate) * fuelPricePerLiter * markupMultiplier
   const transportTotal = transportCostPerTrip * picked.trips
   const grandTotal = materialTotal + transportTotal
 
