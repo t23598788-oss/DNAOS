@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from "react"
 import { useSearchParams } from "next/navigation"
+import { isAuthSessionMissingError } from "@supabase/supabase-js"
 import { createBrowserSupabase } from "@/services/supabase/browser"
 import { resolveIdentityContext } from "@/core/identity/identity"
 import { isSafeInternalPath } from "@/core/auth/resolveDestination"
@@ -65,7 +66,10 @@ function LoginForm() {
       checking = true;
       try {
         const { data: { user }, error: authError } = await sb.auth.getUser();
-        if (authError) throw authError;
+        // "ยังไม่ login" ไม่ใช่ error: getUser() คืน AuthSessionMissingError (400)
+        // ให้ทุกคนที่ยังไม่มี session ถ้า throw ตรงนี้ ผู้เยี่ยมชมหน้า login ทุกคน
+        // จะเห็นแบนเนอร์แดง "ตรวจสอบบัญชีหรือสิทธิ์ไม่สำเร็จ" ทั้งที่ยังไม่ได้ทำอะไรผิด
+        if (authError && !isAuthSessionMissingError(authError)) throw authError;
         if (!user || disposed) return;
         const identity = await resolveIdentityContext(user, async ({ field, value }) => {
           const { data, error } = await sb.from("profiles").select("id, role").eq(field, value).maybeSingle();
