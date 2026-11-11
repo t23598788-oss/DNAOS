@@ -2,7 +2,7 @@
   "report_id": "dev-loop-c2NyaXB0cy9kZXBsb3ktZ2F0ZS50c3xE",
   "status": "resolved",
   "source": "scripts/deploy-gate.ts",
-  "occurred_at": "2026-11-11T00:02:03.885Z",
+  "occurred_at": "2026-11-11T00:12:50.128Z",
   "severity": "critical",
   "check_name": "DNA OS Deploy Gate",
   "cause": "Dev Loop evidence query failed (no-code): Invalid API key — cannot confirm the pipeline is clean",

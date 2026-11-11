@@ -120,40 +120,61 @@ async function checkDevLoopGate(): Promise<{ blocked: boolean; reasons: string[]
     return { blocked: true, reasons };
   }
 
-  const { createClient } = await import("@supabase/supabase-js");
-  const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+  try {
+    const { createClient } = await import("@supabase/supabase-js");
+    const db = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 
-  const { data: results, error: resultsError } = await db
-    .from("dev_loop_check_results")
-    .select("path, result, reason, checked_at")
-    .order("checked_at", { ascending: false })
-    .limit(200);
-  // Fail closed: an unauthenticated/rejected query returns null data, and
-  // treating that as "no failing paths" is a false READY. Verified 2026-11-11
-  // with an invalid key — the gate reported READY with zero evidence read.
-  if (resultsError) {
-    reasons.push(`Dev Loop evidence query failed (${resultsError.code ?? "no-code"}): ${resultsError.message} — cannot confirm the pipeline is clean`);
+    const { data: results, error: resultsError } = await db
+      .from("dev_loop_check_results")
+      .select("path, result, reason, checked_at")
+      .order("checked_at", { ascending: false })
+      .limit(200);
+    // Fail closed: an unauthenticated/rejected query returns null data with an
+    // error, and treating that as "no failing paths" is a false READY. Verified
+    // 2026-11-11 with an invalid key — the gate reported READY with zero
+    // evidence read. A null dataset without an error, and an empty dataset, are
+    // equally unconfirmed: silence is never evidence that the pipeline is clean.
+    if (resultsError) {
+      reasons.push(`Dev Loop evidence query failed (${resultsError.code ?? "no-code"}): ${resultsError.message} — cannot confirm the pipeline is clean`);
+      return { blocked: true, reasons };
+    }
+    if (!results) {
+      reasons.push("Dev Loop evidence query returned no dataset (null) without an error — cannot confirm the pipeline is clean");
+      return { blocked: true, reasons };
+    }
+    if (results.length === 0) {
+      reasons.push("No Dev Loop evidence has been recorded yet — the gate cannot confirm the pipeline is clean and will not pass on silence");
+      return { blocked: true, reasons };
+    }
+
+    const latestPerPath = new Map<string, { result: string; reason: string }>();
+    for (const row of results) {
+      if (!latestPerPath.has(row.path)) latestPerPath.set(row.path, { result: row.result, reason: row.reason });
+    }
+    for (const [path, verdict] of latestPerPath) {
+      if (verdict.result === "fail") reasons.push(`Impact Analyzer FAIL: ${path} — ${verdict.reason}`);
+    }
+
+    const { data: pending, error: pendingError } = await db.from("dev_loop_registry_proposals").select("path, target_registry").eq("status", "pending");
+    if (pendingError) {
+      reasons.push(`Dev Loop proposal query failed (${pendingError.code ?? "no-code"}): ${pendingError.message} — cannot confirm there are no unapproved proposals`);
+      return { blocked: true, reasons };
+    }
+    if (!pending) {
+      reasons.push("Dev Loop proposal query returned no dataset (null) without an error — cannot confirm there are no unapproved proposals");
+      return { blocked: true, reasons };
+    }
+    for (const p of pending) {
+      reasons.push(`Unapproved registry proposal pending: ${p.path} -> ${p.target_registry} (needs Owner approval on the dashboard)`);
+    }
+
+    return { blocked: reasons.length > 0, reasons };
+  } catch (err) {
+    // A thrown fetch/network failure must also block: an unreachable database is
+    // not a clean pipeline, and must never be swallowed into a READY.
+    reasons.push(`Dev Loop Supabase query threw: ${err instanceof Error ? err.message : String(err)} — cannot confirm the pipeline is clean`);
     return { blocked: true, reasons };
   }
-
-  const latestPerPath = new Map<string, { result: string; reason: string }>();
-  for (const row of results ?? []) {
-    if (!latestPerPath.has(row.path)) latestPerPath.set(row.path, { result: row.result, reason: row.reason });
-  }
-  for (const [path, verdict] of latestPerPath) {
-    if (verdict.result === "fail") reasons.push(`Impact Analyzer FAIL: ${path} — ${verdict.reason}`);
-  }
-
-  const { data: pending, error: pendingError } = await db.from("dev_loop_registry_proposals").select("path, target_registry").eq("status", "pending");
-  if (pendingError) {
-    reasons.push(`Dev Loop proposal query failed (${pendingError.code ?? "no-code"}): ${pendingError.message} — cannot confirm there are no unapproved proposals`);
-    return { blocked: true, reasons };
-  }
-  for (const p of pending ?? []) {
-    reasons.push(`Unapproved registry proposal pending: ${p.path} -> ${p.target_registry} (needs Owner approval on the dashboard)`);
-  }
-
-  return { blocked: reasons.length > 0, reasons };
 }
 
 /**
