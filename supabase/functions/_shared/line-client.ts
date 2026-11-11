@@ -15,7 +15,7 @@
 // existing "token missing → skip/return error" behavior unchanged.
 export async function getLineChannelAccessToken(): Promise<string | null> {
   const appUrl = Deno.env.get("DNA_OS_APP_URL")
-  const internalSecret = Deno.env.get("LINE_INTERNAL_SECRET")
+  const internalSecret = Deno.env.get("LINE_INTERNAL_SECRET") ?? Deno.env.get("LINE_TOKEN_INTERNAL_SECRET")
   if (!appUrl || !internalSecret) return null
 
   try {

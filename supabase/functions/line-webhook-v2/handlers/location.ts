@@ -3,6 +3,7 @@ import { saveEvent, markEventError } from "../events/store.ts"
 import { ResponseGateway } from "../engines/response.ts"
 import { locationReceivedFlex } from "../templates/flex/location-received.ts"
 import { tryCompleteAwaitingEvent } from "../engines/event-followup.ts"
+import { createCustomerSiteViaConnect } from "../../_shared/connect-customer-site.ts"
 
 // LINE's own location-share already geocodes into a Thai address string
 // (ตำบล/อำเภอ/จังหวัด/รหัสไปรษณีย์) — no need for Google Maps at all for this
@@ -59,19 +60,22 @@ export async function handleLocation(ctx: HandlerContext): Promise<void> {
       const { data: existing } = await ctx.supabase
         .from("customer_sites").select("id").eq("customer_company_id", link.company_id).eq("is_active", true).limit(1).maybeSingle()
       if (!existing) {
-        await ctx.supabase.from("customer_sites").insert({
-          customer_company_id: link.company_id,
-          site_name: "จากพิกัด LINE",
-          address,
-          province: parsed.province,
-          district: parsed.district,
-          subdistrict: parsed.subdistrict,
-          postal_code: parsed.postal_code,
-          gps_lat: lat,
-          gps_lng: lng,
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        })
+        await createCustomerSiteViaConnect(
+          {
+            customer_company_id: link.company_id,
+            site_name: "จากพิกัด LINE",
+            address,
+            province: parsed.province,
+            district: parsed.district,
+            subdistrict: parsed.subdistrict,
+            postal_code: parsed.postal_code,
+            gps_lat: lat,
+            gps_lng: lng,
+            is_active: true,
+            updated_at: new Date().toISOString(),
+          },
+          "system:line-location-handler",
+        )
       }
     }
   }

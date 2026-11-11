@@ -4,6 +4,7 @@ import { ResponseGateway } from "../engines/response.ts"
 import { handlePrintCopiesSelected, handlePrintPaymentMethodSelected } from "../engines/print-jobs.ts"
 import { sendConnectEventCommand, CONNECT_PROVIDER } from "../../_shared/connect-event.ts"
 import { sendConnectExpenseCommand } from "../../_shared/connect-expense.ts"
+import { sendConnectPendingAuthorizationCommand } from "../../_shared/connect-pending-authorization.ts"
 
 export async function handlePostback(ctx: HandlerContext): Promise<void> {
   const pb = (ctx.event as LinePostbackEvent).postback
@@ -95,11 +96,14 @@ export async function handlePostback(ctx: HandlerContext): Promise<void> {
   // human verification the whole feature exists for.
   if (action === "AUTH_APPROVE" || action === "AUTH_DENY") {
     const newStatus = action === "AUTH_APPROVE" ? "approved" : "denied"
-    const { data: auth } = await ctx.supabase
-      .from("pending_authorizations")
-      .update({ status: newStatus, resolved_at: new Date().toISOString() })
-      .eq("id", payload).eq("status", "pending")
-      .select("claimant_line_user_id, request_description").maybeSingle()
+    const resolved = await sendConnectPendingAuthorizationCommand(
+      "pending_authorization.resolve",
+      { id: payload, status: newStatus },
+      "system:line-postback",
+    )
+    const auth = (resolved.ok ? (resolved.data as any) : null) as
+      | { claimant_line_user_id?: string; request_description?: string }
+      | null
 
     if (ctx.replyToken) {
       await ResponseGateway.replyText(

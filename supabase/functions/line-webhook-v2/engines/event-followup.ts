@@ -148,6 +148,7 @@ export interface FollowupReply {
 }
 
 import { sendConnectEventCommand, CONNECT_PROVIDER } from "../../_shared/connect-event.ts"
+import { createCustomerSiteViaConnect } from "../../_shared/connect-customer-site.ts"
 
 export async function completeAfterMaterialResolved(
   supabase: any,
@@ -524,12 +525,20 @@ export async function tryCompleteAwaitingEvent(
       siteId = site.id
     } else if (gpsLat && gpsLng) {
       // A real GPS pin always wins over trying to regex-parse address text.
-      const { data: newSite, error } = await supabase.from("customer_sites").insert({
-        customer_company_id: merged.partner_id, site_name: (gpsText ?? "หน้างานใหม่").slice(0, 40), address: gpsText,
-        gps_lat: gpsLat, gps_lng: gpsLng, is_active: true, updated_at: new Date().toISOString(),
-      }).select("id").single()
-      if (!error) {
-        siteId = newSite.id
+      const createdSite = await createCustomerSiteViaConnect(
+        {
+          customer_company_id: merged.partner_id,
+          site_name: (gpsText ?? "หน้างานใหม่").slice(0, 40),
+          address: gpsText,
+          gps_lat: gpsLat,
+          gps_lng: gpsLng,
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        },
+        `system:${CONNECT_PROVIDER}:event-followup`,
+      )
+      if (createdSite.ok && createdSite.data?.site_id) {
+        siteId = createdSite.data.site_id
         await sendConnectEventCommand("business_event.enrich", {
           event_id: ev.id,
           fields: { destination: gpsText },
@@ -539,12 +548,21 @@ export async function tryCompleteAwaitingEvent(
     } else if (merged.destination) {
       const parsed = parseThaiAddress(merged.destination)
       if (parsed) {
-        const { data: newSite, error } = await supabase.from("customer_sites").insert({
-          customer_company_id: merged.partner_id, site_name: merged.destination.slice(0, 40), address: merged.destination,
-          province: parsed.province, district: parsed.district, subdistrict: parsed.subdistrict, postal_code: parsed.postal_code,
-          is_active: true, updated_at: new Date().toISOString(),
-        }).select("id").single()
-        if (!error) siteId = newSite.id
+        const createdSite = await createCustomerSiteViaConnect(
+          {
+            customer_company_id: merged.partner_id,
+            site_name: merged.destination.slice(0, 40),
+            address: merged.destination,
+            province: parsed.province,
+            district: parsed.district,
+            subdistrict: parsed.subdistrict,
+            postal_code: parsed.postal_code,
+            is_active: true,
+            updated_at: new Date().toISOString(),
+          },
+          `system:${CONNECT_PROVIDER}:event-followup`,
+        )
+        if (createdSite.ok && createdSite.data?.site_id) siteId = createdSite.data.site_id
         else missing.push("destination")
       } else if (site) {
         return { text: `ส่งที่ "${site.site_name}" เหมือนเดิมไหมครับ หรือที่ใหม่ (ถ้าที่ใหม่ ส่ง GPS หรือที่อยู่มาได้เลยครับ)` }

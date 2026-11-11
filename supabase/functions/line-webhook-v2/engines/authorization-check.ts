@@ -15,6 +15,7 @@
 // claimed-authorizer name/company) and is not wired in yet — noted here so
 // nobody assumes broader coverage than what's real today.
 import { ResponseGateway } from "./response.ts"
+import { sendConnectPendingAuthorizationCommand } from "../../_shared/connect-pending-authorization.ts"
 
 export interface SiteOwnershipCheck {
   needsAuthorization: boolean
@@ -57,15 +58,20 @@ export async function requestAuthorization(
     businessEventId: string | null
   },
 ): Promise<{ id: string }> {
-  const { data: row } = await supabase.from("pending_authorizations").insert({
-    company_id: params.companyId,
-    claimant_line_user_id: params.claimantLineUserId,
-    claimant_description: params.claimantDescription,
-    request_description: params.requestDescription,
-    responsible_line_user_id: params.responsibleLineUserId,
-    business_event_id: params.businessEventId,
-    status: "pending",
-  }).select("id").single()
+  const created = await sendConnectPendingAuthorizationCommand(
+    "pending_authorization.create",
+    {
+      company_id: params.companyId,
+      claimant_line_user_id: params.claimantLineUserId,
+      claimant_description: params.claimantDescription,
+      request_description: params.requestDescription,
+      responsible_line_user_id: params.responsibleLineUserId,
+      business_event_id: params.businessEventId,
+      status: "pending",
+    },
+    "system:line-authorization-check",
+  )
+  const row = { id: String(created.data?.id ?? "") }
 
   await ResponseGateway.pushWithQuickReply(
     params.responsibleLineUserId,

@@ -11,6 +11,7 @@
 // the customer-incoming-payment cascade).
 import { ResponseGateway } from "./response.ts"
 import { sendConnectExpenseCommand } from "../../_shared/connect-expense.ts"
+import { markSupabaseBillingEventPaidViaConnect } from "../../_shared/connect-billing-event.ts"
 
 let _ownerLineUserIdCache: string | null | undefined
 
@@ -150,9 +151,8 @@ export async function matchOwnerSlipToPartnerPayable(
   // close the loop back to that table too, so its own status (pending →
   // owner_notified → paid) reflects the real outcome instead of staying
   // stuck at owner_notified forever once the slip lands.
-  await supabase.from("supabase_billing_events")
-    .update({ status: "paid" })
-    .eq("partner_payable_request_id", match.id)
+  const billingUpdated = await markSupabaseBillingEventPaidViaConnect(match.id, "system:line-owner-dispatcher")
+  if (!billingUpdated.ok) console.error(`[owner-dispatcher] BILLING_EVENT_UPDATE_FAILED(${match.id}): ${billingUpdated.error}`)
 
   if (match.partner_line_user_id) {
     await ResponseGateway.pushMessage(

@@ -25,6 +25,8 @@ function expectedAmount(copies: number): number {
 // not a placeholder guess anymore now that real per-page pricing exists.
 const PRINT_JOB_AMOUNT_TOLERANCE = 2
 
+import { sendConnectPrintJobCommand } from "../../_shared/connect-print-job.ts"
+
 // Single automatic round (owner, 2026-07-25): "ถามอัตโนมัติรอบเดียวเลย...
 // ไม่มีอะไรยากซับซ้อน" — one quick-reply round asking copies, right after
 // the document photo arrives. No AI-generated preview of the document
@@ -39,13 +41,18 @@ export async function maybeCreatePrintJob(
   if (params.documentType !== "government_document") return
   if (!params.lineUserId) return
 
-  const { data: job } = await supabase.from("print_jobs").insert({
-    line_user_id: params.lineUserId,
-    media_path: params.mediaPath,
-    document_kind: params.documentType,
-    copies: 1,
-    status: "pending_payment",
-  }).select("id").single()
+  const created = await sendConnectPrintJobCommand(
+    "print_job.create",
+    {
+      line_user_id: params.lineUserId,
+      media_path: params.mediaPath,
+      document_kind: params.documentType,
+      copies: 1,
+      status: "pending_payment",
+    },
+    "system:line-print-jobs",
+  )
+  const job = created.ok && created.data?.job_id ? { id: String(created.data.job_id) } : null
 
   if (!job) return
 
@@ -70,9 +77,11 @@ export async function handlePrintCopiesSelected(
   params: { jobId: string; copies: number; replyToken: string | null },
 ): Promise<void> {
   const amount = expectedAmount(params.copies)
-  await supabase.from("print_jobs")
-    .update({ copies: params.copies, amount_expected: amount })
-    .eq("id", params.jobId)
+  await sendConnectPrintJobCommand(
+    "print_job.update",
+    { job_id: params.jobId, fields: { copies: params.copies, amount_expected: amount } },
+    "system:line-print-jobs",
+  )
   if (!params.replyToken) return
 
   const { ResponseGateway } = await import("./response.ts")
@@ -96,11 +105,12 @@ export async function handlePrintPaymentMethodSelected(
     // Owner instruction (2026-07-25): "ถ้าลูกค้าบอกว่าเดี๋ยวเงินสด โอเคก็
     // ดำเนินการเลย" — cash skips payment verification entirely and goes
     // straight to print; money is collected on pickup, not before.
-    const { data: job } = await supabase.from("print_jobs")
-      .update({ payment_method: "cash", status: "paid", paid_at: new Date().toISOString() })
-      .eq("id", params.jobId)
-      .select("amount_expected")
-      .single()
+    const updated = await sendConnectPrintJobCommand(
+      "print_job.update",
+      { job_id: params.jobId, fields: { payment_method: "cash", status: "paid", paid_at: new Date().toISOString() } },
+      "system:line-print-jobs",
+    )
+    const job = updated.ok ? (updated.data as any) : null
     if (params.replyToken) {
       const amountText = job?.amount_expected ? ` (${job.amount_expected} บาท)` : ""
       await ResponseGateway.replyText(params.replyToken, `รับทราบครับ กำลังดำเนินการพิมพ์ เก็บเงินสด${amountText}ตอนมารับนะครับ`)
@@ -108,7 +118,11 @@ export async function handlePrintPaymentMethodSelected(
     return
   }
 
-  await supabase.from("print_jobs").update({ payment_method: "transfer" }).eq("id", params.jobId)
+  await sendConnectPrintJobCommand(
+    "print_job.update",
+    { job_id: params.jobId, fields: { payment_method: "transfer" } },
+    "system:line-print-jobs",
+  )
   if (params.replyToken) {
     await ResponseGateway.replyText(params.replyToken, "โอนเงินแล้วส่งรูปสลิปมาในแชทนี้ได้เลยครับ ระบบจะตรวจสอบแล้วดำเนินการพิมพ์ทันที")
   }
@@ -143,7 +157,9 @@ export async function matchPaymentToPrintJob(
   if (!pending) return
   if (Math.abs(Number(pending.amount_expected) - params.amount) > PRINT_JOB_AMOUNT_TOLERANCE) return
 
-  await supabase.from("print_jobs")
-    .update({ status: "paid", amount_paid: params.amount, paid_at: new Date().toISOString() })
-    .eq("id", pending.id)
+  await sendConnectPrintJobCommand(
+    "print_job.update",
+    { job_id: pending.id, fields: { status: "paid", amount_paid: params.amount, paid_at: new Date().toISOString() } },
+    "system:line-print-jobs",
+  )
 }
