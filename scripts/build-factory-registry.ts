@@ -26,6 +26,7 @@
  */
 import { readFileSync, writeFileSync } from "fs";
 import { join } from "path";
+import { stableGeneratedAt } from "./lib/deterministicOutput";
 
 const ROOT = join(__dirname, "..");
 
@@ -113,8 +114,13 @@ const FACTORY_RULES: { test: RegExp; factoryId: FactoryId; reason: string }[] = 
   { test: /architectureDriftDetector/, factoryId: "operations-center", reason: "architecture drift detector" },
 
   // ---- Communication Factory ----
-  { test: /(^|\/)line\//, factoryId: "communication-factory", reason: "under a line/ directory" },
-  { test: /(^|\/)line\.ts$/, factoryId: "communication-factory", reason: "line.ts driver" },
+  // Data fix (2026-11-11): a gateway ingress/adapter is Infrastructure's per
+  // its declared responsibilities ("Integration gateway / connectors /
+  // OAuth"). Exclude those two trees from the generic LINE-name rules so a
+  // module is not double-owned merely because its path contains "line" —
+  // this changes ownership metadata only; no file is moved.
+  { test: /^(?!app\/api\/gateway\/|engines\/integration-gateway\/)(?:.*\/)?line\//, factoryId: "communication-factory", reason: "under a line/ directory" },
+  { test: /^(?!app\/api\/gateway\/|engines\/integration-gateway\/)(?:.*\/)?line\.ts$/, factoryId: "communication-factory", reason: "line.ts driver" },
   { test: /^registry\/(communication|conversation)\//, factoryId: "communication-factory", reason: "communication/conversation channel registry (email/line/sms/telegram/voice/whatsapp, intent/memory/state)" },
   { test: /^app\/api\/admin\/line-(customers|profiles)\//, factoryId: "communication-factory", reason: "LINE customer/profile admin API" },
   { test: /^app\/liff\//, factoryId: "communication-factory", reason: "LINE Front-end Framework page" },
@@ -310,8 +316,7 @@ function main() {
   }
 
   // ---- registry/factory-registry.json — the 12 Factory Contracts ----
-  const factoryRegistry = {
-    generated_at: new Date().toISOString(),
+  const factoryRegistryBody = {
     policy: "Phase 1.1 (Factory Constitution) — read-only analysis + mapping only. No file was moved, renamed, deleted, merged, or refactored to produce this. ownedModules is derived entirely from registry/module-registry.json + real, pre-verified path evidence in scripts/build-factory-registry.ts. See registry/factory-mapping.json for the per-module assignment and registry/factory-summary.json for the coverage report (including UNKNOWN and CONFLICT — reported honestly, never silently resolved).",
     factories: FACTORIES.map((f) => ({
       id: f.id,
@@ -331,14 +336,22 @@ function main() {
       status: "mapped",
     })),
   };
+  const factoryRegistry = {
+    generated_at: stableGeneratedAt(join(ROOT, "registry/factory-registry.json"), factoryRegistryBody),
+    ...factoryRegistryBody,
+  };
   writeFileSync(join(ROOT, "registry/factory-registry.json"), JSON.stringify(factoryRegistry, null, 2) + "\n", "utf-8");
 
   // ---- registry/factory-mapping.json ----
-  writeFileSync(join(ROOT, "registry/factory-mapping.json"), JSON.stringify({
-    generated_at: new Date().toISOString(),
+  const factoryMappingBody = {
     policy: "Per-module Factory mapping only — no file was moved. See registry/factory-registry.json for the Factory contracts this maps into.",
     modules: mapping,
-  }, null, 2) + "\n", "utf-8");
+  };
+  const factoryMapping = {
+    generated_at: stableGeneratedAt(join(ROOT, "registry/factory-mapping.json"), factoryMappingBody),
+    ...factoryMappingBody,
+  };
+  writeFileSync(join(ROOT, "registry/factory-mapping.json"), JSON.stringify(factoryMapping, null, 2) + "\n", "utf-8");
 
   // ---- registry/factory-summary.json — counts + Coverage Report ----
   const apiRouteCount = modulePaths.filter((p) => /^app\/api\//.test(p) && p.endsWith("route.ts")).length;
@@ -346,8 +359,7 @@ function main() {
   const workerCount = modulePaths.filter((p) => /^supabase\/functions\//.test(p)).length;
   const routeCount = modulePaths.filter((p) => p.endsWith("route.ts") || p.endsWith("page.tsx")).length;
 
-  const summary = {
-    generated_at: new Date().toISOString(),
+  const summaryBody = {
     policy: "Phase 1.1 (Factory Constitution) — Factory Summary + Coverage Report. Read-only analysis; no cleanup, no move, no delete, no merge, no auto-fix performed to produce this.",
     factory_count: FACTORIES.length,
     total_modules: modulePaths.length,
@@ -364,6 +376,10 @@ function main() {
       unknown_modules: unknownModules,
       conflict_modules: conflictModules,
     },
+  };
+  const summary = {
+    generated_at: stableGeneratedAt(join(ROOT, "registry/factory-summary.json"), summaryBody),
+    ...summaryBody,
   };
   writeFileSync(join(ROOT, "registry/factory-summary.json"), JSON.stringify(summary, null, 2) + "\n", "utf-8");
 

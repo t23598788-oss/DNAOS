@@ -1243,11 +1243,12 @@ function computeArchitectureDriftGate(): GateResult {
   return { gate: "Architecture Drift", status: "PASSED", evidence: "real registry/system-control-summary.json: 0 circular dependencies, 0 duplicate registrations" };
 }
 function computeFactoryCoverageGate(): GateResult {
-  const summary = safeReadJson<{ coverage?: { coverage_percent?: number; unknown_modules?: string[]; conflict_modules?: string[] } }>("registry/factory-summary.json");
+  const summary = safeReadJson<{ coverage?: { coverage_percent?: number; unknown_modules?: string[]; conflict_modules?: { path: string; factories: string[] }[] } }>("registry/factory-summary.json");
   const c = summary?.coverage;
   if (!c || c.coverage_percent === undefined) return { gate: "Factory Coverage", status: "UNKNOWN", evidence: "registry/factory-summary.json coverage is missing or unreadable" };
   if ((c.conflict_modules?.length ?? 0) > 0) {
-    return { gate: "Factory Coverage", status: "FAILED", evidence: `real registry/factory-summary.json: ${c.conflict_modules!.length} real CONFLICT module(s): ${c.conflict_modules!.slice(0, 3).join(", ")}` };
+    const shown = c.conflict_modules!.slice(0, 3).map((m) => `${m.path} [${m.factories.join(" + ")}]`).join("; ");
+    return { gate: "Factory Coverage", status: "FAILED", evidence: `real registry/factory-summary.json: ${c.conflict_modules!.length} real CONFLICT module(s): ${shown}` };
   }
   return { gate: "Factory Coverage", status: "PASSED", evidence: `real registry/factory-summary.json: ${c.coverage_percent}% real Factory coverage, ${c.unknown_modules?.length ?? 0} real UNKNOWN module(s) (honestly reported, non-blocking)` };
 }

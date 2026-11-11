@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-10T20:28:54.845Z",
+  "generated_at": "2026-11-11T10:12:38.874Z",
   "note": "Computed live from registry/CONSTITUTION.json + registry/rule-coverage.json + registry/factory-mapping.json by app/api/admin/ide/_lib/governanceRuntime.ts — never hand-edited, never a cached stale number. Re-run via `npm run sync` or `npx tsx scripts/build-governance-summary.ts`.",
   "totalRules": 282,
   "enforced": 179,
@@ -33,7 +33,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 97
+      "unknownFileCount": 98
     },
     {
       "factoryId": "software-factory",
@@ -42,7 +42,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 407
+      "unknownFileCount": 408
     },
     {
       "factoryId": "ai-factory",
@@ -60,7 +60,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 226
+      "unknownFileCount": 227
     },
     {
       "factoryId": "communication-factory",
@@ -69,7 +69,7 @@
       "coveragePercent": 0,
       "missingRuleCount": 0,
       "health": "UNGOVERNED",
-      "unknownFileCount": 49
+      "unknownFileCount": 31
     },
     {
       "factoryId": "document-factory",
@@ -96,7 +96,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 120
+      "unknownFileCount": 122
     },
     {
       "factoryId": "qa-factory",
@@ -105,7 +105,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 442
+      "unknownFileCount": 150
     },
     {
       "factoryId": "deployment-factory",
@@ -123,7 +123,7 @@
       "coveragePercent": 100,
       "missingRuleCount": 0,
       "health": "HEALTHY",
-      "unknownFileCount": 24
+      "unknownFileCount": 20
     }
   ],
   "ghostFindingCount": 96,
