@@ -12,7 +12,7 @@
  * here once; both surfaces update together.
  */
 
-export const PORTAL_SPEC_VERSION = "1.0";
+export const PORTAL_SPEC_VERSION = "1.1";
 
 export type HttpMethod = "GET" | "POST" | "OPTIONS";
 export type ParamLocation = "header" | "path" | "query" | "body";
@@ -30,6 +30,8 @@ export interface EndpointSpec {
   id: string;
   method: HttpMethod;
   path: string;
+  /** Where the handler actually runs; absent means a Next.js route under app/api. */
+  runtime?: "next-route" | "supabase-edge-function";
   auth: string;
   summary: string;
   params: ParamSpec[];
@@ -80,6 +82,8 @@ export interface CategorySpec {
 export interface EndpointIndexEntry {
   method: HttpMethod;
   path: string;
+  /** Where the handler runs; absent means a Next.js route under app/api. */
+  runtime?: "next-route" | "supabase-edge-function";
   auth: string;
   summary: string;
   doc: string;
@@ -783,6 +787,7 @@ const lineWebhook: DocSpec = {
           id: "line-webhook",
           method: "POST",
           path: "$SUPABASE_URL/functions/v1/line-webhook-v2",
+          runtime: "supabase-edge-function",
           auth: "ลายเซ็น x-line-signature (HMAC-SHA256 ของ channel secret) — ฟังก์ชันตั้ง verify_jwt = false",
           summary:
             "รับ LINE webhook event ทุกชนิด (message, follow, unfollow, postback, location, image, file, audio, group) และส่งต่อไปยัง handler ที่รับผิดชอบ",
@@ -1123,6 +1128,7 @@ export const ENDPOINT_INDEX: EndpointIndexEntry[] = DOCS.flatMap((doc) =>
     (section.endpoints ?? []).map((endpoint) => ({
       method: endpoint.method,
       path: endpoint.path,
+      runtime: endpoint.runtime,
       auth: endpoint.auth,
       summary: endpoint.summary,
       doc: doc.slug,
