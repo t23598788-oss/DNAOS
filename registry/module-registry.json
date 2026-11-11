@@ -17630,8 +17630,9 @@
       "purpose": "/admin/docs — System Docs & Integration Hub",
       "purpose_th": "/admin/docs — System Docs & Integration Hub",
       "exports": [
-        "DocsCategoryOnePage",
-        "dynamic"
+        "DeveloperPortalPage",
+        "dynamic",
+        "metadata"
       ],
       "status": "active"
     },
@@ -17647,6 +17648,41 @@
         "PartnerBindingResult",
         "bindLineChannelToPartner",
         "createCustomerPartnerProfile"
+      ],
+      "status": "active"
+    },
+    "registry/developer-portal-spec.ts": {
+      "owner": "registry",
+      "layer": "registry",
+      "purpose": "registry/developer-portal-spec.ts",
+      "purpose_th": "registry/developer-portal-spec.ts",
+      "exports": [
+        "CATEGORIES",
+        "CategorySpec",
+        "CodeSpec",
+        "DOCS",
+        "DocSpec",
+        "ENDPOINT_INDEX",
+        "EndpointIndexEntry",
+        "EndpointSpec",
+        "HttpMethod",
+        "PORTAL_SPEC_VERSION",
+        "ParamLocation",
+        "ParamSpec",
+        "SectionSpec",
+        "TableSpec",
+        "docsForCategory",
+        "findDoc"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/developer-portal/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "GET /api/v1/developer-portal",
+      "purpose_th": "GET /api/v1/developer-portal",
+      "exports": [
+        "GET"
       ],
       "status": "active"
     }

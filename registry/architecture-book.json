@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-10T23:30:13.504Z",
+  "generated_at": "2026-11-11T00:50:49.492Z",
   "version": 1,
   "nodes": [
     {
@@ -102812,14 +102812,16 @@
       "name_en": "app/admin/docs/page.tsx",
       "purpose_th": "/admin/docs — System Docs & Integration Hub",
       "exports": [
-        "DocsCategoryOnePage",
-        "dynamic"
+        "DeveloperPortalPage",
+        "dynamic",
+        "metadata"
       ],
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/auth/requireAuthPage.ts",
-        "module:core/auth/session.ts"
+        "module:core/auth/session.ts",
+        "module:registry/developer-portal-spec.ts"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
@@ -102838,26 +102840,37 @@
         {
           "name": "dynamic",
           "kind": "const",
-          "line_start": 10,
-          "line_end": 10
+          "line_start": 23,
+          "line_end": 23
         },
         {
-          "name": "DocsCategoryOnePage",
+          "name": "metadata",
+          "kind": "const",
+          "line_start": 25,
+          "line_end": 29
+        },
+        {
+          "name": "DeveloperPortalPage",
           "kind": "function",
-          "line_start": 164,
-          "line_end": 199
+          "line_start": 250,
+          "line_end": 342
         }
       ],
       "import_sites": [
         {
           "specifier": "@/core/auth/requireAuthPage",
-          "line": 7,
+          "line": 9,
           "resolved_target": "core/auth/requireAuthPage.ts"
         },
         {
           "specifier": "@/core/auth/session",
-          "line": 8,
+          "line": 10,
           "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/registry/developer-portal-spec",
+          "line": 11,
+          "resolved_target": "registry/developer-portal-spec.ts"
         }
       ]
     },
@@ -102949,6 +102962,193 @@
           "specifier": "@/engines/canonical/audit",
           "line": 18,
           "resolved_target": "engines/canonical/audit.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:registry/developer-portal-spec.ts",
+      "type": "Module",
+      "layer": "registry",
+      "name_en": "registry/developer-portal-spec.ts",
+      "purpose_th": "registry/developer-portal-spec.ts",
+      "exports": [
+        "CATEGORIES",
+        "CategorySpec",
+        "CodeSpec",
+        "DOCS",
+        "DocSpec",
+        "ENDPOINT_INDEX",
+        "EndpointIndexEntry",
+        "EndpointSpec",
+        "HttpMethod",
+        "PORTAL_SPEC_VERSION",
+        "ParamLocation",
+        "ParamSpec",
+        "SectionSpec",
+        "TableSpec",
+        "docsForCategory",
+        "findDoc"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:registry/command-registry.json.ts"
+      ],
+      "dependents": [
+        "module:app/admin/docs/page.tsx",
+        "module:app/api/v1/developer-portal/route.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "registry",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "PORTAL_SPEC_VERSION",
+          "kind": "const",
+          "line_start": 15,
+          "line_end": 15
+        },
+        {
+          "name": "HttpMethod",
+          "kind": "type",
+          "line_start": 17,
+          "line_end": 17
+        },
+        {
+          "name": "ParamLocation",
+          "kind": "type",
+          "line_start": 18,
+          "line_end": 18
+        },
+        {
+          "name": "ParamSpec",
+          "kind": "interface",
+          "line_start": 20,
+          "line_end": 27
+        },
+        {
+          "name": "EndpointSpec",
+          "kind": "interface",
+          "line_start": 29,
+          "line_end": 40
+        },
+        {
+          "name": "TableSpec",
+          "kind": "interface",
+          "line_start": 42,
+          "line_end": 45
+        },
+        {
+          "name": "CodeSpec",
+          "kind": "interface",
+          "line_start": 47,
+          "line_end": 50
+        },
+        {
+          "name": "SectionSpec",
+          "kind": "interface",
+          "line_start": 52,
+          "line_end": 61
+        },
+        {
+          "name": "DocSpec",
+          "kind": "interface",
+          "line_start": 63,
+          "line_end": 70
+        },
+        {
+          "name": "CategorySpec",
+          "kind": "interface",
+          "line_start": 72,
+          "line_end": 78
+        },
+        {
+          "name": "EndpointIndexEntry",
+          "kind": "interface",
+          "line_start": 80,
+          "line_end": 87
+        },
+        {
+          "name": "CATEGORIES",
+          "kind": "const",
+          "line_start": 89,
+          "line_end": 130
+        },
+        {
+          "name": "DOCS",
+          "kind": "const",
+          "line_start": 1095,
+          "line_end": 1110
+        },
+        {
+          "name": "docsForCategory",
+          "kind": "function",
+          "line_start": 1112,
+          "line_end": 1114
+        },
+        {
+          "name": "findDoc",
+          "kind": "function",
+          "line_start": 1116,
+          "line_end": 1119
+        },
+        {
+          "name": "ENDPOINT_INDEX",
+          "kind": "const",
+          "line_start": 1121,
+          "line_end": 1132
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/v1/developer-portal/route.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/v1/developer-portal/route.ts",
+      "purpose_th": "GET /api/v1/developer-portal",
+      "exports": [
+        "GET"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [
+        "module:registry/developer-portal-spec.ts"
+      ],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "GET",
+          "kind": "function",
+          "line_start": 19,
+          "line_end": 43
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/registry/developer-portal-spec",
+          "line": 12,
+          "resolved_target": "registry/developer-portal-spec.ts"
         }
       ]
     }
@@ -105736,6 +105936,11 @@
     },
     {
       "source": "layer:app",
+      "target": "module:app/api/v1/developer-portal/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
       "target": "module:app/api/v1/mcp/_lib/envelope.ts",
       "label": "contains"
     },
@@ -108461,6 +108666,11 @@
     },
     {
       "source": "layer:registry",
+      "target": "module:registry/developer-portal-spec.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:registry",
       "target": "module:registry/execution/_loader.ts",
       "label": "contains"
     },
@@ -110387,6 +110597,11 @@
     {
       "source": "module:app/admin/docs/page.tsx",
       "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/admin/docs/page.tsx",
+      "target": "module:registry/developer-portal-spec.ts",
       "label": "imports"
     },
     {
@@ -119572,6 +119787,11 @@
     {
       "source": "module:app/api/v1/constitution/route.ts",
       "target": "module:registry/CONSTITUTION.json.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/v1/developer-portal/route.ts",
+      "target": "module:registry/developer-portal-spec.ts",
       "label": "imports"
     },
     {
@@ -162960,6 +163180,11 @@
       "label": "imports"
     },
     {
+      "source": "module:registry/developer-portal-spec.ts",
+      "target": "module:registry/command-registry.json.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:registry/execution/_loader.ts",
       "target": "module:registry/execution/_index.registry.json.ts",
       "label": "imports"
@@ -166836,8 +167061,8 @@
     }
   ],
   "summary": {
-    "total": 1453,
-    "ok": 1453,
+    "total": 1455,
+    "ok": 1455,
     "broken": 0,
     "unused": 0,
     "unregistered": 0
