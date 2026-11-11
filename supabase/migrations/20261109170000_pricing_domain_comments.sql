@@ -1,0 +1,7 @@
+-- HISTORY PLACEHOLDER — DO NOT ADD DDL HERE.
+-- Version: 20261109170000 (pricing_domain_comments)
+-- Applied directly to the linked Supabase project before a matching
+-- local file existed; already recorded in schema_migrations and verified
+-- live on 2026-11-11. This file exists only so the Supabase CLI can
+-- reconcile remote history with local versions — an applied version is
+-- never executed. See supabase/MIGRATIONS_HISTORY.md.

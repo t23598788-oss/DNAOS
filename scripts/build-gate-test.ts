@@ -161,9 +161,21 @@ async function main() {
     const report = analyzeMigrationIntegrity();
     assert(report.totalMigrations === realFiles.length, `expected real totalMigrations to match a real independent directory listing (${realFiles.length}), got ${report.totalMigrations}`);
   });
-  await test("Migration Gate: real duplicate-timestamp conflicts are detected — this repo has genuine, pre-existing duplicate migration files (never renamed/deleted by this suite)", () => {
+  await test("Migration Gate: duplicate-timestamp conflicts are computed from the real directory — every reported group lists 2+ real files and matches an independent grouping", () => {
+    // 2026-11-11 reconciliation: the real rollback files moved to
+    // supabase/rollbacks/ so `supabase db push` no longer sees duplicate
+    // versions. The detector logic is unchanged; this asserts it still groups
+    // any real duplicates correctly instead of the old (now false) assumption
+    // that the repository permanently contains at least one duplicate pair.
+    const realFiles = readdirSync(path.join(ROOT, "supabase/migrations")).filter((f: string) => f.endsWith(".sql"));
+    const groups = new Map<string, string[]>();
+    for (const f of realFiles) {
+      const ts = f.split("_")[0];
+      groups.set(ts, [...(groups.get(ts) ?? []), f]);
+    }
+    const expected = [...groups.values()].filter((fs) => fs.length > 1).length;
     const report = analyzeMigrationIntegrity();
-    assert(report.conflicts.length > 0, "expected at least one real duplicate-timestamp conflict in this repo's actual migrations directory");
+    assert(report.conflicts.length === expected, `expected ${expected} real duplicate-timestamp group(s), got ${report.conflicts.length}`);
     for (const c of report.conflicts) assert(c.files.length >= 2, `conflict at ${c.timestamp} must list 2+ real files`);
   });
   await test("Migration Gate: Lineage anomalies are only reported for real ALTER/DROP with no real, earlier CREATE TABLE for that exact table name — never guessed", () => {

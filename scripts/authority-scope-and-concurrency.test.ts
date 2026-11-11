@@ -227,7 +227,7 @@ function rowsDb(rows: Record<string, unknown[]>) {
   console.log("\n=== D — the SQL functions actually implement the guarantees ===");
   {
     const migrationPath = "supabase/migrations/20261025000001_material_price_atomic_v1.sql";
-    const rollbackPath = "supabase/migrations/20261025000001_material_price_atomic_v1_rollback.sql";
+    const rollbackPath = "supabase/rollbacks/20261025000001_material_price_atomic_v1_rollback.sql";
     expect(existsSync(migrationPath), "D atomic migration proposal exists (not applied)");
     expect(existsSync(rollbackPath), "D rollback file exists");
     const sql = read(migrationPath).toLowerCase();

@@ -27,7 +27,7 @@
       "description": "`supabase migration list --linked` showed every local migration from 20260620000000 onward with an empty Remote column, meaning Supabase's own migration-tracking table did not record them as applied — even though the live tables demonstrably exist and work when queried directly. Risk: a future `supabase db push` could conflict with schema that is already live but untracked.",
       "evidence_source": "DEPLOYMENT_READINESS.md (section on migration tracking, cited directly during the LINE→Gateway→Engine→Database deploy-readiness audit this session)",
       "date_discovered": "2026-07-15",
-      "resolution": null
+      "resolution": "2026-11-11: reconciled against the live project. Recorded 5 already-applied direct-apply migrations via `migration repair --status applied` (20261103000000/000001/000002, 20261110190000/191000); added 14 version placeholders for remote-only history; moved 4 manual rollback files to supabase/rollbacks/ (they are not migrations); re-versioned the duplicate 20260804000007 file_existence_intelligence to 20261111110000, applied it idempotently and recorded it; moved the destructive purge DELETE to supabase/one-off/. Verified: `supabase db push --dry-run` exits 0, `migration list` has no local/remote gaps (169 = 169), and the three file-existence tables kept their real rows (1/42/48)."
     }
   ]
 }

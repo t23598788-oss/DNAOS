@@ -37,7 +37,7 @@
 -- locks the PIT row and always operates on the oldest live row, matching the
 -- reader order, but the preflight should still be clean before release.
 --
--- ROLLBACK: see 20261025000001_material_price_atomic_v1_rollback.sql
+-- ROLLBACK: see supabase/rollbacks/20261025000001_material_price_atomic_v1_rollback.sql
 -- (dropping both functions only — no table, column or row is touched).
 
 create or replace function public.record_seller_offer_atomic(

@@ -35,7 +35,7 @@
 --             where revoked_at is null
 --          ) g group by 1,2,3,4 having count(*) > 1;            -- duplicate live grants
 --
--- ROLLBACK: see 20261025000002_authority_grants_rollback.sql (drop table only).
+-- ROLLBACK: see supabase/rollbacks/20261025000002_authority_grants_rollback.sql (drop table only).
 -- The table is new; no existing row/column is altered.
 
 create table if not exists public.authority_grants (
