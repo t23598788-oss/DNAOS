@@ -458,3 +458,63 @@ DNA OS ให้บริการ “Core Capabilities” ที่สามา
 - business context auto-resolve จาก `company_line_links`
 - AI อยู่ใน `/api/chat` (workspace command), ไม่ได้ตอบ LINE messenger อัตโนมัติ
 - code สำคัญอยู่ใน `app/workspace/WorkspaceFrame.tsx`, `presentation/ui/FloatingMessenger.tsx`, `app/api/admin/conversations/*`, `app/api/chat/route.ts`, และ migration central conversation model
+---
+
+## 10. ERP Brain Core (สมองกลางประมวลผล ERP)
+
+ERP Brain Core คือ **แกนเดียว** ที่ประกอบ “หัวใจ” ของ ERP แต่ละส่วนเข้าด้วยกัน
+นิยามทั้งหมดอยู่ใน `engines/erp/brain.ts` (single source of truth) — route ทำหน้าที่แค่ probe จำนวนแถวจริง
+แล้วส่งให้ `buildErpBrainSnapshot()` ประกอบเป็นภาพเดียว จึงไม่มีรายการ/ตัวเลขที่เขียนซ้ำสองที่
+
+### 10.1 ออร์แกนหัวใจหลัก (organs)
+
+| key | หน้าที่ | แหล่งข้อมูลจริง | route | canonical writer |
+| --- | --- | --- | --- | --- |
+| `identity_and_access` | ผู้ใช้ บทบาท ขอบเขตสิทธิ์ | `profiles`, `role_assignments` | `/api/admin/users`, `/api/admin/roles` | — |
+| `unified_inbox` | กล่องข้อความ LINE/Facebook แยกช่องทาง รวมเป็นรายการเดียว | `conversations`, `messages` | `/api/admin/conversations` | `engines/canonical/inbound-write.ts` |
+| `product_catalog_and_media` | สินค้า ราคา โปรไฟล์ธุรกิจ สื่อโชว์ผลงาน | `products`, `business_profiles`, `media_showcases` | `/api/admin/facebook-page/ingest` | — |
+| `document_engine` | ใบเสนอราคา/สั่งซื้อ/ส่งของ/แจ้งหนี้/ใบเสร็จ | `document_canonical` (view), `receipt_documents` | `/api/admin/documents`, `/api/admin/receipt-documents` | `document-write.ts`, `receipt-confirm-flow.ts` |
+| `finance_and_payables` | รายจ่าย เงินรับจัดสรร กระแสเงินสด | `company_expenses`, `payment_allocations` | `/api/admin/finance`, `/api/admin/finance-summary`, `/api/admin/payables` | `expense-write.ts`, `payment-write.ts` |
+| `debt_tracking` | ยอดค้างชำระ ดอกเบี้ย ประวัติสถานะหนี้ | `company_debt_current` (view), `debt_events` | `/api/admin/debt-trackings` | `debt-write.ts` |
+| `stock_and_materials` | สต๊อก วัสดุ การเคลื่อนไหว | `inventory`, `stock_movements`, `material_types` | `/api/admin/storage-intelligence` | `stock-write.ts` |
+| `partners_and_pits` | คู่ค้า บ่อวัสดุ ราคาจากบ่อ | `partners`, `pit_profiles` | `/api/admin/partners`, `/api/admin/pits` | `partner-binding-write.ts`, `material-price-write.ts` |
+| `equipment_and_assets` | รถ/เครื่องจักร สิทธิ์ใช้งาน แจ้งซ่อม | `equipment_assets`, `equipment_maintenance_alerts` | `/api/admin/equipment` | — |
+| `payment_gateway` | ผลตอบกลับการชำระเงิน + settlement | `payment_callbacks`, `settlements` | `/api/admin/partner-portal` | — |
+
+ออร์แกนที่ `heart: true` คือหัวใจหลักของ ERP (8 ตัวแรก) — `equipment_and_assets` และ `payment_gateway`
+เป็นออร์แกนประกอบที่ผูกกับหัวใจหลัก
+
+### 10.2 Endpoints
+
+- `GET /api/admin/erp/brain` — snapshot เต็ม: `health`, `coverage`, `organs[]` (พร้อม `sources[]` และ count ต่อตาราง), `missing_sources[]`, `note`
+- `GET /api/admin/erp/summary` — มุมแบนของ snapshot เดียวกัน: `counts` ต่อตาราง, `modules` (organ keys), `coverage`, `brain.detail`
+
+ทั้งสอง route:
+- ใช้ `ADMIN_TIER` + `resolveAdminReadScope` → ถ้า scope เป็น `none` ตอบ 403, ถ้าเป็น organization-scoped ตอบ 403
+  (ภาพรวมระดับบริษัทไม่มีมิติ company ของตัวเอง จึงแสดง subset ที่ถูกต้องไม่ได้)
+- probe ด้วย `select("*", { count: "exact", head: true })` ทุกตารางที่นิยามไว้ พร้อมกัน
+
+### 10.3 สถานะและความซื่อสัตย์ของตัวเลข
+
+- `status` ต่อออร์แกน: `available` (ทุกตารางอ่านได้) · `partial` (บางตาราง) · `unavailable` (อ่านไม่ได้เลย)
+- `health` รวม: `healthy` · `partial` · `disconnected`
+- `count` = **จำนวนแถวจริง** ไม่ใช่ยอดเงิน/ตัวชี้วัดธุรกิจ — ยอดเงิน กำไร VAT อยู่ที่ `/api/admin/finance-summary`
+- probe ไม่ได้ ⇒ `count: null` และถูกใส่ใน `missing_sources` **ไม่เดาเป็น 0**
+  (หมายเหตุ: Supabase ตอบ `count: null` โดยไม่มี error เมื่อตารางไม่มีจริง ดังนั้นฝั่ง client ต้องถือ `null` = ขาด)
+
+### 10.4 สถานะปัจจุบัน (2026-11-12)
+
+- `health = healthy`, coverage 10/10 ออร์แกน, 22/22 แหล่งข้อมูล
+- ตารางที่ probe ได้จริง: `profiles` 3, `conversations` 17, `messages` 896, `document_canonical` 12,
+  `receipt_documents` 494, `company_expenses` 149, `payment_allocations` 4, `company_debt_current` 86,
+  `debt_events` 22, `material_types` 11, `pit_profiles` 84, `settlements` 1,
+  `business_profiles` 1, `products` 3 (จาก seed `บ่อทรายขอนแก่น (DNA OS Seed)`)
+- migration `20261113120000_business_profiles_showcase.sql` + `20261113130000_seed_sand_business_catalog.sql`
+  ถูก push ขึ้น remote แล้ว (seed เป็น idempotent — รันซ้ำไม่สร้างข้อมูลซ้ำ)
+
+### 10.5 หลักการที่แกนนี้ยึด
+
+- ทุกการเขียนข้อมูลธุรกิจผ่าน canonical writers (route ห้ามเขียนตารางธุรกิจตรง)
+- ข้อความจากช่องทางต่าง ๆ แยกอิสระตาม `channel_type` + `external_user_id` — ไม่จับคู่ข้ามช่องทาง
+- business context resolve ภายหลัง ไม่บล็อกการรับ/แสดงข้อความ
+- เพิ่มออร์แกนใหม่ = เพิ่มรายการใน `ERP_ORGANS` ที่เดียว แล้ว route จะ probe ให้เอง
