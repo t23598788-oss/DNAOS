@@ -4,6 +4,7 @@ import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 import { buildErpBrainSnapshot, ERP_PROBE_TABLES, type ErpSourceProbe } from "@/engines/erp/brain"
+import { fetchProductCatalogStats } from "@/app/api/admin/erp/_lib/stats"
 
 // ERP Brain Core — แกนเดียวที่ประกอบออร์แกน ERP เข้าด้วยกัน
 // ตัวเลขทั้งหมดมาจากการนับแถวจริงในแหล่งข้อมูลที่ engines/erp/brain.ts นิยามไว้
@@ -38,8 +39,10 @@ export async function GET() {
   const db = supabase()
   const probes = await Promise.all(ERP_PROBE_TABLES.map((table) => probeTable(db, table)))
 
+  const stats = await fetchProductCatalogStats(db)
+
   return NextResponse.json({
     ok: true,
-    ...buildErpBrainSnapshot(probes),
+    ...buildErpBrainSnapshot(probes, new Date().toISOString(), stats),
   })
 }

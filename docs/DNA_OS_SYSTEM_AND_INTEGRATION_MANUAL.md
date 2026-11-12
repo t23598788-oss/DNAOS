@@ -512,6 +512,14 @@ ERP Brain Core คือ **แกนเดียว** ที่ประกอ�
 - migration `20261113120000_business_profiles_showcase.sql` + `20261113130000_seed_sand_business_catalog.sql`
   ถูก push ขึ้น remote แล้ว (seed เป็น idempotent — รันซ้ำไม่สร้างข้อมูลซ้ำ)
 
+### 10.6 CRUD สำหรับจัดการสินค้าและโปรไฟล์ธุรกิจ
+
+- `GET/POST /api/admin/erp/products` — รายการ/เพิ่มสินค้า (filter: business_id, status, q, limit)
+- `GET/PATCH/DELETE /api/admin/erp/products/[id]` — อ่าน/แก้/ลบสินค้า
+- `GET/POST /api/admin/erp/business-profiles` — รายการ/เพิ่มโปรไฟล์ธุรกิจ
+- ทุก endpoint ใช้ `ADMIN_TIER` + platform scope (companyIds === null) และ service role (RLS เปิดอยู่ แต่ client อ่านโดยตรงไม่ได้)
+- UI แดชบอร์ด: `app/admin/erp/page.tsx` — Health Score, ออร์แกน, สถิติแคตตาล็อก, ตารางสินค้า, ฟอร์มเพิ่มข้อมูล
+
 ### 10.5 หลักการที่แกนนี้ยึด
 
 - ทุกการเขียนข้อมูลธุรกิจผ่าน canonical writers (route ห้ามเขียนตารางธุรกิจตรง)

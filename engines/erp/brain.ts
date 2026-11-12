@@ -42,10 +42,27 @@ export interface ErpOrganSnapshot {
   writers: string[]
 }
 
+export interface ErpBrainStats {
+  product_catalog?: {
+    business_profiles: number
+    catalogs: number
+    products_total: number
+    products_available: number
+    products_out_of_stock: number
+    products_custom_order: number
+    media_showcases: number
+    price_min: number | null
+    price_max: number | null
+    price_avg: number | null
+  }
+}
+
 export interface ErpBrainSnapshot {
   brain: "dna-os-erp-core"
   generated_at: string
   health: "healthy" | "partial" | "disconnected"
+  /** 0-100 คำนวณจากสัดส่วนแหล่งข้อมูลที่อ่านได้ */
+  health_score: number
   coverage: {
     organs_total: number
     organs_available: number
@@ -57,6 +74,8 @@ export interface ErpBrainSnapshot {
   }
   organs: ErpOrganSnapshot[]
   missing_sources: string[]
+  /** สถิติจริงจากตารางใหม่ (ถ้า probe ได้) */
+  stats?: ErpBrainStats
   note: string
 }
 
@@ -159,7 +178,11 @@ export const ERP_BRAIN_NOTE =
   "count คือจำนวนแถวจริงในแหล่งข้อมูลของแต่ละออร์แกน ไม่ใช่ยอดเงินหรือตัวชี้วัดทางธุรกิจ — " +
   "ยอดเงิน/กำไร/ภาษี ดูที่ /api/admin/finance-summary · ตารางที่ probe ไม่ได้จะรายงานเป็น unavailable ไม่เดาเป็น 0"
 
-export function buildErpBrainSnapshot(probes: ErpSourceProbe[], generatedAt = new Date().toISOString()): ErpBrainSnapshot {
+export function buildErpBrainSnapshot(
+  probes: ErpSourceProbe[],
+  generatedAt = new Date().toISOString(),
+  stats?: ErpBrainStats,
+): ErpBrainSnapshot {
   const byTable = new Map(probes.map((p) => [p.table, p]))
   const missing = new Set<string>()
 
@@ -190,6 +213,7 @@ export function buildErpBrainSnapshot(probes: ErpSourceProbe[], generatedAt = ne
 
   const sourcesTotal = ERP_PROBE_TABLES.length
   const sourcesMissing = missing.size
+  const healthScore = sourcesTotal === 0 ? 0 : Math.round(((sourcesTotal - sourcesMissing) / sourcesTotal) * 100)
 
   return {
     brain: "dna-os-erp-core",
@@ -200,6 +224,7 @@ export function buildErpBrainSnapshot(probes: ErpSourceProbe[], generatedAt = ne
         : organsAvailable + organsPartial === 0
           ? "disconnected"
           : "partial",
+    health_score: healthScore,
     coverage: {
       organs_total: organs.length,
       organs_available: organsAvailable,
@@ -211,6 +236,7 @@ export function buildErpBrainSnapshot(probes: ErpSourceProbe[], generatedAt = ne
     },
     organs,
     missing_sources: [...missing].sort(),
+    stats,
     note: ERP_BRAIN_NOTE,
   }
 }
