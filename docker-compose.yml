@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  dna-os:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: dna-os-erp:latest
+    container_name: dna-os-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+    env_file:
+      - .env.local

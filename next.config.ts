@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   // pdfkit (แล้ว sharp) ต้อง resolve path ไฟล์ data ของตัวเองจาก node_modules
   // จริง — ถ้าถูก bundle เข้า server chunk, __dirname กลายเป็น /ROOT (turbopack
   // virtual root) แล้ว createPdf ตายด้วย ENOENT Helvetica.afm (พบจริงตอนเปิด
