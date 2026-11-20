@@ -2,6 +2,8 @@
 
 # dependencies
 /node_modules
+workers/*/node_modules/
+workers/*/.cloudflare/
 scripts/bank-statement-sync/node_modules
 
 # File Existence Intelligence — local content-addressed snapshot store

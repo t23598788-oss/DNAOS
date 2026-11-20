@@ -17417,6 +17417,39 @@
         "verifySignature"
       ],
       "status": "active"
+    },
+    "workers/auth-entry/vite.config.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "Vite and Cloudflare plugin configuration for building the DNA OS Gateway Worker.",
+      "purpose_th": "Vite and Cloudflare plugin configuration for building the DNA OS Gateway Worker.",
+      "exports": [
+        "default"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "workers/auth-entry/index.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "Public auth-only surface. The business Gateway is never exposed by this Worker.",
+      "purpose_th": "Public auth-only surface. The business Gateway is never exposed by this Worker.",
+      "exports": [
+        "default"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "workers/auth-entry/cloudflare.config.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "Production configuration for the isolated DNA OS login surface.",
+      "purpose_th": "Production configuration for the isolated DNA OS login surface.",
+      "exports": [
+        "default"
+      ],
+      "status": "active",
+      "entry_point": true
     }
   },
   "excluded": [
