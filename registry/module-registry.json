@@ -1252,16 +1252,22 @@
       "purpose_th": "การติดตามคำขอ — บันทึกทุกขั้นตอนของคำขอเพื่อให้สามารถเล่นซ้ำได้",
       "exports": [
         "DataSource",
+        "ExecutionEvent",
+        "ExecutionEventInput",
+        "ExecutionEventName",
+        "ExecutionEventStatus",
         "RequestTrace",
         "TraceStep",
         "addStep",
         "completeTrace",
+        "emitExecutionEvent",
         "getRecentTraces",
         "getTrace",
         "replayTrace",
         "setIntent",
         "startTrace",
-        "traceLineage"
+        "traceLineage",
+        "withExecutionContext"
       ],
       "status": "active"
     },
@@ -17126,6 +17132,7 @@
       "purpose": "Railway task-queue client (DNA-000218, RAILWAY NATIVE CLINE RUNTIME).",
       "purpose_th": "Railway task-queue client (DNA-000218, RAILWAY NATIVE CLINE RUNTIME).",
       "exports": [
+        "__resetClineQueueFailuresForTest",
         "runOwnerRequestViaRailwayTaskQueue"
       ],
       "status": "active"
@@ -17186,6 +17193,228 @@
       "purpose_th": "GET/POST /api/v1/mcp/business/dispatch — THE missing connection reported by",
       "exports": [
         "POST"
+      ],
+      "status": "active"
+    },
+    "core/webhook-signature.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Webhook signature header — shared rule for the two sides of the gateway:",
+      "purpose_th": "Webhook signature header — shared rule for the two sides of the gateway:",
+      "exports": [
+        "normalizeSignatureHeader",
+        "requireSignatureHeader"
+      ],
+      "status": "active"
+    },
+    "workers/stock-ingest/vite.config.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: Vite and Cloudflare plugin configuration for building the stock-ingest Worker.",
+      "purpose_th": "DNA OS MODULE: Vite and Cloudflare plugin configuration for building the stock-ingest Worker.",
+      "exports": [
+        "default"
+      ],
+      "entry_point": true,
+      "status": "active"
+    },
+    "workers/stock-ingest/index.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: Gateway-only stock ingestion Worker; validates adapter identity and delegates tenant authorization to the existing database RPC.",
+      "purpose_th": "DNA OS MODULE: Gateway-only stock ingestion Worker; validates adapter identity and delegates tenant authorization to the existing database RPC.",
+      "exports": [
+        "default"
+      ],
+      "entry_point": true,
+      "status": "active"
+    },
+    "workers/stock-ingest/cloudflare.config.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: Cloudflare service configuration for the stock-ingest Worker.",
+      "purpose_th": "DNA OS MODULE: Cloudflare service configuration for the stock-ingest Worker.",
+      "exports": [
+        "stockWorker"
+      ],
+      "status": "active"
+    },
+    "workers/shared/workerIdentity.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: Shared adapter and service-principal validation helpers for Gateway-only ingestion Workers.",
+      "purpose_th": "DNA OS MODULE: Shared adapter and service-principal validation helpers for Gateway-only ingestion Workers.",
+      "exports": [
+        "AdapterPrincipal",
+        "BoundaryError",
+        "UUID_RE",
+        "WorkerDatabaseEnv",
+        "callServiceRpc",
+        "digestReference",
+        "recordAuthorizationRejection",
+        "requireGatewayPrincipal",
+        "rpcReasonCode",
+        "rpcStatus",
+        "safeFailureLog"
+      ],
+      "status": "active"
+    },
+    "workers/shared/gatewayTrace.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: Request-scoped audit trace fields and safe structured event logging for the DNA OS Gateway.",
+      "purpose_th": "DNA OS MODULE: Request-scoped audit trace fields and safe structured event logging for the DNA OS Gateway.",
+      "exports": [
+        "GATEWAY_TRACE",
+        "GatewayTrace",
+        "traceEvent",
+        "verifiedRpcContext"
+      ],
+      "status": "active"
+    },
+    "workers/demand-ingest/vite.config.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: Vite and Cloudflare plugin configuration for building the demand-ingest Worker.",
+      "purpose_th": "DNA OS MODULE: Vite and Cloudflare plugin configuration for building the demand-ingest Worker.",
+      "exports": [
+        "default"
+      ],
+      "entry_point": true,
+      "status": "active"
+    },
+    "workers/demand-ingest/index.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: Gateway-only demand ingestion Worker; validates adapter identity and delegates tenant authorization to the existing database RPC.",
+      "purpose_th": "DNA OS MODULE: Gateway-only demand ingestion Worker; validates adapter identity and delegates tenant authorization to the existing database RPC.",
+      "exports": [
+        "default"
+      ],
+      "entry_point": true,
+      "status": "active"
+    },
+    "workers/demand-ingest/cloudflare.config.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: Cloudflare service configuration for the demand-ingest Worker.",
+      "purpose_th": "DNA OS MODULE: Cloudflare service configuration for the demand-ingest Worker.",
+      "exports": [
+        "demandWorker"
+      ],
+      "status": "active"
+    },
+    "workers/business-onboarding/vite.config.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: Vite and Cloudflare plugin configuration for building the DNA OS Gateway Worker.",
+      "purpose_th": "DNA OS MODULE: Vite and Cloudflare plugin configuration for building the DNA OS Gateway Worker.",
+      "exports": [
+        "default"
+      ],
+      "entry_point": true,
+      "status": "active"
+    },
+    "workers/business-onboarding/landing-page.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "Public explanation surface. Diagrams are illustrative, never live telemetry.",
+      "purpose_th": "Public explanation surface. Diagrams are illustrative, never live telemetry.",
+      "exports": [
+        "landingPage"
+      ],
+      "status": "active"
+    },
+    "workers/business-onboarding/index.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: DNA OS authentication and command Gateway: verifies Supabase OTP sessions, checks authorized scope, traces requests, and routes approved capabilities.",
+      "purpose_th": "DNA OS MODULE: DNA OS authentication and command Gateway: verifies Supabase OTP sessions, checks authorized scope, traces requests, and routes approved capabilities.",
+      "exports": [
+        "default"
+      ],
+      "entry_point": true,
+      "status": "active"
+    },
+    "workers/business-onboarding/entry-page.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "Same-origin entry surface. No database client, access token or third-party script.",
+      "purpose_th": "Same-origin entry surface. No database client, access token or third-party script.",
+      "exports": [
+        "entryPage"
+      ],
+      "status": "active"
+    },
+    "workers/business-onboarding/connections-page.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "Integration workbench: documented data pipes, not provider connection telemetry.",
+      "purpose_th": "Integration workbench: documented data pipes, not provider connection telemetry.",
+      "exports": [
+        "connectionsPage"
+      ],
+      "status": "active"
+    },
+    "workers/business-onboarding/cloudflare.config.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: Cloudflare bindings and service configuration for the DNA OS authentication and command Gateway.",
+      "purpose_th": "DNA OS MODULE: Cloudflare bindings and service configuration for the DNA OS authentication and command Gateway.",
+      "exports": [
+        "default"
+      ],
+      "entry_point": true,
+      "status": "active"
+    },
+    "workers/fulfillment-ingest/vite.config.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: Vite and Cloudflare plugin configuration for building the fulfillment-ingest Worker.",
+      "purpose_th": "DNA OS MODULE: Vite and Cloudflare plugin configuration for building the fulfillment-ingest Worker.",
+      "exports": [
+        "default"
+      ],
+      "entry_point": true,
+      "status": "active"
+    },
+    "workers/fulfillment-ingest/index.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: Gateway-only fulfillment ingestion Worker; validates adapter identity and delegates reservation and tenant authorization to the existing database RPC.",
+      "purpose_th": "DNA OS MODULE: Gateway-only fulfillment ingestion Worker; validates adapter identity and delegates reservation and tenant authorization to the existing database RPC.",
+      "exports": [
+        "default"
+      ],
+      "entry_point": true,
+      "status": "active"
+    },
+    "workers/fulfillment-ingest/cloudflare.config.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS MODULE: Cloudflare service configuration for the fulfillment-ingest Worker.",
+      "purpose_th": "DNA OS MODULE: Cloudflare service configuration for the fulfillment-ingest Worker.",
+      "exports": [
+        "fulfillmentWorker"
+      ],
+      "status": "active"
+    },
+    "app/api/connectors/webhook/[slug]/_lib/webhookGate.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Webhook Gate — the single place that decides whether an inbound webhook is",
+      "purpose_th": "Webhook Gate — the single place that decides whether an inbound webhook is",
+      "exports": [
+        "MAX_WEBHOOK_BODY_BYTES",
+        "WebhookGateConnector",
+        "WebhookGateInput",
+        "WebhookGateResult",
+        "WebhookRejectReason",
+        "deriveEventKey",
+        "evaluateWebhookRequest",
+        "readPath",
+        "requireSignatureHeader",
+        "verifySignature"
       ],
       "status": "active"
     }
