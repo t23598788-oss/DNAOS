@@ -1,0 +1,41 @@
+name: DNA OS Cloudflare Workers
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "workers/**"
+      - ".github/workflows/workers-build.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "workers/**"
+      - ".github/workflows/workers-build.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install each Worker from its committed lockfile
+        run: |
+          set -euo pipefail
+          for worker in stock-ingest demand-ingest fulfillment-ingest business-onboarding; do
+            npm ci --prefix "workers/$worker"
+          done
+
+      - name: Type check and build all Workers
+        run: |
+          set -euo pipefail
+          for worker in stock-ingest demand-ingest fulfillment-ingest business-onboarding; do
+            npm run typecheck --prefix "workers/$worker"
+            npm run build --prefix "workers/$worker"
+          done
