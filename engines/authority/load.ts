@@ -68,6 +68,7 @@ export type OrganizationScopeReason =
 
 export interface OrganizationMembership {
   organizations: string[];
+  roles: Array<{ organizationId: string; role: string }>;
   error: string | null;
 }
 
@@ -82,24 +83,24 @@ export async function loadOrganizationMembership(
   accountId: string,
   db: AuthorityLoaderDb = supabaseAdmin() as unknown as AuthorityLoaderDb,
 ): Promise<OrganizationMembership> {
-  if (!accountId) return { organizations: [], error: "ACCOUNT_REQUIRED" };
+  if (!accountId) return { organizations: [], roles: [], error: "ACCOUNT_REQUIRED" };
   try {
     const { data, error } = await db
       .from("org_members")
-      .select("organization_id")
+      .select("organization_id, role")
       .eq("user_id", accountId); // B1 — the real column (no deleted_at on this table, B2)
-    if (error) return { organizations: [], error: error.message ?? "QUERY_FAILED" };
-    if (!Array.isArray(data)) return { organizations: [], error: "UNEXPECTED_SHAPE" };
-    const organizations = Array.from(
-      new Set(
-        data
-          .map((row) => asString((row as { organization_id?: unknown }).organization_id))
-          .filter((id): id is string => Boolean(id)),
-      ),
-    );
-    return { organizations, error: null };
+    if (error) return { organizations: [], roles: [], error: error.message ?? "QUERY_FAILED" };
+    if (!Array.isArray(data)) return { organizations: [], roles: [], error: "UNEXPECTED_SHAPE" };
+    const roles = data.flatMap((row) => {
+      const item = row as { organization_id?: unknown; role?: unknown };
+      const organizationId = asString(item.organization_id);
+      const role = asString(item.role);
+      return organizationId && role ? [{ organizationId, role }] : [];
+    });
+    const organizations = Array.from(new Set(roles.map((membership) => membership.organizationId)));
+    return { organizations, roles, error: null };
   } catch (e) {
-    return { organizations: [], error: e instanceof Error ? e.message : "THREW" };
+    return { organizations: [], roles: [], error: e instanceof Error ? e.message : "THREW" };
   }
 }
 
@@ -198,7 +199,7 @@ export async function loadAuthorityContext(
   const sessionAccountId = asString(user.sessionAccountId);
 
   const ineligible = (reason: OrganizationScopeReason, lookupError: string | null = null): LoadedAuthority => ({
-    actor: { profileId, role: user.role ?? null, organizationIds: [] },
+    actor: { profileId, role: user.role ?? null, organizationIds: [], organizationRoles: [] },
     grants: [],
     organizationScope: { eligible: false, reason, lookupError },
   });
@@ -214,7 +215,12 @@ export async function loadAuthorityContext(
   ]);
 
   return {
-    actor: { profileId, role: user.role ?? null, organizationIds: membership.organizations },
+    actor: {
+      profileId,
+      role: user.role ?? null,
+      organizationIds: membership.organizations,
+      organizationRoles: membership.roles,
+    },
     grants,
     organizationScope: membership.error
       ? { eligible: true, reason: "MEMBERSHIP_LOOKUP_FAILED", lookupError: membership.error }
@@ -287,7 +293,26 @@ export async function loadResourceOrganizationId(
       return { organizationId, reason: organizationId ? "RESOURCE_OWNER_ORGANIZATION" : "OWNER_COMPANY_HAS_NO_ORGANIZATION" };
     }
 
-    if (kind === "pit") return { organizationId: null, reason: "PIT_HAS_NO_ORGANIZATION_COLUMN" };
+    if (kind === "pit") {
+      // PIT ownership is already connected through the canonical partner
+      // profile and company link; resolve the tenant from the database rather
+      // than treating pit_profiles.user_id or the request as organization proof.
+      const partner = await db
+        .from("partner_business_profiles")
+        .select("company_id")
+        .eq("pit_profile_id", id)
+        .maybeSingle();
+      if (partner.error) return { organizationId: null, reason: "PIT_PARTNER_LOOKUP_FAILED" };
+      const companyId = asString(((partner.data ?? {}) as { company_id?: unknown }).company_id);
+      if (!companyId) return { organizationId: null, reason: "PIT_HAS_NO_COMPANY_LINK" };
+      const company = await db.from("companies").select("organization_id").eq("id", companyId).maybeSingle();
+      if (company.error) return { organizationId: null, reason: "PIT_COMPANY_LOOKUP_FAILED" };
+      const organizationId = asString(((company.data ?? {}) as { organization_id?: unknown }).organization_id);
+      return {
+        organizationId,
+        reason: organizationId ? "PIT_PARTNER_COMPANY_ORGANIZATION" : "PIT_COMPANY_HAS_NO_ORGANIZATION",
+      };
+    }
     return { organizationId: null, reason: "UNSUPPORTED_RESOURCE_KIND" };
   } catch {
     return { organizationId: null, reason: "LOOKUP_THREW" };

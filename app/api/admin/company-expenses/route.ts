@@ -45,6 +45,9 @@ export async function GET(req: NextRequest) {
     .select(
       "id, document_type, amount, amount_pre_vat, vat_amount, vendor_name, expense_date, tax_invoice_no, notes, source, submitted_by_name, receipt_document_id, created_at",
     )
+    // Historical email-observer rows lack a verified company/payer; keep them
+    // in subscription_services, not in the business expense list.
+    .neq("source", "subscription_email_sync")
     .order("created_at", { ascending: false })
     .limit(limit)
   if (documentType) query = query.eq("document_type", documentType)

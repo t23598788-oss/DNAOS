@@ -19,6 +19,7 @@
  * the downstream continuation are untouched.
  */
 import { invokeAiGateway } from "@/services/ai/gateway"
+import type { AiProvenance } from "@/services/ai/adapterContract"
 
 export interface EventBuilderContext {
   origin: string
@@ -75,7 +76,7 @@ const SYSTEM_PROMPT = `คุณอ่าน "กลุ่มข้อควา�
 export async function buildEventFromMessages(
   messages: RawMessage[],
   context: EventBuilderContext = DEFAULT_CONTEXT,
-): Promise<{ ok: true; event: ExtractedEvent } | { ok: false; error: string }> {
+): Promise<{ ok: true; event: ExtractedEvent; provenance: AiProvenance } | { ok: false; error: string }> {
   const transcript = messages
     .map((m) => `[${m.created_at}] ${m.raw_type === "text" ? m.raw_text : `(${m.raw_type})`}`)
     .join("\n")
@@ -115,7 +116,7 @@ export async function buildEventFromMessages(
       confidence: typeof parsed.confidence === "number" ? parsed.confidence : 0,
       context: { message_count: messages.length, source_message_ids: messages.map((m) => m.id) },
     }
-    return { ok: true, event }
+    return { ok: true, event, provenance: result.provenance }
   } catch (e: unknown) {
     return { ok: false, error: e instanceof Error ? e.message : "AI error" }
   }

@@ -31,6 +31,11 @@ import type {
   AiGatewayResult, AiProviderName, AiProvenance, AiRuntimeKind, AiAdapterInvokeContext,
 } from "./adapterContract";
 
+// Embeddings use a separate vector contract/adapter and do not pass through
+// AiAdapter.invoke(), whose output contract is text-only.
+export { embedThroughAiGateway } from "./embeddingGateway";
+export type { EmbeddingRequest, EmbeddingResult, EmbeddingVector } from "./embeddingAdapter";
+
 export type {
   AiCapability, AiEffect, AiProviderName, AiAdapterId, AiRuntimeKind,
   AiGatewayImage, AiGatewayRequest, AiProvenance, AiGatewayResult, AiEvidenceEvent,

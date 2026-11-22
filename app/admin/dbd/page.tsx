@@ -896,7 +896,7 @@ export default function DBDPage() {
 
   useEffect(() => {
     load();
-    const iv = setInterval(load, 15_000);
+    const iv = setInterval(load, 60_000);
     return () => clearInterval(iv);
   }, [load]);
 

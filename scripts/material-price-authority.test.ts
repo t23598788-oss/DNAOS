@@ -48,7 +48,7 @@ function makeDb(opts: { failAtomic?: boolean; pitOwner?: string | null; material
   const deps: PriceWriteDeps = {
     async getPit(id) {
       return id === "pit-1"
-        ? { id: "pit-1", owner_profile_id: opts.pitOwner === undefined ? "owner-profile" : opts.pitOwner }
+        ? { id: "pit-1", owner_profile_id: opts.pitOwner === undefined ? "owner-profile" : opts.pitOwner, organization_id: "org-1" }
         : null;
     },
     async recordSellerOfferAtomic(input) {
@@ -82,12 +82,13 @@ function makeDb(opts: { failAtomic?: boolean; pitOwner?: string | null; material
 }
 
 const AT = "2026-10-25T00:00:00.000Z";
-const owner = { profileId: "owner-profile" };
+const owner = { profileId: "owner-profile", organizationIds: ["org-1"], organizationRoles: [{ organizationId: "org-1", role: "owner" }] };
 const stranger = { profileId: "someone-else" };
 const admin = { profileId: "admin-profile", role: "super_admin" };
 const grant: ScopeGrant = {
   id: "g-1",
   subjectProfileId: "someone-else",
+  organizationId: "org-1",
   resourceKind: "pit",
   resourceId: "pit-1",
   actions: ["price.write"],
@@ -180,7 +181,7 @@ const grant: ScopeGrant = {
   {
     const { deps, state } = makeDb();
     const ok = await applyMaterialPrice({ pit_id: "pit-1", material_type_id: "mat-1", price: 520, actor: owner, at: AT }, deps);
-    expect(ok.changed && ok.authority.via === "owner", "E owner may change their own price");
+    expect(ok.changed && ok.authority.via === "owner", "E organization owner may change the organization's price");
     expect(state.material?.price === 520, "E price written once");
     expect(ok.audit_id !== null && state.audits.length === 1 && state.audits[0].action === "price.updated", "E audit committed with the price");
     expect(
@@ -205,14 +206,19 @@ const grant: ScopeGrant = {
     } catch (e) {
       msg = (e as Error).message;
     }
-    expect(msg === "PRICE_FORBIDDEN:ROLE_IS_NOT_AUTHORITY", "E super_admin alone is refused", msg);
+    expect(msg === "PRICE_FORBIDDEN:ORGANIZATION_OWNER_REQUIRED", "E super_admin alone is refused", msg);
 
     const { deps: d4, state: s4 } = makeDb();
-    const delegated = await applyMaterialPrice(
-      { pit_id: "pit-1", material_type_id: "mat-1", price: 530, actor: stranger, grants: [grant], at: AT },
-      d4,
-    );
-    expect(delegated.authority.via === "grant" && s4.material?.price === 530, "E a valid delegating grant works");
+    let delegatedError = "";
+    try {
+      await applyMaterialPrice(
+        { pit_id: "pit-1", material_type_id: "mat-1", price: 530, actor: { ...stranger, organizationIds: ["org-1"] }, grants: [grant], at: AT },
+        d4,
+      );
+    } catch (e) {
+      delegatedError = (e as Error).message;
+    }
+    expect(delegatedError === "PRICE_FORBIDDEN:ORGANIZATION_OWNER_REQUIRED" && s4.priceCalls === 0, "E a grant cannot replace the required organization owner");
 
     const { deps: d5 } = makeDb();
     msg = "";

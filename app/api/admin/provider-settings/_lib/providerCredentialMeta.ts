@@ -197,12 +197,15 @@ export async function splitFieldsByRequirements(
   fields: Record<string, unknown>
 ): Promise<{ config: Record<string, string>; secret: Record<string, string>; keys: { config: string[]; secret: string[] } }> {
   const { rows } = await loadRequirements(db);
-  if (rows.length === 0) {
+  const providerRows = rows.filter((row) => row.provider_id === providerId);
+  if (providerRows.length === 0) {
     const e = new Error("ไม่พบ requirement registry ของ provider นี้ (migration ยังไม่ถูก apply หรือยังไม่มี seed)") as Error & { code?: string };
     e.code = "REQUIREMENTS_MISSING";
     throw e;
   }
-  const byKey = new Map(rows.map((r) => [r.credential_key, r]));
+  // Credential names such as `token` are shared across providers. Never let a
+  // requirement belonging to another provider authorize a write here.
+  const byKey = new Map(providerRows.map((r) => [r.credential_key, r]));
   const config: Record<string, string> = {};
   const secret: Record<string, string> = {};
   const configKeys: string[] = [];

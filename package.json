@@ -39,6 +39,7 @@
     "arch-health": "npx tsx scripts/build-arch-book.ts && npx tsx scripts/arch-health-report.ts && npx tsx scripts/build-system-control-graph.ts",
     "architecture:generate": "npx tsx scripts/build-system-control-graph.ts",
     "architecture:check": "npx tsx scripts/check-system-control-graph.ts",
+    "system-graph:index": "npx tsx scripts/index-code-graph-system.ts",
     "backup": "npx tsx scripts/backup.ts",
     "restore": "npx tsx scripts/backup.ts restore",
     "sync": "npx tsx scripts/sync-registry.ts && npx tsx scripts/build-arch-book.ts && npx tsx scripts/build-system-control-graph.ts && npx tsx scripts/build-governance-summary.ts",
@@ -181,7 +182,14 @@
     "impact-verdict:test": "npx tsx scripts/impact-verdict-contract-test.ts",
     "capability-router:test": "npx tsx scripts/capability-router-wiring-test.ts",
     "core-chain:test": "npx tsx scripts/core-chain-execution-test.ts",
-    "owner-authority:test": "npx tsx scripts/owner-authority-contract-test.ts"
+    "owner-authority:test": "npx tsx scripts/owner-authority-contract-test.ts",
+    "dev:vinext": "vite dev --port 3001",
+    "integration-contract:generate": "tsx scripts/generate-integration-contract.ts",
+    "kodchat-adapter:test": "tsx scripts/kodchat-adapter-test.ts",
+    "core-event-transport:test": "tsx scripts/core-event-transport-test.ts",
+    "build:vinext": "vite build",
+    "start:vinext": "vite preview",
+    "deploy:vinext": "vinext-cloudflare deploy"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.115.0",
@@ -189,19 +197,23 @@
     "@supabase/ssr": "^0.12.0",
     "@supabase/supabase-js": "^2.108.2",
     "@tauri-apps/api": "^2.11.1",
+    "@vinext/cloudflare": "^1.3.4",
     "glob": "^13.0.6",
     "jose": "^6.2.8",
     "lucide-react": "^1.23.0",
     "next": "16.2.9",
     "pdfkit": "^0.19.1",
     "playwright": "^1.62.1",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "react-force-graph-3d": "^1.29.1",
+    "react-server-dom-webpack": "^19.3.1",
     "sharp": "^0.35.3",
-    "three": "^0.185.0"
+    "three": "^0.185.0",
+    "vinext": "^1.4.5"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^2.0.0-beta.v.17",
     "@tailwindcss/postcss": "^4",
     "@tauri-apps/cli": "^2.11.4",
     "@types/chokidar": "^2.1.3",
@@ -210,6 +222,9 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.185.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "@vitejs/plugin-rsc": "^0.5.39",
+    "cf": "^1.0.0-beta.32",
     "chokidar": "^3.6.0",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
@@ -217,6 +232,7 @@
     "knip": "^6.22.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^8.3.0"
   }
 }

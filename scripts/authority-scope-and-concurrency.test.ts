@@ -78,7 +78,7 @@ function rowsDb(rows: Record<string, unknown[]>) {
       grants: ctx.grants,
       at: "2026-10-25T00:00:00.000Z",
     });
-    expect(!denied.allowed && denied.reason === "ROLE_IS_NOT_AUTHORITY", "A an admin with no evidence is still denied", denied.reason);
+    expect(!denied.allowed, "A an admin with no evidence is still denied", denied.reason);
 
     const unknownAction = await loadScopeGrants("profile-1", rowsDb({
       authority_grants: [
@@ -156,7 +156,7 @@ function rowsDb(rows: Record<string, unknown[]>) {
 
     const deps: PriceWriteDeps = {
       async getPit() {
-        return { id: "pit-1", owner_profile_id: "owner-profile" };
+        return { id: "pit-1", owner_profile_id: "owner-profile", organization_id: "org-1" };
       },
       async recordSellerOfferAtomic() {
         throw new Error("not used");
@@ -174,7 +174,7 @@ function rowsDb(rows: Record<string, unknown[]>) {
       },
     };
 
-    const input = { pit_id: "pit-1", material_type_id: "mat-1", price: 520, actor: { profileId: "owner-profile" }, at: "2026-10-25T00:00:00.000Z" };
+    const input = { pit_id: "pit-1", material_type_id: "mat-1", price: 520, actor: { profileId: "owner-profile", organizationIds: ["org-1"], organizationRoles: [{ organizationId: "org-1", role: "owner" }] }, at: "2026-10-25T00:00:00.000Z" };
     const [r1, r2] = await Promise.all([applyMaterialPrice(input, deps), applyMaterialPrice(input, deps)]);
     expect(calls === 2, "B both concurrent commands reached the atomic boundary");
     expect([r1.changed, r2.changed].filter(Boolean).length === 1, "B exactly one command changed the price");
@@ -295,13 +295,21 @@ function rowsDb(rows: Record<string, unknown[]>) {
     expect(!cross.allowed, "F an org-A grant cannot write an org-B resource", cross.reason);
 
     const same = resolveAuthority({
-      actor: { profileId: "operator", organizationIds: ["org-A"] },
+      actor: { profileId: "operator", organizationIds: ["org-A"], organizationRoles: [{ organizationId: "org-A", role: "member" }] },
       action: "price.write",
       resource: { kind: "pit", id: "pit-A", ownerProfileId: "owner-A", organizationId: "org-A" },
       grants: [orgGrant],
       at: "2026-10-25T00:00:00Z",
     });
-    expect(same.allowed && same.via === "grant", "F the same grant works inside its own organization", same.reason);
+    expect(!same.allowed && same.reason === "ORGANIZATION_OWNER_REQUIRED", "F a price grant cannot replace the organization owner's approval", same.reason);
+
+    const owner = resolveAuthority({
+      actor: { profileId: "owner-A", organizationIds: ["org-A"], organizationRoles: [{ organizationId: "org-A", role: "owner" }] },
+      action: "price.write",
+      resource: { kind: "pit", id: "pit-A", ownerProfileId: "owner-A", organizationId: "org-A" },
+      at: "2026-10-25T00:00:00Z",
+    });
+    expect(owner.allowed && owner.via === "owner", "F the organization owner may set price within their organization", owner.reason);
 
     const spoofed = resolveAuthority({
       actor: { profileId: "operator", organizationIds: [] },

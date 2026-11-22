@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { ChevronDown, ChevronRight, ShieldCheck, ShieldAlert, ShieldX } from "lucide-react"
 
 // Cost/infrastructure dashboard (owner, 2026-08-03): "หน้าจอค่าใช้จ่าย...
@@ -214,6 +214,7 @@ function statusColor(status?: string) {
 
 type SubscriptionService = {
   id: string
+  responsibility_id: string | null
   provider: string
   service_name: string
   category: string | null
@@ -224,6 +225,29 @@ type SubscriptionService = {
   auto_renew: boolean | null
   confidence: string
   raw_subject: string | null
+  payer_attribution_status?: string
+  payer_account?: ResponsibilityAccount | null
+  source_account?: ResponsibilityAccount | null
+}
+
+type ResponsibilityAccount = {
+  id: string
+  provider_code: string
+  account_kind: "mailbox" | "provider_account" | "platform_account" | "service_account"
+  provider_account_ref: string
+  display_name: string | null
+  email_address: string | null
+  owner_kind: "unassigned" | "platform" | "user" | "organization" | "company"
+  owner_user_id: string | null
+  owner_organization_id: string | null
+  owner_company_id: string | null
+  attribution_status: "unverified" | "under_review" | "verified"
+}
+
+type OwnerOptions = {
+  users: Array<{ id: string; email: string; role: string }>
+  organizations: Array<{ id: string; name: string | null }>
+  companies: Array<{ id: string; name: string | null }>
 }
 
 export default function InfrastructurePage() {
@@ -231,7 +255,33 @@ export default function InfrastructurePage() {
   const [error, setError] = useState<string | null>(null)
   const [subs, setSubs] = useState<SubscriptionService[] | null>(null)
   const [subsError, setSubsError] = useState<string | null>(null)
+  const [accounts, setAccounts] = useState<ResponsibilityAccount[]>([])
+  const [ownerOptions, setOwnerOptions] = useState<OwnerOptions | null>(null)
+  const [accountsError, setAccountsError] = useState<string | null>(null)
+  const [accountDraft, setAccountDraft] = useState({ provider_code: "", account_kind: "provider_account", provider_account_ref: "", display_name: "", email_address: "" })
+  const [costDraft, setCostDraft] = useState({ provider_code: "", service_name: "", cost_kind: "provider_invoice", amount: "", currency: "THB", billing_cycle: "", source_kind: "provider_invoice", source_reference: "" })
+  const [accountOwners, setAccountOwners] = useState<Record<string, { owner_kind: string; owner_id: string; parent_organization_id: string; verification_reference: string }>>({})
+  const [subscriptionOwners, setSubscriptionOwners] = useState<Record<string, { payer_account_id: string; source_account_id: string; verification_reference: string }>>({})
+  const [savingResponsibility, setSavingResponsibility] = useState<string | null>(null)
+  const [responsibilityNotice, setResponsibilityNotice] = useState<string | null>(null)
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
+
+  async function refreshResponsibilityAccounts() {
+    const response = await fetch("/api/admin/responsibility-accounts")
+    const result = await response.json()
+    if (!response.ok) throw new Error(result.error ?? "โหลดทะเบียนเจ้าของไม่สำเร็จ")
+    setAccounts(result.accounts ?? [])
+    setOwnerOptions(result.owners ?? null)
+    setAccountOwners(Object.fromEntries((result.accounts ?? []).map((account: ResponsibilityAccount) => [account.id, {
+      owner_kind: account.owner_kind === "unassigned" ? "user" : account.owner_kind,
+      owner_id: account.owner_kind === "user" ? account.owner_user_id ?? ""
+        : account.owner_kind === "organization" ? account.owner_organization_id ?? ""
+          : account.owner_company_id ?? "",
+      parent_organization_id: account.owner_kind === "company" ? account.owner_organization_id ?? "" : "",
+      verification_reference: "",
+    }])))
+    setAccountsError(null)
+  }
 
   useEffect(() => {
     fetch("/api/admin/infrastructure")
@@ -249,7 +299,103 @@ export default function InfrastructurePage() {
       })
       .then((d) => setSubs(d.services ?? []))
       .catch((e) => setSubsError(e.message ?? "โหลดข้อมูลไม่สำเร็จ"))
+
+    refreshResponsibilityAccounts().catch((e) => setAccountsError(e.message ?? "โหลดทะเบียนเจ้าของไม่สำเร็จ"))
   }, [])
+
+  async function registerResponsibilityAccount(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSavingResponsibility("new-account")
+    setResponsibilityNotice(null)
+    try {
+      const response = await fetch("/api/admin/responsibility-accounts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(accountDraft),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error ?? "เพิ่มบัญชีไม่สำเร็จ")
+      setAccountDraft({ provider_code: "", account_kind: "provider_account", provider_account_ref: "", display_name: "", email_address: "" })
+      await refreshResponsibilityAccounts()
+      setResponsibilityNotice("เพิ่มบัญชีแล้ว — ยังไม่ถือว่ายืนยันเจ้าของจนกว่าจะผูกหลักฐาน")
+    } catch (e) {
+      setResponsibilityNotice(e instanceof Error ? e.message : "เพิ่มบัญชีไม่สำเร็จ")
+    } finally {
+      setSavingResponsibility(null)
+    }
+  }
+
+  async function registerSubscriptionCost(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setSavingResponsibility("new-cost")
+    setResponsibilityNotice(null)
+    try {
+      const response = await fetch("/api/admin/subscriptions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(costDraft),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error ?? "เพิ่มรายการค่าใช้จ่ายไม่สำเร็จ")
+      setCostDraft({ provider_code: "", service_name: "", cost_kind: "provider_invoice", amount: "", currency: "THB", billing_cycle: "", source_kind: "provider_invoice", source_reference: "" })
+      const refreshed = await fetch("/api/admin/subscriptions").then((r) => r.json())
+      setSubs(refreshed.services ?? [])
+      setResponsibilityNotice("เพิ่มค่าบริการพร้อมหลักฐานแล้ว — ผู้จ่ายยังไม่ถูกกำหนดจนกว่าจะยืนยันบัญชี")
+    } catch (e) {
+      setResponsibilityNotice(e instanceof Error ? e.message : "เพิ่มรายการค่าใช้จ่ายไม่สำเร็จ")
+    } finally {
+      setSavingResponsibility(null)
+    }
+  }
+
+  async function saveAccountOwner(accountId: string) {
+    const draft = accountOwners[accountId]
+    setSavingResponsibility(accountId)
+    setResponsibilityNotice(null)
+    try {
+      const response = await fetch("/api/admin/responsibility-accounts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: accountId, ...draft }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error ?? "ยืนยันเจ้าของไม่สำเร็จ")
+      await refreshResponsibilityAccounts()
+      setResponsibilityNotice("บันทึกผู้รับผิดชอบพร้อมหลักฐานแล้ว")
+    } catch (e) {
+      setResponsibilityNotice(e instanceof Error ? e.message : "ยืนยันเจ้าของไม่สำเร็จ")
+    } finally {
+      setSavingResponsibility(null)
+    }
+  }
+
+  async function saveSubscriptionOwners(service: SubscriptionService) {
+    if (!service.responsibility_id) return
+    const draft = subscriptionOwners[service.responsibility_id]
+    setSavingResponsibility(service.responsibility_id)
+    setResponsibilityNotice(null)
+    try {
+      const response = await fetch("/api/admin/subscriptions", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          responsibility_id: service.responsibility_id,
+          payer_account_id: draft?.payer_account_id || null,
+          source_account_id: draft?.source_account_id || null,
+          verification_reference: draft?.verification_reference ?? "",
+        }),
+      })
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error ?? "บันทึกการอ้างอิงค่าใช้จ่ายไม่สำเร็จ")
+      const refreshed = await fetch("/api/admin/subscriptions").then((r) => r.json())
+      setSubs(refreshed.services ?? [])
+      setResponsibilityNotice("บันทึกเส้นทางผู้จ่ายและกล่องอีเมลพร้อมหลักฐานแล้ว")
+    } catch (e) {
+      setResponsibilityNotice(e instanceof Error ? e.message : "บันทึกการอ้างอิงค่าใช้จ่ายไม่สำเร็จ")
+    } finally {
+      setSavingResponsibility(null)
+    }
+  }
 
   if (error) {
     return <div className="p-6 text-red-700">โหลดข้อมูลค่าใช้จ่ายไม่สำเร็จ: {error}</div>
@@ -271,6 +417,83 @@ export default function InfrastructurePage() {
           บริการภายนอกทั้งหมดที่ DNA OS พึ่งพา — อ่านจาก registry/infrastructure.json
         </p>
       </div>
+
+      <section className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-4 space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold text-stone-900">ทะเบียนบัญชีและผู้รับผิดชอบ</h2>
+          <p className="text-xs text-stone-600 mt-1">
+            บัญชีผู้ใช้/องค์กร/บริษัทที่จ่ายค่าบริการแยกจากบัญชีผู้ดูแลระบบและกล่องอีเมลที่ใช้จับหลักฐาน ทุกการยืนยันต้องมีแหล่งอ้างอิง
+          </p>
+        </div>
+        {accountsError && <div className="rounded border border-amber-300 bg-white px-3 py-2 text-xs text-amber-800">{accountsError}</div>}
+        {responsibilityNotice && <div className="rounded border border-sky-200 bg-white px-3 py-2 text-xs text-sky-800">{responsibilityNotice}</div>}
+
+        <form onSubmit={registerResponsibilityAccount} className="grid grid-cols-1 md:grid-cols-7 gap-2 rounded-lg border border-indigo-100 bg-white p-3">
+          <input required aria-label="ผู้ให้บริการ" placeholder="ผู้ให้บริการ เช่น openai" value={accountDraft.provider_code}
+            onChange={(e) => setAccountDraft((v) => ({ ...v, provider_code: e.target.value }))} className="rounded border px-2 py-1.5 text-xs" />
+          <select aria-label="ประเภทบัญชี" value={accountDraft.account_kind}
+            onChange={(e) => setAccountDraft((v) => ({ ...v, account_kind: e.target.value }))} className="rounded border px-2 py-1.5 text-xs">
+            <option value="provider_account">บัญชีผู้ให้บริการ</option>
+            <option value="mailbox">กล่องอีเมล</option>
+            <option value="platform_account">บัญชีแพลตฟอร์ม</option>
+            <option value="service_account">บัญชีบริการ</option>
+          </select>
+          <input required aria-label="รหัสอ้างอิงบัญชี" placeholder="รหัส/อีเมลบัญชี (ห้ามใส่ secret)" value={accountDraft.provider_account_ref}
+            onChange={(e) => setAccountDraft((v) => ({ ...v, provider_account_ref: e.target.value }))} className="rounded border px-2 py-1.5 text-xs md:col-span-2" />
+          <input aria-label="ชื่อบัญชี" placeholder="ชื่อบัญชี" value={accountDraft.display_name}
+            onChange={(e) => setAccountDraft((v) => ({ ...v, display_name: e.target.value }))} className="rounded border px-2 py-1.5 text-xs" />
+          <input aria-label="อีเมลบัญชี" type="email" placeholder="อีเมลบัญชี (ถ้ามี)" value={accountDraft.email_address}
+            onChange={(e) => setAccountDraft((v) => ({ ...v, email_address: e.target.value }))} className="rounded border px-2 py-1.5 text-xs" />
+          <button disabled={savingResponsibility === "new-account"} className="rounded bg-indigo-700 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50">
+            {savingResponsibility === "new-account" ? "กำลังบันทึก…" : "เพิ่มบัญชีที่สังเกตพบ"}
+          </button>
+        </form>
+
+        {!accountsError && accounts.length > 0 && (
+          <div className="space-y-2">
+            {accounts.map((account) => {
+              const draft = accountOwners[account.id] ?? { owner_kind: "user", owner_id: "", parent_organization_id: "", verification_reference: "" }
+              const ownerList = draft.owner_kind === "user" ? ownerOptions?.users ?? []
+                : draft.owner_kind === "organization" ? ownerOptions?.organizations ?? []
+                  : draft.owner_kind === "company" ? ownerOptions?.companies ?? [] : []
+              const currentOwnerId = account.owner_user_id ?? account.owner_organization_id ?? account.owner_company_id
+              return (
+                <div key={account.id} className="grid grid-cols-1 lg:grid-cols-6 gap-2 rounded-lg border border-stone-200 bg-white p-3 items-center">
+                  <div className="min-w-0 lg:col-span-2">
+                    <div className="text-xs font-medium text-stone-900 truncate">{account.display_name ?? account.provider_account_ref}</div>
+                    <div className="text-[10px] text-stone-500 truncate">{account.provider_code} · {account.account_kind} · {account.attribution_status === "verified" ? "ยืนยันเจ้าของแล้ว" : "ยังไม่ยืนยันเจ้าของ"}</div>
+                    {account.email_address && <div className="text-[10px] text-stone-500 truncate">อีเมล: {account.email_address}</div>}
+                  </div>
+                  <select value={draft.owner_kind} onChange={(e) => setAccountOwners((v) => ({ ...v, [account.id]: { ...draft, owner_kind: e.target.value, owner_id: "", parent_organization_id: "" } }))} className="rounded border px-2 py-1.5 text-xs">
+                    <option value="user">บัญชีผู้ใช้</option>
+                    <option value="organization">องค์กร</option>
+                    <option value="company">บริษัท/คู่ค้า</option>
+                    <option value="platform">แพลตฟอร์ม DNA OS</option>
+                  </select>
+                  {draft.owner_kind !== "platform" ? (
+                    <select value={draft.owner_id || (draft.owner_kind === account.owner_kind ? currentOwnerId : null) || ""} onChange={(e) => setAccountOwners((v) => ({ ...v, [account.id]: { ...draft, owner_id: e.target.value } }))} className="rounded border px-2 py-1.5 text-xs lg:col-span-1">
+                      <option value="">เลือกเจ้าของ…</option>
+                      {ownerList.map((owner) => <option key={owner.id} value={owner.id}>{"email" in owner ? owner.email : owner.name || owner.id}</option>)}
+                    </select>
+                  ) : <div className="text-[10px] text-amber-700">ต้องยืนยันด้วย super admin</div>}
+                  {draft.owner_kind === "company" && (
+                    <select value={draft.parent_organization_id} onChange={(e) => setAccountOwners((v) => ({ ...v, [account.id]: { ...draft, parent_organization_id: e.target.value } }))} className="rounded border px-2 py-1.5 text-xs">
+                      <option value="">องค์กรเจ้าของบริษัท (ถ้าทราบ)</option>
+                      {(ownerOptions?.organizations ?? []).map((organization) => <option key={organization.id} value={organization.id}>{organization.name || organization.id}</option>)}
+                    </select>
+                  )}
+                  <input value={draft.verification_reference} onChange={(e) => setAccountOwners((v) => ({ ...v, [account.id]: { ...draft, verification_reference: e.target.value } }))}
+                    placeholder="อ้างอิงหลักฐาน" className="rounded border px-2 py-1.5 text-xs" />
+                  <button onClick={() => saveAccountOwner(account.id)} disabled={savingResponsibility === account.id}
+                    className="rounded border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-xs text-indigo-800 disabled:opacity-50">
+                    {savingResponsibility === account.id ? "กำลังบันทึก…" : "ยืนยันผู้รับผิดชอบ"}
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </section>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="rounded-xl border border-stone-200 bg-white p-4">
@@ -433,12 +656,36 @@ export default function InfrastructurePage() {
 
       <div className="rounded-xl border border-stone-200 bg-white p-4">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-sm font-semibold text-stone-900">บริการที่ระบบตรวจจับเองจากอีเมล</h2>
-          <span className="text-[10px] px-1.5 py-0.5 rounded border border-emerald-300 bg-emerald-50 text-emerald-700">observer</span>
+          <h2 className="text-sm font-semibold text-stone-900">Subscription และค่าบริการระบบ</h2>
+          <span className="text-[10px] px-1.5 py-0.5 rounded border border-emerald-300 bg-emerald-50 text-emerald-700">มีหลักฐานต้นทาง</span>
         </div>
         <p className="text-xs text-stone-500 mb-3">
-          ระบบไล่อ่านอีเมลใบเสร็จ/แจ้งต่ออายุอัตโนมัติเอง (Gmail, ทุก 5 นาที) ไม่ต้องเฮียไล่เช็คเอง — รายการ confidence &quot;low&quot; คือรูปแบบที่ระบบไม่แน่ใจ ควรตรวจด้วยตา
+          อีเมลเป็นหลักฐานว่าพบรายการบริการ แต่ไม่ได้พิสูจน์เจ้าของกล่องหรือผู้จ่าย ค่าใช้จ่ายระบบอยู่ในทะเบียนส่วนกลาง ไม่ปะปนกับรายจ่ายธุรกิจของบริษัท และจะระบุผู้รับผิดชอบได้เมื่อเลือกบัญชีพร้อมอ้างอิงหลักฐาน — confidence &quot;low&quot; หมายถึงระบบอ่านข้อมูลไม่ครบ
         </p>
+        <form onSubmit={registerSubscriptionCost} className="mb-4 grid grid-cols-1 md:grid-cols-8 gap-2 rounded-lg border border-stone-200 bg-stone-50 p-3">
+          <input required aria-label="ผู้ให้บริการค่าใช้จ่าย" placeholder="Provider เช่น DigitalOcean" value={costDraft.provider_code}
+            onChange={(e) => setCostDraft((v) => ({ ...v, provider_code: e.target.value }))} className="rounded border px-2 py-1.5 text-xs" />
+          <input required aria-label="ชื่อบริการ" placeholder="ชื่อบริการ/รายการประมวลผล" value={costDraft.service_name}
+            onChange={(e) => setCostDraft((v) => ({ ...v, service_name: e.target.value }))} className="rounded border px-2 py-1.5 text-xs md:col-span-2" />
+          <select aria-label="ประเภทค่าบริการ" value={costDraft.cost_kind} onChange={(e) => setCostDraft((v) => ({ ...v, cost_kind: e.target.value }))} className="rounded border px-2 py-1.5 text-xs">
+            <option value="provider_invoice">ใบเรียกเก็บเงิน</option><option value="manual_contract">สัญญา/แพ็กเกจ</option><option value="usage_billing">ตามการประมวลผล</option>
+          </select>
+          <input aria-label="จำนวนเงิน" type="number" min="0" step="0.000001" placeholder="จำนวนเงิน" value={costDraft.amount}
+            onChange={(e) => setCostDraft((v) => ({ ...v, amount: e.target.value }))} className="rounded border px-2 py-1.5 text-xs" />
+          <input aria-label="สกุลเงิน" maxLength={3} placeholder="สกุลเงิน" value={costDraft.currency}
+            onChange={(e) => setCostDraft((v) => ({ ...v, currency: e.target.value.toUpperCase() }))} className="rounded border px-2 py-1.5 text-xs" />
+          <select aria-label="หลักฐานต้นทาง" value={costDraft.source_kind} onChange={(e) => setCostDraft((v) => ({ ...v, source_kind: e.target.value }))} className="rounded border px-2 py-1.5 text-xs">
+            <option value="provider_invoice">ใบแจ้งหนี้</option><option value="manual_record">บันทึกอ้างอิง</option><option value="provider_api">API ผู้ให้บริการ</option>
+          </select>
+          <input required aria-label="รหัสอ้างอิงหลักฐาน" placeholder="เลขใบแจ้งหนี้/ลิงก์หลักฐาน" value={costDraft.source_reference}
+            onChange={(e) => setCostDraft((v) => ({ ...v, source_reference: e.target.value }))} className="rounded border px-2 py-1.5 text-xs md:col-span-3" />
+          <select aria-label="รอบบิล" value={costDraft.billing_cycle} onChange={(e) => setCostDraft((v) => ({ ...v, billing_cycle: e.target.value }))} className="rounded border px-2 py-1.5 text-xs">
+            <option value="">ไม่ระบุรอบ</option><option value="monthly">รายเดือน</option><option value="yearly">รายปี</option><option value="usage">ตามการใช้งาน</option>
+          </select>
+          <button disabled={savingResponsibility === "new-cost"} className="rounded bg-stone-800 px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50 md:col-span-2">
+            {savingResponsibility === "new-cost" ? "กำลังบันทึก…" : "เพิ่มค่าบริการพร้อมหลักฐาน"}
+          </button>
+        </form>
         {subsError && <div className="text-xs text-red-600">โหลดไม่สำเร็จ: {subsError}</div>}
         {!subsError && !subs && <div className="text-xs text-stone-400">กำลังโหลด...</div>}
         {subs && subs.length === 0 && (
@@ -446,29 +693,67 @@ export default function InfrastructurePage() {
         )}
         {subs && subs.length > 0 && (
           <div className="space-y-2">
-            {subs.map((s) => (
-              <div key={s.id} className="flex items-center justify-between gap-3 rounded-lg border border-stone-100 bg-stone-50 px-3 py-2">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-stone-900 truncate">{s.service_name}</span>
-                    <span className="text-[9px] px-1 py-0.5 rounded border border-stone-300 text-stone-500">{s.provider}</span>
-                    {s.confidence === "low" && (
-                      <span className="text-[9px] px-1 py-0.5 rounded border border-amber-300 bg-amber-50 text-amber-700">ต้องตรวจสอบ</span>
-                    )}
+            {subs.map((s) => {
+              const responsibilityId = s.responsibility_id
+              const draft = responsibilityId ? subscriptionOwners[responsibilityId] ?? {
+                payer_account_id: s.payer_account?.id ?? "",
+                source_account_id: s.source_account?.id ?? "",
+                verification_reference: "",
+              } : null
+              const verifiedAccounts = accounts.filter((account) => account.attribution_status === "verified")
+              const payerAccounts = verifiedAccounts.filter((account) => account.account_kind !== "mailbox")
+              const mailboxAccounts = verifiedAccounts.filter((account) => account.account_kind === "mailbox")
+              return (
+                <div key={s.id} className="rounded-lg border border-stone-100 bg-stone-50 px-3 py-2 space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-stone-900 truncate">{s.service_name}</span>
+                        <span className="text-[9px] px-1 py-0.5 rounded border border-stone-300 text-stone-500">{s.provider}</span>
+                        <span className={`text-[9px] px-1 py-0.5 rounded border ${s.payer_attribution_status === "verified" ? "border-emerald-300 bg-emerald-50 text-emerald-700" : "border-amber-300 bg-amber-50 text-amber-700"}`}>
+                          {s.payer_attribution_status === "verified" ? "ผู้จ่ายมีหลักฐานแล้ว" : "ผู้จ่ายยังไม่ยืนยัน"}
+                        </span>
+                        {s.confidence === "low" && (
+                          <span className="text-[9px] px-1 py-0.5 rounded border border-amber-300 bg-amber-50 text-amber-700">ต้องตรวจยอด</span>
+                        )}
+                      </div>
+                      {s.raw_subject && <div className="text-[11px] text-stone-400 truncate mt-0.5">หัวข้ออีเมล: {s.raw_subject}</div>}
+                      <div className="text-[10px] text-stone-500 mt-0.5">
+                        กล่องต้นทาง: {s.source_account?.email_address ?? s.source_account?.provider_account_ref ?? "ยังไม่ระบุ"}
+                        {s.payer_account && ` · ผู้รับผิดชอบ: ${s.payer_account.display_name ?? s.payer_account.email_address ?? s.payer_account.provider_account_ref}`}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-medium text-stone-900 tabular-nums">
+                        {s.amount !== null ? `${Number(s.amount).toLocaleString("th-TH")} ${s.currency}` : "ไม่ทราบยอด"}
+                      </div>
+                      <div className="text-[10px] text-stone-400">
+                        {s.billing_cycle === "monthly" ? "รายเดือน" : s.billing_cycle === "yearly" ? "รายปี" : s.billing_cycle === "usage" ? "ตามการใช้งาน" : "ไม่ทราบรอบบิล"}
+                        {s.auto_renew === true && " · ต่ออายุอัตโนมัติ"}
+                      </div>
+                    </div>
                   </div>
-                  {s.raw_subject && <div className="text-[11px] text-stone-400 truncate mt-0.5">{s.raw_subject}</div>}
+                  {responsibilityId && draft ? (
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2 border-t border-stone-200 pt-2">
+                      <select value={draft.payer_account_id} onChange={(e) => setSubscriptionOwners((v) => ({ ...v, [responsibilityId]: { ...draft, payer_account_id: e.target.value } }))} className="rounded border px-2 py-1.5 text-[11px]">
+                        <option value="">เลือกบัญชีผู้จ่ายที่ยืนยันแล้ว…</option>
+                        {payerAccounts.map((account) => <option key={account.id} value={account.id}>{account.provider_code} · {account.display_name ?? account.email_address ?? account.provider_account_ref}</option>)}
+                      </select>
+                      <select value={draft.source_account_id} onChange={(e) => setSubscriptionOwners((v) => ({ ...v, [responsibilityId]: { ...draft, source_account_id: e.target.value } }))} className="rounded border px-2 py-1.5 text-[11px]">
+                        <option value="">เลือกกล่องอีเมลต้นทางที่ยืนยันแล้ว…</option>
+                        {mailboxAccounts.map((account) => <option key={account.id} value={account.id}>{account.email_address ?? account.provider_account_ref}</option>)}
+                      </select>
+                      <input value={draft.verification_reference} onChange={(e) => setSubscriptionOwners((v) => ({ ...v, [responsibilityId]: { ...draft, verification_reference: e.target.value } }))}
+                        placeholder="หลักฐานเชื่อมผู้จ่ายกับรายการนี้" className="rounded border px-2 py-1.5 text-[11px]" />
+                      <button onClick={() => saveSubscriptionOwners(s)} disabled={savingResponsibility === responsibilityId}
+                        className="rounded border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-[11px] text-indigo-800 disabled:opacity-50">
+                        {savingResponsibility === responsibilityId ? "กำลังบันทึก…" : "บันทึกความสัมพันธ์"}
+                      </button>
+                    </div>
+                  ) : <div className="text-[10px] text-amber-700 border-t border-stone-200 pt-2">ยังไม่มีแถวในทะเบียนกลาง — รอ migration ที่ผ่านการตรวจความขัดแย้งก่อน จึงจะกำหนดผู้จ่ายได้</div>}
                 </div>
-                <div className="text-right shrink-0">
-                  <div className="text-sm font-medium text-stone-900 tabular-nums">
-                    {s.amount !== null ? `${s.amount.toLocaleString("th-TH")} ${s.currency}` : "ไม่ทราบยอด"}
-                  </div>
-                  <div className="text-[10px] text-stone-400">
-                    {s.billing_cycle === "monthly" ? "รายเดือน" : s.billing_cycle === "yearly" ? "รายปี" : s.billing_cycle === "usage" ? "ตามการใช้งาน" : "ไม่ทราบรอบบิล"}
-                    {s.auto_renew === true && " · ต่ออายุอัตโนมัติ"}
-                  </div>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

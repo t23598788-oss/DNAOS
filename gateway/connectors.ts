@@ -88,9 +88,15 @@ export async function findConnectorIdByProvider(providerId: string): Promise<str
     .from("connectors")
     .select("id")
     .filter("config->>provider", "eq", providerId)
-    .limit(1);
+    .limit(2);
   if (error) return null;
-  return (data?.[0] as { id: string } | undefined)?.id ?? null;
+  const matches = (data ?? []) as { id: string }[];
+  if (matches.length > 1) {
+    const e = new Error(`พบ connector มากกว่าหนึ่งรายการที่ประกาศ provider '${providerId}' — ปฏิเสธการเลือกอัตโนมัติ`) as Error & { code?: string };
+    e.code = "AMBIGUOUS_CONNECTOR";
+    throw e;
+  }
+  return matches[0]?.id ?? null;
 }
 
 export async function createConnector(input: CreateConnectorInput): Promise<ConnectorRecord> {

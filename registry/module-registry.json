@@ -221,8 +221,10 @@
       "purpose": "Shared Gmail OAuth (read-only) connector — extracted 2026-08-03 out of bank-email-sync and supabase-billing-sync, which had grown identical copies of the token-fetch/HTML-decode/body-extraction logic (real KM-002 duplication caught while adding a third copy for subscription-email-sync). All 3 real Gmail-reading edge functions now import from here.",
       "purpose_th": "ตัวเชื่อม Gmail OAuth (read-only) ที่ใช้ร่วมกัน — แยกออกมา 2026-08-03 จาก bank-email-sync กับ supabase-billing-sync ที่มีโค้ดดึง token/แปลง HTML/ดึงเนื้อหาอีเมลซ้ำกันเป๊ะ (KM-002 จริง เจอตอนจะสร้างสำเนาที่ 3 ให้ subscription-email-sync) ตอนนี้ทั้ง 3 ฟังก์ชันที่อ่าน Gmail จริง import จากที่นี่ที่เดียว",
       "exports": [
+        "GmailAccessContext",
         "extractBodyText",
         "fetchGmailMessage",
+        "getGmailAccessContext",
         "getGmailAccessToken",
         "getSubjectHeader",
         "searchGmailMessageIds"
@@ -3105,10 +3107,12 @@
         "clearConnectorCache",
         "getConnectedConnector",
         "getConnector",
+        "getConnectorByProvider",
         "listConnectorsByAuthType",
         "loadConnectors",
         "logConnectorLifecycleEvent",
-        "requireConnector"
+        "requireConnector",
+        "requireProviderConnector"
       ],
       "status": "active"
     },
@@ -6318,7 +6322,9 @@
       "purpose": "GET route serving subscription_services (populated by supabase/functions/subscription-email-sync) to the admin infrastructure dashboard, ADMIN_TIER-gated.",
       "purpose_th": "GET route ส่งข้อมูล subscription_services (จาก subscription-email-sync) ให้หน้าแดชบอร์ดค่าใช้จ่าย ผ่าน requireAuth(ADMIN_TIER)",
       "exports": [
-        "GET"
+        "GET",
+        "PATCH",
+        "POST"
       ],
       "status": "active"
     },
@@ -6714,7 +6720,8 @@
       "purpose": "GET returns layer stack + canonical principles + authority model, read from registry/CONSTITUTION.json and registry/dependency-graph.json. Backs architecture.system_summary.",
       "purpose_th": "endpoint สรุปสถาปัตยกรรมระบบ",
       "exports": [
-        "GET"
+        "GET",
+        "OPTIONS"
       ],
       "status": "active"
     },
@@ -6734,7 +6741,8 @@
       "purpose": "GET returns registry/dependency-graph.json's allowed_imports and notes verbatim. Backs architecture.get_dependency_graph.",
       "purpose_th": "endpoint กราฟการ import",
       "exports": [
-        "GET"
+        "GET",
+        "OPTIONS"
       ],
       "status": "active"
     },
@@ -6922,6 +6930,7 @@
       "purpose": "Implements architecture.get_dependency_graph — calls GET /api/v1/mcp/architecture/dependency-graph. Integration-tested live via stdio (tools/call): success.",
       "purpose_th": "ทูล architecture.get_dependency_graph — ทดสอบผ่านจริง",
       "exports": [
+        "ArchitectureDependencyGraphInput",
         "TOOL_NAME",
         "runArchitectureGetDependencyGraph"
       ],
@@ -8135,6 +8144,7 @@
       "exports": [
         "AiGatewayDependencies",
         "aiGatewayProviderFor",
+        "embedThroughAiGateway",
         "invokeAiGateway"
       ],
       "status": "active"
@@ -15041,6 +15051,7 @@
       "purpose_th": "Connect — canonical external identity (capability C, owner decision D4, 2026-09-23).",
       "exports": [
         "ExternalIdentity",
+        "ensureExternalPartyIdentity",
         "linkExternalIdentity",
         "listProviderIdentities",
         "resolveExternalIdentities",
@@ -17450,6 +17461,599 @@
       ],
       "status": "active",
       "entry_point": true
+    },
+    "cloudflare.config.ts": {
+      "owner": "cloudflare.config.ts",
+      "layer": "cloudflare.config.ts",
+      "purpose": "Cloudflare Worker bindings, entrypoint, triggers, and deployment settings.",
+      "purpose_th": "ตั้งค่า bindings, entrypoint, triggers และการ deploy ของ Cloudflare Worker",
+      "exports": [
+        "default"
+      ],
+      "entry_point": true,
+      "status": "active"
+    },
+    "workers/dnaos-main-worker.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "DNA OS thin edge gateway.",
+      "purpose_th": "DNA OS thin edge gateway.",
+      "exports": [
+        "default"
+      ],
+      "entry_point": true,
+      "status": "active"
+    },
+    "registry/external-service-catalog.ts": {
+      "owner": "registry",
+      "layer": "registry",
+      "purpose": "DNA OS external-service directory.",
+      "purpose_th": "DNA OS external-service directory.",
+      "exports": [
+        "EXTERNAL_SERVICE_CATALOG",
+        "ExternalServiceCatalogEntry",
+        "ServiceClass",
+        "UserConnectionState"
+      ],
+      "status": "active"
+    },
+    "scripts/stock-shadow-ingestion-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Offline acceptance tests for idempotent stock shadow ingestion.",
+      "purpose_th": "ทดสอบออฟไลน์สำหรับการรับเหตุการณ์สต็อก shadow แบบ idempotent",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/kodchat-adapter-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Offline tests for Kodchat webhook validation, event mapping, and message delivery.",
+      "purpose_th": "ทดสอบออฟไลน์การตรวจ webhook, แปลงเหตุการณ์ และส่งข้อความของ Kodchat",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/index-code-graph-system.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Builds a source-code graph and optionally writes it to the configured system schema.",
+      "purpose_th": "สร้างกราฟซอร์สโค้ดและเขียนลง system schema เมื่อกำหนดให้ทำงาน",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/generate-integration-contract.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Generates the integration contract from the provider and adapter registries.",
+      "purpose_th": "สร้างสัญญาการเชื่อมต่อจากทะเบียน provider และ adapter",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/core-event-transport-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Tests normalization of LINE webhook messages into the core event transport.",
+      "purpose_th": "ทดสอบการแปลงข้อความ LINE webhook เป็น core event transport",
+      "exports": [],
+      "status": "active"
+    },
+    "cloudflare/fsevents-stub.ts": {
+      "owner": "cloudflare",
+      "layer": "cloudflare",
+      "purpose": "Build resolver entry point that replaces optional native fsevents during Worker bundling.",
+      "purpose_th": "จุดเข้า resolver สำหรับแทน native fsevents ที่เป็น optional ระหว่าง bundle Worker",
+      "exports": [
+        "default"
+      ],
+      "entry_point": true,
+      "status": "active"
+    },
+    "services/system-graph/systemVault.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Stores and retrieves platform secret values through the configured system vault.",
+      "purpose_th": "จัดเก็บและอ่านค่า secret ของแพลตฟอร์มผ่าน system vault ที่กำหนด",
+      "exports": [
+        "SYSTEM_VAULT_SECRET_NAMES",
+        "SystemVaultMetadata",
+        "SystemVaultSecretName",
+        "deleteSystemVaultSecret",
+        "listSystemVaultMetadata",
+        "readSystemVaultSecret",
+        "writeSystemVaultSecret"
+      ],
+      "status": "active"
+    },
+    "services/system-graph/systemGraphClient.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "System metadata lives in the `system` schema of the one canonical Supabase",
+      "purpose_th": "System metadata lives in the `system` schema of the one canonical Supabase",
+      "exports": [
+        "SystemGraphClientResult",
+        "getSystemGraphClient"
+      ],
+      "status": "active"
+    },
+    "services/connectors/userOAuthPolicy.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Only allow user OAuth for providers whose upstream hosts are explicitly known.",
+      "purpose_th": "Only allow user OAuth for providers whose upstream hosts are explicitly known.",
+      "exports": [
+        "assertUserOAuthUrl",
+        "isUserOAuthProvider",
+        "oauthProviderIdentity",
+        "userOAuthCookieName"
+      ],
+      "status": "active"
+    },
+    "services/connectors/completeUserOAuth.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Completes user-scoped OAuth and stores provider credentials through the vault.",
+      "purpose_th": "ทำ OAuth ระดับผู้ใช้ให้เสร็จและเก็บ credential ของ provider ผ่าน vault",
+      "exports": [
+        "completeUserOAuthCallback"
+      ],
+      "status": "active"
+    },
+    "services/ai/embeddingGateway.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Experimental embedding entry point, intentionally separate from the",
+      "purpose_th": "Experimental embedding entry point, intentionally separate from the",
+      "exports": [
+        "EmbeddingGatewayDependencies",
+        "embedThroughAiGateway"
+      ],
+      "status": "active"
+    },
+    "services/ai/embeddingAdapter.ts": {
+      "owner": "services",
+      "layer": "services",
+      "purpose": "Separate contract for embedding providers. Embeddings are vectors, not text",
+      "purpose_th": "Separate contract for embedding providers. Embeddings are vectors, not text",
+      "exports": [
+        "EmbeddingAdapter",
+        "EmbeddingAdapterContext",
+        "EmbeddingRequest",
+        "EmbeddingResult",
+        "EmbeddingVector",
+        "digitalOceanEmbeddingAdapter"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/stockIngestion.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Validates and records idempotent stock updates from external adapters.",
+      "purpose_th": "ตรวจสอบและบันทึกการเปลี่ยนแปลงสต็อกจาก adapter ภายนอกแบบ idempotent",
+      "exports": [
+        "StockUpdateInput",
+        "StockUpdateInputError",
+        "StockUpdateResult",
+        "StockUpdateStore",
+        "ingestParsedStockUpdate",
+        "ingestStockUpdate",
+        "parseStockUpdate"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/coreQueue.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Enqueue normalized inbound events through the Cloudflare thin-edge ingress.",
+      "purpose_th": "Enqueue normalized inbound events through the Cloudflare thin-edge ingress.",
+      "exports": [
+        "enqueueCoreEvents"
+      ],
+      "status": "active"
+    },
+    "core/auth/connector-oauth-state.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Creates and verifies one-time state values for connector OAuth callbacks.",
+      "purpose_th": "สร้างและตรวจสอบค่า state ใช้ครั้งเดียวสำหรับ callback ของ connector OAuth",
+      "exports": [
+        "connectorOAuthCookieName",
+        "createConnectorOAuthState",
+        "verifyConnectorOAuthState"
+      ],
+      "status": "active"
+    },
+    "components/workspace/BusinessOrganizationSwitcher.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Lets an authenticated user select the active business organization.",
+      "purpose_th": "ให้ผู้ใช้ที่ยืนยันตัวตนเลือกองค์กรธุรกิจที่กำลังใช้งาน",
+      "exports": [
+        "BusinessOrganizationSwitcher"
+      ],
+      "status": "active"
+    },
+    "components/workspace/BusinessActivityConsole.tsx": {
+      "owner": "components",
+      "layer": "components",
+      "purpose": "Displays business activity scoped to the selected organization.",
+      "purpose_th": "แสดงกิจกรรมธุรกิจตามขอบเขตองค์กรที่เลือก",
+      "exports": [
+        "BusinessActivityConsole"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/_shared/core-event.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Provider-neutral event envelope for the DNA OS core queue (schema 1.0.0).",
+      "purpose_th": "Provider-neutral event envelope for the DNA OS core queue (schema 1.0.0).",
+      "exports": [
+        "CoreEventEnvelope",
+        "isCoreEventEnvelope"
+      ],
+      "status": "active"
+    },
+    "supabase/functions/_shared/core-event-transport.ts": {
+      "owner": "supabase",
+      "layer": "supabase",
+      "purpose": "Convert LINE adapter data to the shared envelope before it leaves Supabase.",
+      "purpose_th": "Convert LINE adapter data to the shared envelope before it leaves Supabase.",
+      "exports": [
+        "enqueueCoreEvents",
+        "normalizeLineEvents"
+      ],
+      "status": "active"
+    },
+    "engines/integration-gateway/adapters/kodchat.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Kod Chat Bot API v1 adapter. Provider contract verified against",
+      "purpose_th": "Kod Chat Bot API v1 adapter. Provider contract verified against",
+      "exports": [
+        "KodChatAdapterResponse",
+        "KodChatCredentials",
+        "KodChatErrorCode",
+        "KodChatRecipient",
+        "KodChatSendConfig",
+        "KodChatWebhookConfig",
+        "KodChatWebhookRegistrationConfig",
+        "kodChatCoreEvents",
+        "normalizeKodChatWebhook",
+        "registerKobChatWebhook",
+        "sendMessage",
+        "verifyKodChatWebhookSignature"
+      ],
+      "status": "active"
+    },
+    "engines/connectors/providers/kodchat.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Connect Core contract for Kod Chat.",
+      "purpose_th": "Connect Core contract for Kod Chat.",
+      "exports": [
+        "kodchatConnectContract"
+      ],
+      "status": "active"
+    },
+    "app/account/connections/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Authenticated page for managing personal provider connections.",
+      "purpose_th": "หน้าจัดการการเชื่อมต่อ provider ส่วนตัวหลังยืนยันตัวตน",
+      "exports": [
+        "AccountConnectionsPage"
+      ],
+      "status": "active"
+    },
+    "app/account/connections/ConnectionsCatalogClient.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Lists provider connection options and the signed-in user’s connection states.",
+      "purpose_th": "แสดงตัวเลือก provider และสถานะการเชื่อมต่อของผู้ใช้ที่ล็อกอิน",
+      "exports": [
+        "ConnectionsCatalogClient"
+      ],
+      "status": "active"
+    },
+    "app/admin/system-vault/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin-only entry page for platform secret management.",
+      "purpose_th": "หน้าเข้าจัดการ secret ของแพลตฟอร์มสำหรับผู้ดูแลเท่านั้น",
+      "exports": [
+        "SystemVaultPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/control-board/page.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin-only entry page for the infrastructure control board.",
+      "purpose_th": "หน้าเข้าแผงควบคุมโครงสร้างพื้นฐานสำหรับผู้ดูแลเท่านั้น",
+      "exports": [
+        "OperatorBoardPage"
+      ],
+      "status": "active"
+    },
+    "app/admin/control-board/OperatorBoard.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Displays the operator view of infrastructure health and configured sources.",
+      "purpose_th": "แสดงมุมมองผู้ปฏิบัติการเกี่ยวกับสุขภาพโครงสร้างพื้นฐานและแหล่งข้อมูล",
+      "exports": [
+        "OperatorBoard"
+      ],
+      "status": "active"
+    },
+    "app/admin/control-board/ControlBoard.tsx": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin interface for managing allowlisted platform secret values.",
+      "purpose_th": "หน้าผู้ดูแลสำหรับจัดการค่า secret แพลตฟอร์มตามรายการที่อนุญาต",
+      "exports": [
+        "ControlBoard"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/discovery/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Returns the authenticated, read-only capability and command discovery response.",
+      "purpose_th": "ส่งผลค้นพบ capability และ command แบบอ่านอย่างเดียวหลังยืนยันตัวตน",
+      "exports": [
+        "GET",
+        "OPTIONS"
+      ],
+      "status": "active"
+    },
+    "app/api/v1/_lib/tool-spec.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Builds read-only tool specifications from the command registry.",
+      "purpose_th": "สร้างข้อกำหนดเครื่องมือแบบอ่านอย่างเดียวจาก command registry",
+      "exports": [
+        "ApiCommandDefinition",
+        "ApiToolDefinition",
+        "buildReadOnlyToolSpec",
+        "commandInputSchema"
+      ],
+      "status": "active"
+    },
+    "app/api/integration/stock-update/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Receives authenticated stock updates and delegates validation to the ingestion engine.",
+      "purpose_th": "รับการเปลี่ยนแปลงสต็อกที่ยืนยันตัวตนแล้วและส่งให้ ingestion engine ตรวจสอบ",
+      "exports": [
+        "POST",
+        "dynamic",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/core-events/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Receives authenticated internal core-event envelopes at the Worker boundary.",
+      "purpose_th": "รับ core-event envelope ภายในที่ยืนยันตัวตนแล้วตรงขอบเขต Worker",
+      "exports": [
+        "POST",
+        "dynamic",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/cron/digitalocean-reconciliation/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Reconciles DigitalOcean resource usage and account evidence on a scheduled request.",
+      "purpose_th": "กระทบยอดการใช้ทรัพยากร DigitalOcean และหลักฐานบัญชีตามคำขอที่ตั้งเวลา",
+      "exports": [
+        "GET",
+        "POST",
+        "dynamic",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/business/context/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Returns the authenticated user’s eligible business organizations and active scope.",
+      "purpose_th": "ส่งรายชื่อองค์กรธุรกิจที่ผู้ใช้มีสิทธิ์และขอบเขตที่เลือกอยู่",
+      "exports": [
+        "DELETE",
+        "GET",
+        "POST",
+        "dynamic",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/business/workspace/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Reads business workspace activity only within the verified active organization.",
+      "purpose_th": "อ่านกิจกรรม workspace ธุรกิจภายในองค์กรที่ยืนยันสิทธิ์และเลือกใช้อยู่",
+      "exports": [
+        "GET",
+        "dynamic",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/account/connections/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Return the public catalog and only the signed-in user's connection metadata.",
+      "purpose_th": "Return the public catalog and only the signed-in user's connection metadata.",
+      "exports": [
+        "GET",
+        "dynamic"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/system-vault/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin-only API for listing, writing, and deleting allowlisted system secrets.",
+      "purpose_th": "API สำหรับผู้ดูแลเพื่อดู เพิ่ม และลบ system secret ตามรายการที่อนุญาต",
+      "exports": [
+        "DELETE",
+        "GET",
+        "PUT",
+        "dynamic",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/responsibility-accounts/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin-only API for assigning responsible owners to platform accounts.",
+      "purpose_th": "API สำหรับผู้ดูแลเพื่อกำหนดเจ้าของรับผิดชอบบัญชีแพลตฟอร์ม",
+      "exports": [
+        "GET",
+        "PATCH",
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/control-board/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin-only API for infrastructure control-board status and actions.",
+      "purpose_th": "API สถานะและการทำงานของแผงควบคุมโครงสร้างพื้นฐานสำหรับผู้ดูแล",
+      "exports": [
+        "GET",
+        "dynamic",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/gateway/observe/kodchat/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "POST /api/gateway/observe/kodchat — Kob Chat Bot API v1 webhook ingress.",
+      "purpose_th": "POST /api/gateway/observe/kodchat — Kob Chat Bot API v1 webhook ingress.",
+      "exports": [
+        "POST",
+        "dynamic",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/internal/core-events/execute/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Executes validated core-event commands and returns their execution result.",
+      "purpose_th": "ประมวลผลคำสั่ง core event ที่ผ่านการตรวจและส่งผลลัพธ์กลับ",
+      "exports": [
+        "POST",
+        "dynamic",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/account/connections/[providerId]/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Reads or removes the authenticated user’s connection for one provider.",
+      "purpose_th": "อ่านหรือลบการเชื่อมต่อ provider รายหนึ่งของผู้ใช้ที่ยืนยันตัวตน",
+      "exports": [
+        "DELETE",
+        "PUT",
+        "dynamic",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/digitalocean/catalog/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin-only API for a metered DigitalOcean resource catalog snapshot.",
+      "purpose_th": "API สำหรับผู้ดูแลเพื่ออ่าน catalog ทรัพยากร DigitalOcean พร้อมบันทึกการเรียกใช้",
+      "exports": [
+        "GET",
+        "POST",
+        "dynamic",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/digitalocean/_lib/meteredClient.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Calls the DigitalOcean API with operation metering and rate limiting.",
+      "purpose_th": "เรียก DigitalOcean API พร้อมบันทึก operation และจำกัดอัตราการเรียก",
+      "exports": [
+        "DigitalOceanClient",
+        "DigitalOceanOperation",
+        "DigitalOceanRateLimitError",
+        "createMeteredDigitalOceanClient",
+        "digitalOceanAccountUrn",
+        "fetchAllPages",
+        "finiteMoney",
+        "resourceKey"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/control-board/routes/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin-only API for the registered infrastructure route map.",
+      "purpose_th": "API แผนที่เส้นทางโครงสร้างพื้นฐานที่ลงทะเบียน สำหรับผู้ดูแลเท่านั้น",
+      "exports": [
+        "GET",
+        "dynamic",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/control-board/digitalocean/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Admin-only API for DigitalOcean control-board account status.",
+      "purpose_th": "API สถานะบัญชี DigitalOcean บนแผงควบคุมสำหรับผู้ดูแลเท่านั้น",
+      "exports": [
+        "GET",
+        "dynamic",
+        "runtime"
+      ],
+      "status": "active"
+    },
+    "app/api/account/connections/oauth/[providerId]/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "One-click entry: user consent happens at the provider; state is owner-bound and one-use.",
+      "purpose_th": "One-click entry: user consent happens at the provider; state is owner-bound and one-use.",
+      "exports": [
+        "GET"
+      ],
+      "status": "active"
+    },
+    "app/api/admin/connectors/[id]/kodchat-webhook/route.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Register DNA OS's Kod Chat callback URL on a connected/enabled bot.",
+      "purpose_th": "Register DNA OS's Kod Chat callback URL on a connected/enabled bot.",
+      "exports": [
+        "POST"
+      ],
+      "status": "active"
+    },
+    "app/api/business/_lib/workspace.ts": {
+      "owner": "app",
+      "layer": "app",
+      "purpose": "Resolve organizations from the authenticated account, never from email or role.",
+      "purpose_th": "Resolve organizations from the authenticated account, never from email or role.",
+      "exports": [
+        "ACTIVE_BUSINESS_ORG_COOKIE",
+        "activeOrganizationClaim",
+        "listBusinessOrganizations",
+        "resolveBusinessOrganizationScope"
+      ],
+      "status": "active"
     }
   },
   "excluded": [
@@ -17861,6 +18465,13 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "skeleton ระหว่างโหลดหน้า Products"
+    },
+    {
+      "path": "services/authority/businessWorkspace.ts",
+      "retired_at": "2026-11-22T01:09:31.074Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "Resolve organizations from the authenticated account, never from email or role."
     }
   ]
 }

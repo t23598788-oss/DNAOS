@@ -40,6 +40,8 @@ export interface ActorContext {
   role?: string | null;
   /** organizations the actor belongs to (org_members today) */
   organizationIds?: string[];
+  /** Verified roles from org_members; system-wide profile.role is not business authority. */
+  organizationRoles?: Array<{ organizationId: string; role: string }>;
 }
 
 export interface ResourceRef {
@@ -123,6 +125,19 @@ export function resolveAuthority(input: ResolveAuthorityInput): AuthorityDecisio
   }
 
   if (!resource.id) return deny("RESOURCE_ID_REQUIRED");
+
+  // Central seller prices belong to the seller's organization. Only its
+  // highest business authority (org_members.role = owner) may set them.
+  // Platform admins and pit profile owners do not substitute for that owner.
+  if (action === "price.write" && resource.kind === "pit") {
+    const organizationId = resource.organizationId;
+    if (!organizationId) return deny("PIT_ORGANIZATION_REQUIRED");
+    const isOrganizationOwner = (actor.organizationRoles ?? []).some(
+      (membership) => membership.organizationId === organizationId && membership.role === "owner",
+    );
+    if (!isOrganizationOwner) return deny("ORGANIZATION_OWNER_REQUIRED");
+    return { allowed: true, reason: "ORGANIZATION_OWNER", via: "owner", grantId: null };
+  }
 
   // R3 — explicit ownership.
   if (OWNER_ACTIONS.includes(action) && resource.ownerProfileId && resource.ownerProfileId === actor.profileId) {

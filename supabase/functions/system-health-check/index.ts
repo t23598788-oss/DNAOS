@@ -39,9 +39,10 @@ async function checkReachable(url: string, headers: Record<string, string>): Pro
 
 async function checkSupabase(supabaseUrl: string, anonKey: string): Promise<CheckResult> {
   const authError = await checkReachable(`${supabaseUrl}/auth/v1/health`, { apikey: anonKey })
-  const restError = authError ? null : await checkReachable(`${supabaseUrl}/rest/v1/`, { apikey: anonKey })
-  const error = authError ?? restError
-  return { service_key: "supabase", check_kind: "http_reachability", ok: !error, detail: { error } }
+  // Do not GET /rest/v1/: it returns the PostgREST OpenAPI root, adds load,
+  // and this old probe omitted Authorization, causing avoidable 401s. The
+  // service-role RPC below is the actual database connectivity check.
+  return { service_key: "supabase", check_kind: "http_reachability", ok: !authError, detail: { error: authError } }
 }
 
 // A7.8 — AI health is adapter READINESS from the canonical registry, not "some
@@ -107,8 +108,19 @@ async function checkGmail(): Promise<CheckResult> {
 // NOT prove the called Edge Function's business logic succeeded, only that
 // the trigger itself fired. Stated honestly in detail.note, not overclaimed.
 async function checkCronJobs(supabase: any): Promise<CheckResult[]> {
-  const { data: jobs } = await supabase.rpc("get_cron_job_status")
-  if (!jobs) return []
+  const { data: jobs, error } = await supabase.rpc("get_cron_job_status")
+  if (error) return [{
+    service_key: "cron_status_snapshot",
+    check_kind: "cron_execution",
+    ok: false,
+    detail: { code: error.code ?? null, message: error.message ?? "อ่านสถานะ Cron ไม่สำเร็จ" },
+  }]
+  if (!Array.isArray(jobs) || jobs.length === 0) return [{
+    service_key: "cron_status_snapshot",
+    check_kind: "cron_execution",
+    ok: false,
+    detail: { reason: "ไม่พบข้อมูลสถานะ Cron จาก RPC" },
+  }]
   return jobs.map((j: any) => ({
     service_key: `cron:${j.jobname}`,
     check_kind: "cron_execution" as const,

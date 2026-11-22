@@ -20,6 +20,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export interface ExternalIdentity {
   provider: string;
   externalSubjectId: string;
+  partyId: string | null;
   companyId: string | null;
   companyName: string | null;
   companyTaxId: string | null;
@@ -33,12 +34,13 @@ export interface ExternalIdentity {
 
 const VIEW = "connect_identity_current";
 const COLUMNS =
-  "provider, external_subject_id, company_id, company_name, company_tax_id, company_phone, display_name, role, department, trust_level, permissions";
+  "provider, external_subject_id, company_id, party_id, company_name, company_tax_id, company_phone, display_name, role, department, trust_level, permissions";
 
 interface IdentityRow {
   provider: string;
   external_subject_id: string;
   company_id: string | null;
+  party_id: string | null;
   company_name: string | null;
   company_tax_id: string | null;
   company_phone: string | null;
@@ -53,6 +55,7 @@ function map(row: IdentityRow): ExternalIdentity {
   return {
     provider: row.provider,
     externalSubjectId: row.external_subject_id,
+    partyId: row.party_id ?? null,
     companyId: row.company_id ?? null,
     companyName: row.company_name ?? null,
     companyTaxId: row.company_tax_id ?? null,
@@ -179,4 +182,21 @@ export async function linkExternalIdentity(
     );
   if (error) return { ok: false, error: error.message };
   return { ok: true };
+}
+
+/** Create one canonical person party for an unmapped provider subject, or
+ * return the existing party. This never merges identities from different
+ * providers; linking those requires a separately verified flow. */
+export async function ensureExternalPartyIdentity(
+  db: SupabaseClient,
+  input: { provider: string; externalSubjectId: string },
+): Promise<{ ok: true; partyId: string; created: boolean } | { ok: false; error: string }> {
+  const { data, error } = await db.rpc("ensure_external_party_identity", {
+    p_provider: input.provider,
+    p_external_subject_id: input.externalSubjectId,
+  });
+  if (error || !Array.isArray(data) || !data[0] || typeof data[0].party_id !== "string") {
+    return { ok: false, error: "CORE_IDENTITY_RESOLUTION_FAILED" };
+  }
+  return { ok: true, partyId: data[0].party_id, created: data[0].created === true };
 }

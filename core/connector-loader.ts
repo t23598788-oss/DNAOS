@@ -74,6 +74,15 @@ export async function getConnector(db: SupabaseClient, slug: string): Promise<Co
   return all.find((c) => c.slug === slug) ?? null;
 }
 
+/** Resolve a provider-declared connector identity independently of its
+ * generated display slug. A provider must map to exactly one connector; an
+ * ambiguous match fails closed. */
+export async function getConnectorByProvider(db: SupabaseClient, providerId: string): Promise<ConnectorRecord | null> {
+  const all = await loadConnectors(db);
+  const matches = all.filter((c) => String(c.config?.provider ?? "").toLowerCase() === providerId.trim().toLowerCase());
+  return matches.length === 1 ? matches[0] : null;
+}
+
 /**
  * ใช้จาก Engine/Gateway ที่ต้องการเรียกบริการภายนอกจริง —
  * คืนค่าเฉพาะ Connector ที่ผ่านครบ 4 ขั้น: Connect → Register → Test → Enable
@@ -158,4 +167,12 @@ export async function requireConnector(db: SupabaseClient, slug: string, caller:
 
   await logConnectorLifecycleEvent(db, c.id, "run", { note: `caller=${caller}` });
   return c;
+}
+
+/** Run-gated variant for Connect providers whose connector slug is generated
+ * at registration time and whose stable identity is config.provider. */
+export async function requireProviderConnector(db: SupabaseClient, providerId: string, caller: string): Promise<ConnectorRecord> {
+  const connector = await getConnectorByProvider(db, providerId);
+  if (!connector) throw new ConnectorRejectedError(providerId, "ไม่พบ Connector เดียวที่ประกาศ provider นี้ — ต้อง Register หรือแก้รายการซ้ำก่อน");
+  return requireConnector(db, connector.slug, caller);
 }

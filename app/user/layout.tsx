@@ -22,6 +22,7 @@ export default async function UserLayout({ children }: { children: React.ReactNo
       activeKey="user"
       userEmail={user.email}
       portalStatus={portals.portals.user_portal.status as "shell" | "official"}
+      businessContext
     >
       {children}
     </WorkspaceShell>

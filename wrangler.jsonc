@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wandering-queen-756b",
+  "main": "workers/dnaos-main-worker.ts",
+  "compatibility_date": "2026-11-15",
+  "workers_dev": true,
+  "triggers": {
+    "crons": ["15 2 * * *"]
+  },
+  "queues": {
+    "producers": [
+      {
+        "binding": "DNAOS_CORE_EVENTS",
+        "queue": "dnaos-core-events"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "dnaos-core-events",
+        "max_batch_size": 10,
+        "max_batch_timeout": 2,
+        "max_retries": 8
+      }
+    ]
+  }
+}

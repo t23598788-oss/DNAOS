@@ -136,6 +136,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
     const msg = err instanceof Error ? err.message : String(err);
     const code = (err as { code?: string }).code;
     if (code === "UNKNOWN_CREDENTIAL_KEY") return NextResponse.json({ ok: false, code, error: msg }, { status: 400 });
+    if (code === "AMBIGUOUS_CONNECTOR") return NextResponse.json({ ok: false, code, error: msg }, { status: 409 });
     if (code === "REQUIREMENTS_MISSING" || code === "META_TABLES_MISSING") {
       return NextResponse.json({ ok: false, code, error: msg }, { status: 409 });
     }

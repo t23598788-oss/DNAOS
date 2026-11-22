@@ -21,9 +21,10 @@ export type HttpOutcome<T> = HttpResult<T> | HttpFailure
 
 export async function httpGet<T = unknown>(
   config: DnaOsConfig,
-  path: string
+  path: string,
+  { withToken = false }: { withToken?: boolean } = {}
 ): Promise<HttpOutcome<T>> {
-  return request<T>(config, "GET", path)
+  return request<T>(config, "GET", path, undefined, withToken)
 }
 
 export async function httpPost<T = unknown>(

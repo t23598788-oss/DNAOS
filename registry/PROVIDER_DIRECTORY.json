@@ -46,8 +46,8 @@
     },
     {
       "name": "digitalocean",
-      "status": "code_exists_pending_credential",
-      "purpose": "Cloud AI Inference (Worker Router — code.generate), real adapter app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts, registered in WORKER_ADAPTER_REGISTRY 2026-08-10. Waiting on real DIGITALOCEAN_INFERENCE_API_KEY — see DIGITALOCEAN_AI_INFERENCE_DISCOVERY_REPORT.md",
+      "status": "multiple_surfaces_partial_not_production_verified",
+      "purpose": "Separate services: (1) AI Inference Worker Adapter at app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts, credentialed separately; (2) read-only Control Plane Catalog/Billing metering at app/api/admin/digitalocean/_lib/meteredClient.ts, token from System Vault and only 9 documented GET routes implemented in source; (3) all 915 OpenAPI operations indexed in registry/digitalocean-api-provider.json, default-deny and not an executable proxy. No customer wallet, reservation/charge ledger, or DO-to-customer revenue linkage is implemented.",
       "source": "providers/digitalocean/provider.json"
     },
     {

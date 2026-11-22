@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const projectRoot = import.meta.dirname;
+
 const nextConfig: NextConfig = {
   // pdfkit (แล้ว sharp) ต้อง resolve path ไฟล์ data ของตัวเองจาก node_modules
   // จริง — ถ้าถูก bundle เข้า server chunk, __dirname กลายเป็น /ROOT (turbopack
@@ -11,7 +13,7 @@ const nextConfig: NextConfig = {
   // เปิดไฟล์จริงไม่ได้ (ENOENT ที่พบจริงตอน dev)
   serverExternalPackages: ["pdfkit", "sharp", "@fontsource/noto-sans-thai"],
   turbopack: {
-    root: __dirname,
+    root: projectRoot,
   },
   // Found live 2026-07-31: Vercel rejected api/admin/runtime/document-engine
   // at 3.7GB uncompressed (limit 250MB). Root cause: engines/documents/

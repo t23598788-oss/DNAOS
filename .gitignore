@@ -86,3 +86,16 @@ _inventory/
 
 # Contractor pull-model runtime artifacts (NEW-2)
 .agents/
+/dist/
+.vinext/
+.cloudflare/
+
+# Local architecture exports, data inventories, linked-project metadata, and
+# generated Wrangler state are not source artifacts and may contain private
+# environment details or copied business records.
+/.archify/
+/outputs/
+/work/
+/system-db/
+/supabase/local-migration/production_*
+/workers/*/.wrangler/

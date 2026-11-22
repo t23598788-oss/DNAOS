@@ -49,9 +49,9 @@ function errorResponse(code: string, error: string, status: number): NextRespons
 
 export async function POST(req: Request) {
   // 1. Internal bridge auth — fail closed (same pattern as the Gmail bridge)
-  const internalSecret = process.env.LINE_TOKEN_INTERNAL_SECRET;
+  const internalSecret = process.env.LINE_INTERNAL_SECRET;
   if (!internalSecret) {
-    return errorResponse("INTERNAL_SECRET_NOT_SET", "LINE_TOKEN_INTERNAL_SECRET ยังไม่ได้ตั้งค่าฝั่ง Node", 500);
+    return errorResponse("INTERNAL_SECRET_NOT_SET", "LINE_INTERNAL_SECRET ยังไม่ได้ตั้งค่าฝั่ง Main Server", 500);
   }
   if (req.headers.get("x-line-internal-secret") !== internalSecret) {
     return errorResponse("UNAUTHORIZED", "ไม่ได้รับอนุญาต", 401);

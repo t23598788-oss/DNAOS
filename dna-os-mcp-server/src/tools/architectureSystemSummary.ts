@@ -12,7 +12,7 @@ export async function runArchitectureSystemSummary(
   const resolved = await resolveToolEndpoint(config, TOOL_NAME)
   if (!resolved.ok) return resolved
 
-  const res = await httpGet(config, resolved.endpoint)
+  const res = await httpGet(config, resolved.endpoint, { withToken: true })
   if (!res.ok) return res
 
   return { ok: true, result: normalizeEnvelopedResponse(res.body) }

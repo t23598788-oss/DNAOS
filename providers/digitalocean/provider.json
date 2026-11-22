@@ -1,0 +1,38 @@
+{
+  "name": "digitalocean",
+  "version": "2.0.0",
+  "status": "partial_not_production_verified",
+  "api_inventory": "registry/digitalocean-api-provider.json",
+  "surfaces": [
+    {
+      "id": "control-plane",
+      "base_url": "https://api.digitalocean.com/v2",
+      "adapter_source": "app/api/admin/digitalocean/_lib/meteredClient.ts",
+      "credential": "System Vault: digitalocean_api_token",
+      "mode": "read_only_metered",
+      "implemented_source_operations": 9,
+      "production_verified": false
+    },
+    {
+      "id": "serverless-inference",
+      "base_url": "https://inference.do-ai.run/v1",
+      "adapter_source": "app/api/admin/ide/_lib/workerAdapters/digitalOceanWorkerAdapter.ts",
+      "credential": "DIGITALOCEAN_INFERENCE_API_KEY or enabled inference connector",
+      "mode": "separate_ai_adapter_and_meter",
+      "shares_control_plane_meter": false,
+      "production_verified": false
+    }
+  ],
+  "commercial_metering": {
+    "customer_wallet": "not_implemented",
+    "transactional_reservation": "not_implemented",
+    "customer_charge_ledger": "not_implemented",
+    "provider_usage_to_customer_attribution": "not_implemented",
+    "markup_policy": "not_approved_or_wired",
+    "default_execution_policy": "deny_customer_billable_proxy_operations"
+  },
+  "sources": [
+    "https://docs.digitalocean.com/llms.txt",
+    "https://docs.digitalocean.com/reference/api/reference/openapi.json"
+  ]
+}

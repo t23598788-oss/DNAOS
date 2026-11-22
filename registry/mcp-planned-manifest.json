@@ -41,14 +41,17 @@
     "architecture.system_summary": {
       "reads_endpoint": "GET /api/v1/mcp/architecture/summary",
       "reads_source_files": [
-        "registry/CONSTITUTION.json",
-        "registry/dependency-graph.json"
+        "registry/architecture-book.json",
+        "registry/module-registry.json",
+        "registry/TASK_QUEUE.json"
       ],
       "new_route_required": true,
       "route_implemented": true,
       "implementation": "dna-os-mcp-server/src/tools/architectureSystemSummary.ts",
-      "integration_tested": true,
-      "status": "active"
+      "integration_tested": false,
+      "status": "blocked_configuration",
+      "data_store": "system schema in canonical Supabase project xeytcavxejhyzxwevgto",
+      "required_scope": "read"
     },
     "registry.list_modules": {
       "reads_endpoint": "GET /api/v1/modules",
@@ -80,13 +83,18 @@
     "architecture.get_dependency_graph": {
       "reads_endpoint": "GET /api/v1/mcp/architecture/dependency-graph",
       "reads_source_files": [
-        "registry/dependency-graph.json"
+        "registry/architecture-book.json",
+        "registry/module-registry.json",
+        "registry/TASK_QUEUE.json"
       ],
       "new_route_required": true,
       "route_implemented": true,
       "implementation": "dna-os-mcp-server/src/tools/architectureDependencyGraph.ts",
-      "integration_tested": true,
-      "status": "active"
+      "integration_tested": false,
+      "status": "blocked_configuration",
+      "data_store": "system schema in canonical Supabase project xeytcavxejhyzxwevgto",
+      "required_scope": "read",
+      "query_parameters": ["q", "node_type", "edge_type", "source_node_key", "target_node_key", "limit", "offset"]
     },
     "runtime.query": {
       "reads_endpoint": "POST /api/v1/query",
