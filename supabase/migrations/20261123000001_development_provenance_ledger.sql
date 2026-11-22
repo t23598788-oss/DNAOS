@@ -129,12 +129,103 @@ alter table system.development_lineages enable row level security;
 alter table system.development_events enable row level security;
 revoke all on system.development_lineages, system.development_events from public, anon, authenticated;
 grant select on system.development_lineages, system.development_events to service_role;
-grant insert on system.development_events to service_role;
 
 comment on table system.development_lineages is
   'Stable DNA IDs for code/system lineages; contains no business or account data.';
 comment on table system.development_events is
   'Append-only development provenance: commit, migration/hash, check, build and deployment references only.';
+
+-- The service role writes through this narrow RPC so the private system schema
+-- does not need to be exposed by Supabase's Data API.
+create or replace function public.record_development_event(
+  p_record_key text,
+  p_event_key text,
+  p_event_type text,
+  p_status text,
+  p_repository text,
+  p_branch text,
+  p_commit_sha text,
+  p_migration_id text,
+  p_sql_sha256 text,
+  p_environment text,
+  p_deployment_id text,
+  p_evidence_sha256 text,
+  p_source text,
+  p_occurred_at timestamptz
+)
+returns table (event_id uuid, sequence_no bigint, created boolean)
+language plpgsql
+security definer
+set search_path = pg_catalog, system
+as $function$
+declare
+  v_lineage_id uuid;
+  v_event_id uuid;
+  v_sequence_no bigint;
+  v_existing system.development_events%rowtype;
+begin
+  if p_record_key is null or length(p_record_key) > 80 then
+    raise exception 'invalid development record key';
+  end if;
+
+  select dna_id into v_lineage_id
+  from system.development_lineages
+  where record_key = p_record_key;
+  if v_lineage_id is null then
+    raise exception 'development lineage is not present';
+  end if;
+
+  insert into system.development_events (
+    lineage_id, event_key, event_type, status, repository, branch,
+    commit_sha, migration_id, sql_sha256, environment, deployment_id,
+    evidence_sha256, source, occurred_at
+  ) values (
+    v_lineage_id, p_event_key, p_event_type, p_status, p_repository, p_branch,
+    p_commit_sha, p_migration_id, p_sql_sha256, p_environment, p_deployment_id,
+    p_evidence_sha256, p_source, p_occurred_at
+  )
+  on conflict (event_key) do nothing
+  returning system.development_events.event_id, system.development_events.sequence_no
+    into v_event_id, v_sequence_no;
+
+  if v_event_id is not null then
+    return query select v_event_id, v_sequence_no, true;
+    return;
+  end if;
+
+  select * into v_existing
+  from system.development_events
+  where event_key = p_event_key;
+  if not found then
+    raise exception 'event key conflict could not be verified';
+  end if;
+
+  if v_existing.lineage_id is distinct from v_lineage_id
+     or v_existing.event_type is distinct from p_event_type
+     or v_existing.status is distinct from p_status
+     or v_existing.repository is distinct from p_repository
+     or v_existing.branch is distinct from p_branch
+     or v_existing.commit_sha is distinct from p_commit_sha
+     or v_existing.migration_id is distinct from p_migration_id
+     or v_existing.sql_sha256 is distinct from p_sql_sha256
+     or v_existing.environment is distinct from p_environment
+     or v_existing.deployment_id is distinct from p_deployment_id
+     or v_existing.evidence_sha256 is distinct from p_evidence_sha256
+     or v_existing.source is distinct from p_source
+     or v_existing.occurred_at is distinct from p_occurred_at then
+    raise exception 'event key was already used for different evidence';
+  end if;
+
+  return query select v_existing.event_id, v_existing.sequence_no, false;
+end;
+$function$;
+
+revoke all on function public.record_development_event(
+  text, text, text, text, text, text, text, text, text, text, text, text, text, timestamptz
+) from public, anon, authenticated;
+grant execute on function public.record_development_event(
+  text, text, text, text, text, text, text, text, text, text, text, text, text, timestamptz
+) to service_role;
 
 -- AI clients can read the bounded technical history through this projection,
 -- but receive no direct table access or write capability. The projection never
@@ -220,7 +311,7 @@ as $function$
         and (r.event_type <> 'live_route_verified' or m.environment = 'production')
     )
   ), applied_migrations as (
-    select distinct migration_id, sql_sha256
+    select distinct migration_id, sql_sha256, environment
     from matching
     where event_type = 'migration_applied' and status = 'passed'
   ), missing_migrations as (
@@ -232,6 +323,7 @@ as $function$
         and m.status = 'passed'
         and m.migration_id = a.migration_id
         and m.sql_sha256 = a.sql_sha256
+        and m.environment is not distinct from a.environment
     )
   ), all_missing as (
     select event_type as evidence from missing_required

@@ -20,6 +20,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
       # Keep the main-branch source reference in the durable development ledger.
       - name: Record main-branch publication provenance
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -34,13 +41,6 @@ jobs:
           DNAOS_COMMIT_SHA: ${{ github.sha }}
           DNAOS_EVENT_SOURCE: github_actions
         run: npx tsx scripts/record-development-event.ts
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm ci
 
       - name: Type check
         run: npx tsc --noEmit

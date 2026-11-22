@@ -72,54 +72,26 @@ async function main(): Promise<void> {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 
-  const { data: lineage, error: lineageError } = await supabase
-    .schema("system")
-    .from("development_lineages")
-    .select("dna_id")
-    .eq("record_key", recordKey)
-    .single();
-  if (lineageError || !lineage) throw new Error("Development lineage is not present in the database");
-
   const event = {
-    lineage_id: lineage.dna_id,
-    event_key: eventKey,
-    event_type: eventType,
-    status,
-    repository,
-    branch,
-    commit_sha: commitSha,
-    migration_id: migrationId,
-    sql_sha256: sqlSha256,
-    environment,
-    deployment_id: deploymentId,
-    evidence_sha256: evidenceSha256,
-    source,
-    occurred_at: new Date(occurredAt).toISOString(),
+    p_record_key: recordKey,
+    p_event_key: eventKey,
+    p_event_type: eventType,
+    p_status: status,
+    p_repository: repository,
+    p_branch: branch,
+    p_commit_sha: commitSha,
+    p_migration_id: migrationId,
+    p_sql_sha256: sqlSha256,
+    p_environment: environment,
+    p_deployment_id: deploymentId,
+    p_evidence_sha256: evidenceSha256,
+    p_source: source,
+    p_occurred_at: new Date(occurredAt).toISOString(),
   };
 
-  const { error: insertError } = await supabase
-    .schema("system")
-    .from("development_events")
-    .insert(event);
-
-  if (insertError?.code === "23505") {
-    const { data: existing, error: existingError } = await supabase
-      .schema("system")
-      .from("development_events")
-      .select("lineage_id,event_type,status,repository,branch,commit_sha,migration_id,sql_sha256,environment,deployment_id,evidence_sha256,source,occurred_at")
-      .eq("event_key", eventKey)
-      .single();
-    if (existingError || !existing) throw new Error("Duplicate event key exists but could not be verified");
-    const matches = Object.entries(event).every(([key, value]) => {
-      const existingValue = existing[key as keyof typeof existing];
-      if (key === "occurred_at" && typeof existingValue === "string") {
-        return new Date(existingValue).toISOString() === value;
-      }
-      return existingValue === value;
-    });
-    if (!matches) throw new Error("Event key was already used for different evidence");
-  } else if (insertError) {
-    throw new Error(`Development event was not recorded (${insertError.code ?? "database error"})`);
+  const { data, error } = await supabase.rpc("record_development_event", event);
+  if (error || !data?.length) {
+    throw new Error(`Development event was not recorded (${error?.code ?? "database error"})`);
   }
 
   console.log(JSON.stringify({ ok: true, record_key: recordKey, event_key: eventKey, event_type: eventType, status }));
