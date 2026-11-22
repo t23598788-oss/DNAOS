@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-22T15:43:26.620Z",
+  "generated_at": "2026-11-22T16:23:23.969Z",
   "version": 1,
   "nodes": [
     {
@@ -97760,6 +97760,30 @@
           "line_end": 18
         }
       ]
+    },
+    {
+      "id": "module:scripts/record-lifecycle-event.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/record-lifecycle-event.ts",
+      "purpose_th": "Append one idempotent, DNA-linked lifecycle event to the internal Supabase ledger.",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
     }
   ],
   "edges": [
@@ -104021,6 +104045,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/receipt-upload-ocr-e2e.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/record-lifecycle-event.ts",
       "label": "contains"
     },
     {
@@ -123785,8 +123814,8 @@
     }
   ],
   "summary": {
-    "total": 1438,
-    "ok": 1438,
+    "total": 1439,
+    "ok": 1439,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

@@ -17436,6 +17436,14 @@
         "effectiveSessionRole"
       ],
       "status": "active"
+    },
+    "scripts/record-lifecycle-event.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Append one idempotent, DNA-linked lifecycle event to the internal Supabase ledger.",
+      "purpose_th": "Append one idempotent, DNA-linked lifecycle event to the internal Supabase ledger.",
+      "exports": [],
+      "status": "active"
     }
   },
   "excluded": [

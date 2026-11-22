@@ -1,0 +1,99 @@
+name: DNA OS Lifecycle Evidence
+
+on:
+  workflow_run:
+    workflows: [DNA OS Governance Gate]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  record-verified-source-build:
+    if: >-
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install the ledger writer
+        run: npm ci
+
+      - name: Record source commit
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DNA_REPOSITORY: ${{ github.repository }}
+          DNA_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          DNA_COMMIT: ${{ github.event.workflow_run.head_sha }}
+          DNA_ACTOR: ${{ github.event.workflow_run.actor.login }}
+          DNA_RUN_ID: ${{ github.event.workflow_run.id }}
+          DNA_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          DNA_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          DNA_CI_OUTCOME: ${{ github.event.workflow_run.conclusion == 'success' && 'pass' || 'fail' }}
+        run: |
+          npx tsx scripts/record-lifecycle-event.ts \
+            --dna-id DNA-CAP-000001 \
+            --event-type source_committed \
+            --event-key "DNA-CAP-000001/github:${DNA_REPOSITORY}:${DNA_COMMIT}:source" \
+            --repository "$DNA_REPOSITORY" \
+            --branch "$DNA_BRANCH" \
+            --commit-sha "$DNA_COMMIT" \
+            --environment development \
+            --outcome pass \
+            --actor-kind automation \
+            --actor-ref "$DNA_ACTOR" \
+            --workflow-run-id "$DNA_RUN_ID/$DNA_RUN_ATTEMPT" \
+            --evidence-ref "$DNA_RUN_URL"
+
+      - name: Record CI verdict and successful build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DNA_REPOSITORY: ${{ github.repository }}
+          DNA_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          DNA_COMMIT: ${{ github.event.workflow_run.head_sha }}
+          DNA_ACTOR: ${{ github.event.workflow_run.actor.login }}
+          DNA_RUN_ID: ${{ github.event.workflow_run.id }}
+          DNA_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          DNA_RUN_URL: ${{ github.event.workflow_run.html_url }}
+          DNA_CI_OUTCOME: ${{ github.event.workflow_run.conclusion == 'success' && 'pass' || 'fail' }}
+        run: |
+          RUN_KEY="${DNA_RUN_ID}:${DNA_RUN_ATTEMPT}"
+          npx tsx scripts/record-lifecycle-event.ts \
+            --dna-id DNA-CAP-000001 \
+            --event-type test_completed \
+            --event-key "DNA-CAP-000001/github:${DNA_REPOSITORY}:${DNA_COMMIT}:${RUN_KEY}:governance" \
+            --predecessor-event-key "DNA-CAP-000001/github:${DNA_REPOSITORY}:${DNA_COMMIT}:source" \
+            --repository "$DNA_REPOSITORY" \
+            --branch "$DNA_BRANCH" \
+            --commit-sha "$DNA_COMMIT" \
+            --environment development \
+            --outcome "$DNA_CI_OUTCOME" \
+            --actor-kind automation \
+            --actor-ref "$DNA_ACTOR" \
+            --workflow-run-id "$DNA_RUN_ID/$DNA_RUN_ATTEMPT" \
+            --evidence-ref "$DNA_RUN_URL"
+          if [ "$DNA_CI_OUTCOME" = "pass" ]; then
+            npx tsx scripts/record-lifecycle-event.ts \
+              --dna-id DNA-CAP-000001 \
+              --event-type build_completed \
+              --event-key "DNA-CAP-000001/github:${DNA_REPOSITORY}:${DNA_COMMIT}:${RUN_KEY}:build" \
+              --predecessor-event-key "DNA-CAP-000001/github:${DNA_REPOSITORY}:${DNA_COMMIT}:${RUN_KEY}:governance" \
+              --repository "$DNA_REPOSITORY" \
+              --branch "$DNA_BRANCH" \
+              --commit-sha "$DNA_COMMIT" \
+              --environment development \
+              --outcome pass \
+              --actor-kind automation \
+              --actor-ref "$DNA_ACTOR" \
+              --workflow-run-id "$DNA_RUN_ID/$DNA_RUN_ATTEMPT" \
+              --evidence-ref "$DNA_RUN_URL"
+          fi
