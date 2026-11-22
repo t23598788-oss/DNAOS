@@ -3253,13 +3253,12 @@
       "purpose": "TASK-001: single source of truth for resolving the authed user + role from the shared Supabase session; defines AppRole and the role tiers read from registry/permissions.json.",
       "purpose_th": "จุดเดียวที่ resolve user + role จริงจาก session — นิยาม AppRole และ role tier จาก registry/permissions.json",
       "exports": [
-        "getAuthedUser",
-        "getAccessToken",
         "ADMIN_TIER",
-        "SUPER_ADMIN_ONLY",
         "ANY_AUTHENTICATED",
-        "AppRole",
-        "AuthedUser"
+        "AuthedUser",
+        "SUPER_ADMIN_ONLY",
+        "getAccessToken",
+        "getAuthedUser"
       ],
       "status": "active"
     },
@@ -17450,6 +17449,25 @@
       ],
       "status": "active",
       "entry_point": true
+    },
+    "scripts/auth-role-binding-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "DNA OS MODULE: Regression checks that elevated roles require an exact Auth user to profile ID match.",
+      "purpose_th": "DNA OS MODULE: Regression checks that elevated roles require an exact Auth user to profile ID match.",
+      "exports": [],
+      "status": "active"
+    },
+    "core/auth/role-binding.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Roles are authoritative only when the verified Supabase Auth subject owns",
+      "purpose_th": "Roles are authoritative only when the verified Supabase Auth subject owns",
+      "exports": [
+        "AppRole",
+        "effectiveSessionRole"
+      ],
+      "status": "active"
     }
   },
   "excluded": [

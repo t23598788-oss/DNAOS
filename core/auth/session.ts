@@ -1,14 +1,9 @@
 import { getServerSupabaseClient } from "@/gateway/auth";
 import permissions from "@/registry/permissions.json";
 import { resolveIdentityContext, type ProfileLookup, type LinkedIdentity } from "@/core/identity/identity";
+import { effectiveSessionRole, type AppRole } from "@/core/auth/role-binding";
 
-export type AppRole =
-  | "super_admin"
-  | "admin"
-  | "employee"
-  | "partner"
-  | "customer"
-  | "ai_service";
+export type { AppRole } from "@/core/auth/role-binding";
 
 export interface AuthedUser {
   id: string;
@@ -87,7 +82,7 @@ export async function getAuthedUser(): Promise<AuthedUser | null> {
   return {
     id: user.id,
     email: user.email ?? "",
-    role: ctx.canonical.role as AppRole,
+    role: effectiveSessionRole(ctx.canonical) ?? "customer",
     identities: ctx.identities,
     canonicalProfileId: ctx.canonical.profileId,
     resolvedBy: ctx.canonical.resolvedBy,
