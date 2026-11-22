@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase, getPartners } from "@/services/supabase/queries"
 import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
@@ -12,7 +12,7 @@ import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-s
 // of the thing that determines whether the relationship even appears.
 
 export async function GET() {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const ctx = await resolveAdminReadScope(auth)
@@ -110,23 +110,12 @@ export async function GET() {
   // company_line_links row is created automatically here — only the
   // read/display side changes; matching remains a deliberate human action
   // (see POST .../match).
-  // A contact with no company is unattributed data: platform-only.
-  const unmatchedContacts = (ctx.companyIds === null ? Array.from(activityByLineUserId.values()) : [])
-    .filter((a) => !companyIdByLineUserId.has(a.line_user_id))
-    .map((a) => ({
-      relationship_id: a.line_user_id,
-      name: a.line_name ?? `LINE ${a.line_user_id.slice(0, 10)}…`,
-      tax_id: null,
-      phone: null,
-      line_user_ids: [a.line_user_id],
-      line_picture: a.line_picture,
-      message_count: a.message_count,
-      last_message_at: a.last_message_at,
-      last_message: a.last_message,
-      debt: null,
-      has_pending_draft: pendingLineUserIds.has(a.line_user_id),
-      unmatched: true,
-    }))
+  // Contacts without a verified company link have no organization scope.
+  const unmatchedContacts: Array<{
+    relationship_id: string; name: string; tax_id: null; phone: null; line_user_ids: string[];
+    line_picture: string | null; message_count: number; last_message_at: string | null;
+    last_message: string | null; debt: null; has_pending_draft: boolean; unmatched: true;
+  }> = []
 
   const relationships = companies.map((c) => {
     const lineUserIds = lineUserIdsByCompany.get(c.id) ?? []

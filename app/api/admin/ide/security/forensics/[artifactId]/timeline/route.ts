@@ -2,11 +2,11 @@
  * GET /api/admin/ide/security/forensics/[artifactId]/timeline — real,
  * read-only Digital Forensics timeline over the real Artifact lineage
  * (owner, 2026-08-08, Software Factory Step 13.25, Section 9).
- * SUPER_ADMIN_ONLY (real Owner tier).
+ * DISABLED_ROLE_TIER (real Owner tier).
  */
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/core/auth/requireAuth";
-import { SUPER_ADMIN_ONLY } from "@/core/auth/session";
+import { DISABLED_ROLE_TIER } from "@/core/auth/session";
 import { buildForensicTimeline } from "../../../../_lib/digitalForensicsRuntime";
 import { ArtifactError } from "../../../../_lib/artifactRuntime";
 
@@ -15,7 +15,7 @@ function errorResponse(code: string, message: string, status: number) {
 }
 
 export async function GET(_req: Request, ctx: { params: Promise<{ artifactId: string }> }) {
-  const auth = await requireAuth(SUPER_ADMIN_ONLY);
+  const auth = await requireAuth(DISABLED_ROLE_TIER);
   if (auth instanceof NextResponse) return auth;
   const { artifactId } = await ctx.params;
   try {

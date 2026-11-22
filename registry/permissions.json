@@ -4,19 +4,14 @@
   "note": "Single source of truth for role → access. core/auth/requireAuth.ts and core/auth/requireAuthPage.ts both read role_tiers from this file — no route file may hardcode its own role list. Any AI/human adding a new protected route registers it here, not inline in the route.",
   "roles": [
     {
-      "id": "super_admin",
-      "th": "ผู้ดูแลระบบสูงสุด",
-      "note": "ทุกสิทธิ์ รวมถึงจัดการ role ของคนอื่น (/api/admin/users) และ backup ทั้งระบบ"
-    },
-    {
       "id": "admin",
       "th": "ผู้ดูแลระบบ",
-      "note": "จัดการข้อมูลธุรกิจได้ทั้งหมด ยกเว้นสิ่งที่ล็อกไว้เฉพาะ super_admin"
+      "note": "โปรไฟล์ role นี้ไม่ให้สิทธิ์ระดับระบบหรือข้ามองค์กร การจัดการธุรกิจต้องมี org_members.role เป็น owner/admin และตรวจขอบเขตองค์กร/ทรัพยากรทุกครั้ง"
     },
     {
       "id": "employee",
       "th": "พนักงาน",
-      "note": "ใช้งาน Admin Panel ระดับปฏิบัติการ (เอกสาร/ธุรกรรม/หนี้) แต่ไม่จัดการ role หรือ backup"
+      "note": "Role label only; no cross-organization or developer-history access is granted by this profile role."
     },
     {
       "id": "partner",
@@ -26,7 +21,7 @@
     {
       "id": "customer",
       "th": "ลูกค้า",
-      "note": "เห็นเฉพาะ User Portal ของตัวเอง — role เริ่มต้นของทุก signup ใหม่ (ยกเว้นคนแรกสุดของระบบ)"
+      "note": "เห็นเฉพาะ User Portal ของตัวเอง — role เริ่มต้นของผู้สมัครทุกคน"
     },
     {
       "id": "ai_service",
@@ -35,30 +30,19 @@
     }
   ],
   "role_tiers": {
-    "admin_tier": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "super_admin_only": [
-      "super_admin"
-    ],
+    "admin_tier": [],
     "any_authenticated": [
-      "super_admin",
       "admin",
       "employee",
       "partner",
       "customer"
-    ]
+    ],
+    "disabled_role_tier": []
   },
   "route_access": [
     {
       "prefix": "/admin",
-      "roles": [
-        "super_admin",
-        "admin",
-        "employee"
-      ],
+      "roles": [],
       "except": [
         "/admin/login"
       ]
@@ -66,7 +50,6 @@
     {
       "prefix": "/business",
       "roles": [
-        "super_admin",
         "admin",
         "employee",
         "partner"
@@ -75,7 +58,6 @@
     {
       "prefix": "/partner",
       "roles": [
-        "super_admin",
         "admin",
         "partner"
       ]
@@ -83,7 +65,6 @@
     {
       "prefix": "/user",
       "roles": [
-        "super_admin",
         "admin",
         "customer"
       ]
@@ -93,47 +74,37 @@
     {
       "prefix": "/api/admin/workspace",
       "roles": [
-        "super_admin",
         "admin",
         "employee"
       ],
-      "reason": "lock/dependency/plan-create/list are admin-tier; approve_migration_plan and execute_migration are enforced super_admin-only inside the route itself (COMMAND_ROLES map), same pattern as storage-intelligence's move_safe_to_trash."
+      "reason": "Migration approval and execution are disabled until a resource-owner authorization flow is implemented."
     },
     {
       "prefix": "/api/admin/storage-intelligence",
       "roles": [
-        "super_admin",
         "admin",
         "employee"
       ],
-      "reason": "scan/classify/report/inspect_docker/verify_supabase/check_threshold are admin-tier; move_safe_to_trash is enforced super_admin-only inside the route itself (COMMAND_ROLES map), same pattern as /api/admin/users being tighter than the general /api/admin prefix below."
+      "reason": "Tenant data remains organization-scoped; destructive platform cleanup is disabled."
     },
     {
       "prefix": "/api/admin/backup",
-      "roles": [
-        "super_admin"
-      ],
-      "reason": "full unauthenticated table dump if ever exposed again — kept to the tightest tier"
+      "roles": [],
+      "reason": "Platform-wide data export is disabled."
     },
     {
       "prefix": "/api/admin/users",
-      "roles": [
-        "super_admin"
-      ],
-      "reason": "role assignment — must not be self-service by admin/employee"
+      "roles": [],
+      "reason": "Platform-wide user listing and profile-role mutation are disabled; membership management must be organization-scoped."
     },
     {
       "prefix": "/api/admin",
-      "roles": [
-        "super_admin",
-        "admin",
-        "employee"
-      ]
+      "roles": [],
+      "reason": "Unscoped platform-wide admin access is disabled; business endpoints must authorize from verified owner/admin organization membership and exact company scope."
     },
     {
       "prefix": "/api/document",
       "roles": [
-        "super_admin",
         "admin",
         "employee"
       ]
@@ -141,7 +112,6 @@
     {
       "prefix": "/api/action",
       "roles": [
-        "super_admin",
         "admin",
         "employee"
       ]
@@ -149,7 +119,6 @@
     {
       "prefix": "/api/explain",
       "roles": [
-        "super_admin",
         "admin",
         "employee",
         "partner",
@@ -165,78 +134,26 @@
     }
   ],
   "capability_access": {
-    "documents": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "search": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "chat": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "connections": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "changes": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "problems": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "history": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "accounting": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "finance": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "jobs": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "people": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "vehicles": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "materials": [
-      "super_admin",
-      "admin",
-      "employee"
-    ],
-    "transfer": [
-      "super_admin",
-      "admin",
-      "employee"
-    ]
+    "documents": [],
+    "search": [],
+    "chat": [],
+    "connections": [],
+    "changes": [],
+    "problems": [],
+    "history": [],
+    "accounting": [],
+    "finance": [],
+    "jobs": [],
+    "people": [],
+    "vehicles": [],
+    "materials": [],
+    "transfer": []
   },
-  "capability_access_note": "Authority for each BUSINESS TOOL in the Application Workspace (/workspace). Read only by core/navigation/resolveCapabilityAccess.ts — no component may hardcode a role list (same rule as route_access/api_access above). DEFAULT IS DENY: a tool key that is not listed here is not shown. Every role set below mirrors the authority of the existing plane the tool's data/actions already come from, verified from source, not invented: /api/admin/* + /api/document + /api/chat all call requireAuth(ADMIN_TIER) and registry route_access '/admin' is the same three roles — so all 14 declared tools are admin-tier today. When a tool genuinely gains a wider plane (e.g. a partner-visible screen), update THIS registry, never the component. Roles here are a filter on presentation only; the server routes keep their own requireAuth() check — this registry never replaces an API guard.",  "public_routes": ["/", "/login", "/register",
+  "capability_access_note": "Presentation only. Current admin/employee profile roles do not carry organization ownership; capabilities stay hidden until the UI and APIs both resolve verified owner/admin membership and exact company scope.",
+  "public_routes": [
+    "/",
+    "/login",
+    "/register",
     "/products",
     "/products/catalog",
     "/solutions",
@@ -251,16 +168,16 @@
     "/install"
   ],
   "workspace_landing": {
-    "note": "Single source of truth for role -> post-login destination. Read only by core/auth/resolveDestination.ts — no route file may hardcode its own landing map (same rule as route_access above). super_admin/admin/employee land directly on /admin/relationships (Navigation redesign, owner, 2026-07-16: Relationship Workspace is the system Home), not /admin, so the login flow itself never passes through app/admin/page.tsx's own redirect.",
-    "super_admin": "/admin/relationships",
-    "admin": "/admin/relationships",
-    "employee": "/admin/relationships",
+    "note": "Landing is a safe authenticated shell. Organization tools remain hidden until server-side owner/admin membership and resource scope are verified; profile role alone is not authority.",
+    "admin": "/workspace",
+    "employee": "/workspace",
     "partner": "/partner",
     "customer": "/user"
   },
   "history": {
     "2026-07-08": "Created for TASK-001 (Plan Lock 1/3). Replaces the old admin_session presence-only cookie check with real Supabase Auth + role checks, and formalizes the Role/Permission Registry required by TASK-001's Definition of Done.",
     "2026-07-14": "Added workspace_landing (Enterprise Workspace Architecture, Phase 1) — role-to-destination is now data here, not code in app/login/page.tsx's old ROLE_HOME. /business intentionally has no entry: no role lands there today (see the Phase-1 architecture proposal's orphaned-workspace finding) and this phase does not invent one.",
-    "2026-09-23": "Added capability_access + capability_access_note (SLICE-1 of the locked Full System Upgrade Line, owner decision D1=A): the NEW Business Workspace (/workspace) now derives which business tools a role may see from this registry through core/navigation/resolveCapabilityAccess.ts instead of showing every tool to every authenticated user. Presentation filter only — no role moved, no route_access/api_access entry changed, and every server route keeps its own requireAuth() guard."
+    "2026-09-23": "Added capability_access + capability_access_note (SLICE-1 of the locked Full System Upgrade Line, owner decision D1=A): the NEW Business Workspace (/workspace) now derives which business tools a role may see from this registry through core/navigation/resolveCapabilityAccess.ts instead of showing every tool to every authenticated user. Presentation filter only — no role moved, no route_access/api_access entry changed, and every server route keeps its own requireAuth() guard.",
+    "2026-11-22": "Removed the platform-wide user role and global admin tier from current source permissions. Historical migrations, commits and evidence remain unchanged. Business user listing, global profile-role mutation and full backup routes are disabled; scope-aware APIs require verified owner/admin membership and exact company IDs. Database migration 20261122000011 disables legacy global history/subscription readers but remains unapplied pending an authorized database connection."
   }
 }

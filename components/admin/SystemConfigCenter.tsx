@@ -279,7 +279,6 @@ export default function SystemConfigCenter() {
           <div className="max-w-xl">
             <h2 className="text-sm font-semibold text-stone-800 mb-3">Security & Users</h2>
             <div className="bg-white border border-stone-200 rounded-xl px-4">
-              <Row label="Users & Roles" sub="role assignment (super_admin เท่านั้น)" right={<a href="/admin/users" className="text-[11px] px-2.5 py-1 rounded border border-stone-200 hover:bg-stone-50">เปิด</a>} />
             </div>
           </div>
         )}

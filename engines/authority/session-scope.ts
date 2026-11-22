@@ -11,15 +11,10 @@
 import type { AuthedUser } from "@/core/auth/session";
 import {
   NO_DATA_SCOPE,
-  platformDataScope,
   resolveDataScope,
   type DataScope,
 } from "@/core/authority/data-scope";
 import { loadAuthorityContext, loadOrganizationMembership } from "./load";
-
-function isPlatformRole(role: string | null | undefined): boolean {
-  return role === "super_admin";
-}
 
 export async function resolveSessionDataScope(user: AuthedUser): Promise<DataScope> {
   const profileId = user.canonicalProfileId ?? user.id;
@@ -47,9 +42,6 @@ export async function resolveTokenDataScope(
   profile: { id: string; role: string | null } | null,
 ): Promise<DataScope> {
   if (!profile?.id) return NO_DATA_SCOPE;
-  if (isPlatformRole(profile.role)) {
-    return platformDataScope({ profileId: profile.id, role: profile.role, reason: "TOKEN_PLATFORM_SUPER_ADMIN" });
-  }
   const membership = await loadOrganizationMembership(profile.id);
   if (membership.error) return NO_DATA_SCOPE;
   return resolveDataScope({
@@ -61,10 +53,9 @@ export async function resolveTokenDataScope(
 }
 
 /**
- * Owner-only internal bridges (LINE remote control / OpenClaw) are secret-gated
- * server-to-server calls made by the platform owner's own channels. They are
- * the ONE explicit platform scope, recorded with a distinct reason.
+ * Legacy owner bridges no longer receive platform-wide data scope. Without a
+ * verified organization membership, they receive no business-data scope.
  */
 export function ownerBridgeDataScope(): DataScope {
-  return platformDataScope({ reason: "OWNER_INTERNAL_BRIDGE" });
+  return NO_DATA_SCOPE;
 }

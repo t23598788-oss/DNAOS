@@ -365,7 +365,7 @@ check("4 Withdrawn → DENY", toPublicItem(record({ status: "withdrawn" }), fact
     source_record_id: "3c9f332b-cede-4ec5-8a2a-34e579a9907b",
     pit_profile_id: "36e4b0c9-611d-49db-aacb-852ac18d5d0f",
   }
-  const admin = { userId: "uid-admin", email: "owner@example.test", role: "super_admin" as const }
+  const admin = { userId: "uid-admin", email: "owner@example.test", role: "admin" as const }
   const partner = { userId: "uid-pit", email: "pit@example.test", role: "partner" as const }
 
   const linked = witnessForPitMaterial({
@@ -381,9 +381,9 @@ check("4 Withdrawn → DENY", toPublicItem(record({ status: "withdrawn" }), fact
   const ownerless = witnessWithoutOwner("equipment_assets", "33333333-3333-3333-3333-333333333333")
 
   check("15 owner key derived from pit_profile_id", linked.owner_key === pitOwnerKey(REAL.pit_profile_id))
-  check("15 admin writer allowed", resolveWriter(admin, linked).allowed && resolveWriter(admin, linked).writer === "publication.admin")
+  check("15 admin role alone cannot publish", resolveWriter(admin, linked).reason === "ROLE_NOT_ENTITLED")
   check("15 no session → NO_IDENTITY", resolveWriter(null, linked).reason === "NO_IDENTITY")
-  check("15 admin can publish a platform-only (ownerless) resource", resolveWriter(admin, ownerless).reason === "ALLOWED_PLATFORM")
+  check("15 admin role cannot publish an ownerless resource", resolveWriter(admin, ownerless).reason === "ROLE_NOT_ENTITLED")
   check("15 admin owner key not invented for ownerless table", ownerless.owner_key === null)
   check("15 other partner is NOT the owner", resolveWriter({ ...partner, userId: "uid-other" }, linked).reason === "NOT_THE_OWNER")
   check("15 pit without user_id → OWNER_IDENTITY_NOT_LINKED", resolveWriter(partner, unlinked).reason === "OWNER_IDENTITY_NOT_LINKED")
@@ -391,7 +391,7 @@ check("4 Withdrawn → DENY", toPublicItem(record({ status: "withdrawn" }), fact
   check("15 employee with non-publishing role pair is role-gated", resolveWriter({ userId: "x", email: "x@x", role: "ai_service" }, linked).reason === "ROLE_NOT_ENTITLED")
 
   const owner = resolveWriter(partner, linked)
-  check("15 real owner is NOT yet allowed (no operator writer exists)", owner.allowed === false && owner.reason === "OPERATOR_WRITER_NOT_IMPLEMENTED")
+  check("15 verified owner can publish only their own linked resource", owner.allowed === true && owner.writer === "publication.operator")
 
   check("15 publicationOwnerAccepted agrees with the gate", publicationOwnerAccepted({ organization_owner: pitOwnerKey(REAL.pit_profile_id) }, linked) === true)
   check("15 publicationOwnerAccepted rejects a mismatch", publicationOwnerAccepted({ organization_owner: pitOwnerKey("other") }, linked) === false)
@@ -430,7 +430,7 @@ check("4 Withdrawn → DENY", toPublicItem(record({ status: "withdrawn" }), fact
   check("16 price writer delegates to the one price authority", /applyMaterialPrice\(/.test(priceWriter) && !/from\("pit_materials"\)\.(update|upsert)/.test(priceWriter))
   check("16 price writer records evidence in EXISTING audit_logs", /apply_material_price_atomic/.test(priceEngine) && /insert into public\.audit_logs/.test(priceMigration))
   check("16 price writer keeps old and new price", /old_value/.test(priceMigration) && /new_value/.test(priceMigration))
-  check("16 price writer still uses the one admin auth guard", /requireAuth\(ADMIN_TIER\)/.test(priceWriter))
+  check("16 price writer authenticates before source-owner authorization", /requireAuth\(ANY_AUTHENTICATED\)/.test(priceWriter))
 
   const pubWriter = readFileSync(new URL("../app/api/admin/publications/route.ts", import.meta.url), "utf8")
   check("16 publication writer invalidates the reader", /invalidatePublicCatalog\(\)/.test(pubWriter))

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { getTransactionMoneySummaries } from "@/services/canonical/transaction-list"
 import { createTransaction } from "@/engines/canonical/transaction-write"
 import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 export async function GET(req: NextRequest) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const ctx = await resolveAdminReadScope(auth)
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const ctx = await resolveAdminReadScope(auth)

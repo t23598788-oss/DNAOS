@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
@@ -11,7 +11,7 @@ type Params = { params: Promise<{ lineUserId: string }> }
 // this customer" summary the owner asked for. Read-only.
 
 export async function GET(_req: Request, { params }: Params) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const { lineUserId } = await params
@@ -24,14 +24,12 @@ export async function GET(_req: Request, { params }: Params) {
 
   // Scope is decided by the explicit link, before any message is read: a
   // contact linked to another organization's company must look non-existent.
-  if (ctx.companyIds !== null) {
-    const { data: scopeLink } = await db
-      .from("company_line_links")
-      .select("company_id")
-      .eq("line_user_id", lineUserId)
-      .maybeSingle()
-    if (!isCompanyVisible(ctx, scopeLink?.company_id)) return notFound()
-  }
+  const { data: scopeLink } = await db
+    .from("company_line_links")
+    .select("company_id")
+    .eq("line_user_id", lineUserId)
+    .maybeSingle()
+  if (!isCompanyVisible(ctx, scopeLink?.company_id)) return notFound()
 
   const { data: rawMessages, error } = await db
     .from("line_events")

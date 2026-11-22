@@ -7,12 +7,12 @@
 
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 export async function GET() {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   try {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase, getTransactionById } from "@/services/supabase/queries"
 import { getTransactionDetail } from "@/services/canonical/transaction-detail"
 import { changeTransactionStatus } from "@/engines/canonical/transaction-write"
@@ -13,7 +13,7 @@ type Params = { params: Promise<{ id: string }> }
 // is required, but money/project/company values now come from the canonical views
 // instead of null. The full canonical payload is attached as `canonical`.
 export async function GET(_req: NextRequest, { params }: Params) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params
@@ -23,14 +23,12 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const ctx = await resolveAdminReadScope(auth)
   const denied = denyUnscoped(ctx)
   if (denied) return denied
-  if (ctx.companyIds !== null) {
-    const { data: owner } = await supabase()
-      .from("customer_orders")
-      .select("customer_company_id")
-      .eq("id", id)
-      .maybeSingle()
-    if (!isCompanyVisible(ctx, owner?.customer_company_id)) return notFound()
-  }
+  const { data: owner } = await supabase()
+    .from("customer_orders")
+    .select("customer_company_id")
+    .eq("id", id)
+    .maybeSingle()
+  if (!isCompanyVisible(ctx, owner?.customer_company_id)) return notFound()
 
   try {
     const [legacy, canonical] = await Promise.all([getTransactionById(id), getTransactionDetail(id)])
@@ -76,7 +74,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 // D1 scope: PATCH นี้ไม่แตะ status อยู่แล้ว (non-status fields คง behavior เดิม
 // ตรง — ห้ามย้ายเข้า canonical เพราะไม่ใช่ status writer)
 export async function PATCH(req: NextRequest, { params }: Params) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params
@@ -105,7 +103,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 // audit ครั้งเดียวต่อ request) · response contract เดิม = { ok: true } ·
 // negative control: scripts/transaction-status-authority.test.ts
 export async function DELETE(_req: NextRequest, { params }: Params) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params

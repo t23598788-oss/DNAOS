@@ -9,7 +9,7 @@ for (const role of adminTier) {
   assert.equal(effectiveSessionRole({ role, resolvedBy: "id" }), role);
 }
 
-for (const role of ["super_admin", "admin", "employee"] as const) {
+for (const role of ["admin", "employee"] as const) {
   assert.equal(effectiveSessionRole({ role, resolvedBy: "email" }), "customer");
 }
 

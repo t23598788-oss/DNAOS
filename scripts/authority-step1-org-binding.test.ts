@@ -128,6 +128,14 @@ const verifiedA = {
       "A1 verified account with one membership ⇒ exactly that organization",
       JSON.stringify(membership),
     );
+    const ordinaryMember = await loadOrganizationMembership(ACCOUNT_B, dbWith({
+      org_members: [{ organization_id: ORG_B, user_id: ACCOUNT_B, role: "member" }],
+    }));
+    expect(
+      ordinaryMember.error === null && ordinaryMember.organizations.length === 0,
+      "A1b ordinary organization membership alone does not grant owner/admin business scope",
+      JSON.stringify(ordinaryMember),
+    );
 
     const empty = await loadOrganizationMembership(ACCOUNT_B, dbWith(liveOrgSchema()));
     expect(empty.error === null && empty.organizations.length === 0, "A2 account with no membership ⇒ zero organizations");
@@ -264,23 +272,23 @@ const verifiedA = {
       JSON.stringify(revoked.organizationScope),
     );
 
-    const superAdminNoOrg = await loadAuthorityContext(
-      { profileId: ACCOUNT_B, role: "super_admin", sessionAccountId: ACCOUNT_B, resolvedBy: "id", emailConfirmed: true },
+    const administratorNoOrg = await loadAuthorityContext(
+      { profileId: ACCOUNT_B, role: "admin", sessionAccountId: ACCOUNT_B, resolvedBy: "id", emailConfirmed: true },
       dbWith(afterRevoke),
     );
-    expect((superAdminNoOrg.actor.organizationIds ?? []).length === 0, "D2 super_admin without membership gets no organization scope");
+    expect((administratorNoOrg.actor.organizationIds ?? []).length === 0, "D2 administrator without membership gets no organization scope");
 
     const crossOrg = resolveAuthority({
-      actor: superAdminNoOrg.actor,
+      actor: administratorNoOrg.actor,
       action: "price.write",
       resource: { kind: "site", id: "site-a", organizationId: ORG_A },
-      grants: superAdminNoOrg.grants,
+      grants: administratorNoOrg.grants,
       at: "2026-10-25T00:00:00.000Z",
     });
     expect(!crossOrg.allowed && crossOrg.reason === "ROLE_IS_NOT_AUTHORITY", "D3 role name never authorises a resource (resolver unchanged)", crossOrg.reason);
 
     const ownResource = resolveAuthority({
-      actor: superAdminNoOrg.actor,
+      actor: administratorNoOrg.actor,
       action: "price.write",
       resource: { kind: "pit", id: "pit-1", ownerProfileId: ACCOUNT_B },
       grants: [],

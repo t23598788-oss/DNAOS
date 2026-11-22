@@ -9,22 +9,18 @@
  * caller's entitlement, while legitimate business commands must keep working.
  *
  * Rules (fail-closed):
- *   S1  `super_admin` is a PLATFORM operator scope (all records), because the
- *       platform must be able to operate unattributed data (86 companies have
- *       organization_id = NULL today). It is evidence, not ownership.
- *   S2  Every other role gets ORGANIZATION scope from `org_members` only. No
+ *   S1  Every role gets ORGANIZATION scope from `org_members` only. No
  *       organization membership ⇒ mode "none" ⇒ scoped reads are DENIED.
- *   S3  A caller cannot widen scope by supplying an organization id. Scope is
+ *   S2  A caller cannot widen scope by supplying an organization id. Scope is
  *       built from the verified session/token actor only (never from input).
- *   S4  `mode: "none"` never means "no filter" — it means "no read".
- *   S5  Records with `organization_id = NULL` are visible only to PLATFORM
- *       scope. An organization scope can never claim them implicitly.
+ *   S3  `mode: "none"` never means "no filter" — it means "no read".
+ *   S4  Records with `organization_id = NULL` are not visible to business users.
  *
  * Pure module: no I/O, no database, no environment.
  */
 import type { AppRole } from "@/core/auth/session";
 
-export type DataScopeMode = "platform" | "organization" | "none";
+export type DataScopeMode = "organization" | "none";
 
 export interface DataScope {
   mode: DataScopeMode;
@@ -45,21 +41,9 @@ export const NO_DATA_SCOPE: DataScope = Object.freeze({
   reason: "NO_VERIFIED_ACTOR",
 });
 
-export const PLATFORM_ROLES: readonly string[] = ["super_admin"];
-
-export function platformDataScope(input: {
-  profileId?: string | null;
-  role?: string | null;
-  reason?: string;
-} = {}): DataScope {
-  return {
-    mode: "platform",
-    profileId: input.profileId ?? null,
-    role: input.role ?? "super_admin",
-    organizationIds: [],
-    reason: input.reason ?? "PLATFORM_SUPER_ADMIN",
-  };
-}
+// Kept as an empty compatibility export for pure authorization consumers.
+// No user role grants platform-wide data scope.
+export const PLATFORM_ROLES: readonly string[] = Object.freeze([]);
 
 export function organizationDataScope(input: {
   profileId: string;
@@ -89,9 +73,6 @@ export function resolveDataScope(input: {
   reason?: string;
 }): DataScope {
   const role = typeof input.role === "string" && input.role.trim() ? input.role.trim() : null;
-  if (role && PLATFORM_ROLES.includes(role)) {
-    return platformDataScope({ profileId: input.profileId ?? null, role, reason: input.reason });
-  }
   const organizationIds = (input.organizationIds ?? []).filter(
     (id): id is string => typeof id === "string" && id.trim().length > 0,
   );
@@ -107,19 +88,17 @@ export function resolveDataScope(input: {
 /** True only when this scope may read tenant-scoped business records. */
 export function scopeCanReadTenantData(scope: DataScope | null | undefined): boolean {
   if (!scope) return false;
-  if (scope.mode === "platform") return true;
   return scope.mode === "organization" && scope.organizationIds.length > 0;
 }
 
-/** A resource's organization is readable iff the scope is platform or matches. */
+/** A resource's organization is readable iff it matches an explicit membership. */
 export function scopeCoversOrganization(
   scope: DataScope | null | undefined,
   organizationId: string | null | undefined,
 ): boolean {
   if (!scope) return false;
-  if (scope.mode === "platform") return true;
   if (scope.mode !== "organization") return false;
-  if (!organizationId) return false; // S5 — NULL is platform-only
+  if (!organizationId) return false;
   return scope.organizationIds.includes(organizationId);
 }
 

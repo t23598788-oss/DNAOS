@@ -157,7 +157,7 @@ export function resolveAuthority(input: ResolveAuthorityInput): AuthorityDecisio
   }
 
   // R1 — a system role is never a substitute for ownership/delegation.
-  if (actor.role === "super_admin" || actor.role === "admin") {
+  if (actor.role === "admin") {
     return deny("ROLE_IS_NOT_AUTHORITY");
   }
 

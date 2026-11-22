@@ -2,11 +2,11 @@
  * Storage Intelligence — Command Gateway. The single HTTP entry point for all
  * 7 storage.* commands; the UI (app/admin/storage/page.tsx) never touches the
  * filesystem or engine directly, only this route. Every command runs through
- * requireAuth first — move_safe_to_trash is locked to super_admin, the rest
+ * requireAuth first — move_safe_to_trash is disabled pending an organization-scoped approval path, the rest
  * to the admin tier. Every mutating command defaults to dry-run.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth, ADMIN_TIER, SUPER_ADMIN_ONLY } from "@/core/auth";
+import { requireAuth, ADMIN_TIER, DISABLED_ROLE_TIER } from "@/core/auth";
 import { supabaseAdmin } from "@/services/supabase/queries";
 import {
   scanStorage,
@@ -25,7 +25,7 @@ const COMMAND_ROLES: Record<string, string[]> = {
   inspect_docker: ADMIN_TIER,
   verify_supabase: ADMIN_TIER,
   check_threshold: ADMIN_TIER,
-  move_safe_to_trash: SUPER_ADMIN_ONLY,
+  move_safe_to_trash: DISABLED_ROLE_TIER,
 };
 
 export async function POST(req: NextRequest) {

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { resolvePresentationTemplate } from "@/engines/presentation/template-resolver"
 import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
@@ -17,7 +17,7 @@ type Params = { params: Promise<{ relationshipId: string }> }
 // direction and the "may have zero LINE threads" case are new.
 
 export async function GET(_req: Request, { params }: Params) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const { relationshipId } = await params

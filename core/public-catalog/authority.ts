@@ -35,9 +35,9 @@ import {
   type SourceTable,
 } from "./policy"
 
-export type OperatorRole = "super_admin" | "admin" | "employee" | "partner" | "customer" | "ai_service"
+export type OperatorRole = "admin" | "employee" | "partner" | "customer" | "ai_service"
 
-export const ADMIN_TIER_ROLES: OperatorRole[] = ["super_admin", "admin", "employee"]
+export const ADMIN_TIER_ROLES: OperatorRole[] = []
 
 /** The real account behind a request (core/auth/session.AuthedUser, narrowed). */
 export interface VerifiedIdentity {
@@ -68,7 +68,7 @@ export const RESOURCE_OWNERSHIP: Record<SourceTable, OwnershipRule> = {
     owner_key_rule: null,
     owner_column: null,
     identity_column: null,
-    note: "material_types เป็นข้อมูลกลาง ไม่มีคอลัมน์เจ้าของ — เผยแพร่ได้เฉพาะในนาม platform",
+    note: "material_types เป็นข้อมูลกลาง ไม่มีคอลัมน์เจ้าของ — ปฏิเสธการเผยแพร่จากบัญชีธุรกิจ",
   },
   vehicle_types: {
     owner_key_rule: null,
@@ -80,7 +80,7 @@ export const RESOURCE_OWNERSHIP: Record<SourceTable, OwnershipRule> = {
     owner_key_rule: null,
     owner_column: null,
     identity_column: null,
-    note: "equipment_assets ไม่มีคอลัมน์เจ้าของ (มีเฉพาะ sim_number/imei/box_password ที่เป็นความลับ) — เผยแพร่ได้เฉพาะในนาม platform",
+    note: "equipment_assets ไม่มีคอลัมน์เจ้าของ (มีเฉพาะ sim_number/imei/box_password ที่เป็นความลับ) — ปฏิเสธการเผยแพร่จากบัญชีธุรกิจ",
   },
 }
 
@@ -162,19 +162,16 @@ export type WriterDenial =
 export interface WriterDecision {
   allowed: boolean
   /** the canonical writer this identity may call, or null when denied */
-  writer: "publication.admin" | "publication.operator" | null
-  reason: "ALLOWED_PLATFORM" | "ALLOWED_OWNER" | WriterDenial
+  writer: "publication.operator" | null
+  reason: "ALLOWED_OWNER" | WriterDenial
   detail: string
 }
 
 /**
  * Which writer is this identity entitled to use for this resource?
  *
- * `publication.admin` is the existing platform writer (ADMIN_TIER, see
- * app/api/admin/publications/route.ts). `publication.operator` is deliberately
- * NOT implemented yet: production contains no verified operator identity
- * (0 of 15 pit_profiles.user_id values resolve to an auth.users row), so an
- * operator writer would be a route nobody can legitimately call.
+ * There is no platform writer. Publishing requires a verified identity that
+ * matches the source record owner; unowned source tables are denied.
  */
 export function resolveWriter(
   identity: VerifiedIdentity | null,
@@ -182,18 +179,6 @@ export function resolveWriter(
 ): WriterDecision {
   if (!identity) {
     return { allowed: false, writer: null, reason: "NO_IDENTITY", detail: "ไม่มี session ที่ตรวจสอบได้" }
-  }
-
-  if (ADMIN_TIER_ROLES.includes(identity.role)) {
-    return {
-      allowed: true,
-      writer: "publication.admin",
-      reason: "ALLOWED_PLATFORM",
-      detail:
-        witness.owner_key === null
-          ? "ตารางต้นทางไม่มีคอลัมน์เจ้าของ — ผู้ดูแลระบบเผยแพร่ในนาม platform"
-          : `ผู้ดูแลระบบเผยแพร่แทนเจ้าของ ${witness.owner_key} ได้`,
-    }
   }
 
   if (!["partner", "customer"].includes(identity.role)) {
@@ -233,11 +218,10 @@ export function resolveWriter(
   }
 
   return {
-    allowed: false,
-    writer: null,
-    reason: "OPERATOR_WRITER_NOT_IMPLEMENTED",
-    detail:
-      "เป็นเจ้าของจริง แต่ยังไม่มี writer สำหรับผู้ประกอบการ (ต้องมี route ที่ตรวจ session→เจ้าของก่อน) — ใช้ writer ของผู้ดูแลระบบจนกว่าจะสร้าง",
+    allowed: true,
+    writer: "publication.operator",
+    reason: "ALLOWED_OWNER",
+    detail: "ยืนยันตัวตนตรงกับเจ้าของต้นทางแล้ว",
   }
 }
 

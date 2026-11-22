@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import {
   type DocumentDraftInput,
@@ -132,7 +132,7 @@ async function loadDocumentHistory(id: string) {
 }
 
 export async function GET(_req: NextRequest, { params }: Params) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params
@@ -145,10 +145,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const ctx = await resolveAdminReadScope(auth)
   const denied = denyUnscoped(ctx)
   if (denied) return denied
-  if (ctx.companyIds !== null) {
-    const companyId = invoice?.customer_company_id ?? standalone?.customer_company_id ?? null
-    if (!isCompanyVisible(ctx, companyId)) return notFound()
-  }
+  const companyId = invoice?.customer_company_id ?? standalone?.customer_company_id ?? null
+  if (!isCompanyVisible(ctx, companyId)) return notFound()
 
   if (invoice) {
     const items = await findInvoiceItems(invoice.id)
@@ -171,7 +169,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 export async function PATCH(req: NextRequest, { params }: Params) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params
@@ -243,7 +241,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 // PHASE D9 — void is business semantics now, never a delete:
 // both invoices and standalone_documents keep every row and gain a void version.
 export async function DELETE(_req: NextRequest, { params }: Params) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params

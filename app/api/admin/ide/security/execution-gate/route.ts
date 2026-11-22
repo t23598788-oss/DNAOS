@@ -1,7 +1,7 @@
 /**
  * POST /api/admin/ide/security/execution-gate — real Owner-only
  * Execution Gate request (owner, 2026-08-08, Software Factory Step
- * 13.25, Section 4). SUPER_ADMIN_ONLY (real Owner tier). Always
+ * 13.25, Section 4). DISABLED_ROLE_TIER (real Owner tier). Always
  * evaluates the real checklist honestly — every real Restricted
  * Capability is currently DECLARED/PARTIAL/NOT_IMPLEMENTED, so this
  * route can mechanically never return ALLOWED-and-executed; it only
@@ -11,11 +11,11 @@
  */
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/core/auth/requireAuth";
-import { SUPER_ADMIN_ONLY } from "@/core/auth/session";
+import { DISABLED_ROLE_TIER } from "@/core/auth/session";
 import { requestSecurityExecution, listSecurityExecutionGateRecords, type SecurityExecutionGateRequest } from "../../_lib/securityExecutionRuntime";
 
 export async function POST(req: Request) {
-  const auth = await requireAuth(SUPER_ADMIN_ONLY);
+  const auth = await requireAuth(DISABLED_ROLE_TIER);
   if (auth instanceof NextResponse) return auth;
   let body: Partial<SecurityExecutionGateRequest>;
   try { body = await req.json(); } catch { body = {}; }
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  const auth = await requireAuth(SUPER_ADMIN_ONLY);
+  const auth = await requireAuth(DISABLED_ROLE_TIER);
   if (auth instanceof NextResponse) return auth;
   return NextResponse.json({ ok: true, records: listSecurityExecutionGateRecords(auth.id) });
 }

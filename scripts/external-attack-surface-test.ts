@@ -186,13 +186,13 @@ async function main() {
     assert(cap!.status === "PARTIAL", `expected PARTIAL, got ${cap!.status}`);
   });
 
-  await test("Public Visibility: every route under app/api/admin/ide/security/external-surface/ requires real SUPER_ADMIN_ONLY", () => {
+  await test("Public Visibility: every route under app/api/admin/ide/security/external-surface/ is closed pending scoped authorization", () => {
     const files = readAllRouteFiles(path.join(ROOT, "app/api/admin/ide/security/external-surface"));
     assert(files.length >= 3, `expected at least 3 real route files, found ${files.length}`);
     for (const f of files) {
       const src = readFileSync(f, "utf-8");
       const activeCodeLines = src.split("\n").filter((l) => !l.trim().startsWith("*") && !l.trim().startsWith("//"));
-      assert(activeCodeLines.some((l) => l.includes("SUPER_ADMIN_ONLY")), `expected ${path.relative(ROOT, f)} to require SUPER_ADMIN_ONLY`);
+      assert(activeCodeLines.some((l) => l.includes("DISABLED_ROLE_TIER")), `expected ${path.relative(ROOT, f)} to remain closed`);
     }
   });
 

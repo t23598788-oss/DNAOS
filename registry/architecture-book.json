@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-22T14:06:59.598Z",
+  "generated_at": "2026-11-22T15:17:32.070Z",
   "version": 1,
   "nodes": [
     {
@@ -2510,19 +2510,19 @@
           "name": "GET",
           "kind": "function",
           "line_start": 134,
-          "line_end": 171
+          "line_end": 169
         },
         {
           "name": "PATCH",
           "kind": "function",
-          "line_start": 173,
-          "line_end": 241
+          "line_start": 171,
+          "line_end": 239
         },
         {
           "name": "DELETE",
           "kind": "function",
-          "line_start": 245,
-          "line_end": 261
+          "line_start": 243,
+          "line_end": 259
         }
       ],
       "import_sites": [
@@ -3870,19 +3870,19 @@
           "name": "GET",
           "kind": "function",
           "line_start": 15,
-          "line_end": 71
+          "line_end": 69
         },
         {
           "name": "PATCH",
           "kind": "function",
-          "line_start": 78,
-          "line_end": 99
+          "line_start": 76,
+          "line_end": 97
         },
         {
           "name": "DELETE",
           "kind": "function",
-          "line_start": 107,
-          "line_end": 124
+          "line_start": 105,
+          "line_end": 122
         }
       ],
       "import_sites": [
@@ -13531,8 +13531,6 @@
       "dependents": [
         "module:app/admin/partners/page.tsx",
         "module:app/api/admin/_lib/read-scope.ts",
-        "module:app/api/admin/backup/route.ts",
-        "module:app/api/admin/company-expenses/route.ts",
         "module:app/api/admin/connectors/[id]/route.ts",
         "module:app/api/admin/connectors/_lib/connectRuntime.ts",
         "module:app/api/admin/connectors/discover/[slug]/route.ts",
@@ -13565,9 +13563,7 @@
         "module:app/api/admin/equipment/trigger-start/route.ts",
         "module:app/api/admin/event-inbox/route.ts",
         "module:app/api/admin/finance-alerts/route.ts",
-        "module:app/api/admin/finance-summary/route.ts",
         "module:app/api/admin/finance/audit/route.ts",
-        "module:app/api/admin/finance/transactions/route.ts",
         "module:app/api/admin/ide/_lib/businessAcceptanceRuntime.ts",
         "module:app/api/admin/ide/_lib/canonicalJobTransportRuntime.ts",
         "module:app/api/admin/ide/_lib/jobRecoveryRuntime.ts",
@@ -13621,8 +13617,6 @@
         "module:app/api/admin/transactions/[id]/route.ts",
         "module:app/api/admin/transactions/route.ts",
         "module:app/api/admin/upload/route.ts",
-        "module:app/api/admin/users/[id]/role/route.ts",
-        "module:app/api/admin/users/route.ts",
         "module:app/api/admin/workspace/ai-agents/route.ts",
         "module:app/api/admin/workspace/database/route.ts",
         "module:app/api/admin/workspace/route.ts",
@@ -13759,176 +13753,176 @@
         {
           "name": "getVisibleCompanyIds",
           "kind": "function",
-          "line_start": 44,
-          "line_end": 46
+          "line_start": 41,
+          "line_end": 43
         },
         {
           "name": "getOpenDebts",
           "kind": "function",
-          "line_start": 144,
-          "line_end": 168
+          "line_start": 141,
+          "line_end": 165
         },
         {
           "name": "getAllDebts",
           "kind": "function",
-          "line_start": 170,
-          "line_end": 191
+          "line_start": 167,
+          "line_end": 188
         },
         {
           "name": "getDebtTrackings",
           "kind": "function",
-          "line_start": 208,
-          "line_end": 237
+          "line_start": 205,
+          "line_end": 234
         },
         {
           "name": "createDebtTracking",
           "kind": "function",
-          "line_start": 239,
-          "line_end": 261
+          "line_start": 236,
+          "line_end": 258
         },
         {
           "name": "getDebtTrackingById",
           "kind": "function",
-          "line_start": 263,
-          "line_end": 281
+          "line_start": 260,
+          "line_end": 278
         },
         {
           "name": "updateDebtTracking",
           "kind": "function",
-          "line_start": 289,
-          "line_end": 307
+          "line_start": 286,
+          "line_end": 304
         },
         {
           "name": "deleteDebtTracking",
           "kind": "function",
-          "line_start": 309,
-          "line_end": 315
+          "line_start": 306,
+          "line_end": 312
         },
         {
           "name": "canonicalDocumentType",
           "kind": "function",
-          "line_start": 329,
-          "line_end": 331
+          "line_start": 326,
+          "line_end": 328
         },
         {
           "name": "documentTypeVariants",
           "kind": "function",
-          "line_start": 333,
-          "line_end": 335
+          "line_start": 330,
+          "line_end": 332
         },
         {
           "name": "getDocumentTypeCounts",
           "kind": "function",
-          "line_start": 339,
-          "line_end": 361
+          "line_start": 336,
+          "line_end": 358
         },
         {
           "name": "getDocuments",
           "kind": "function",
-          "line_start": 365,
-          "line_end": 405
+          "line_start": 362,
+          "line_end": 402
         },
         {
           "name": "getLatestInvoice",
           "kind": "function",
-          "line_start": 407,
-          "line_end": 428
+          "line_start": 404,
+          "line_end": 425
         },
         {
           "name": "getFirstInvoiceForPartner",
           "kind": "function",
-          "line_start": 430,
-          "line_end": 463
+          "line_start": 427,
+          "line_end": 460
         },
         {
           "name": "getReceipts",
           "kind": "function",
-          "line_start": 479,
-          "line_end": 500
+          "line_start": 476,
+          "line_end": 497
         },
         {
           "name": "getPartnerByName",
           "kind": "function",
-          "line_start": 513,
-          "line_end": 527
+          "line_start": 510,
+          "line_end": 524
         },
         {
           "name": "getDebtsByCustomerName",
           "kind": "function",
-          "line_start": 531,
-          "line_end": 555
+          "line_start": 528,
+          "line_end": 552
         },
         {
           "name": "getJobs",
           "kind": "function",
-          "line_start": 595,
-          "line_end": 621
+          "line_start": 592,
+          "line_end": 618
         },
         {
           "name": "getPartners",
           "kind": "function",
-          "line_start": 625,
-          "line_end": 636
+          "line_start": 622,
+          "line_end": 633
         },
         {
           "name": "getDebtorPartners",
           "kind": "function",
-          "line_start": 638,
-          "line_end": 648
+          "line_start": 635,
+          "line_end": 645
         },
         {
           "name": "getMaterialTypes",
           "kind": "function",
-          "line_start": 652,
-          "line_end": 663
+          "line_start": 649,
+          "line_end": 660
         },
         {
           "name": "getCustomerGps",
           "kind": "function",
-          "line_start": 670,
-          "line_end": 719
+          "line_start": 667,
+          "line_end": 716
         },
         {
           "name": "getPartnerById",
           "kind": "function",
-          "line_start": 723,
-          "line_end": 733
+          "line_start": 720,
+          "line_end": 730
         },
         {
           "name": "getDocumentsByPartner",
           "kind": "function",
-          "line_start": 735,
-          "line_end": 755
+          "line_start": 732,
+          "line_end": 752
         },
         {
           "name": "getBusinessEventsByPartner",
           "kind": "function",
-          "line_start": 757,
-          "line_end": 776
+          "line_start": 754,
+          "line_end": 773
         },
         {
           "name": "getTransactions",
           "kind": "function",
-          "line_start": 780,
-          "line_end": 813
+          "line_start": 777,
+          "line_end": 810
         },
         {
           "name": "getTransactionById",
           "kind": "function",
-          "line_start": 815,
-          "line_end": 861
+          "line_start": 812,
+          "line_end": 858
         },
         {
           "name": "getPartnersWithDocumentSummary",
           "kind": "function",
-          "line_start": 863,
-          "line_end": 926
+          "line_start": 860,
+          "line_end": 923
         },
         {
           "name": "getPendingDrafts",
           "kind": "function",
-          "line_start": 930,
-          "line_end": 932
+          "line_start": 927,
+          "line_end": 929
         }
       ],
       "import_sites": [
@@ -14900,74 +14894,6 @@
           "specifier": "@/services/ai/gateway",
           "line": 27,
           "resolved_target": "services/ai/gateway.ts"
-        }
-      ]
-    },
-    {
-      "id": "module:app/api/admin/backup/route.ts",
-      "type": "Module",
-      "layer": "app",
-      "name_en": "app/api/admin/backup/route.ts",
-      "purpose_th": "GET /api/admin/backup — เฉพาะ super admin ดึงข้อมูลทุกแถวของตารางธุรกิจหลัก (companies, invoices, orders, debts ฯลฯ) ออกมาเป็น JSON เพื่อสำรองข้อมูล",
-      "exports": [
-        "GET",
-        "POST"
-      ],
-      "status": "OK",
-      "runtime_entry_point": true,
-      "internal_dependencies": [
-        "module:app/api/admin/_lib/read-scope.ts",
-        "module:core/auth/requireAuth.ts",
-        "module:core/auth/session.ts",
-        "module:services/supabase/queries.ts"
-      ],
-      "dependents": [],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "app",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "GET",
-          "kind": "function",
-          "line_start": 20,
-          "line_end": 70
-        },
-        {
-          "name": "POST",
-          "kind": "function",
-          "line_start": 73,
-          "line_end": 107
-        }
-      ],
-      "import_sites": [
-        {
-          "specifier": "@/core/auth/requireAuth",
-          "line": 2,
-          "resolved_target": "core/auth/requireAuth.ts"
-        },
-        {
-          "specifier": "@/core/auth/session",
-          "line": 3,
-          "resolved_target": "core/auth/session.ts"
-        },
-        {
-          "specifier": "@/services/supabase/queries",
-          "line": 4,
-          "resolved_target": "services/supabase/queries.ts"
-        },
-        {
-          "specifier": "@/app/api/admin/_lib/read-scope",
-          "line": 5,
-          "resolved_target": "app/api/admin/_lib/read-scope.ts"
         }
       ]
     },
@@ -18228,7 +18154,7 @@
         "ADMIN_TIER",
         "ANY_AUTHENTICATED",
         "AuthedUser",
-        "SUPER_ADMIN_ONLY",
+        "DISABLED_ROLE_TIER",
         "getAccessToken",
         "getAuthedUser"
       ],
@@ -18251,12 +18177,10 @@
         "module:app/admin/relationships/page.tsx",
         "module:app/admin/settings/page.tsx",
         "module:app/admin/system-config/page.tsx",
-        "module:app/admin/users/page.tsx",
         "module:app/api/admin/_lib/read-scope.ts",
         "module:app/api/admin/api-tokens/[id]/route.ts",
         "module:app/api/admin/api-tokens/route.ts",
         "module:app/api/admin/architecture/control-graph/route.ts",
-        "module:app/api/admin/backup/route.ts",
         "module:app/api/admin/capability-boxes/route.ts",
         "module:app/api/admin/capability-boxes/run/route.ts",
         "module:app/api/admin/company-expenses/route.ts",
@@ -18519,7 +18443,6 @@
         "module:app/api/admin/transactions/[id]/route.ts",
         "module:app/api/admin/transactions/route.ts",
         "module:app/api/admin/upload/route.ts",
-        "module:app/api/admin/users/[id]/role/route.ts",
         "module:app/api/admin/users/route.ts",
         "module:app/api/admin/workspace/ai-agents/route.ts",
         "module:app/api/admin/workspace/automation/route.ts",
@@ -18605,7 +18528,7 @@
           "line_end": 26
         },
         {
-          "name": "SUPER_ADMIN_ONLY",
+          "name": "DISABLED_ROLE_TIER",
           "kind": "const",
           "line_start": 27,
           "line_end": 27
@@ -18671,7 +18594,6 @@
         "module:app/api/admin/api-tokens/[id]/route.ts",
         "module:app/api/admin/api-tokens/route.ts",
         "module:app/api/admin/architecture/control-graph/route.ts",
-        "module:app/api/admin/backup/route.ts",
         "module:app/api/admin/capability-boxes/route.ts",
         "module:app/api/admin/capability-boxes/run/route.ts",
         "module:app/api/admin/company-expenses/route.ts",
@@ -18934,7 +18856,6 @@
         "module:app/api/admin/transactions/[id]/route.ts",
         "module:app/api/admin/transactions/route.ts",
         "module:app/api/admin/upload/route.ts",
-        "module:app/api/admin/users/[id]/role/route.ts",
         "module:app/api/admin/users/route.ts",
         "module:app/api/admin/workspace/ai-agents/route.ts",
         "module:app/api/admin/workspace/automation/route.ts",
@@ -19014,7 +18935,6 @@
         "module:app/admin/relationships/page.tsx",
         "module:app/admin/settings/page.tsx",
         "module:app/admin/system-config/page.tsx",
-        "module:app/admin/users/page.tsx",
         "module:app/business-workspace-template/layout.tsx",
         "module:app/business/layout.tsx",
         "module:app/oauth/authorize/page.tsx",
@@ -19069,7 +18989,7 @@
       "exports": [
         "ADMIN_TIER",
         "ANY_AUTHENTICATED",
-        "SUPER_ADMIN_ONLY",
+        "DISABLED_ROLE_TIER",
         "getAccessToken",
         "getAuthedUser",
         "requireAuth",
@@ -19102,19 +19022,18 @@
       "related_services": "UNKNOWN"
     },
     {
-      "id": "module:app/admin/users/page.tsx",
+      "id": "module:app/api/admin/users/route.ts",
       "type": "Module",
-      "layer": "ui",
-      "name_en": "app/admin/users/page.tsx",
-      "purpose_th": "หน้าจัดการ Role — super_admin กำหนด role ให้ user จริง",
+      "layer": "api",
+      "name_en": "app/api/admin/users/route.ts",
+      "purpose_th": "API list user + role ทั้งหมด (super_admin เท่านั้น)",
       "exports": [
-        "AdminUsersPage"
+        "GET"
       ],
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
-        "module:components/admin/UsersRoleTable.tsx",
-        "module:core/auth/requireAuthPage.ts",
+        "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts"
       ],
       "dependents": [],
@@ -19132,84 +19051,22 @@
       "related_services": "UNKNOWN",
       "symbols": [
         {
-          "name": "AdminUsersPage",
-          "kind": "function",
-          "line_start": 8,
-          "line_end": 20
-        }
-      ],
-      "import_sites": [
-        {
-          "specifier": "@/core/auth/requireAuthPage",
-          "line": 1,
-          "resolved_target": "core/auth/requireAuthPage.ts"
-        },
-        {
-          "specifier": "@/core/auth/session",
-          "line": 2,
-          "resolved_target": "core/auth/session.ts"
-        },
-        {
-          "specifier": "@/components/admin/UsersRoleTable",
-          "line": 3,
-          "resolved_target": "components/admin/UsersRoleTable.tsx"
-        }
-      ]
-    },
-    {
-      "id": "module:app/api/admin/users/route.ts",
-      "type": "Module",
-      "layer": "api",
-      "name_en": "app/api/admin/users/route.ts",
-      "purpose_th": "API list user + role ทั้งหมด (super_admin เท่านั้น)",
-      "exports": [
-        "GET"
-      ],
-      "status": "OK",
-      "runtime_entry_point": true,
-      "internal_dependencies": [
-        "module:core/auth/requireAuth.ts",
-        "module:core/auth/session.ts",
-        "module:services/supabase/queries.ts"
-      ],
-      "dependents": [],
-      "data_tables": [
-        "profiles"
-      ],
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "admin",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
           "name": "GET",
           "kind": "function",
-          "line_start": 19,
-          "line_end": 51
+          "line_start": 10,
+          "line_end": 14
         }
       ],
       "import_sites": [
         {
           "specifier": "@/core/auth/requireAuth",
-          "line": 15,
+          "line": 7,
           "resolved_target": "core/auth/requireAuth.ts"
         },
         {
           "specifier": "@/core/auth/session",
-          "line": 16,
+          "line": 8,
           "resolved_target": "core/auth/session.ts"
-        },
-        {
-          "specifier": "@/services/supabase/queries",
-          "line": 17,
-          "resolved_target": "services/supabase/queries.ts"
         }
       ]
     },
@@ -19224,15 +19081,9 @@
       ],
       "status": "OK",
       "runtime_entry_point": true,
-      "internal_dependencies": [
-        "module:core/auth/requireAuth.ts",
-        "module:core/auth/session.ts",
-        "module:services/supabase/queries.ts"
-      ],
+      "internal_dependencies": [],
       "dependents": [],
-      "data_tables": [
-        "profiles"
-      ],
+      "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "admin",
       "lifecycle_status": "active",
@@ -19248,25 +19099,8 @@
         {
           "name": "PATCH",
           "kind": "function",
-          "line_start": 20,
-          "line_end": 62
-        }
-      ],
-      "import_sites": [
-        {
-          "specifier": "@/core/auth/requireAuth",
-          "line": 14,
-          "resolved_target": "core/auth/requireAuth.ts"
-        },
-        {
-          "specifier": "@/core/auth/session",
-          "line": 15,
-          "resolved_target": "core/auth/session.ts"
-        },
-        {
-          "specifier": "@/services/supabase/queries",
-          "line": 16,
-          "resolved_target": "services/supabase/queries.ts"
+          "line_start": 8,
+          "line_end": 13
         }
       ]
     },
@@ -19316,42 +19150,6 @@
       ]
     },
     {
-      "id": "module:components/admin/UsersRoleTable.tsx",
-      "type": "Module",
-      "layer": "ui",
-      "name_en": "components/admin/UsersRoleTable.tsx",
-      "purpose_th": "ตาราง client สำหรับหน้า Users & Roles — list user + เปลี่ยน role ผ่าน API",
-      "exports": [
-        "UsersRoleTable"
-      ],
-      "status": "OK",
-      "runtime_entry_point": false,
-      "internal_dependencies": [],
-      "dependents": [
-        "module:app/admin/users/page.tsx"
-      ],
-      "data_tables": "UNKNOWN",
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "admin",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "UsersRoleTable",
-          "kind": "function",
-          "line_start": 38,
-          "line_end": 148
-        }
-      ]
-    },
-    {
       "id": "module:components/admin/SystemConfigCenter.tsx",
       "type": "Module",
       "layer": "ui",
@@ -19385,7 +19183,7 @@
           "name": "SystemConfigCenter",
           "kind": "function",
           "line_start": 83,
-          "line_end": 289
+          "line_end": 288
         }
       ],
       "import_sites": [
@@ -24454,8 +24252,8 @@
         {
           "name": "RelationshipsPage",
           "kind": "function",
-          "line_start": 12,
-          "line_end": 15
+          "line_start": 11,
+          "line_end": 14
         }
       ],
       "import_sites": [
@@ -24901,7 +24699,7 @@
           "name": "GET",
           "kind": "function",
           "line_start": 14,
-          "line_end": 163
+          "line_end": 152
         }
       ],
       "import_sites": [
@@ -25724,7 +25522,7 @@
           "name": "resolveNavItems",
           "kind": "function",
           "line_start": 37,
-          "line_end": 42
+          "line_end": 43
         }
       ],
       "import_sites": [
@@ -29900,7 +29698,7 @@
           "name": "GET",
           "kind": "function",
           "line_start": 13,
-          "line_end": 144
+          "line_end": 141
         }
       ],
       "import_sites": [
@@ -29970,7 +29768,7 @@
           "name": "GET",
           "kind": "function",
           "line_start": 13,
-          "line_end": 127
+          "line_end": 125
         }
       ],
       "import_sites": [
@@ -35421,21 +35219,11 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
-        "module:app/api/admin/_lib/read-scope.ts",
         "module:core/auth/requireAuth.ts",
-        "module:core/auth/session.ts",
-        "module:engines/accounting/financial-statements.ts",
-        "module:services/supabase/queries.ts"
+        "module:core/auth/session.ts"
       ],
       "dependents": [],
-      "data_tables": [
-        "company_debt_current",
-        "company_expenses",
-        "document_canonical",
-        "fuel_price_log",
-        "payment_allocations",
-        "receipt_documents"
-      ],
+      "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
       "lifecycle_status": "active",
@@ -35451,8 +35239,8 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 45,
-          "line_end": 191
+          "line_start": 10,
+          "line_end": 20
         }
       ],
       "import_sites": [
@@ -35465,21 +35253,6 @@
           "specifier": "@/core/auth/session",
           "line": 3,
           "resolved_target": "core/auth/session.ts"
-        },
-        {
-          "specifier": "@/services/supabase/queries",
-          "line": 4,
-          "resolved_target": "services/supabase/queries.ts"
-        },
-        {
-          "specifier": "@/engines/accounting/financial-statements",
-          "line": 5,
-          "resolved_target": "engines/accounting/financial-statements.ts"
-        },
-        {
-          "specifier": "@/app/api/admin/_lib/read-scope",
-          "line": 6,
-          "resolved_target": "app/api/admin/_lib/read-scope.ts"
         }
       ]
     },
@@ -36603,7 +36376,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 27,
-          "line_end": 76
+          "line_end": 75
         }
       ],
       "import_sites": [
@@ -87953,7 +87726,6 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
-        "module:app/api/admin/company-expenses/route.ts",
         "module:app/api/admin/payables/route.ts",
         "module:app/api/internal/connect/expense/route.ts"
       ],
@@ -90914,7 +90686,6 @@
       "runtime_entry_point": false,
       "internal_dependencies": [],
       "dependents": [
-        "module:app/api/admin/finance-summary/route.ts",
         "module:scripts/accounting-financial-statements-test.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -93507,7 +93278,6 @@
       "runtime_entry_point": false,
       "internal_dependencies": [],
       "dependents": [
-        "module:app/api/admin/finance/transactions/route.ts",
         "module:scripts/finance-admin-ui-test.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -93617,6 +93387,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:app/api/admin/_lib/read-scope.ts",
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
         "module:engines/canonical/expense-write.ts",
@@ -93642,20 +93413,20 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 25,
-          "line_end": 45
+          "line_start": 26,
+          "line_end": 51
         },
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 47,
-          "line_end": 82
+          "line_start": 53,
+          "line_end": 95
         },
         {
           "name": "PATCH",
           "kind": "function",
-          "line_start": 84,
-          "line_end": 126
+          "line_start": 97,
+          "line_end": 148
         }
       ],
       "import_sites": [
@@ -93675,8 +93446,13 @@
           "resolved_target": "services/supabase/queries.ts"
         },
         {
-          "specifier": "@/engines/canonical/expense-write",
+          "specifier": "@/app/api/admin/_lib/read-scope",
           "line": 5,
+          "resolved_target": "app/api/admin/_lib/read-scope.ts"
+        },
+        {
+          "specifier": "@/engines/canonical/expense-write",
+          "line": 6,
           "resolved_target": "engines/canonical/expense-write.ts"
         }
       ]
@@ -93695,14 +93471,10 @@
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
-        "module:core/auth/session.ts",
-        "module:engines/canonical/expense-write.ts",
-        "module:services/supabase/queries.ts"
+        "module:core/auth/session.ts"
       ],
       "dependents": [],
-      "data_tables": [
-        "company_expenses"
-      ],
+      "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
       "lifecycle_status": "active",
@@ -93718,14 +93490,14 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 31,
-          "line_end": 59
+          "line_start": 13,
+          "line_end": 17
         },
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 61,
-          "line_end": 106
+          "line_start": 19,
+          "line_end": 23
         }
       ],
       "import_sites": [
@@ -93738,16 +93510,6 @@
           "specifier": "@/core/auth/session",
           "line": 3,
           "resolved_target": "core/auth/session.ts"
-        },
-        {
-          "specifier": "@/services/supabase/queries",
-          "line": 4,
-          "resolved_target": "services/supabase/queries.ts"
-        },
-        {
-          "specifier": "@/engines/canonical/expense-write",
-          "line": 5,
-          "resolved_target": "engines/canonical/expense-write.ts"
         }
       ]
     },
@@ -93764,17 +93526,10 @@
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
-        "module:core/auth/session.ts",
-        "module:services/finance/unified-list.ts",
-        "module:services/supabase/queries.ts"
+        "module:core/auth/session.ts"
       ],
       "dependents": [],
-      "data_tables": [
-        "company_expenses",
-        "partner_payable_requests",
-        "payment_allocations",
-        "receipt_documents"
-      ],
+      "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
       "lifecycle_status": "active",
@@ -93790,8 +93545,8 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 19,
-          "line_end": 139
+          "line_start": 5,
+          "line_end": 12
         }
       ],
       "import_sites": [
@@ -93804,16 +93559,6 @@
           "specifier": "@/core/auth/session",
           "line": 3,
           "resolved_target": "core/auth/session.ts"
-        },
-        {
-          "specifier": "@/services/supabase/queries",
-          "line": 4,
-          "resolved_target": "services/supabase/queries.ts"
-        },
-        {
-          "specifier": "@/services/finance/unified-list",
-          "line": 5,
-          "resolved_target": "services/finance/unified-list.ts"
         }
       ]
     },
@@ -93829,6 +93574,7 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:app/api/admin/_lib/read-scope.ts",
         "module:core/auth/requireAuth.ts",
         "module:core/auth/session.ts",
         "module:services/supabase/queries.ts"
@@ -93852,8 +93598,8 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 25,
-          "line_end": 46
+          "line_start": 26,
+          "line_end": 52
         }
       ],
       "import_sites": [
@@ -93871,6 +93617,11 @@
           "specifier": "@/services/supabase/queries",
           "line": 4,
           "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/app/api/admin/_lib/read-scope",
+          "line": 5,
+          "resolved_target": "app/api/admin/_lib/read-scope.ts"
         }
       ]
     },
@@ -94264,10 +94015,7 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
-      "data_tables": [
-        "companies",
-        "organizations"
-      ],
+      "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "scripts",
       "lifecycle_status": "active",
@@ -94282,17 +94030,17 @@
       "import_sites": [
         {
           "specifier": "@/services/supabase/queries",
-          "line": 14,
+          "line": 9,
           "resolved_target": "services/supabase/queries.ts"
         },
         {
           "specifier": "@/core/authority/data-scope",
-          "line": 15,
+          "line": 10,
           "resolved_target": "core/authority/data-scope.ts"
         },
         {
           "specifier": "@/engines/validation/dispatcher",
-          "line": 16,
+          "line": 11,
           "resolved_target": "engines/validation/dispatcher.ts"
         }
       ]
@@ -94813,20 +94561,20 @@
         {
           "name": "resolveSessionDataScope",
           "kind": "function",
-          "line_start": 24,
-          "line_end": 39
+          "line_start": 19,
+          "line_end": 34
         },
         {
           "name": "resolveTokenDataScope",
           "kind": "function",
-          "line_start": 46,
-          "line_end": 61
+          "line_start": 41,
+          "line_end": 53
         },
         {
           "name": "ownerBridgeDataScope",
           "kind": "function",
-          "line_start": 68,
-          "line_end": 70
+          "line_start": 59,
+          "line_end": 61
         }
       ],
       "import_sites": [
@@ -94842,7 +94590,7 @@
         },
         {
           "specifier": "./load",
-          "line": 18,
+          "line": 17,
           "resolved_target": "engines/authority/load.ts"
         }
       ]
@@ -94931,56 +94679,56 @@
         {
           "name": "loadOrganizationMembership",
           "kind": "function",
-          "line_start": 81,
-          "line_end": 104
+          "line_start": 82,
+          "line_end": 111
         },
         {
           "name": "loadOrganizationIds",
           "kind": "function",
-          "line_start": 107,
-          "line_end": 113
+          "line_start": 114,
+          "line_end": 120
         },
         {
           "name": "loadScopeGrants",
           "kind": "function",
-          "line_start": 116,
-          "line_end": 159
+          "line_start": 123,
+          "line_end": 166
         },
         {
           "name": "SessionAuthorityInput",
           "kind": "interface",
-          "line_start": 162,
-          "line_end": 172
+          "line_start": 169,
+          "line_end": 179
         },
         {
           "name": "LoadedAuthority",
           "kind": "interface",
-          "line_start": 174,
-          "line_end": 183
+          "line_start": 181,
+          "line_end": 190
         },
         {
           "name": "loadAuthorityContext",
           "kind": "function",
-          "line_start": 193,
-          "line_end": 227
+          "line_start": 200,
+          "line_end": 234
         },
         {
           "name": "OrganizationDecision",
           "kind": "interface",
-          "line_start": 229,
-          "line_end": 232
+          "line_start": 236,
+          "line_end": 239
         },
         {
           "name": "assertRequestedOrganizationAllowed",
           "kind": "function",
-          "line_start": 239,
-          "line_end": 250
+          "line_start": 246,
+          "line_end": 257
         },
         {
           "name": "loadResourceOrganizationId",
           "kind": "function",
-          "line_start": 260,
-          "line_end": 295
+          "line_start": 267,
+          "line_end": 302
         }
       ],
       "import_sites": [
@@ -95531,14 +95279,14 @@
         {
           "name": "resolveWriter",
           "kind": "function",
-          "line_start": 179,
-          "line_end": 242
+          "line_start": 176,
+          "line_end": 226
         },
         {
           "name": "ownershipCensus",
           "kind": "function",
-          "line_start": 248,
-          "line_end": 253
+          "line_start": 232,
+          "line_end": 237
         }
       ],
       "import_sites": [
@@ -95595,92 +95343,92 @@
         {
           "name": "DATA_RIGHTS",
           "kind": "const",
-          "line_start": 20,
-          "line_end": 25
+          "line_start": 19,
+          "line_end": 24
         },
         {
           "name": "DataRight",
           "kind": "type",
-          "line_start": 26,
-          "line_end": 26
+          "line_start": 25,
+          "line_end": 25
         },
         {
           "name": "RightFieldSet",
           "kind": "type",
-          "line_start": 28,
-          "line_end": 28
+          "line_start": 27,
+          "line_end": 27
         },
         {
           "name": "RightActor",
           "kind": "interface",
-          "line_start": 30,
-          "line_end": 34
+          "line_start": 29,
+          "line_end": 33
         },
         {
           "name": "RightResource",
           "kind": "interface",
-          "line_start": 36,
-          "line_end": 45
+          "line_start": 35,
+          "line_end": 44
         },
         {
           "name": "RightDecision",
           "kind": "interface",
-          "line_start": 47,
-          "line_end": 51
+          "line_start": 46,
+          "line_end": 50
         },
         {
           "name": "resolveInternalReadRight",
           "kind": "function",
-          "line_start": 70,
-          "line_end": 76
+          "line_start": 66,
+          "line_end": 71
         },
         {
           "name": "resolveDiscoveryRight",
           "kind": "function",
-          "line_start": 81,
-          "line_end": 85
+          "line_start": 76,
+          "line_end": 80
         },
         {
           "name": "resolvePricePublicationRight",
           "kind": "function",
-          "line_start": 90,
-          "line_end": 101
+          "line_start": 85,
+          "line_end": 92
         },
         {
           "name": "resolveTransactionRight",
           "kind": "function",
-          "line_start": 106,
-          "line_end": 112
+          "line_start": 97,
+          "line_end": 102
         },
         {
           "name": "DataRightInput",
           "kind": "interface",
-          "line_start": 114,
-          "line_end": 118
+          "line_start": 104,
+          "line_end": 108
         },
         {
           "name": "resolveDataRight",
           "kind": "function",
-          "line_start": 120,
-          "line_end": 133
+          "line_start": 110,
+          "line_end": 123
         },
         {
           "name": "rightEvidence",
           "kind": "function",
-          "line_start": 139,
-          "line_end": 145
+          "line_start": 129,
+          "line_end": 135
         },
         {
           "name": "scopeGrantsRight",
           "kind": "function",
-          "line_start": 148,
-          "line_end": 150
+          "line_start": 138,
+          "line_end": 140
         }
       ],
       "import_sites": [
         {
           "specifier": "./data-scope",
-          "line": 18,
+          "line": 17,
           "resolved_target": "core/authority/data-scope.ts"
         }
       ]
@@ -95803,7 +95551,6 @@
         "TENANT_SCOPED_READ_COMMANDS",
         "isTenantScopedRead",
         "organizationDataScope",
-        "platformDataScope",
         "resolveDataScope",
         "scopeCanReadTenantData",
         "scopeCoversOrganization"
@@ -95840,74 +95587,68 @@
         {
           "name": "DataScopeMode",
           "kind": "type",
-          "line_start": 27,
-          "line_end": 27
+          "line_start": 23,
+          "line_end": 23
         },
         {
           "name": "DataScope",
           "kind": "interface",
-          "line_start": 29,
-          "line_end": 38
+          "line_start": 25,
+          "line_end": 34
         },
         {
           "name": "NO_DATA_SCOPE",
           "kind": "const",
-          "line_start": 40,
-          "line_end": 46
+          "line_start": 36,
+          "line_end": 42
         },
         {
           "name": "PLATFORM_ROLES",
           "kind": "const",
-          "line_start": 48,
-          "line_end": 48
-        },
-        {
-          "name": "platformDataScope",
-          "kind": "function",
-          "line_start": 50,
-          "line_end": 62
+          "line_start": 46,
+          "line_end": 46
         },
         {
           "name": "organizationDataScope",
           "kind": "function",
-          "line_start": 64,
-          "line_end": 79
+          "line_start": 48,
+          "line_end": 63
         },
         {
           "name": "resolveDataScope",
           "kind": "function",
-          "line_start": 85,
-          "line_end": 105
+          "line_start": 69,
+          "line_end": 86
         },
         {
           "name": "scopeCanReadTenantData",
           "kind": "function",
-          "line_start": 108,
-          "line_end": 112
+          "line_start": 89,
+          "line_end": 92
         },
         {
           "name": "scopeCoversOrganization",
           "kind": "function",
-          "line_start": 115,
-          "line_end": 124
+          "line_start": 95,
+          "line_end": 103
         },
         {
           "name": "TENANT_SCOPED_READ_COMMANDS",
           "kind": "const",
-          "line_start": 132,
-          "line_end": 150
+          "line_start": 111,
+          "line_end": 129
         },
         {
           "name": "isTenantScopedRead",
           "kind": "function",
-          "line_start": 152,
-          "line_end": 154
+          "line_start": 131,
+          "line_end": 133
         }
       ],
       "import_sites": [
         {
           "specifier": "@/core/auth/session",
-          "line": 25,
+          "line": 21,
           "resolved_target": "core/auth/session.ts"
         }
       ]
@@ -96635,19 +96376,19 @@
         "module:services/supabase/queries.ts"
       ],
       "dependents": [
-        "module:app/api/admin/backup/route.ts",
         "module:app/api/admin/debt-trackings/[id]/route.ts",
         "module:app/api/admin/debt-trackings/route.ts",
         "module:app/api/admin/documents/[id]/route.ts",
         "module:app/api/admin/documents/_lib/listDocuments.ts",
         "module:app/api/admin/documents/route.ts",
-        "module:app/api/admin/finance-summary/route.ts",
+        "module:app/api/admin/finance/audit/route.ts",
         "module:app/api/admin/line-customers/[lineUserId]/route.ts",
         "module:app/api/admin/line-customers/route.ts",
         "module:app/api/admin/partners/[id]/chain/route.ts",
         "module:app/api/admin/partners/[id]/credit/route.ts",
         "module:app/api/admin/partners/[id]/timeline/route.ts",
         "module:app/api/admin/partners/route.ts",
+        "module:app/api/admin/payables/route.ts",
         "module:app/api/admin/pulse/route.ts",
         "module:app/api/admin/receipt-documents/route.ts",
         "module:app/api/admin/relationships/[relationshipId]/match/route.ts",
@@ -96674,70 +96415,70 @@
         {
           "name": "AdminReadScope",
           "kind": "interface",
-          "line_start": 24,
-          "line_end": 28
+          "line_start": 20,
+          "line_end": 24
         },
         {
           "name": "resolveAdminReadScope",
           "kind": "function",
-          "line_start": 30,
-          "line_end": 36
+          "line_start": 26,
+          "line_end": 31
         },
         {
           "name": "requireAdminReadScope",
           "kind": "function",
-          "line_start": 39,
-          "line_end": 43
+          "line_start": 34,
+          "line_end": 38
         },
         {
           "name": "denyUnscoped",
           "kind": "function",
-          "line_start": 45,
-          "line_end": 53
+          "line_start": 40,
+          "line_end": 48
         },
         {
           "name": "isCompanyVisible",
           "kind": "function",
-          "line_start": 55,
-          "line_end": 58
+          "line_start": 50,
+          "line_end": 52
         },
         {
           "name": "filterRowsByCompany",
           "kind": "function",
-          "line_start": 60,
-          "line_end": 67
+          "line_start": 54,
+          "line_end": 60
         },
         {
           "name": "notFound",
           "kind": "function",
-          "line_start": 70,
-          "line_end": 72
+          "line_start": 63,
+          "line_end": 65
         }
       ],
       "import_sites": [
         {
           "specifier": "@/core/auth/requireAuth",
-          "line": 18,
+          "line": 14,
           "resolved_target": "core/auth/requireAuth.ts"
         },
         {
           "specifier": "@/core/auth/session",
-          "line": 19,
+          "line": 15,
           "resolved_target": "core/auth/session.ts"
         },
         {
           "specifier": "@/core/authority/data-scope",
-          "line": 20,
+          "line": 16,
           "resolved_target": "core/authority/data-scope.ts"
         },
         {
           "specifier": "@/engines/authority/session-scope",
-          "line": 21,
+          "line": 17,
           "resolved_target": "engines/authority/session-scope.ts"
         },
         {
           "specifier": "@/services/supabase/queries",
-          "line": 22,
+          "line": 18,
           "resolved_target": "services/supabase/queries.ts"
         }
       ]
@@ -98010,13 +97751,13 @@
           "name": "AppRole",
           "kind": "type",
           "line_start": 1,
-          "line_end": 7
+          "line_end": 6
         },
         {
           "name": "effectiveSessionRole",
           "kind": "function",
-          "line_start": 14,
-          "line_end": 19
+          "line_start": 13,
+          "line_end": 18
         }
       ]
     }
@@ -98635,11 +98376,6 @@
     {
       "source": "layer:app",
       "target": "module:app/api/admin/architecture/control-graph/route.ts",
-      "label": "contains"
-    },
-    {
-      "source": "layer:app",
-      "target": "module:app/api/admin/backup/route.ts",
       "label": "contains"
     },
     {
@@ -105089,11 +104825,6 @@
     },
     {
       "source": "layer:ui",
-      "target": "module:app/admin/users/page.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:ui",
       "target": "module:app/examples/page.tsx",
       "label": "contains"
     },
@@ -105120,11 +104851,6 @@
     {
       "source": "layer:ui",
       "target": "module:components/admin/SystemConfigCenter.tsx",
-      "label": "contains"
-    },
-    {
-      "source": "layer:ui",
-      "target": "module:components/admin/UsersRoleTable.tsx",
       "label": "contains"
     },
     {
@@ -106228,21 +105954,6 @@
       "label": "imports"
     },
     {
-      "source": "module:app/admin/users/page.tsx",
-      "target": "module:components/admin/UsersRoleTable.tsx",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/users/page.tsx",
-      "target": "module:core/auth/requireAuthPage.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/admin/users/page.tsx",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:app/ai-services/loading.tsx",
       "target": "module:presentation/feedback/CapabilitySkeleton.tsx",
       "label": "imports"
@@ -106325,26 +106036,6 @@
     {
       "source": "module:app/api/admin/architecture/control-graph/route.ts",
       "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/backup/route.ts",
-      "target": "module:app/api/admin/_lib/read-scope.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/backup/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/backup/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/backup/route.ts",
-      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
@@ -106445,16 +106136,6 @@
     {
       "source": "module:app/api/admin/company-expenses/route.ts",
       "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/company-expenses/route.ts",
-      "target": "module:engines/canonical/expense-write.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/company-expenses/route.ts",
-      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
@@ -107474,30 +107155,20 @@
     },
     {
       "source": "module:app/api/admin/finance-summary/route.ts",
+      "target": "module:core/auth/requireAuth.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/finance-summary/route.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/finance/audit/route.ts",
       "target": "module:app/api/admin/_lib/read-scope.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/finance-summary/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/finance-summary/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/finance-summary/route.ts",
-      "target": "module:engines/accounting/financial-statements.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/finance-summary/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:app/api/admin/finance/audit/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -107520,16 +107191,6 @@
     {
       "source": "module:app/api/admin/finance/transactions/route.ts",
       "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/finance/transactions/route.ts",
-      "target": "module:services/finance/unified-list.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/finance/transactions/route.ts",
-      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
@@ -112634,6 +112295,11 @@
     },
     {
       "source": "module:app/api/admin/payables/route.ts",
+      "target": "module:app/api/admin/_lib/read-scope.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/payables/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
@@ -113403,21 +113069,6 @@
       "label": "imports"
     },
     {
-      "source": "module:app/api/admin/users/[id]/role/route.ts",
-      "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/users/[id]/role/route.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/users/[id]/role/route.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:app/api/admin/users/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
@@ -113425,11 +113076,6 @@
     {
       "source": "module:app/api/admin/users/route.ts",
       "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/admin/users/route.ts",
-      "target": "module:services/supabase/queries.ts",
       "label": "imports"
     },
     {
@@ -124139,8 +123785,8 @@
     }
   ],
   "summary": {
-    "total": 1441,
-    "ok": 1441,
+    "total": 1438,
+    "ok": 1438,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

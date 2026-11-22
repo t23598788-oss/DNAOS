@@ -24,7 +24,7 @@ export interface AuthedUser {
 }
 
 export const ADMIN_TIER = permissions.role_tiers.admin_tier as AppRole[];
-export const SUPER_ADMIN_ONLY = permissions.role_tiers.super_admin_only as AppRole[];
+export const DISABLED_ROLE_TIER = permissions.role_tiers.disabled_role_tier as AppRole[];
 export const ANY_AUTHENTICATED = permissions.role_tiers.any_authenticated as AppRole[];
 
 // The one place that resolves "who is making this request" from the shared

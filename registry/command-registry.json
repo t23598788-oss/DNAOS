@@ -749,7 +749,7 @@
         "dryRun": "boolean (default true)"
       },
       "output": "{ plan, moved, events }",
-      "description": "Moves only resources already in state SAFE to ~/.Trash via adapters/trashAdapter.ts (rename, never rm). Defaults to dry-run; requires explicit dryRun:false. super_admin only.",
+      "description": "Moves only resources already in state SAFE to ~/.Trash via adapters/trashAdapter.ts (rename, never rm). Defaults to dry-run; requires explicit dryRun:false. disabled pending scoped owner authorization.",
       "description_th": "ย้ายเฉพาะทรัพยากรสถานะ SAFE ไปยัง macOS Trash เท่านั้น (ไม่ใช่การลบถาวร) ค่าเริ่มต้นคือ dry-run",
       "requires_confirmation": true
     },
@@ -855,8 +855,8 @@
         "actor": "string"
       },
       "output": "{ ok, reason? }",
-      "description": "Refuses to approve a plan that isn't SAFE. super_admin only.",
-      "description_th": "อนุมัติแผนย้ายทรัพยากร เฉพาะ super_admin",
+      "description": "Refuses to approve a plan that isn't SAFE. disabled pending scoped owner authorization.",
+      "description_th": "อนุมัติแผนย้ายทรัพยากร ปิดไว้จนกว่าจะมีสิทธิ์เจ้าของที่จำกัดขอบเขต",
       "requires_confirmation": true
     },
     "workspace.execute_migration": {
@@ -867,7 +867,7 @@
         "actor": "string"
       },
       "output": "{ ok, trashPath?, reason? }",
-      "description": "Moves to ~/.Trash via engines/storage/adapters/trashAdapter.ts — only for a SAFE + approved plan. super_admin only.",
+      "description": "Moves to ~/.Trash via engines/storage/adapters/trashAdapter.ts — only for a SAFE + approved plan. disabled pending scoped owner authorization.",
       "description_th": "ดำเนินการย้ายทรัพยากรไป Trash เฉพาะแผนที่ SAFE และอนุมัติแล้ว",
       "requires_confirmation": true
     },

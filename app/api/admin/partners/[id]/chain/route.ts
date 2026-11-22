@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
@@ -9,7 +9,7 @@ type Params = { params: Promise<{ id: string }> }
 // partners → companies, transactions → customer_orders, documents → invoices + standalone_documents.
 // business_events ไม่มีตารางจริงรองรับ (ดู getBusinessEventsByPartner ใน services/supabase/queries.ts) — ว่างเสมอ
 export async function GET(_req: NextRequest, { params }: Params) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const { id: partnerId } = await params

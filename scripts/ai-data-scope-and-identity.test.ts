@@ -17,7 +17,6 @@ import { readFileSync } from "fs";
 import {
   NO_DATA_SCOPE,
   isTenantScopedRead,
-  platformDataScope,
   resolveDataScope,
   scopeCoversOrganization,
   type DataScope,
@@ -53,8 +52,8 @@ async function main() {
 /* ------------------------------------------------------------------ */
 console.log("=== A — scope resolution is fail-closed ===");
 {
-  const platform = resolveDataScope({ profileId: "p-owner", role: "super_admin", organizationIds: [] });
-  expect(platform.mode === "platform", "A super_admin resolves to platform scope");
+  const legacyPlatformRole = resolveDataScope({ profileId: "p-owner", role: "legacy_platform_role", organizationIds: [] });
+  expect(legacyPlatformRole.mode === "none", "A legacy global role without membership receives no scope");
 
   const orgA = resolveDataScope({ profileId: "p-a", role: "admin", organizationIds: [ORG_A] });
   expect(orgA.mode === "organization" && orgA.organizationIds.includes(ORG_A), "A org member resolves to that organization");
@@ -73,11 +72,10 @@ console.log("=== A — scope resolution is fail-closed ===");
 }
 
 /* ------------------------------------------------------------------ */
-console.log("\n=== B — two organizations are isolated; NULL is platform-only ===");
+console.log("\n=== B — two organizations are isolated; NULL is denied ===");
 {
   const scopeA: DataScope = resolveDataScope({ profileId: "p-a", role: "admin", organizationIds: [ORG_A] });
   const scopeB: DataScope = resolveDataScope({ profileId: "p-b", role: "admin", organizationIds: [ORG_B] });
-  const platform = platformDataScope({ profileId: "p-owner" });
 
   const companyA = { id: "c-a", organizationId: ORG_A };
   const companyB = { id: "c-b", organizationId: ORG_B };
@@ -87,9 +85,10 @@ console.log("\n=== B — two organizations are isolated; NULL is platform-only =
   expect(!scopeCoversOrganization(scopeA, companyB.organizationId), "B org A cannot see org B's company");
   expect(!scopeCoversOrganization(scopeB, companyA.organizationId), "B org B cannot see org A's company");
   expect(!scopeCoversOrganization(scopeA, unowned.organizationId), "B NULL-org record is not implicitly claimed by org A");
-  expect(scopeCoversOrganization(platform, companyA.organizationId), "B platform scope sees org A");
-  expect(scopeCoversOrganization(platform, companyB.organizationId), "B platform scope sees org B");
-  expect(scopeCoversOrganization(platform, unowned.organizationId), "B platform scope sees unattributed records");
+  const noMembership = resolveDataScope({ profileId: "p-global", role: "admin", organizationIds: [] });
+  expect(!scopeCoversOrganization(noMembership, companyA.organizationId), "B no membership cannot see org A");
+  expect(!scopeCoversOrganization(noMembership, companyB.organizationId), "B no membership cannot see org B");
+  expect(!scopeCoversOrganization(noMembership, unowned.organizationId), "B no business role sees unattributed records");
 }
 
 /* ------------------------------------------------------------------ */
@@ -115,7 +114,7 @@ console.log("\n=== C — dispatcher denies tenant reads without a verified scope
 /* ------------------------------------------------------------------ */
 console.log("\n=== D — four rights stay separate ===");
 {
-  const platform: RightActor = { profileId: "p-owner", role: "super_admin", organizationIds: [] };
+  const legacyPlatformRole: RightActor = { profileId: "p-owner", role: "legacy_platform_role", organizationIds: [] };
   const orgA: RightActor = { profileId: "p-a", role: "admin", organizationIds: [ORG_A] };
   const owner: RightActor = { profileId: "owner-1", role: "partner", organizationIds: [] };
   const stranger: RightActor = { profileId: "p-z", role: "customer", organizationIds: [ORG_B] };
@@ -129,12 +128,12 @@ console.log("\n=== D — four rights stay separate ===");
     discoverable: false,
   };
 
-  expect(resolveInternalReadRight(platform, resource).allowed, "D platform may read internally");
+  expect(!resolveInternalReadRight(legacyPlatformRole, resource).allowed, "D legacy global role cannot read internally");
   expect(resolveInternalReadRight(orgA, resource).allowed, "D org owner may read internally");
   expect(resolveInternalReadRight(owner, resource).allowed, "D resource owner may read internally");
   expect(!resolveInternalReadRight(stranger, resource).allowed, "D another org is denied internal read");
 
-  expect(!resolveDiscoveryRight(platform, resource).allowed, "D internal read does NOT grant discovery");
+  expect(!resolveDiscoveryRight(legacyPlatformRole, resource).allowed, "D a role alone does not grant discovery");
   expect(!resolveDiscoveryRight(stranger, resource).allowed, "D undisclosed record is not discoverable");
   const disclosed = { ...resource, discoverable: true };
   const discovery = resolveDiscoveryRight(stranger, disclosed);
@@ -142,17 +141,17 @@ console.log("\n=== D — four rights stay separate ===");
 
   expect(resolvePricePublicationRight(owner, resource).allowed, "D price owner may publish their price");
   expect(resolvePricePublicationRight(orgA, resource).allowed, "D verified org owner may publish");
-  expect(!resolvePricePublicationRight(platform, resource).allowed, "D platform cannot publish a price that belongs to someone else");
-  expect(resolvePricePublicationRight(platform, { ...resource, ownerProfileId: null }).allowed, "D platform may publish an unattributed price row");
+  expect(!resolvePricePublicationRight(legacyPlatformRole, resource).allowed, "D legacy role cannot publish another owner's price");
+  expect(!resolvePricePublicationRight(legacyPlatformRole, { ...resource, ownerProfileId: null }).allowed, "D legacy role cannot publish an unattributed price row");
 
   expect(resolveTransactionRight(owner, resource).allowed, "D owner may transact");
   expect(resolveTransactionRight(orgA, resource).allowed, "D organization may transact");
-  expect(!resolveTransactionRight(platform, resource).allowed, "D platform read is NOT transaction authority");
+  expect(!resolveTransactionRight(legacyPlatformRole, resource).allowed, "D legacy role cannot transact outside an organization");
   expect(!resolveTransactionRight(stranger, resource).allowed, "D another org cannot transact");
 
   expect(
-    resolveInternalReadRight(platform, resource).allowed && !resolveTransactionRight(platform, resource).allowed,
-    "D platform can read but not transact — rights are not collapsed",
+    !resolveInternalReadRight(legacyPlatformRole, resource).allowed && !resolveTransactionRight(legacyPlatformRole, resource).allowed,
+    "D legacy platform role receives no data authority",
   );
 }
 

@@ -86,7 +86,7 @@ async function main() {
         /===\s*["']super_admin["']|includes\(\s*["']super_admin["']|ADMIN_TIER\s*&&.{0,40}super_admin/.test(text);
       assert(!usedAsAuthority, `${label} uses super_admin as an authority check`);
     }
-    assert(mcpAuth.includes("including super_admin"), "the contract does not state that a super_admin token is insufficient");
+    assert(!mcpAuth.includes("platform-wide owner") && !mcpAuth.includes("platform super-admin"), "the contract must not expose a global-owner bypass");
   });
 
   await test("operator-facing env contract is documented", () => {

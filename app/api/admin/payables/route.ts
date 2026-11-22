@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 import {
   requestPartnerPayable,
   transitionPartnerPayable,
@@ -23,8 +24,12 @@ const strOrNull = (v: unknown): string | null =>
   typeof v === "string" && v.trim().length > 0 ? v.trim() : null
 
 export async function GET(req: NextRequest) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
+  const scope = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(scope)
+  if (denied) return denied
+  if (scope.companyIds.size === 0) return NextResponse.json({ items: [] })
 
   const params = req.nextUrl.searchParams
   const limit = Math.min(Number(params.get("limit") ?? 100), 300)
@@ -38,6 +43,7 @@ export async function GET(req: NextRequest) {
     .order("created_at", { ascending: false })
     .limit(limit)
   if (status) query = query.eq("status", status)
+  query = query.in("partner_company_id", [...scope.companyIds])
 
   const { data, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
@@ -45,7 +51,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const body = await req.json().catch(() => ({}))
@@ -58,6 +64,13 @@ export async function POST(req: Request) {
 
   // identity: ถ้าระบุ partner_company_id ต้องเป็นบริษัท/บุคคลที่มีอยู่จริง (T04)
   const partnerCompanyId = strOrNull(body?.partner_company_id)
+  if (!partnerCompanyId) {
+    return NextResponse.json({ error: "ต้องระบุบริษัทคู่ค้าที่อยู่ในองค์กรของท่าน", code: "PAYABLE_COMPANY_REQUIRED" }, { status: 400 })
+  }
+  const scope = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(scope)
+  if (denied) return denied
+  if (!isCompanyVisible(scope, partnerCompanyId)) return notFound()
   if (partnerCompanyId) {
     const { data: company } = await supabase().from("companies").select("id").eq("id", partnerCompanyId).maybeSingle()
     if (!company) {
@@ -82,7 +95,7 @@ export async function POST(req: Request) {
 }
 
 export async function PATCH(req: Request) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const body = await req.json().catch(() => ({}))
@@ -94,6 +107,15 @@ export async function PATCH(req: Request) {
       { status: 400 },
     )
   }
+  const scope = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(scope)
+  if (denied) return denied
+  const { data: payableOwner } = await supabase()
+    .from("partner_payable_requests")
+    .select("partner_company_id")
+    .eq("id", payableId)
+    .maybeSingle()
+  if (!isCompanyVisible(scope, payableOwner?.partner_company_id)) return notFound()
 
   // paid_confirmed/completed = ยืนยันว่าจ่ายเงินจริงแล้ว — ต้องมีหลักฐานธนาคาร
   // จริงเท่านั้น (writer เองก็ derive completed_at จาก flag นี้คนเดียว)

@@ -67,8 +67,8 @@ function rowsDb(rows: Record<string, unknown[]>) {
     const orgs = await loadOrganizationIds("profile-1", brokenDb);
     expect(Array.isArray(orgs) && orgs.length === 0, "A missing org_members ⇒ zero organizations");
 
-    const ctx = await loadAuthorityContext({ profileId: "profile-1", role: "super_admin" }, brokenDb);
-    expect(ctx.actor.profileId === "profile-1" && ctx.actor.role === "super_admin", "A actor id/role are passed through as evidence");
+    const ctx = await loadAuthorityContext({ profileId: "profile-1", role: "admin" }, brokenDb);
+    expect(ctx.actor.profileId === "profile-1" && ctx.actor.role === "admin", "A actor id/role are passed through as evidence");
     expect((ctx.actor.organizationIds ?? []).length === 0 && ctx.grants.length === 0, "A no orgs, no grants on a broken schema");
 
     const denied = resolveAuthority({

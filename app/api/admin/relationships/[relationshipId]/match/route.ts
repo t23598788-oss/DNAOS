@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { resolveExternalIdentity, linkExternalIdentity } from "@/engines/connect/identity"
 import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
@@ -20,7 +20,7 @@ const PROVIDER = "line"
 // body: { companyId: string } to link to an existing company, OR
 //       { newCompany: { name, phone?, taxId? } } to create one first.
 export async function POST(req: NextRequest, { params }: Params) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const { relationshipId: lineUserId } = await params

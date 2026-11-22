@@ -36,7 +36,8 @@ const WORKSPACES: { prefix: string; href: string; key: string; label: string; ic
 // inventing a new role or a new landing decision.
 export function resolveNavItems(role: AppRole): WorkspaceNavItem[] {
   return WORKSPACES.filter((w) => {
-    const entry = permissions.route_access.find((r) => r.prefix === w.prefix);
+    const routeAccess = permissions.route_access as Array<{ prefix: string; roles: AppRole[] }>;
+    const entry = routeAccess.find((r) => r.prefix === w.prefix);
     return !!entry?.roles.includes(role);
   }).map((w) => ({ key: w.key, label: w.label, icon: w.icon, href: w.href }));
 }
