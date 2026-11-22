@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-22T01:08:53.511Z",
+  "generated_at": "2026-11-22T01:12:58.206Z",
   "version": 1,
   "nodes": [
     {
@@ -13650,6 +13650,7 @@
         "module:app/api/admin/workspace/database/route.ts",
         "module:app/api/admin/workspace/route.ts",
         "module:app/api/admin/workspace/status/route.ts",
+        "module:app/api/business/_lib/workspace.ts",
         "module:app/api/business/workspace/route.ts",
         "module:app/api/chat/confirm/route.ts",
         "module:app/api/connectors/oauth/authorize/[slug]/route.ts",
@@ -13734,7 +13735,6 @@
         "module:scripts/workspace-job-path-test.ts",
         "module:services/ai/gateway.ts",
         "module:services/ai/geminiCredential.ts",
-        "module:services/authority/businessWorkspace.ts",
         "module:services/canonical/document-detail.ts",
         "module:services/canonical/document-list.ts",
         "module:services/canonical/payments.ts",
@@ -18614,6 +18614,7 @@
         "module:app/api/admin/workspace/status/route.ts",
         "module:app/api/admin/workspace/tree/route.ts",
         "module:app/api/build/route.ts",
+        "module:app/api/business/_lib/workspace.ts",
         "module:app/api/chat/confirm/route.ts",
         "module:app/api/chat/route.ts",
         "module:app/api/command/route.ts",
@@ -18663,7 +18664,6 @@
         "module:core/workspace/permissionComposer.ts",
         "module:engines/authority/session-scope.ts",
         "module:scripts/permission-policy-test.ts",
-        "module:services/authority/businessWorkspace.ts",
         "module:services/connectors/completeUserOAuth.ts"
       ],
       "data_tables": [
@@ -87875,8 +87875,8 @@
         {
           "name": "scanSource",
           "kind": "function",
-          "line_start": 238,
-          "line_end": 248
+          "line_start": 240,
+          "line_end": 250
         }
       ]
     },
@@ -95098,10 +95098,10 @@
       ],
       "dependents": [
         "module:app/api/admin/pits/[pitId]/materials/route.ts",
+        "module:app/api/business/_lib/workspace.ts",
         "module:engines/authority/session-scope.ts",
         "module:scripts/authority-scope-and-concurrency.test.ts",
-        "module:scripts/authority-step1-org-binding.test.ts",
-        "module:services/authority/businessWorkspace.ts"
+        "module:scripts/authority-step1-org-binding.test.ts"
       ],
       "data_tables": [
         "authority_grants",
@@ -96038,6 +96038,7 @@
       ],
       "dependents": [
         "module:app/api/admin/_lib/read-scope.ts",
+        "module:app/api/business/_lib/workspace.ts",
         "module:core/authority/data-scope-context.ts",
         "module:core/authority/rights.ts",
         "module:engines/authority/session-scope.ts",
@@ -96045,7 +96046,6 @@
         "module:scripts/admin-read-scope.test.ts",
         "module:scripts/ai-data-scope-and-identity.test.ts",
         "module:scripts/ai-data-scope-live-check.ts",
-        "module:services/authority/businessWorkspace.ts",
         "module:services/supabase/queries.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -98168,18 +98168,18 @@
       "type": "Module",
       "layer": "cloudflare.config.ts",
       "name_en": "cloudflare.config.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] cloudflare.config.ts",
+      "purpose_th": "ตั้งค่า bindings, entrypoint, triggers และการ deploy ของ Cloudflare Worker",
       "exports": [
         "default"
       ],
-      "status": "UNREGISTERED",
-      "runtime_entry_point": false,
+      "status": "OK",
+      "runtime_entry_point": true,
       "internal_dependencies": [],
       "dependents": [],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "cloudflare.config.ts",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -98188,7 +98188,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "default",
@@ -98304,9 +98303,9 @@
       "type": "Module",
       "layer": "scripts",
       "name_en": "scripts/stock-shadow-ingestion-test.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/stock-shadow-ingestion-test.ts",
+      "purpose_th": "ทดสอบออฟไลน์สำหรับการรับเหตุการณ์สต็อก shadow แบบ idempotent",
       "exports": [],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:engines/integration-gateway/stockIngestion.js.ts"
@@ -98315,7 +98314,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "scripts",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -98324,7 +98323,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "import_sites": [
         {
           "specifier": "../engines/integration-gateway/stockIngestion.js",
@@ -98338,9 +98336,9 @@
       "type": "Module",
       "layer": "scripts",
       "name_en": "scripts/kodchat-adapter-test.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/kodchat-adapter-test.ts",
+      "purpose_th": "ทดสอบออฟไลน์การตรวจ webhook, แปลงเหตุการณ์ และส่งข้อความของ Kodchat",
       "exports": [],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:engines/integration-gateway/adapters/kodchat.ts"
@@ -98349,7 +98347,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "scripts",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -98358,7 +98356,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "import_sites": [
         {
           "specifier": "../engines/integration-gateway/adapters/kodchat",
@@ -98372,9 +98369,9 @@
       "type": "Module",
       "layer": "scripts",
       "name_en": "scripts/index-code-graph-system.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/index-code-graph-system.ts",
+      "purpose_th": "สร้างกราฟซอร์สโค้ดและเขียนลง system schema เมื่อกำหนดให้ทำงาน",
       "exports": [],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [],
       "dependents": [],
@@ -98383,7 +98380,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "scripts",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -98391,17 +98388,16 @@
       "related_business_events": "UNKNOWN",
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json"
+      "related_services": "UNKNOWN"
     },
     {
       "id": "module:scripts/generate-integration-contract.ts",
       "type": "Module",
       "layer": "scripts",
       "name_en": "scripts/generate-integration-contract.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/generate-integration-contract.ts",
+      "purpose_th": "สร้างสัญญาการเชื่อมต่อจากทะเบียน provider และ adapter",
       "exports": [],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:engines/integration-gateway/selfDescription.ts"
@@ -98410,7 +98406,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "scripts",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -98419,7 +98415,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "import_sites": [
         {
           "specifier": "../engines/integration-gateway/selfDescription",
@@ -98433,9 +98428,9 @@
       "type": "Module",
       "layer": "scripts",
       "name_en": "scripts/core-event-transport-test.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/core-event-transport-test.ts",
+      "purpose_th": "ทดสอบการแปลงข้อความ LINE webhook เป็น core event transport",
       "exports": [],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:supabase/functions/_shared/core-event-transport.ts"
@@ -98444,7 +98439,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "scripts",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -98453,7 +98448,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "import_sites": [
         {
           "specifier": "../supabase/functions/_shared/core-event-transport.ts",
@@ -98501,7 +98495,7 @@
       "type": "Module",
       "layer": "services",
       "name_en": "services/system-graph/systemVault.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] services/system-graph/systemVault.ts",
+      "purpose_th": "จัดเก็บและอ่านค่า secret ของแพลตฟอร์มผ่าน system vault ที่กำหนด",
       "exports": [
         "SYSTEM_VAULT_SECRET_NAMES",
         "SystemVaultMetadata",
@@ -98511,7 +98505,7 @@
         "readSystemVaultSecret",
         "writeSystemVaultSecret"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:services/system-graph/systemGraphClient.ts"
@@ -98525,7 +98519,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "services",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -98534,7 +98528,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "SYSTEM_VAULT_SECRET_NAMES",
@@ -98698,11 +98691,11 @@
       "type": "Module",
       "layer": "services",
       "name_en": "services/connectors/completeUserOAuth.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] services/connectors/completeUserOAuth.ts",
+      "purpose_th": "ทำ OAuth ระดับผู้ใช้ให้เสร็จและเก็บ credential ของ provider ผ่าน vault",
       "exports": [
         "completeUserOAuthCallback"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:core/auth/connector-oauth-state.ts",
@@ -98720,7 +98713,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "services",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -98729,7 +98722,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "completeUserOAuthCallback",
@@ -98768,93 +98760,6 @@
           "specifier": "@/core/auth/connector-oauth-state",
           "line": 8,
           "resolved_target": "core/auth/connector-oauth-state.ts"
-        }
-      ]
-    },
-    {
-      "id": "module:services/authority/businessWorkspace.ts",
-      "type": "Module",
-      "layer": "services",
-      "name_en": "services/authority/businessWorkspace.ts",
-      "purpose_th": "Resolve organizations from the authenticated account, never from email or role.",
-      "exports": [
-        "ACTIVE_BUSINESS_ORG_COOKIE",
-        "activeOrganizationClaim",
-        "listBusinessOrganizations",
-        "resolveBusinessOrganizationScope"
-      ],
-      "status": "OK",
-      "runtime_entry_point": false,
-      "internal_dependencies": [
-        "module:core/auth/session.ts",
-        "module:core/authority/data-scope.ts",
-        "module:engines/authority/load.ts",
-        "module:services/supabase/queries.ts"
-      ],
-      "dependents": [
-        "module:app/api/business/context/route.ts",
-        "module:app/api/business/workspace/route.ts"
-      ],
-      "data_tables": [
-        "organizations"
-      ],
-      "business_capabilities": "UNKNOWN",
-      "domain_owner": "services",
-      "lifecycle_status": "active",
-      "deprecated": false,
-      "event_producer": "UNKNOWN",
-      "event_consumer": "UNKNOWN",
-      "related_workflows": "UNKNOWN",
-      "related_business_events": "UNKNOWN",
-      "related_documents": "UNKNOWN",
-      "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "symbols": [
-        {
-          "name": "ACTIVE_BUSINESS_ORG_COOKIE",
-          "kind": "const",
-          "line_start": 7,
-          "line_end": 7
-        },
-        {
-          "name": "listBusinessOrganizations",
-          "kind": "function",
-          "line_start": 20,
-          "line_end": 33
-        },
-        {
-          "name": "resolveBusinessOrganizationScope",
-          "kind": "function",
-          "line_start": 36,
-          "line_end": 56
-        },
-        {
-          "name": "activeOrganizationClaim",
-          "kind": "function",
-          "line_start": 58,
-          "line_end": 60
-        }
-      ],
-      "import_sites": [
-        {
-          "specifier": "@/core/auth/session",
-          "line": 2,
-          "resolved_target": "core/auth/session.ts"
-        },
-        {
-          "specifier": "@/core/authority/data-scope",
-          "line": 3,
-          "resolved_target": "core/authority/data-scope.ts"
-        },
-        {
-          "specifier": "@/engines/authority/load",
-          "line": 4,
-          "resolved_target": "engines/authority/load.ts"
-        },
-        {
-          "specifier": "@/services/supabase/queries",
-          "line": 5,
-          "resolved_target": "services/supabase/queries.ts"
         }
       ]
     },
@@ -98987,7 +98892,7 @@
       "type": "Module",
       "layer": "engines",
       "name_en": "engines/integration-gateway/stockIngestion.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] engines/integration-gateway/stockIngestion.ts",
+      "purpose_th": "ตรวจสอบและบันทึกการเปลี่ยนแปลงสต็อกจาก adapter ภายนอกแบบ idempotent",
       "exports": [
         "StockUpdateInput",
         "StockUpdateInputError",
@@ -98997,7 +98902,7 @@
         "ingestStockUpdate",
         "parseStockUpdate"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [],
       "dependents": [
@@ -99006,7 +98911,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "engines",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -99015,7 +98920,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "StockUpdateInput",
@@ -99111,13 +99015,13 @@
       "type": "Module",
       "layer": "core",
       "name_en": "core/auth/connector-oauth-state.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] core/auth/connector-oauth-state.ts",
+      "purpose_th": "สร้างและตรวจสอบค่า state ใช้ครั้งเดียวสำหรับ callback ของ connector OAuth",
       "exports": [
         "connectorOAuthCookieName",
         "createConnectorOAuthState",
         "verifyConnectorOAuthState"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [],
       "dependents": [
@@ -99129,7 +99033,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "core",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -99138,7 +99042,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "createConnectorOAuthState",
@@ -99165,11 +99068,11 @@
       "type": "Module",
       "layer": "components",
       "name_en": "components/workspace/BusinessOrganizationSwitcher.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] components/workspace/BusinessOrganizationSwitcher.tsx",
+      "purpose_th": "ให้ผู้ใช้ที่ยืนยันตัวตนเลือกองค์กรธุรกิจที่กำลังใช้งาน",
       "exports": [
         "BusinessOrganizationSwitcher"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [],
       "dependents": [
@@ -99178,7 +99081,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "components",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -99187,7 +99090,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "BusinessOrganizationSwitcher",
@@ -99202,11 +99104,11 @@
       "type": "Module",
       "layer": "components",
       "name_en": "components/workspace/BusinessActivityConsole.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] components/workspace/BusinessActivityConsole.tsx",
+      "purpose_th": "แสดงกิจกรรมธุรกิจตามขอบเขตองค์กรที่เลือก",
       "exports": [
         "BusinessActivityConsole"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [],
       "dependents": [
@@ -99215,7 +99117,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "components",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -99224,7 +99126,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "BusinessActivityConsole",
@@ -99523,11 +99424,11 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/account/connections/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/account/connections/page.tsx",
+      "purpose_th": "หน้าจัดการการเชื่อมต่อ provider ส่วนตัวหลังยืนยันตัวตน",
       "exports": [
         "AccountConnectionsPage"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:app/account/connections/ConnectionsCatalogClient.tsx",
@@ -99537,7 +99438,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -99546,7 +99447,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "AccountConnectionsPage",
@@ -99573,11 +99473,11 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/account/connections/ConnectionsCatalogClient.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/account/connections/ConnectionsCatalogClient.tsx",
+      "purpose_th": "แสดงตัวเลือก provider และสถานะการเชื่อมต่อของผู้ใช้ที่ล็อกอิน",
       "exports": [
         "ConnectionsCatalogClient"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:registry/external-service-catalog.ts"
@@ -99588,7 +99488,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -99597,7 +99497,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "ConnectionsCatalogClient",
@@ -99619,11 +99518,11 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/admin/system-vault/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/system-vault/page.tsx",
+      "purpose_th": "หน้าเข้าจัดการ secret ของแพลตฟอร์มสำหรับผู้ดูแลเท่านั้น",
       "exports": [
         "SystemVaultPage"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:app/admin/control-board/ControlBoard.tsx",
@@ -99634,7 +99533,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -99643,7 +99542,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "SystemVaultPage",
@@ -99675,11 +99573,11 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/admin/control-board/page.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/control-board/page.tsx",
+      "purpose_th": "หน้าเข้าแผงควบคุมโครงสร้างพื้นฐานสำหรับผู้ดูแลเท่านั้น",
       "exports": [
         "OperatorBoardPage"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:app/admin/control-board/OperatorBoard.tsx",
@@ -99690,7 +99588,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -99699,7 +99597,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "OperatorBoardPage",
@@ -99731,11 +99628,11 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/admin/control-board/OperatorBoard.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/control-board/OperatorBoard.tsx",
+      "purpose_th": "แสดงมุมมองผู้ปฏิบัติการเกี่ยวกับสุขภาพโครงสร้างพื้นฐานและแหล่งข้อมูล",
       "exports": [
         "OperatorBoard"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [],
       "dependents": [
@@ -99744,7 +99641,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -99753,7 +99650,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "OperatorBoard",
@@ -99768,11 +99664,11 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/admin/control-board/ControlBoard.tsx",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/admin/control-board/ControlBoard.tsx",
+      "purpose_th": "หน้าผู้ดูแลสำหรับจัดการค่า secret แพลตฟอร์มตามรายการที่อนุญาต",
       "exports": [
         "ControlBoard"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [],
       "dependents": [
@@ -99781,7 +99677,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -99790,7 +99686,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "ControlBoard",
@@ -99805,12 +99700,12 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/v1/discovery/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/v1/discovery/route.ts",
+      "purpose_th": "ส่งผลค้นพบ capability และ command แบบอ่านอย่างเดียวหลังยืนยันตัวตน",
       "exports": [
         "GET",
         "OPTIONS"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:app/api/v1/_lib/tool-spec.ts",
@@ -99824,7 +99719,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -99833,7 +99728,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "OPTIONS",
@@ -99886,14 +99780,14 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/v1/_lib/tool-spec.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/v1/_lib/tool-spec.ts",
+      "purpose_th": "สร้างข้อกำหนดเครื่องมือแบบอ่านอย่างเดียวจาก command registry",
       "exports": [
         "ApiCommandDefinition",
         "ApiToolDefinition",
         "buildReadOnlyToolSpec",
         "commandInputSchema"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:registry/command-registry.json.ts"
@@ -99905,7 +99799,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -99914,7 +99808,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "ApiCommandDefinition",
@@ -99954,13 +99847,13 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/integration/stock-update/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/integration/stock-update/route.ts",
+      "purpose_th": "รับการเปลี่ยนแปลงสต็อกที่ยืนยันตัวตนแล้วและส่งให้ ingestion engine ตรวจสอบ",
       "exports": [
         "POST",
         "dynamic",
         "runtime"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:engines/integration-gateway/stockIngestion.ts"
@@ -99969,7 +99862,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -99978,7 +99871,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "runtime",
@@ -100012,13 +99904,13 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/internal/core-events/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/internal/core-events/route.ts",
+      "purpose_th": "รับ core-event envelope ภายในที่ยืนยันตัวตนแล้วตรงขอบเขต Worker",
       "exports": [
         "POST",
         "dynamic",
         "runtime"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:supabase/functions/_shared/core-event.ts"
@@ -100027,7 +99919,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -100036,7 +99928,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "runtime",
@@ -100070,14 +99961,14 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/cron/digitalocean-reconciliation/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/cron/digitalocean-reconciliation/route.ts",
+      "purpose_th": "กระทบยอดการใช้ทรัพยากร DigitalOcean และหลักฐานบัญชีตามคำขอที่ตั้งเวลา",
       "exports": [
         "GET",
         "POST",
         "dynamic",
         "runtime"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:app/api/admin/digitalocean/_lib/meteredClient.ts",
@@ -100092,7 +99983,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -100101,7 +99992,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "dynamic",
@@ -100146,7 +100036,7 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/business/context/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/business/context/route.ts",
+      "purpose_th": "ส่งรายชื่อองค์กรธุรกิจที่ผู้ใช้มีสิทธิ์และขอบเขตที่เลือกอยู่",
       "exports": [
         "DELETE",
         "GET",
@@ -100154,17 +100044,17 @@
         "dynamic",
         "runtime"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
-        "module:core/auth/requireAuth.ts",
-        "module:services/authority/businessWorkspace.ts"
+        "module:app/api/business/_lib/workspace.ts",
+        "module:core/auth/requireAuth.ts"
       ],
       "dependents": [],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -100173,7 +100063,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "dynamic",
@@ -100213,9 +100102,9 @@
           "resolved_target": "core/auth/requireAuth.ts"
         },
         {
-          "specifier": "@/services/authority/businessWorkspace",
+          "specifier": "@/app/api/business/_lib/workspace",
           "line": 3,
-          "resolved_target": "services/authority/businessWorkspace.ts"
+          "resolved_target": "app/api/business/_lib/workspace.ts"
         }
       ]
     },
@@ -100224,17 +100113,17 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/business/workspace/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/business/workspace/route.ts",
+      "purpose_th": "อ่านกิจกรรม workspace ธุรกิจภายในองค์กรที่ยืนยันสิทธิ์และเลือกใช้อยู่",
       "exports": [
         "GET",
         "dynamic",
         "runtime"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:app/api/business/_lib/workspace.ts",
         "module:core/auth/requireAuth.ts",
-        "module:services/authority/businessWorkspace.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
@@ -100252,7 +100141,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": false,
       "event_consumer": true,
@@ -100261,7 +100150,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "dynamic",
@@ -100289,9 +100177,9 @@
           "resolved_target": "core/auth/requireAuth.ts"
         },
         {
-          "specifier": "@/services/authority/businessWorkspace",
+          "specifier": "@/app/api/business/_lib/workspace",
           "line": 3,
-          "resolved_target": "services/authority/businessWorkspace.ts"
+          "resolved_target": "app/api/business/_lib/workspace.ts"
         },
         {
           "specifier": "@/services/supabase/queries",
@@ -100369,7 +100257,7 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/admin/system-vault/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/system-vault/route.ts",
+      "purpose_th": "API สำหรับผู้ดูแลเพื่อดู เพิ่ม และลบ system secret ตามรายการที่อนุญาต",
       "exports": [
         "DELETE",
         "GET",
@@ -100377,7 +100265,7 @@
         "dynamic",
         "runtime"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
@@ -100388,7 +100276,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -100397,7 +100285,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "runtime",
@@ -100453,13 +100340,13 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/admin/responsibility-accounts/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/responsibility-accounts/route.ts",
+      "purpose_th": "API สำหรับผู้ดูแลเพื่อกำหนดเจ้าของรับผิดชอบบัญชีแพลตฟอร์ม",
       "exports": [
         "GET",
         "PATCH",
         "POST"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
@@ -100475,7 +100362,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -100484,7 +100371,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "GET",
@@ -100528,13 +100414,13 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/admin/control-board/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/control-board/route.ts",
+      "purpose_th": "API สถานะและการทำงานของแผงควบคุมโครงสร้างพื้นฐานสำหรับผู้ดูแล",
       "exports": [
         "GET",
         "dynamic",
         "runtime"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
@@ -100549,7 +100435,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -100558,7 +100444,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "dynamic",
@@ -100685,13 +100570,13 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/internal/core-events/execute/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/internal/core-events/execute/route.ts",
+      "purpose_th": "ประมวลผลคำสั่ง core event ที่ผ่านการตรวจและส่งผลลัพธ์กลับ",
       "exports": [
         "POST",
         "dynamic",
         "runtime"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/connector-loader.ts",
@@ -100709,7 +100594,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -100718,7 +100603,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "runtime",
@@ -100787,14 +100671,14 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/account/connections/[providerId]/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/account/connections/[providerId]/route.ts",
+      "purpose_th": "อ่านหรือลบการเชื่อมต่อ provider รายหนึ่งของผู้ใช้ที่ยืนยันตัวตน",
       "exports": [
         "DELETE",
         "PUT",
         "dynamic",
         "runtime"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
@@ -100808,7 +100692,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -100817,7 +100701,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "dynamic",
@@ -100872,14 +100755,14 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/admin/digitalocean/catalog/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/digitalocean/catalog/route.ts",
+      "purpose_th": "API สำหรับผู้ดูแลเพื่ออ่าน catalog ทรัพยากร DigitalOcean พร้อมบันทึกการเรียกใช้",
       "exports": [
         "GET",
         "POST",
         "dynamic",
         "runtime"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:app/api/admin/digitalocean/_lib/meteredClient.ts",
@@ -100893,7 +100776,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -100902,7 +100785,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "dynamic",
@@ -100957,7 +100839,7 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/admin/digitalocean/_lib/meteredClient.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/digitalocean/_lib/meteredClient.ts",
+      "purpose_th": "เรียก DigitalOcean API พร้อมบันทึก operation และจำกัดอัตราการเรียก",
       "exports": [
         "DigitalOceanClient",
         "DigitalOceanOperation",
@@ -100968,7 +100850,7 @@
         "finiteMoney",
         "resourceKey"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": false,
       "internal_dependencies": [
         "module:services/supabase/queries.ts",
@@ -100983,7 +100865,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -100992,7 +100874,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "DigitalOceanOperation",
@@ -101061,13 +100942,13 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/admin/control-board/routes/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/control-board/routes/route.ts",
+      "purpose_th": "API แผนที่เส้นทางโครงสร้างพื้นฐานที่ลงทะเบียน สำหรับผู้ดูแลเท่านั้น",
       "exports": [
         "GET",
         "dynamic",
         "runtime"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
@@ -101082,7 +100963,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -101091,7 +100972,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "dynamic",
@@ -101135,13 +101015,13 @@
       "type": "Module",
       "layer": "app",
       "name_en": "app/api/admin/control-board/digitalocean/route.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] app/api/admin/control-board/digitalocean/route.ts",
+      "purpose_th": "API สถานะบัญชี DigitalOcean บนแผงควบคุมสำหรับผู้ดูแลเท่านั้น",
       "exports": [
         "GET",
         "dynamic",
         "runtime"
       ],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
         "module:core/auth/requireAuth.ts",
@@ -101157,7 +101037,7 @@
       ],
       "business_capabilities": "UNKNOWN",
       "domain_owner": "app",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -101166,7 +101046,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "dynamic",
@@ -101332,6 +101211,93 @@
           "specifier": "@/engines/integration-gateway/adapters/kodchat",
           "line": 6,
           "resolved_target": "engines/integration-gateway/adapters/kodchat.ts"
+        }
+      ]
+    },
+    {
+      "id": "module:app/api/business/_lib/workspace.ts",
+      "type": "Module",
+      "layer": "app",
+      "name_en": "app/api/business/_lib/workspace.ts",
+      "purpose_th": "Resolve organizations from the authenticated account, never from email or role.",
+      "exports": [
+        "ACTIVE_BUSINESS_ORG_COOKIE",
+        "activeOrganizationClaim",
+        "listBusinessOrganizations",
+        "resolveBusinessOrganizationScope"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:core/auth/session.ts",
+        "module:core/authority/data-scope.ts",
+        "module:engines/authority/load.ts",
+        "module:services/supabase/queries.ts"
+      ],
+      "dependents": [
+        "module:app/api/business/context/route.ts",
+        "module:app/api/business/workspace/route.ts"
+      ],
+      "data_tables": [
+        "organizations"
+      ],
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "app",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "ACTIVE_BUSINESS_ORG_COOKIE",
+          "kind": "const",
+          "line_start": 7,
+          "line_end": 7
+        },
+        {
+          "name": "listBusinessOrganizations",
+          "kind": "function",
+          "line_start": 20,
+          "line_end": 33
+        },
+        {
+          "name": "resolveBusinessOrganizationScope",
+          "kind": "function",
+          "line_start": 36,
+          "line_end": 56
+        },
+        {
+          "name": "activeOrganizationClaim",
+          "kind": "function",
+          "line_start": 58,
+          "line_end": 60
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/core/auth/session",
+          "line": 2,
+          "resolved_target": "core/auth/session.ts"
+        },
+        {
+          "specifier": "@/core/authority/data-scope",
+          "line": 3,
+          "resolved_target": "core/authority/data-scope.ts"
+        },
+        {
+          "specifier": "@/engines/authority/load",
+          "line": 4,
+          "resolved_target": "engines/authority/load.ts"
+        },
+        {
+          "specifier": "@/services/supabase/queries",
+          "line": 5,
+          "resolved_target": "services/supabase/queries.ts"
         }
       ]
     }
@@ -103925,6 +103891,11 @@
     {
       "source": "layer:app",
       "target": "module:app/api/auth/auto-login/route.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:app",
+      "target": "module:app/api/business/_lib/workspace.ts",
       "label": "contains"
     },
     {
@@ -108100,11 +108071,6 @@
     {
       "source": "layer:services",
       "target": "module:services/ai/translator.ts",
-      "label": "contains"
-    },
-    {
-      "source": "layer:services",
-      "target": "module:services/authority/businessWorkspace.ts",
       "label": "contains"
     },
     {
@@ -117378,23 +117344,43 @@
       "label": "imports"
     },
     {
+      "source": "module:app/api/business/_lib/workspace.ts",
+      "target": "module:core/auth/session.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/business/_lib/workspace.ts",
+      "target": "module:core/authority/data-scope.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/business/_lib/workspace.ts",
+      "target": "module:engines/authority/load.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/business/_lib/workspace.ts",
+      "target": "module:services/supabase/queries.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/business/context/route.ts",
+      "target": "module:app/api/business/_lib/workspace.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:app/api/business/context/route.ts",
       "target": "module:core/auth/requireAuth.ts",
       "label": "imports"
     },
     {
-      "source": "module:app/api/business/context/route.ts",
-      "target": "module:services/authority/businessWorkspace.ts",
+      "source": "module:app/api/business/workspace/route.ts",
+      "target": "module:app/api/business/_lib/workspace.ts",
       "label": "imports"
     },
     {
       "source": "module:app/api/business/workspace/route.ts",
       "target": "module:core/auth/requireAuth.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:app/api/business/workspace/route.ts",
-      "target": "module:services/authority/businessWorkspace.ts",
       "label": "imports"
     },
     {
@@ -127313,26 +127299,6 @@
       "label": "imports"
     },
     {
-      "source": "module:services/authority/businessWorkspace.ts",
-      "target": "module:core/auth/session.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:services/authority/businessWorkspace.ts",
-      "target": "module:core/authority/data-scope.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:services/authority/businessWorkspace.ts",
-      "target": "module:engines/authority/load.ts",
-      "label": "imports"
-    },
-    {
-      "source": "module:services/authority/businessWorkspace.ts",
-      "target": "module:services/supabase/queries.ts",
-      "label": "imports"
-    },
-    {
       "source": "module:services/canonical/document-detail.ts",
       "target": "module:services/canonical/payments.ts",
       "label": "imports"
@@ -128245,9 +128211,9 @@
   ],
   "summary": {
     "total": 1490,
-    "ok": 1456,
+    "ok": 1490,
     "broken": 0,
     "unused": 0,
-    "unregistered": 34
+    "unregistered": 0
   }
 }
