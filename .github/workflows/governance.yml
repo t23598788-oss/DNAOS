@@ -20,6 +20,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Keep the main-branch source reference in the durable development ledger.
+      - name: Record main-branch publication provenance
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DNAOS_EVENT_KEY: github:${{ github.repository }}:${{ github.run_id }}:${{ github.run_attempt }}:published
+          DNAOS_EVENT_TYPE: github_published
+          DNAOS_EVENT_STATUS: passed
+          DNAOS_REPOSITORY: ${{ github.repository }}
+          DNAOS_BRANCH: ${{ github.ref_name }}
+          DNAOS_COMMIT_SHA: ${{ github.sha }}
+          DNAOS_EVENT_SOURCE: github_actions
+        run: npx tsx scripts/record-development-event.ts
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -43,3 +58,19 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: npx tsx scripts/deploy-gate.ts
+
+      # Append the final CI outcome under the same commit lineage. Secrets never
+      # enter the event payload; the writer stores only references and hashes.
+      - name: Record main-branch CI provenance
+        if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DNAOS_EVENT_KEY: github:${{ github.repository }}:${{ github.run_id }}:${{ github.run_attempt }}:ci
+          DNAOS_EVENT_TYPE: github_ci_completed
+          DNAOS_EVENT_STATUS: ${{ job.status }}
+          DNAOS_REPOSITORY: ${{ github.repository }}
+          DNAOS_BRANCH: ${{ github.ref_name }}
+          DNAOS_COMMIT_SHA: ${{ github.sha }}
+          DNAOS_EVENT_SOURCE: github_actions
+        run: npx tsx scripts/record-development-event.ts
