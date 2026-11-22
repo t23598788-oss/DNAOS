@@ -105,9 +105,9 @@ export const SYSTEM_LINKS: SystemLinkGroup[] = [
     title: "GitHub — โค้ดจริง",
     account: "t23598788-oss",
     items: [
-      { label: "Repository", url: "https://github.com/t23598788-oss/---------------DNA-OS" },
-      { label: "Commits", url: "https://github.com/t23598788-oss/---------------DNA-OS/commits" },
-      { label: "Actions", url: "https://github.com/t23598788-oss/---------------DNA-OS/actions" },
+      { label: "Repository", url: "https://github.com/t23598788-oss/DNAOS" },
+      { label: "Commits", url: "https://github.com/t23598788-oss/DNAOS/commits" },
+      { label: "Actions", url: "https://github.com/t23598788-oss/DNAOS/actions" },
     ],
   },
   {

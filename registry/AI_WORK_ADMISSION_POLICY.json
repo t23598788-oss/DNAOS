@@ -2,7 +2,7 @@
   "version": 1,
   "gate_id": "DNA-GATE-000001",
   "dna_id": "DNA-CAP-000001",
-  "repository": "t23598788-oss/---------------DNA-OS",
+  "repository": "t23598788-oss/DNAOS",
   "applies_to": ["human", "ai", "automation"],
   "required_steps": [
     "identify the repository, branch, commit, and authoritative environment",
