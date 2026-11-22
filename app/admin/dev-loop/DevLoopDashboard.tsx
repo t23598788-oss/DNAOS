@@ -11,6 +11,7 @@
  * thing allowed to write — never a direct client-side update.
  */
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { createBrowserSupabase } from "@/services/supabase/browser";
 import DevLoopVoiceAlerts from "@/components/admin/DevLoopVoiceAlerts";
 
@@ -137,7 +138,8 @@ export default function DevLoopDashboard() {
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        alert(body.error ?? "approve failed");
+        const error = body && typeof body === "object" && "error" in body ? body.error : null;
+        alert(typeof error === "string" ? error : "approve failed");
       }
       await loadAll();
     } finally {
@@ -155,6 +157,8 @@ export default function DevLoopDashboard() {
       <WatcherStatusBanner status={watcherStatus} lastActivityAt={lastActivityAt} session={session} />
 
       <DevLoopVoiceAlerts />
+
+      <ReleaseWorkflow />
 
       <Section title={`ข้อเสนอ Registry ที่รออนุมัติ (${proposals.filter((p) => p.status === "pending").length})`}>
         {proposals.length === 0 && <Empty text="ยังไม่มีข้อเสนอ" />}
@@ -219,6 +223,41 @@ export default function DevLoopDashboard() {
         ))}
       </Section>
     </div>
+  );
+}
+
+function ReleaseWorkflow() {
+  const steps = [
+    ["1", "ยืนยัน repo, branch และเวอร์ชันที่ออนไลน์", "อ่าน GitHub และระบบที่รันจริงก่อนแก้ เพื่อไม่ทำซ้ำหรือชี้ผิดตัว"],
+    ["2", "แก้เฉพาะขอบเขตงานนี้", "แยกไฟล์อื่นที่ค้างไว้ ไม่รวมเข้า commit โดยไม่ได้ตรวจ"],
+    ["3", "รันการตรวจที่ตรงกับงาน", "ทดสอบและ build เฉพาะส่วนที่เปลี่ยน; ถ้าไม่ผ่านให้หยุดก่อนเผยแพร่"],
+    ["4", "ตรวจ diff และข้อมูลอ่อนไหว", "ตรวจไฟล์ที่จะขึ้นจริง ไม่ใส่คีย์ ข้อมูลส่วนบุคคล หรือต้นทุน/กำไรธุรกิจ"],
+    ["5", "commit และส่งขึ้น GitHub", "บันทึกเฉพาะไฟล์ที่ตรวจผ่าน พร้อม SHA และผล CI ที่ตรวจย้อนกลับได้"],
+    ["6", "deploy commit เดียวกับ GitHub แล้วตรวจออนไลน์", "ยืนยันเวอร์ชันที่ deploy ตรงกับ commit และตรวจหน้า/API จริงก่อนปิดงาน"],
+  ] as const;
+
+  return (
+    <section style={{ marginBottom: 32, border: "1px solid #b8c8d6", borderRadius: 10, background: "#f5f9fc", padding: 16 }}>
+      <h2 style={{ fontSize: 16, fontWeight: 700, margin: "0 0 4px" }}>สูตรปิดงานพัฒนา: ซอร์ส → GitHub → Production</h2>
+      <p style={{ color: "#526273", fontSize: 12, margin: "0 0 12px" }}>
+        งานจะปิดได้เมื่อมีหลักฐานจาก GitHub และระบบออนไลน์ ไม่ใช่แค่แก้ไฟล์ในเครื่อง
+      </p>
+      <ol style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 8, padding: 0, margin: 0, listStyle: "none" }}>
+        {steps.map(([number, title, detail]) => (
+          <li key={number} style={{ display: "flex", gap: 10, padding: 10, background: "white", border: "1px solid #e1e8ee", borderRadius: 8 }}>
+            <span style={{ flex: "0 0 22px", height: 22, borderRadius: 99, background: "#214d70", color: "white", textAlign: "center", fontSize: 12, lineHeight: "22px", fontWeight: 700 }}>{number}</span>
+            <span>
+              <strong style={{ display: "block", fontSize: 12 }}>{title}</strong>
+              <span style={{ display: "block", color: "#667482", fontSize: 11, marginTop: 2 }}>{detail}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <div style={{ display: "flex", gap: 12, marginTop: 12, fontSize: 12 }}>
+        <Link href="/admin/connectors" style={{ color: "#165d91", textDecoration: "underline" }}>ตั้งค่า/ตรวจ Connector GitHub</Link>
+        <Link href="/admin/ide" style={{ color: "#165d91", textDecoration: "underline" }}>ดู Source Control และผลตรวจ</Link>
+      </div>
+    </section>
   );
 }
 
