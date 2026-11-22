@@ -2,6 +2,7 @@
   "record_version": 1,
   "record_type": "external_artifact_review",
   "status": "UNVERIFIED",
+  "production_dependency": false,
   "reviewed_at": "2026-11-22",
   "dna_id": "DNA-CAP-000001",
   "source": {

@@ -29,6 +29,8 @@
     "sync-demand": "npx tsx scripts/sync-owner-requests.ts",
     "sync-infra-deps": "npx tsx scripts/sync-infrastructure-dependencies.ts",
     "deploy-gate": "npx tsx scripts/deploy-gate.ts",
+    "ai:admission": "node scripts/ai-work-admission-gate.mjs",
+    "ai:admission:test": "node scripts/ai-work-admission-gate.test.mjs",
     "verify-env": "bash scripts/verify-environment.sh",
     "diagnosis": "npx tsx core/runtime/self-awareness.ts",
     "existence-intelligence": "npx tsx core/runtime/existence-intelligence.ts",
