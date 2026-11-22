@@ -1,0 +1,60 @@
+{
+  "record_version": 1,
+  "record_type": "external_artifact_review",
+  "status": "UNVERIFIED",
+  "reviewed_at": "2026-11-22",
+  "dna_id": "DNA-CAP-000001",
+  "source": {
+    "provider": "Cloudflare artifact Git service",
+    "repository": "lee-production/lee-dnaos-guard-120a70ec02584aa1",
+    "commit_sha": "2c56b37c28249464f754d1e2bb9224677b283ad4",
+    "credential_bearing_clone_url_recorded": false
+  },
+  "artifacts": [
+    {
+      "path": "README.md",
+      "sha256": "cab0eb5346b693e7c96ad254fcfada6893f06ae8dd8a9907da1081e4dc687619"
+    },
+    {
+      "path": "schema.sql",
+      "sha256": "1ce672008b53a35ffbc351e502562769a6fa080ad91f49c5bee6bd6aefa09313"
+    },
+    {
+      "path": "scripts/guard.mjs",
+      "sha256": "d2ca3f3fd22c8ca6d28af3302cf76eee84003bdf74d6ce56a3e8b70e0fb82a81"
+    },
+    {
+      "path": "src/audit.ts",
+      "sha256": "e6028774de6c618f1299ebfee2b4d712698d37d5d907fe4a31102fdb86a50968"
+    },
+    {
+      "path": "wrangler.jsonc",
+      "sha256": "726135e8ab05d6cb105c03f3486387ca917c97d096f193f3a6bf63f88dafa264"
+    }
+  ],
+  "validation": {
+    "command": "node scripts/guard.mjs",
+    "exit_code": 1,
+    "result": "FAIL",
+    "findings": [
+      "Configured Worker is dnaos-audit; this guard expects dnaos-auth-entry.",
+      "The guard rejects the configured d1_databases binding.",
+      "The configured dnaos.dev/v1/audit* route is not in the guard allowlist."
+    ],
+    "report_generation": "SKIPPED",
+    "reason": "AUDIT_TOKEN is not configured."
+  },
+  "design_gaps": [
+    "No DNA ID is present in the artifact audit schema.",
+    "No migration or deployment event reference is present.",
+    "The D1 database ID is a placeholder, so no deployed database is evidenced.",
+    "The guard permits a passing result when report transmission is skipped or fails.",
+    "Named environment configuration sections are not comprehensively checked."
+  ],
+  "deployment_evidence": {
+    "worker_deployment_verified": false,
+    "database_provisioning_verified": false,
+    "audit_event_persisted": false
+  },
+  "handling": "Evidence-only review. Do not treat this artifact as deployed system state or as authorization to deploy."
+}
