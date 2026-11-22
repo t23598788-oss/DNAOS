@@ -169,7 +169,7 @@ async function main() {
       source: "pit_materials",
       price_at_publish: price.price,
       operator_identity_verified: false,
-      authority: `super_admin (publication.admin) — operator identity: ${
+      authority: `verified resource-owner publication — operator identity: ${
         witness.identity_user_id ? `${witness.identity_user_id} (ยังไม่ยืนยันว่ามีใน auth.users)` : "ไม่มีใน pit_profiles.user_id"
       }`,
     },

@@ -6,30 +6,25 @@
  * documents, so the control-room UI cannot become a second, unscoped door.
  *
  * Semantics:
- *   platform      → companyIds = null  (no restriction; super_admin operator)
  *   organization   → companyIds = the companies whose organization_id is in the
  *                    caller's membership (may be empty ⇒ sees nothing)
  *   none           → companyIds = empty Set and `deny()` returns 403
- *
- * Rows without a company id (e.g. unattributed business events) are visible
- * only in platform scope.
  */
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/core/auth/requireAuth";
-import { ADMIN_TIER, type AuthedUser } from "@/core/auth/session";
+import { ANY_AUTHENTICATED, type AuthedUser } from "@/core/auth/session";
 import type { DataScope } from "@/core/authority/data-scope";
 import { resolveSessionDataScope } from "@/engines/authority/session-scope";
 import { getVisibleCompanyIds } from "@/services/supabase/queries";
 
 export interface AdminReadScope {
   scope: DataScope;
-  /** null = platform (no restriction); a Set = exactly the visible companies */
-  companyIds: Set<string> | null;
+  /** exactly the visible companies; empty means no business data */
+  companyIds: Set<string>;
 }
 
 export async function resolveAdminReadScope(auth: AuthedUser): Promise<AdminReadScope> {
   const scope = await resolveSessionDataScope(auth);
-  if (scope.mode === "platform") return { scope, companyIds: null };
   if (scope.mode !== "organization") return { scope, companyIds: new Set() };
   const companyIds = await getVisibleCompanyIds(scope);
   return { scope, companyIds: companyIds ?? new Set() };
@@ -37,7 +32,7 @@ export async function resolveAdminReadScope(auth: AuthedUser): Promise<AdminRead
 
 /** Auth + scope in one call for routes that do not need the raw AuthedUser. */
 export async function requireAdminReadScope(): Promise<AdminReadScope | NextResponse> {
-  const auth = await requireAuth(ADMIN_TIER);
+  const auth = await requireAuth(ANY_AUTHENTICATED);
   if (auth instanceof NextResponse) return auth;
   return resolveAdminReadScope(auth);
 }
@@ -53,7 +48,6 @@ export function denyUnscoped(ctx: AdminReadScope): NextResponse | null {
 }
 
 export function isCompanyVisible(ctx: AdminReadScope, companyId: string | null | undefined): boolean {
-  if (ctx.companyIds === null) return true;
   return Boolean(companyId) && ctx.companyIds.has(String(companyId));
 }
 
@@ -62,7 +56,6 @@ export function filterRowsByCompany<T>(
   rows: readonly T[],
   companyIdOf: (row: T) => string | null | undefined,
 ): T[] {
-  if (ctx.companyIds === null) return [...rows];
   return rows.filter((row) => isCompanyVisible(ctx, companyIdOf(row)));
 }
 

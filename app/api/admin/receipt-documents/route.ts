@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { resolvePaymentDocumentLink } from "@/engines/transactions/document-link"
 import { recordInboundSource, linkInboundSource, type InboundChannel } from "@/engines/canonical/inbound-write"
@@ -14,7 +14,7 @@ const ALLOWED_CHANNELS: InboundChannel[] = ["line", "upload", "email", "bank", "
 // remaining gap); everything that goes through the app normalises here with real
 // provenance — media facts only when provable, linkage only when evidenced.
 export async function POST(req: Request) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const body = await req.json().catch(() => ({}))
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       ? body.customer_company_id.trim()
       : null
   if (requestedCompanyId && !isCompanyVisible(ctx, requestedCompanyId)) return notFound()
-  if (!requestedCompanyId && ctx.companyIds !== null) {
+  if (!requestedCompanyId) {
     return NextResponse.json(
       { error: "ต้องระบุ customer_company_id ในองค์กรของท่าน", code: "INBOUND_COMPANY_REQUIRED" },
       { status: 400 },
@@ -117,7 +117,7 @@ export async function POST(req: Request) {
 // document-link.ts), so the preview shown here is the exact same
 // classification confirm will act on, not a separate guess.
 export async function GET(_req: Request) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const db = supabase()

@@ -46,9 +46,8 @@ export async function POST(req: Request) {
     // process-wide singleton. This route is owner-only (see text.ts's
     // caller), so contactContext is left null — no extra free-text facts
     // needed here.
-    // Owner-only, secret-gated bridge: the ONE explicit platform scope, with a
-    // distinct evidence reason — plus the gateway context this bridge used to
-    // omit (without it answerWithAi() collapsed to "ไม่มี AI session context").
+    // Secret-gated bridge. It receives no business-data scope unless the
+    // pipeline resolves an organization from verified membership.
     const result = await runWithDataScope(ownerBridgeDataScope(), () =>
       runCognitivePipeline(commandText, null, lineUserId, null, {
         ownerId: `line-owner:${lineUserId}`,

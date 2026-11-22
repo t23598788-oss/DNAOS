@@ -216,6 +216,13 @@ async function main() {
   console.log("=== DNA OS Deploy Gate ===\n");
   console.log("Running real governance checks (scripts/governance.sh) — not simulated.\n");
 
+  let admissionFailed = false;
+  try {
+    execSync("node scripts/ai-work-admission-gate.mjs --mode production", { cwd: ROOT, stdio: "inherit" });
+  } catch {
+    admissionFailed = true;
+  }
+
   let governanceFailed = false;
   try {
     execSync("bash scripts/governance.sh", { cwd: ROOT, stdio: "inherit" });
@@ -230,6 +237,7 @@ async function main() {
   const release = checkReleaseBaseline();
 
   const problemCauses = [
+    ...(admissionFailed ? ["AI Work Admission Gate blocked: required provenance or production runtime evidence is missing, invalid, or unverified"] : []),
     ...failedKeys.map((key) => `${CHECK_KEY_TO_VALIDATOR[key]?.validator ?? key} failed`),
     ...devLoop.reasons,
     ...release.reasons,
@@ -254,7 +262,7 @@ async function main() {
 
   console.log("\n" + "=".repeat(60));
 
-  if (failedKeys.length === 0 && !devLoop.blocked && !release.blocked) {
+  if (failedKeys.length === 0 && !devLoop.blocked && !release.blocked && !admissionFailed) {
     console.log("Deploy Gate: PASS");
     console.log("Status\n  READY");
     for (const warning of release.warnings) console.log(`  WARN  ${warning}`);
@@ -270,6 +278,15 @@ async function main() {
     for (const reason of release.reasons) console.log(`  - ${reason}`);
     console.log(`\nRequired Action`);
     console.log(`  - Fix the release artifacts (package.json version / registry/CURRENT_STATE.json / registry/CHANGELOG.json) — all owner-owned`);
+    console.log(`\nStatus\n  NOT READY\n`);
+    console.log("-".repeat(60));
+  }
+
+  if (admissionFailed) {
+    console.log(`Deploy Blocked — AI Work Admission Gate\n`);
+    console.log(`  - Required process: identify the real source and scope, verify relevant database/runtime evidence, run focused checks, and preserve unknowns honestly.`);
+    console.log(`  - A production dependency must be VERIFIED and carry every required runtime evidence flag.`);
+    console.log(`  - Review registry/AI_WORK_ADMISSION_POLICY.json and registry/evidence/; do not waive this gate by relabeling evidence.`);
     console.log(`\nStatus\n  NOT READY\n`);
     console.log("-".repeat(60));
   }

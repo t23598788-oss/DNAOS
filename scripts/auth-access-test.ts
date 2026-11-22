@@ -33,12 +33,12 @@ check("guard: /app allowed", isSafeInternalPath("/app") === true);
 
 // ── landing authority (runtime, registry-driven) ────────────────────────────
 const landing = permissions.workspace_landing as Record<string, string>;
-check("landing: staff (super/admin/employee) → /admin/relationships",
-  ["super_admin", "admin", "employee"].every((r) => landing[r] === "/admin/relationships"));
+check("landing: no platform-wide super-admin role exists",
+  !Object.prototype.hasOwnProperty.call(landing, "super_admin"));
 check("landing: partner → /partner · customer → /user",
   landing.partner === "/partner" && landing.customer === "/user");
 check("resolveDestination(role, null) follows registry",
-  resolveDestination("employee", null) === "/admin/relationships" &&
+  resolveDestination("employee", null) === "/workspace" &&
   resolveDestination("partner", null) === "/partner" &&
   resolveDestination("customer", null) === "/user");
 check("resolveDestination: safe next wins (documented precedence)",
@@ -49,8 +49,7 @@ const adminTier = [...(permissions.role_tiers.admin_tier as string[])].sort();
 const routeAdmin = [...((permissions.route_access.find((r) => r.prefix === "/admin") as { roles: string[] }).roles)].sort();
 check("ADMIN_TIER == route_access /admin roles (registry self-consistent)",
   JSON.stringify(adminTier) === JSON.stringify(routeAdmin), JSON.stringify(adminTier));
-check("capability chat roles == admin tier (workspace tool ↔ route)",
-  JSON.stringify([...permissions.capability_access.chat].sort()) === JSON.stringify(adminTier));
+check("global admin tier is empty; scoped business APIs enforce organization ownership", adminTier.length === 0);
 check("TOOL_BINDINGS.chat routes to the same relationships screen",
   TOOL_BINDINGS.chat?.route === "/admin/relationships");
 
@@ -80,9 +79,9 @@ check("auto-login RETIRED410 — no second auth path (no signInWithPassword left
     !autoLogin.includes("signInWithPassword"));
 check("middleware next = pathname only (never raw query)",
   middleware.includes('loginUrl.searchParams.set("next", pathname)'));
-check("relationships root page: server-side ADMIN_TIER gate",
+check("relationships root page: closed when the global admin tier is empty",
   relRoot.includes('requireAuthPage("/admin/relationships", ADMIN_TIER)'));
-check("relationships deep page: server-side ADMIN_TIER gate",
+check("relationships deep page: closed when the global admin tier is empty",
   relDeep.includes("requireAuthPage(`/admin/relationships/${relationshipId}`, ADMIN_TIER)"));
 check("logout = the one supabase signOut route", logoutRoute.includes("auth.signOut()"));
 check("session read = single getAuthedUser path (getUser + profiles.role)",

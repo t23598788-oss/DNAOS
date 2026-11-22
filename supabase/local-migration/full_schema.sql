@@ -517,7 +517,6 @@ ALTER TYPE "public"."UserStatus" OWNER TO "postgres";
 
 
 CREATE TYPE "public"."app_role" AS ENUM (
-    'super_admin',
     'admin',
     'employee',
     'partner',
@@ -574,17 +573,8 @@ CREATE OR REPLACE FUNCTION "public"."handle_new_user"() RETURNS "trigger"
     SET "search_path" TO 'public'
     AS $$
 declare
-  existing_count int;
-  assigned_role public.app_role;
+  assigned_role public.app_role := 'customer';
 begin
-  select count(*) into existing_count from public.profiles;
-
-  if existing_count = 0 then
-    assigned_role := 'super_admin';
-  else
-    assigned_role := 'customer';
-  end if;
-
   insert into public.profiles (id, email, role)
   values (new.id, new.email, assigned_role);
 
@@ -600,12 +590,9 @@ CREATE OR REPLACE FUNCTION "public"."is_admin_workspace_user"() RETURNS boolean
     LANGUAGE "sql" STABLE SECURITY DEFINER
     SET "search_path" TO 'public'
     AS $$
-  select exists (
-    select 1
-    from public.profiles
-    where id = auth.uid()
-      and role in ('super_admin', 'admin', 'employee')
-  );
+  -- Legacy global RLS helper: default-deny. Replaced only by policies that
+  -- prove the exact organization/resource owner in a later migration.
+  select false;
 $$;
 
 
@@ -4460,9 +4447,9 @@ GRANT ALL ON FUNCTION "public"."handle_new_user"() TO "service_role";
 
 
 REVOKE ALL ON FUNCTION "public"."is_admin_workspace_user"() FROM PUBLIC;
-GRANT ALL ON FUNCTION "public"."is_admin_workspace_user"() TO "anon";
-GRANT ALL ON FUNCTION "public"."is_admin_workspace_user"() TO "authenticated";
-GRANT ALL ON FUNCTION "public"."is_admin_workspace_user"() TO "service_role";
+REVOKE ALL ON FUNCTION "public"."is_admin_workspace_user"() FROM "anon";
+GRANT EXECUTE ON FUNCTION "public"."is_admin_workspace_user"() TO "authenticated";
+GRANT EXECUTE ON FUNCTION "public"."is_admin_workspace_user"() TO "service_role";
 
 
 

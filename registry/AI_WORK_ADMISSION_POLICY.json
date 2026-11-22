@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "gate_id": "DNA-GATE-000001",
+  "dna_id": "DNA-CAP-000001",
+  "repository": "t23598788-oss/DNAOS",
+  "applies_to": ["human", "ai", "automation"],
+  "required_steps": [
+    "identify the repository, branch, commit, and authoritative environment",
+    "declare the requested scope and affected capability before editing",
+    "compare claims with source, database catalog, migration history, and live deployment evidence when applicable",
+    "run focused checks and record exact commands and outcomes",
+    "preserve unresolved conflicts as CONFLICT or UNVERIFIED",
+    "block production when required evidence is missing, conflicting, or unverified"
+  ],
+  "prohibited_claims": [
+    "declared in source is not verified online",
+    "a successful build is not proof of a production deployment",
+    "an artifact or design file is not proof of a provisioned service",
+    "never record credentials, private connection strings, personal business data, or trade-secret calculations"
+  ],
+  "evidence_directory": "registry/evidence",
+  "production_evidence_rule": {
+    "field": "production_dependency",
+    "required_for_every_record": true,
+    "required_runtime_evidence_flags": [
+      "worker_deployment_verified",
+      "database_provisioning_verified",
+      "audit_event_persisted"
+    ],
+    "when_true": [
+      "status must be VERIFIED",
+      "every artifact must include a valid SHA-256",
+      "every required deployment_evidence flag must be true"
+    ],
+    "unverified_non_dependencies": "May be retained as evidence, but must not be used or represented as production capability."
+  }
+}

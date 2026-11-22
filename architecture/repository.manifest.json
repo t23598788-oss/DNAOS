@@ -1,7 +1,7 @@
 {
   "schemaVersion": "dna.repository.v1",
   "repositoryId": "BUSINESS_RUNTIME",
-  "githubRepository": "t23598788-oss/---------------DNA-OS",
+  "githubRepository": "t23598788-oss/DNAOS",
   "role": "BUSINESS_RUNTIME",
   "authorityStatus": "CANONICAL",
   "runtimeAllowed": true,

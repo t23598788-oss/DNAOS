@@ -30,7 +30,7 @@ function artifactFromHeader(req: Request): unknown {
 
 /**
  * Core chain wiring (T7): `governance:propose` is a PRIVILEGED MUTATION, so a
- * valid token — including one owned by a super_admin — is permission only, never
+ * valid token — including one held by a system administrator — is permission only, never
  * owner proof. The mutation must additionally carry an artifact produced by
  * -DNA-OS-INFRASTRUCTURE-'s owner-authentication (Touch ID / device passcode,
  * single-use challenge, HMAC-signed when it crosses a runtime boundary), which
@@ -70,7 +70,7 @@ export async function authenticate(
           error: "OWNER_VERIFICATION_REQUIRED",
           transport: OWNER_VERIFICATION_PATH,
           detail:
-            "a privileged mutation requires owner_verification_artifact produced by the infrastructure owner-authentication (Touch ID / device passcode); a token scope alone — including super_admin — is not owner proof",
+            "a privileged mutation requires owner_verification_artifact produced by the infrastructure owner-authentication (Touch ID / device passcode); a token scope alone is not owner proof",
         },
         { status: 403 }
       ),

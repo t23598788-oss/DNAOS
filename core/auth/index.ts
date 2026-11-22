@@ -4,7 +4,7 @@ export {
   getAuthedUser,
   getAccessToken,
   ADMIN_TIER,
-  SUPER_ADMIN_ONLY,
+  DISABLED_ROLE_TIER,
   ANY_AUTHENTICATED,
   type AppRole,
   type AuthedUser,

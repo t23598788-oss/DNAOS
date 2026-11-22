@@ -1,12 +1,12 @@
 /**
  * POST/GET /api/admin/ide/security/external-surface/domains — real,
  * Owner-only Domain Asset registration/listing (owner, 2026-08-08,
- * Software Factory Step 13.7). SUPER_ADMIN_ONLY. Registration alone
+ * Software Factory Step 13.7). DISABLED_ROLE_TIER. Registration alone
  * never authorizes a scan — a separate, real verify action is required.
  */
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/core/auth/requireAuth";
-import { SUPER_ADMIN_ONLY } from "@/core/auth/session";
+import { DISABLED_ROLE_TIER } from "@/core/auth/session";
 import { registerDomainAsset, listDomainAssets, DomainAssetError } from "../../../_lib/domainAssetRuntime";
 
 function errorResponse(code: string, message: string, status: number) {
@@ -19,7 +19,7 @@ function statusFor(code: string): number {
 }
 
 export async function POST(req: Request) {
-  const auth = await requireAuth(SUPER_ADMIN_ONLY);
+  const auth = await requireAuth(DISABLED_ROLE_TIER);
   if (auth instanceof NextResponse) return auth;
   let body: Partial<{ domain: string; organization: string; purpose: string; authorization: string; allowedRuntime: string[]; forbiddenRuntime: string[]; expectedSubdomains: string[] }>;
   try { body = await req.json(); } catch { body = {}; }
@@ -38,7 +38,7 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  const auth = await requireAuth(SUPER_ADMIN_ONLY);
+  const auth = await requireAuth(DISABLED_ROLE_TIER);
   if (auth instanceof NextResponse) return auth;
   return NextResponse.json({ ok: true, assets: listDomainAssets(auth.id) });
 }

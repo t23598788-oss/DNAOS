@@ -3,7 +3,7 @@
  * Command Gateway. Same pattern as app/api/admin/storage-intelligence/route.ts.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth, ADMIN_TIER, SUPER_ADMIN_ONLY } from "@/core/auth";
+import { requireAuth, ADMIN_TIER, DISABLED_ROLE_TIER } from "@/core/auth";
 import { supabaseAdmin } from "@/services/supabase/queries";
 import { acquireLockWithRetry, releaseLock } from "@/engines/workspace/lockManager";
 import { getDependents, analyzeImpact } from "@/engines/workspace/dependencyRegistry";
@@ -16,8 +16,8 @@ const COMMAND_ROLES: Record<string, string[]> = {
   get_dependents: ADMIN_TIER,
   analyze_impact: ADMIN_TIER,
   create_migration_plan: ADMIN_TIER,
-  approve_migration_plan: SUPER_ADMIN_ONLY,
-  execute_migration: SUPER_ADMIN_ONLY,
+  approve_migration_plan: DISABLED_ROLE_TIER,
+  execute_migration: DISABLED_ROLE_TIER,
   list_conflicts: ADMIN_TIER,
 };
 

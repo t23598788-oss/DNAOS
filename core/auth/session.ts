@@ -1,14 +1,9 @@
 import { getServerSupabaseClient } from "@/gateway/auth";
 import permissions from "@/registry/permissions.json";
 import { resolveIdentityContext, type ProfileLookup, type LinkedIdentity } from "@/core/identity/identity";
+import { effectiveSessionRole, type AppRole } from "@/core/auth/role-binding";
 
-export type AppRole =
-  | "super_admin"
-  | "admin"
-  | "employee"
-  | "partner"
-  | "customer"
-  | "ai_service";
+export type { AppRole } from "@/core/auth/role-binding";
 
 export interface AuthedUser {
   id: string;
@@ -29,7 +24,7 @@ export interface AuthedUser {
 }
 
 export const ADMIN_TIER = permissions.role_tiers.admin_tier as AppRole[];
-export const SUPER_ADMIN_ONLY = permissions.role_tiers.super_admin_only as AppRole[];
+export const DISABLED_ROLE_TIER = permissions.role_tiers.disabled_role_tier as AppRole[];
 export const ANY_AUTHENTICATED = permissions.role_tiers.any_authenticated as AppRole[];
 
 // The one place that resolves "who is making this request" from the shared
@@ -87,7 +82,7 @@ export async function getAuthedUser(): Promise<AuthedUser | null> {
   return {
     id: user.id,
     email: user.email ?? "",
-    role: ctx.canonical.role as AppRole,
+    role: effectiveSessionRole(ctx.canonical) ?? "customer",
     identities: ctx.identities,
     canonicalProfileId: ctx.canonical.profileId,
     resolvedBy: ctx.canonical.resolvedBy,

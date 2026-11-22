@@ -40,12 +40,10 @@ function main() {
   const uiToolKeys = TOOLS.map((t) => t.key).sort();
   const registryKeys = Object.keys(permissions.capability_access).sort();
 
-  // 1. admin-tier role really is granted the business tools
+  // 1. global profile roles grant no tools; UI authority needs org ownership.
   const adminGranted = resolveAllowedCapabilities("admin");
-  assert.equal(adminGranted.length, uiToolKeys.length, `admin granted ${adminGranted.length}, expected ${uiToolKeys.length}`);
-  assert.ok(adminGranted.includes("people"), "admin must be granted the people tool");
-  assert.ok(isCapabilityAllowed("people", "employee"), "employee (admin tier) must be granted people");
-  assert.ok(isCapabilityAllowed("people", "super_admin"), "super_admin must be granted people");
+  assert.equal(adminGranted.length, 0, `unscoped admin role must grant 0 tools, got [${adminGranted.join(",")}]`);
+  assert.equal(isCapabilityAllowed("people", "employee"), false, "employee role alone must not grant a business tool");
 
   // 2. default deny for roles the registry does not grant
   for (const role of ["partner", "customer"] as const) {
@@ -54,8 +52,8 @@ function main() {
     assert.equal(isCapabilityAllowed("people", role), false, `${role} must not see the people tool`);
   }
 
-  // 3. undeclared key is denied even for the highest role
-  assert.equal(isCapabilityAllowed("__not_declared__", "super_admin"), false, "undeclared keys must be denied");
+  // 3. undeclared key is denied for every profile role
+  assert.equal(isCapabilityAllowed("__not_declared__", "admin"), false, "undeclared keys must be denied");
 
   // 4. registry and UI tool list cannot drift
   assert.deepEqual(registryKeys, uiToolKeys, `capability_access keys must equal the UI tool keys\n  registry: ${registryKeys.join(",")}\n  ui:       ${uiToolKeys.join(",")}`);
@@ -79,7 +77,7 @@ function main() {
 
   console.log("workspace-capability:test PASS");
   console.log(
-    `checks: admin-tier granted ${adminGranted.length} tools, default-deny for partner/customer, undeclared denied, registry==UI keys (${registryKeys.length}), no role token / tier check under app/workspace (${workspaceSourceFiles().length} files)`,
+    `checks: unscoped admin role granted ${adminGranted.length} tools, default-deny for profile roles, undeclared denied, registry==UI keys (${registryKeys.length}), no role token / tier check under app/workspace (${workspaceSourceFiles().length} files)`,
   );
 }
 

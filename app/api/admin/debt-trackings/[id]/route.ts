@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { getDebtTrackingById, updateDebtTracking, deleteDebtTracking, getFirstInvoiceForPartner } from "@/services/supabase/queries"
 import { calcDebtTrackingSummary, deriveCollectionStatus, sumManualAdjustments, sumManualInterestAdjustments } from "@/engines/debt/tracking"
 import { supabaseAdmin } from "@/services/supabase/queries"
@@ -9,7 +9,7 @@ import { denyUnscoped, isCompanyVisible, notFound, resolveAdminReadScope } from 
 type Params = { params: Promise<{ id: string }> }
 
 export async function GET(_req: NextRequest, { params }: Params) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params
@@ -51,7 +51,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 const FROZEN_MONETARY_KEYS = ["principalAmount", "principal_amount", "total_outstanding", "overdue_amount"]
 
 export async function PATCH(req: NextRequest, { params }: Params) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params
@@ -79,7 +79,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const { id } = await params

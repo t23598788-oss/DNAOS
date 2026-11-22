@@ -3,8 +3,8 @@
  *
  * Proves the job tool is wired through the CENTRAL authority to the EXISTING
  * canonical path, and that nothing parallel or fabricated was introduced:
- *   1. authority: "jobs" granted to the admin tier, denied for partner/customer
- *   2. an undeclared capability is denied even for super_admin (default deny)
+ *   1. authority: unscoped profile roles receive no business tools
+ *   2. an undeclared capability is denied (default deny)
  *   3. registry keys == UI tool keys (no drift) and "jobs" is among them
  *   4. the job builder imports the EXISTING canonical sources only
  *      (services/supabase/queries + services/canonical/transaction-list), never
@@ -62,14 +62,14 @@ const FIXTURE_MONEY = new Map<string, TransactionMoneySummary>([
 
 function main() {
   // 1 + 2 · authority
-  for (const role of ["super_admin", "admin", "employee"] as const) {
-    assert.ok(isCapabilityAllowed("jobs", role), `${role} must be granted the jobs tool`);
+  for (const role of ["admin", "employee"] as const) {
+    assert.equal(isCapabilityAllowed("jobs", role), false, `${role} without owner scope must not be granted jobs`);
   }
   for (const role of ["partner", "customer"] as const) {
     assert.equal(isCapabilityAllowed("jobs", role), false, `${role} must not be granted the jobs tool`);
     assert.equal(resolveAllowedCapabilities(role).includes("jobs"), false, `${role} must not resolve jobs`);
   }
-  assert.equal(isCapabilityAllowed("__not_declared__", "super_admin"), false, "undeclared keys must stay denied");
+  assert.equal(isCapabilityAllowed("__not_declared__", "admin"), false, "undeclared keys must stay denied");
 
   // 3 · registry vs UI keys
   const registryKeys = Object.keys(permissions.capability_access).sort();

@@ -72,7 +72,8 @@ export interface OrganizationMembership {
 }
 
 /**
- * Organization memberships for the AUTHENTICATED account id.
+ * Organization owner/admin memberships for the AUTHENTICATED account id.
+ * Ordinary member rows do not grant business-management scope.
  *
  * `accountId` must be the auth.users id (which IS profiles.id — the profiles
  * table references auth.users(id)). Never an organization the caller chose,
@@ -86,13 +87,19 @@ export async function loadOrganizationMembership(
   try {
     const { data, error } = await db
       .from("org_members")
-      .select("organization_id")
+      .select("organization_id, role")
       .eq("user_id", accountId); // B1 — the real column (no deleted_at on this table, B2)
     if (error) return { organizations: [], error: error.message ?? "QUERY_FAILED" };
     if (!Array.isArray(data)) return { organizations: [], error: "UNEXPECTED_SHAPE" };
     const organizations = Array.from(
       new Set(
         data
+          // Only organization owners/admins may use the business management
+          // scope. Ordinary membership alone never grants finance/admin access.
+          .filter((row) => {
+            const role = asString((row as { role?: unknown }).role);
+            return role === "owner" || role === "admin";
+          })
           .map((row) => asString((row as { organization_id?: unknown }).organization_id))
           .filter((id): id is string => Boolean(id)),
       ),

@@ -30,6 +30,12 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      # Prove the shared human/AI/automation admission gate blocks invalid and
+      # unverified production dependencies. The production-mode gate itself is
+      # enforced inside scripts/deploy-gate.ts, which is also npm's prebuild.
+      - name: AI Work Admission Gate regression tests
+        run: npm run ai:admission:test
+
       - name: Governance guards (registry sync, drift, dead code, duplicates, dependency graph, evidence isolation, registry stub check)
         run: bash scripts/pre-commit-check.sh
 
@@ -43,3 +49,9 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: npx tsx scripts/deploy-gate.ts
+
+      - name: Production build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run build

@@ -6,8 +6,7 @@
  *   1. registry/permissions.json is the single source of role -> access
  *   2. core/auth/* actually reads it (no route hardcodes its own role list)
  *   3. the tier constants the API routes import really come from there
- *   4. the permission layer is NOT owner authority — super_admin is a
- *      permission, never owner proof (owner decision 2026-09-22)
+ *   4. no platform-wide administrator role or tier is declared
  *
  * Run: npm run permission-policy:test
  */
@@ -57,12 +56,10 @@ async function main() {
     assert(unknown.length === 0, `undeclared role(s): ${unknown.join(", ")}`);
   });
 
-  await test("super_admin exists as a permission role and owns its own tier", () => {
-    assert(permissions.roles.some((r) => r.id === "super_admin"), "super_admin role missing");
-    assert(
-      Array.isArray(permissions.role_tiers.super_admin_only) && permissions.role_tiers.super_admin_only.includes("super_admin"),
-      "super_admin_only tier does not contain super_admin"
-    );
+  await test("platform-wide administrator roles and tiers are absent", () => {
+    assert(!permissions.roles.some((r) => r.id === "super_admin"), "super_admin role remains declared");
+    assert(Array.isArray(permissions.role_tiers.admin_tier) && permissions.role_tiers.admin_tier.length === 0, "global admin tier must be empty");
+    assert(Array.isArray(permissions.role_tiers.disabled_role_tier) && permissions.role_tiers.disabled_role_tier.length === 0, "disabled tier must deny all roles");
   });
 
   await test("the auth layer reads the permission registry (session.ts is the single reader)", () => {

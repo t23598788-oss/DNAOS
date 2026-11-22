@@ -27,7 +27,7 @@ const expect = (cond: boolean, m: string, d?: string) => (cond ? pass(m) : fail(
 
 const owner = { profileId: "profile-owner" };
 const other = { profileId: "profile-other" };
-const admin = { profileId: "profile-admin", role: "super_admin" };
+const admin = { profileId: "profile-admin", role: "admin" };
 const pit = { kind: "pit" as const, id: "pit-1", ownerProfileId: "profile-owner" };
 
 const grant = (over: Partial<ScopeGrant> = {}): ScopeGrant => ({
@@ -55,7 +55,7 @@ console.log("=== A — owner path ===");
 console.log("\n=== B — role is never authority (R1) ===");
 {
   const d = resolveAuthority({ actor: admin, action: "price.write", resource: pit, at: AT });
-  expect(!d.allowed && d.reason === "ROLE_IS_NOT_AUTHORITY", "B super_admin without grant/ownership is denied", d.reason);
+  expect(!d.allowed && d.reason === "ROLE_IS_NOT_AUTHORITY", "B admin without grant/ownership is denied", d.reason);
   const d2 = resolveAuthority({ actor: admin, action: "price.write", resource: { ...pit, ownerProfileId: null }, at: AT });
   expect(!d2.allowed, "B unknown owner + admin = deny (fail-closed)", d2.reason);
 }

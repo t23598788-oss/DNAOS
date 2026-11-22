@@ -134,14 +134,14 @@ async function main() {
     assert(!listSecurityExecutionGateRecords(OWNER_B).some((r) => r.gateId === record.gateId), "expected Owner B's list to never include Owner A's real record");
   });
 
-  await test("Public Visibility: every route under app/api/admin/ide/security/ requires SUPER_ADMIN_ONLY, never ADMIN_TIER or ANY_AUTHENTICATED", () => {
+  await test("Public Visibility: every route under app/api/admin/ide/security/ is disabled pending an organization-scoped replacement", () => {
     const dir = path.join(ROOT, "app/api/admin/ide/security");
     const files = readAllRouteFiles(dir);
     assert(files.length >= 5, `expected at least 5 real security route files, found ${files.length}`);
     for (const f of files) {
       const src = readFileSync(f, "utf-8");
       const activeCodeLines = src.split("\n").filter((l) => !l.trim().startsWith("*") && !l.trim().startsWith("//"));
-      assert(activeCodeLines.some((l) => l.includes("SUPER_ADMIN_ONLY")), `expected ${path.relative(ROOT, f)} to require SUPER_ADMIN_ONLY in real, active code`);
+      assert(activeCodeLines.some((l) => l.includes("DISABLED_ROLE_TIER")), `expected ${path.relative(ROOT, f)} to be closed in real, active code`);
       assert(!activeCodeLines.some((l) => l.includes("ADMIN_TIER") || l.includes("ANY_AUTHENTICATED")), `expected ${path.relative(ROOT, f)} to never accept the broader ADMIN_TIER/ANY_AUTHENTICATED tiers in real, active code`);
     }
   });

@@ -1173,7 +1173,7 @@
         "app/api/admin/ide/security/**/route.ts"
       ],
       "type": "runtime",
-      "detection": "Mechanical: grep-verified — every route.ts under app/api/admin/ide/security/ calls requireAuth(SUPER_ADMIN_ONLY), the real, existing role_tiers.super_admin_only = [\"super_admin\"] from registry/permissions.json; zero route accepts admin/employee/partner/customer roles."
+      "detection": "Current access policy is fail-closed: registry/permissions.json disabled_role_tier is empty; every former platform-security route uses this empty tier. No user role receives cross-organization data scope."
     },
     "223": {
       "title": "No Cross-Workspace Security Execution",

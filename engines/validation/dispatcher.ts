@@ -403,7 +403,7 @@ export async function dispatch(
       data: null,
       requires_confirmation: false,
       violations: [
-        `DATA_SCOPE_REQUIRED: "${command}" อ่านข้อมูลธุรกิจได้เฉพาะเมื่อมี scope ที่ยืนยันแล้ว (session/org หรือ platform owner) — ตรวจ ${scope?.reason ?? "NO_VERIFIED_ACTOR"}`,
+        `DATA_SCOPE_REQUIRED: "${command}" อ่านข้อมูลธุรกิจได้เฉพาะเมื่อมีสมาชิกองค์กรที่ยืนยันแล้ว — ตรวจ ${scope?.reason ?? "NO_VERIFIED_ACTOR"}`,
       ],
     };
   }

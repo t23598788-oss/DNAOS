@@ -25,6 +25,11 @@ jobs:
         with:
           node-version: 24
 
+      - name: Shared AI admission and production evidence gate
+        run: |
+          node scripts/ai-work-admission-gate.test.mjs
+          node scripts/ai-work-admission-gate.mjs --mode production
+
       - name: Install each Worker from its committed lockfile
         run: |
           set -euo pipefail

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "source_of_truth": "Git registry; lifecycle events mirror the ID in public.development_work_ledger.event_key and evidence_refs",
+  "identities": [
+    {
+      "dna_id": "DNA-CAP-000001",
+      "capability_key": "system.lifecycle-evidence-controller",
+      "repository": "t23598788-oss/DNAOS",
+      "status": "active",
+      "created_at": "2026-11-22",
+      "event_key_prefix": "DNA-CAP-000001/"
+    }
+  ]
+}

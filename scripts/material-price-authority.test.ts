@@ -84,7 +84,7 @@ function makeDb(opts: { failAtomic?: boolean; pitOwner?: string | null; material
 const AT = "2026-10-25T00:00:00.000Z";
 const owner = { profileId: "owner-profile" };
 const stranger = { profileId: "someone-else" };
-const admin = { profileId: "admin-profile", role: "super_admin" };
+const admin = { profileId: "admin-profile", role: "admin" };
 const grant: ScopeGrant = {
   id: "g-1",
   subjectProfileId: "someone-else",
@@ -205,7 +205,7 @@ const grant: ScopeGrant = {
     } catch (e) {
       msg = (e as Error).message;
     }
-    expect(msg === "PRICE_FORBIDDEN:ROLE_IS_NOT_AUTHORITY", "E super_admin alone is refused", msg);
+    expect(msg === "PRICE_FORBIDDEN:ROLE_IS_NOT_AUTHORITY", "E admin role alone is refused", msg);
 
     const { deps: d4, state: s4 } = makeDb();
     const delegated = await applyMaterialPrice(

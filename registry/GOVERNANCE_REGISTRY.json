@@ -169,7 +169,7 @@
         },
         {
           "id": "EWA-P4",
-          "name": "Infrastructure Workspace (elevated auth = existing SUPER_ADMIN_ONLY tier, per confirmed owner decision — not step-up re-auth), relocate Developer/Architecture/Registry pages, resolve public/private status of /, /start, /observer",
+          "name": "Infrastructure Workspace (access remains disabled until organization-scoped authorization is implemented), relocate Developer/Architecture/Registry pages, resolve public/private status of /, /start, /observer",
           "status": "not started"
         }
       ]

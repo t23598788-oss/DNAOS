@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase, canonicalDocumentType } from "@/services/supabase/queries"
 import {
   type DocumentDraftInput,
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
   // FINANCIAL DOCUMENT MANAGEMENT (owner mission 2026-10-10) — ตัวค้นหา/กรอง/ artifact
   // presence ทั้งหมดอยู่ที่ ./_lib/listDocuments (เส้นทาง canonical เดิม invoices /
   // standalone_documents + document_versions → document_artifacts) ห้ามมีที่อื่น
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
   const ctx = await resolveAdminReadScope(auth)
   const denied = denyUnscoped(ctx)
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const draft: DocumentDraftInput = await req.json()

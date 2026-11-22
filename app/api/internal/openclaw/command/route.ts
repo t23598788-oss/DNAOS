@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   const contactContext = body.contactContext ?? null
 
   try {
-    // Owner-only, secret-gated bridge: explicit platform scope + reason, with a
+    // Secret-gated bridge with no platform-wide business-data scope and a
     // channel-scoped memory key (never the shared __default__ bucket).
     const memoryKey = `channel:openclaw:${body.userId && body.userId.trim() ? body.userId.trim() : "shared"}`;
     const result = await runWithDataScope(ownerBridgeDataScope(), () =>

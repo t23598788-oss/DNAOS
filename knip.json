@@ -71,9 +71,46 @@
     "public/sw.js",
     "device-connector/dnaos-device.mjs",
     "core/authority/rights.ts",
-    "external-packages/semantic-preflight/**"
+    "external-packages/semantic-preflight/**",
+    "services/finance/unified-list.ts",
+    "workers/shared/test-worker-identity-boundary-local.mjs"
   ],
   "workspaces": {
+    "workers/auth-entry": {
+      "entry": ["index.ts", "test-*.mjs"],
+      "project": ["**/*.ts", "**/*.mjs"],
+      "ignore": ["cloudflare.config.ts", "vite.config.ts"],
+      "ignoreDependencies": ["cf", "@cloudflare/vite-plugin", "vite"],
+      "vite": false
+    },
+    "workers/business-onboarding": {
+      "entry": ["index.ts", "test-*.mjs"],
+      "project": ["**/*.ts", "**/*.mjs"],
+      "ignore": ["cloudflare.config.ts", "vite.config.ts"],
+      "ignoreDependencies": ["cf", "@cloudflare/vite-plugin", "vite"],
+      "vite": false
+    },
+    "workers/demand-ingest": {
+      "entry": ["index.ts"],
+      "project": ["**/*.ts"],
+      "ignore": ["cloudflare.config.ts", "vite.config.ts"],
+      "ignoreDependencies": ["cf", "@cloudflare/vite-plugin", "vite"],
+      "vite": false
+    },
+    "workers/fulfillment-ingest": {
+      "entry": ["index.ts"],
+      "project": ["**/*.ts"],
+      "ignore": ["cloudflare.config.ts", "vite.config.ts"],
+      "ignoreDependencies": ["cf", "@cloudflare/vite-plugin", "vite"],
+      "vite": false
+    },
+    "workers/stock-ingest": {
+      "entry": ["index.ts"],
+      "project": ["**/*.ts"],
+      "ignore": ["cloudflare.config.ts", "vite.config.ts"],
+      "ignoreDependencies": ["cf", "@cloudflare/vite-plugin", "vite"],
+      "vite": false
+    },
     "dna-os-mcp-server": {
       "entry": ["src/index.ts", "src/index-http.ts", "src/index-governance-http.ts"],
       "project": ["src/**/*.ts"]
@@ -93,6 +130,8 @@
     "top",
     "awk",
     "tail",
+    "vite",
+    "psql",
     "memory_pressure",
     "supabase",
     "which",

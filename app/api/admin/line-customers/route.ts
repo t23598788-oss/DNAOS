@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
 import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
@@ -11,7 +11,7 @@ import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-s
 // business capability, no writes.
 
 export async function GET() {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   const ctx = await resolveAdminReadScope(auth)
@@ -116,11 +116,8 @@ export async function GET() {
     : { data: [] }
   const pendingByUserId = new Set((pendingDrafts ?? []).map((d) => d.line_user_id))
 
-  // An unmatched contact has no company — that is unattributed data and stays
-  // platform-only, same as the relationships list.
-  const scopedContacts = ctx.companyIds === null
-    ? contacts
-    : contacts.filter((c) => companyByLineUserId.has(c.line_user_id))
+  // Only contacts linked to a company inside this organization are visible.
+  const scopedContacts = contacts.filter((c) => companyByLineUserId.has(c.line_user_id))
 
   const result = scopedContacts
     .map((c) => {

@@ -2668,17 +2668,6 @@
       ],
       "status": "active"
     },
-    "app/api/admin/backup/route.ts": {
-      "owner": "app",
-      "layer": "app",
-      "purpose": "GET /api/admin/backup — super-admin-only route that dumps every row of a fixed list of core business tables (companies, invoices, orders, debts, etc.) as JSON for backup.",
-      "purpose_th": "GET /api/admin/backup — เฉพาะ super admin ดึงข้อมูลทุกแถวของตารางธุรกิจหลัก (companies, invoices, orders, debts ฯลฯ) ออกมาเป็น JSON เพื่อสำรองข้อมูล",
-      "exports": [
-        "GET",
-        "POST"
-      ],
-      "status": "active"
-    },
     "supabase/functions/line-webhook-v2/templates/quick-reply/vehicle-select.ts": {
       "owner": "supabase",
       "layer": "supabase",
@@ -3253,13 +3242,12 @@
       "purpose": "TASK-001: single source of truth for resolving the authed user + role from the shared Supabase session; defines AppRole and the role tiers read from registry/permissions.json.",
       "purpose_th": "จุดเดียวที่ resolve user + role จริงจาก session — นิยาม AppRole และ role tier จาก registry/permissions.json",
       "exports": [
-        "getAuthedUser",
-        "getAccessToken",
         "ADMIN_TIER",
-        "SUPER_ADMIN_ONLY",
         "ANY_AUTHENTICATED",
-        "AppRole",
-        "AuthedUser"
+        "AuthedUser",
+        "DISABLED_ROLE_TIER",
+        "getAccessToken",
+        "getAuthedUser"
       ],
       "status": "active"
     },
@@ -3291,7 +3279,7 @@
       "exports": [
         "ADMIN_TIER",
         "ANY_AUTHENTICATED",
-        "SUPER_ADMIN_ONLY",
+        "DISABLED_ROLE_TIER",
         "getAccessToken",
         "getAuthedUser",
         "requireAuth",
@@ -3302,16 +3290,6 @@
       "status": "active",
       "archival_status": "ARCHIVED",
       "archived_knowledge_ref": "registry/existence.json#archived_knowledge.entries[AK-003]"
-    },
-    "app/admin/users/page.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "TASK-001 Role management UI — super_admin assigns roles to real users.",
-      "purpose_th": "หน้าจัดการ Role — super_admin กำหนด role ให้ user จริง",
-      "exports": [
-        "AdminUsersPage"
-      ],
-      "status": "active"
     },
     "app/api/admin/users/route.ts": {
       "owner": "admin",
@@ -3344,16 +3322,6 @@
       "status": "active",
       "archival_status": "ARCHIVED",
       "archived_knowledge_ref": "registry/existence.json#archived_knowledge.entries[AK-004]"
-    },
-    "components/admin/UsersRoleTable.tsx": {
-      "owner": "admin",
-      "layer": "ui",
-      "purpose": "TASK-001: client table for app/admin/users/page.tsx — lists users, changes role via PATCH /api/admin/users/[id]/role.",
-      "purpose_th": "ตาราง client สำหรับหน้า Users & Roles — list user + เปลี่ยน role ผ่าน API",
-      "exports": [
-        "UsersRoleTable"
-      ],
-      "status": "active"
     },
     "components/admin/SystemConfigCenter.tsx": {
       "owner": "admin",
@@ -17013,7 +16981,6 @@
         "TENANT_SCOPED_READ_COMMANDS",
         "isTenantScopedRead",
         "organizationDataScope",
-        "platformDataScope",
         "resolveDataScope",
         "scopeCanReadTenantData",
         "scopeCoversOrganization"
@@ -17450,6 +17417,33 @@
       ],
       "status": "active",
       "entry_point": true
+    },
+    "scripts/auth-role-binding-test.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "DNA OS MODULE: Regression checks that elevated roles require an exact Auth user to profile ID match.",
+      "purpose_th": "DNA OS MODULE: Regression checks that elevated roles require an exact Auth user to profile ID match.",
+      "exports": [],
+      "status": "active"
+    },
+    "core/auth/role-binding.ts": {
+      "owner": "core",
+      "layer": "core",
+      "purpose": "Roles are authoritative only when the verified Supabase Auth subject owns",
+      "purpose_th": "Roles are authoritative only when the verified Supabase Auth subject owns",
+      "exports": [
+        "AppRole",
+        "effectiveSessionRole"
+      ],
+      "status": "active"
+    },
+    "scripts/record-lifecycle-event.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Append one idempotent, DNA-linked lifecycle event to the internal Supabase ledger.",
+      "purpose_th": "Append one idempotent, DNA-linked lifecycle event to the internal Supabase ledger.",
+      "exports": [],
+      "status": "active"
     }
   },
   "excluded": [
@@ -17861,6 +17855,27 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "skeleton ระหว่างโหลดหน้า Products"
+    },
+    {
+      "path": "app/api/admin/backup/route.ts",
+      "retired_at": "2026-11-22T15:17:30.597Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "GET /api/admin/backup — เฉพาะ super admin ดึงข้อมูลทุกแถวของตารางธุรกิจหลัก (companies, invoices, orders, debts ฯลฯ) ออกมาเป็น JSON เพื่อสำรองข้อมูล"
+    },
+    {
+      "path": "app/admin/users/page.tsx",
+      "retired_at": "2026-11-22T15:17:30.598Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "หน้าจัดการ Role — super_admin กำหนด role ให้ user จริง"
+    },
+    {
+      "path": "components/admin/UsersRoleTable.tsx",
+      "retired_at": "2026-11-22T15:17:30.598Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "ตาราง client สำหรับหน้า Users & Roles — list user + เปลี่ยน role ผ่าน API"
     }
   ]
 }

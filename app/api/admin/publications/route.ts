@@ -6,12 +6,12 @@
  * material_types, the supplier in pit_profiles. What it writes is permission —
  * who authorized it, which fields may be shown, until when, and the audit trail.
  *
- * Guard: requireAuth(ADMIN_TIER) — the one canonical session check.
+ * Guard: authenticated session plus verified source-owner proof; no platform role.
  *
  * Ownership is NEVER taken from the request body:
  *   pit_materials      → 'pit:<pit_materials.pit_profile_id>' (read from the row)
  *   vehicle_types,
- *   equipment_assets   → 'platform' (those tables have no owner column)
+ *   equipment_assets   → no owner column, so publication is denied.
  * A client cannot publish a price row under another plant.
  *
  * The reader independently re-derives the same owner key and denies any
@@ -22,7 +22,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
 import { randomUUID } from "node:crypto"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED, DISABLED_ROLE_TIER } from "@/core/auth/session"
 import { supabaseAdmin } from "@/services/supabase/queries"
 import { invalidatePublicCatalog } from "@/services/public-catalog/reader"
 import { PLATFORM_OWNER, pitOwnerKey, type PublicField, type SourceTable } from "@/core/public-catalog/policy"
@@ -123,7 +123,7 @@ function publicationTableMissing(error: { code?: string; message?: string } | nu
 }
 
 export async function GET() {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(DISABLED_ROLE_TIER)
   if (auth instanceof NextResponse) return auth
 
   const { data, error } = await supabaseAdmin()
@@ -151,7 +151,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
 
   let body: Record<string, unknown>
@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
       : witnessWithoutOwner(sourceTable, source.source_record_id)
 
   const decision = resolveWriter({ userId: auth.id, email: auth.email, role: auth.role }, witness)
-  if (!decision.allowed || decision.writer !== "publication.admin") {
+  if (!decision.allowed || decision.writer !== "publication.operator") {
     return NextResponse.json(
       { ok: false, error: decision.detail, reason: decision.reason },
       { status: 403 },

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
-import { ADMIN_TIER } from "@/core/auth/session"
+import { ANY_AUTHENTICATED } from "@/core/auth/session"
 import { supabaseAdmin as supabase } from "@/services/supabase/queries"
+import { denyUnscoped, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 // Financial audit trail (UNIFIED FINANCE ADMIN mission, 2026-10-11) — อ่าน
 // audit_logs (canonical audit owner เดิม engines/canonical/audit.ts) สำหรับ
@@ -23,8 +24,11 @@ const FINANCIAL_ACTIONS = [
 ] as const
 
 export async function GET(req: NextRequest) {
-  const auth = await requireAuth(ADMIN_TIER)
+  const auth = await requireAuth(ANY_AUTHENTICATED)
   if (auth instanceof NextResponse) return auth
+  const scope = await resolveAdminReadScope(auth)
+  const denied = denyUnscoped(scope)
+  if (denied) return denied
 
   const params = req.nextUrl.searchParams
   const limit = Math.min(Number(params.get("limit") ?? 100), 300)
@@ -39,6 +43,8 @@ export async function GET(req: NextRequest) {
   if (action) query = query.eq("action", action)
   else query = query.in("action", FINANCIAL_ACTIONS)
   if (entityType) query = query.eq("entity_type", entityType)
+  if (scope.companyIds.size === 0) return NextResponse.json({ items: [], actions: FINANCIAL_ACTIONS })
+  query = query.in("company_id", [...scope.companyIds])
 
   const { data, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

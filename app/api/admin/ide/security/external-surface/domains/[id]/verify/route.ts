@@ -1,12 +1,12 @@
 /**
  * POST /api/admin/ide/security/external-surface/domains/[id]/verify —
  * real, separate, explicit Owner verification of a Domain Asset (owner,
- * 2026-08-08, Software Factory Step 13.7). SUPER_ADMIN_ONLY. Only a
+ * 2026-08-08, Software Factory Step 13.7). DISABLED_ROLE_TIER. Only a
  * verified Domain Asset may ever be scanned.
  */
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/core/auth/requireAuth";
-import { SUPER_ADMIN_ONLY } from "@/core/auth/session";
+import { DISABLED_ROLE_TIER } from "@/core/auth/session";
 import { verifyDomainAsset, DomainAssetError } from "../../../../../_lib/domainAssetRuntime";
 
 function errorResponse(code: string, message: string, status: number) {
@@ -20,7 +20,7 @@ function statusFor(code: string): number {
 }
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const auth = await requireAuth(SUPER_ADMIN_ONLY);
+  const auth = await requireAuth(DISABLED_ROLE_TIER);
   if (auth instanceof NextResponse) return auth;
   const { id } = await ctx.params;
   let body: { verificationMethod?: unknown };

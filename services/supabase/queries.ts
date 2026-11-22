@@ -24,14 +24,11 @@ export function supabaseAdmin(): SupabaseClient {
 
 /**
  * Company ids this read scope may see.
- *   null  = platform scope -> no restriction
- *   Set   = exact tenant companies (empty Set = nothing visible)
- * Never returns null for a non-platform scope: an unknown scope is "none", and
- * "none" must never turn into "no filter".
+ *   Set = exact tenant companies (empty Set = nothing visible)
+ * An unknown scope is "none", and "none" must never turn into "no filter".
  */
-async function scopedCompanyIds(scope?: DataScope): Promise<Set<string> | null> {
-  if (!scope || scope.mode === "platform") return null;
-  if (scope.mode !== "organization" || scope.organizationIds.length === 0) return new Set();
+async function scopedCompanyIds(scope?: DataScope): Promise<Set<string>> {
+  if (!scope || scope.mode !== "organization" || scope.organizationIds.length === 0) return new Set();
   const { data, error } = await supabaseAdmin()
     .from("companies")
     .select("id")
@@ -41,11 +38,11 @@ async function scopedCompanyIds(scope?: DataScope): Promise<Set<string> | null> 
 }
 
 /** Public accessor for route-level org filtering (STEP 1b, admin UI). */
-export async function getVisibleCompanyIds(scope?: DataScope): Promise<Set<string> | null> {
+export async function getVisibleCompanyIds(scope?: DataScope): Promise<Set<string>> {
   return scopedCompanyIds(scope);
 }
 
-function keepCompanyRows<T extends { partner_id?: string | null }>(rows: T[], allowed: Set<string> | null): T[] {
+function keepCompanyRows<T extends { partner_id?: string | null }>(rows: T[], allowed: Set<string>): T[] {
   if (!allowed) return rows;
   return rows.filter((row) => Boolean(row.partner_id) && allowed.has(String(row.partner_id)));
 }
@@ -53,7 +50,7 @@ function keepCompanyRows<T extends { partner_id?: string | null }>(rows: T[], al
 /** Debt rows carry only invoice_id — resolve the owning company before filtering. */
 async function filterDebtRowsByScope<T extends { invoice_id: string }>(
   rows: T[],
-  allowed: Set<string> | null,
+  allowed: Set<string>,
 ): Promise<T[]> {
   if (!allowed) return rows;
   if (allowed.size === 0 || rows.length === 0) return [];

@@ -71,8 +71,8 @@ check("scope: subject mismatch (device grant, account subject) → deny", (() =>
   return !d.allow && d.code === "NO_GRANT";
 })());
 check("scope: action classes fixed (read/write/delete/run/install/send/secret)", SCOPE_ACTIONS.length === 7);
-check("scope: grantors = admin_tier registry (admin/super/employee) — ai_service/partner/customer NEVER",
-  isGrantorRole("admin") && isGrantorRole("super_admin") && isGrantorRole("employee") &&
+check("scope: no platform-wide admin tier can grant scopes",
+  !isGrantorRole("admin") && !isGrantorRole("employee") &&
   !isGrantorRole("ai_service") && !isGrantorRole("customer") && !isGrantorRole("partner"));
 
 // ── sources: migration / command lifecycle / routes / runner ───────────────
