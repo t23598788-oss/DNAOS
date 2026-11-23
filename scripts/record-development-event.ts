@@ -14,7 +14,7 @@ const EVENT_TYPES = new Set([
   "live_route_verified",
 ]);
 const STATUSES = new Set(["passed", "failed", "blocked", "recorded"]);
-const ENVIRONMENTS = new Set(["local", "staging", "production"]);
+const ENVIRONMENTS = new Set(["local", "development", "staging", "production"]);
 const SOURCES = new Set(["codex", "github_actions", "supabase_cli", "operator"]);
 
 function required(name: string): string {
