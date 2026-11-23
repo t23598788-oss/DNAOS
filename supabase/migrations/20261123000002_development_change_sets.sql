@@ -12,6 +12,13 @@ begin
      or to_regclass('public.org_members') is null then
     raise exception 'development change-set preflight failed: company, profile, organization, and membership relations must exist';
   end if;
+  if not exists (
+    select 1 from pg_attribute
+    where attrelid = 'public.companies'::regclass
+      and attname = 'organization_id' and not attisdropped
+  ) then
+    raise exception 'development change-set preflight failed: companies.organization_id is required to verify company-to-organization authority';
+  end if;
 end
 $preflight$;
 
@@ -365,6 +372,10 @@ begin
        select 1 from public.org_members m
        where m.organization_id = v_bundle.target_organization_id
          and m.user_id = v_actor_id and m.role = 'owner'
+     ) or not exists (
+       select 1 from public.companies c
+       where c.id = v_bundle.target_company_id
+         and c.organization_id = v_bundle.target_organization_id
      ) then
     raise exception using errcode = '42501', message = 'DEVELOPMENT_APPROVAL_SCOPE_DENIED';
   end if;
@@ -418,6 +429,13 @@ begin
       and m.user_id = v_actor_id and m.role = 'owner'
   ) then
     raise exception using errcode = '42501', message = 'DEVELOPMENT_APPROVAL_OWNER_REQUIRED';
+  end if;
+  if not exists (
+    select 1 from public.companies c
+    where c.id = v_bundle.target_company_id
+      and c.organization_id = v_bundle.target_organization_id
+  ) then
+    raise exception using errcode = '42501', message = 'DEVELOPMENT_APPROVAL_COMPANY_ORGANIZATION_MISMATCH';
   end if;
 
   insert into system.development_change_set_approvals (
