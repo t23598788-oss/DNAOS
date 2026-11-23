@@ -297,7 +297,7 @@ begin
     ) values (
       v_change_set_id, v_file->>'path', v_file->>'previous_path', v_file->>'commit_sha',
       v_file->>'change_kind', v_file->>'content_sha256'
-    ) on conflict (change_set_id, repository_path, commit_sha) do nothing;
+    ) on conflict on constraint development_change_files_pkey do nothing;
   end loop;
 
   select count(*) into v_file_count from jsonb_array_elements(p_files);
@@ -642,7 +642,7 @@ security invoker
 set search_path = pg_catalog, system
 as $function$
   with matching as (
-    select event_id, event_type, status, environment, migration_id, sql_sha256, branch
+    select event_id, event_type, status, environment, migration_id, sql_sha256, branch, occurred_at
     from system.development_events
     where lineage_id = p_lineage_id and commit_sha = lower(p_commit_sha)
   ), required as (
