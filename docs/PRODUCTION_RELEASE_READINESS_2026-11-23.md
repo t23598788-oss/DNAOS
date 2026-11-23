@@ -1,6 +1,6 @@
 # Production release additions — 2026-11-23
 
-This checklist records the Market Brief requirements that must be resolved before a Production release. It is evidence and release preparation, not proof that Production has been changed or verified.
+This checklist records the Market Brief requirements and the verified Production changes as of 2026-11-23. It is not proof that the application code or Auth templates have been released.
 
 ## Release authority and database boundary
 
@@ -19,6 +19,20 @@ Document-derived facts must retain provider/document reference, source file and 
 Operational records should link order → resource/movement → milestone → document → handover → cost → exception. Each external provider remains authoritative for its own source records; DNA OS stores references and verified transitions rather than claiming ownership of provider data.
 
 The new provenance schema defines capability-sized DNA bundles in Supabase. Each bundle links its category, exact repository paths and file hashes, source commit, event timestamps, intended system/environment, and (for Production) company and organization IDs plus policy version/hash. Production approval is captured separately by an authenticated owner of that organization after reviewing the exact bundle; the database records the approver profile and timestamp. `occurred_at` and `recorded_at` retain the actual event time and the Supabase write time separately. GitHub Actions results are optional evidence; a recorded manual check/build can carry the release evidence when Actions is unavailable. Readiness requires merge, checks, build, deployment, route verification, and migration verification where migrations are recorded to be linked to the same DNA bundle. The schema is only a migration until applied and verified on the approved project. See `supabase/migrations/20261123000002_development_change_sets.sql` and `docs/DEVELOPMENT_PROVENANCE_LEDGER.md`.
+
+## Production database change recorded on 2026-11-23
+
+- Supabase project `xeytcavxejhyzxwevgto` already contained the provenance tables and first migration's RPCs, but migration `20261123000001` was absent from its migration history. The second migration's change-set tables and RPCs were absent.
+- Applied only `20261123000002_development_change_sets.sql` through the linked Supabase Management API query. Its SHA-256 is `90c00c5459d461b73ac95185c4b8992bf722b78af8909d53a147910fd6ce3ebd`.
+- Repaired the Supabase migration-history entries for `20261123000001` and `20261123000002` to `applied`; a subsequent migration-list query showed both versions present on local and remote history.
+- Verified the four change-set relations and RPC permissions. `anon` can execute only `read_public_development_change_sets`; it cannot read private change-set tables or call the private projection. An authenticated user can invoke the approval RPC only when the database confirms that user's `owner` membership and the exact company/organization binding.
+- Read-only Production history showed 86 existing companies without `organization_id`. Production change-set approval cannot be used for those companies until their legitimate organization ownership is linked. No company ownership was guessed or changed.
+- Two Production migration events and one append-only timestamp-correction event were written under the DNA lineage. The initial two event `occurred_at` values were entered as 00:20Z and 00:21Z even though the database recorded the writes at 04:25Z. They were not edited or deleted; the later event key `dnaos-prod-migration-20261123000002-timestamp-correction-for-ce18ffcc-and-941ef0` records this correction at the database's actual time. Use `recorded_at` as the reliable write time for the initial records.
+- The complete Production migration graph remains divergent: the remote project contains many older migration versions whose SQL files are absent from this checkout. No bulk `db push` was run.
+- The schema migration was applied directly as an infrastructure change at the user's request; there is no per-company owner approval row or Production change-set bundle for it. This was recorded as migration evidence, not represented as an owner-approved business release.
+- No Auth email template was changed, and this branch's application code has not been merged or deployed. The PR remains draft because its GitHub workflows failed before creating any job steps; local type-check, diff check, pre-commit guards, and isolated ledger checks had passed earlier.
+
+The database ledger itself is now installed and its public/private access boundaries were verified. The broader application release remains separate and must not be described as complete until its source commit and target are aligned and verified.
 
 ## Production rollback evidence
 
