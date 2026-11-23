@@ -27,7 +27,7 @@ export default {
         const headers = new Headers(asset.headers);
         headers.set("access-control-allow-origin", "*");
         headers.set("access-control-allow-methods", "GET, HEAD, OPTIONS");
-        headers.set("cache-control", "public, max-age=31536000, immutable");
+        headers.set("cache-control", "public, max-age=300, stale-while-revalidate=86400");
         return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers });
       });
     }
