@@ -67,12 +67,4 @@ export const presentationAssets: PresentationAsset[] = [
     status: 'LIVE',
     consumers: ['app/layout.tsx (metadata icons)'],
   },
-  {
-    key: 'logo-master',
-    url: '/icons/logo-master.png',
-    file: 'public/icons/logo-master.png',
-    status: 'UNREFERENCED',
-    consumers: [],
-    note: 'Zero references found in any source/config. DELETE_CANDIDATE for Phase 4 (Owner decision).',
-  },
 ];
