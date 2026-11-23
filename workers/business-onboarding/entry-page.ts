@@ -85,6 +85,7 @@ h1,h2{color:#152238}
 .bridge-core strong{color:#152238}.bridge-core small,.bridge-core span{color:#526b88}
 .dnaos-node span,.flow-caption{color:#5d6f88}
 .identity-brand{display:flex;align-items:center;justify-content:center}
+.dnaos-node{background:#fff}
 @media(max-width:760px){.identity-brand img{width:142px;height:48px;max-height:48px}}
 .email-divider{color:#536782}.email-divider:before,.email-divider:after{background:#dce4ee}
 label{color:#24364e}
