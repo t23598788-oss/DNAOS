@@ -16,7 +16,6 @@ const generatedArtifacts = [
   "public/landing-preview/system-map-ai.zip",
   "public/landing-preview/system-map-ai-README.md",
   "public/landing-preview/assets/brand/dna-os/v1/",
-  "workers/landing-entry/system-map-html.ts",
   "registry/architecture-book.json",
 ];
 const dirty = porcelain.split("\n").filter(Boolean).some((line) => {
@@ -256,11 +255,10 @@ function escapeHtml(value: unknown): string {
 const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DNA OS System Map</title><style>
 :root{color-scheme:light;--ink:#17202d;--muted:#596575;--line:#dce2e9;--wash:#f6f8fa;--blue:#2463a8;--card:#fff}*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.6 Inter,Arial,sans-serif}main{max-width:1000px;margin:0 auto;padding:36px 26px 64px}.doc-head{display:flex;align-items:center;gap:18px;padding:0 0 18px;margin-bottom:30px}.doc-head img{width:112px;height:auto}.doc-head small{color:var(--muted);letter-spacing:.1em;font-size:12px;font-weight:700}h1{font-size:34px;line-height:1.2;margin:0 0 10px}h2{font-size:19px;margin:0 0 4px}p{color:var(--muted);margin:6px 0 14px}.meta{font-size:13px;color:var(--muted)}.live{padding:10px 0;margin:14px 0 22px;font-size:13px;color:var(--muted)}.actions{display:flex;flex-wrap:wrap;gap:18px;margin:16px 0 30px}.actions a,a{color:var(--blue);text-decoration:none}.actions a:hover,a:hover{text-decoration:underline}.download{display:inline-flex;background:#2463a8;color:#fff!important;padding:10px 16px;border-radius:5px;font-weight:700}.categories{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.category{background:var(--card);border:1px solid var(--line);padding:18px 20px;border-radius:8px}.category p{font-size:14px;margin:4px 0 0}.footer{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}@media(max-width:620px){main{padding:24px 16px 48px}.doc-head{align-items:flex-start;flex-direction:column;gap:8px}h1{font-size:28px}.categories{grid-template-columns:1fr}}
-</style></head><body><main>
+</style><style>.brand-images{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px}.brand-images a{display:grid;gap:6px;min-width:180px;color:var(--muted);font-size:13px}.brand-images img{width:148px;height:60px;object-fit:contain;object-position:left center}</style></head><body><main>
 <header class="doc-head"><img src="${brandPack.distribution_base_url}${brandPack.variants.monochrome.horizontal}" alt="DNA OS"><small>SYSTEM AND INTEGRATION REFERENCE</small></header>
 <h1>DNA OS system map</h1><p>Production routes, source code, integration boundaries, database evidence, and compute registry.</p>
 <div class="meta">Source revision <code>${sourceRevision}</code> · generated ${escapeHtml(manifest.generated_at)}</div>
-<div class="live">Served by <strong>dnaos-homepage</strong> · Worker version <code>__DNAOS_WORKER_VERSION__</code> · created <code>__DNAOS_WORKER_CREATED_AT__</code></div>
 <nav class="actions"><a class="download" href="/system-map-ai.zip" download>Download AI reference package (.zip)</a><a href="/system-map.json">JSON map</a><a href="/system-map.md">Markdown reference</a><a href="${brandPack.distribution_base_url}README.md">DNA OS brand kit</a></nav>
 <section><div class="categories">
 <article class="category"><h2>Production services</h2><p><a href="${sourceLink("workers/landing-entry/index.ts")}">Homepage</a> · <a href="${sourceLink("workers/auth-entry/index.ts")}">Login and identity</a> · <a href="${sourceLink("docs/CLOUDFLARE_SERVICE_ROUTE_MAP_2026-11-23.md")}">Service routes</a></p></article>
@@ -269,6 +267,12 @@ const html = `<!doctype html>
 <article class="category"><h2>Compute and infrastructure</h2><p><a href="${sourceLink("registry/COMPUTE_RESOURCE_REGISTRY.json")}">Compute registry</a> · <a href="${sourceLink("registry/infrastructure.json")}">Infrastructure registry</a></p></article>
 <article class="category"><h2>Brand assets</h2><p><a href="${brandPack.distribution_base_url}README.md">Usage guide</a> · <a href="${brandPack.distribution_base_url}brand-assets.json">Asset manifest</a></p></article>
 <article class="category"><h2>Full machine-readable index</h2><p><a href="/system-map.json">Routes, integrations, database objects, and source hashes</a> · <a href="/system-map.md">Readable reference</a></p></article>
+</div></section>
+<section><h2>Brand image files</h2><p>Each image is a separate static file. Open a file directly or use its asset link.</p><div class="brand-images">
+<a href="${brandPack.distribution_base_url}${brandPack.variants.color.horizontal}"><img src="${brandPack.distribution_base_url}${brandPack.variants.color.horizontal}" alt="DNA OS colorful horizontal logo"><span>Color logo · PNG</span></a>
+<a href="${brandPack.distribution_base_url}${brandPack.variants.monochrome.horizontal}"><img src="${brandPack.distribution_base_url}${brandPack.variants.monochrome.horizontal}" alt="DNA OS monochrome horizontal logo"><span>Monochrome logo · PNG</span></a>
+<a href="${brandPack.distribution_base_url}${brandPack.variants.color.mark}"><img src="${brandPack.distribution_base_url}${brandPack.variants.color.mark}" alt="DNA OS colorful D mark"><span>Color mark · PNG</span></a>
+<a href="${brandPack.distribution_base_url}${brandPack.variants.monochrome.mark}"><img src="${brandPack.distribution_base_url}${brandPack.variants.monochrome.mark}" alt="DNA OS monochrome D mark"><span>Monochrome mark · PNG</span></a>
 </div></section>
 <footer class="footer">DNA OS · Public technical reference · Personal and business records are not included.</footer>
 </main></body></html>`;
@@ -288,7 +292,6 @@ execFileSync("python3", ["-c", archiveScript, archivePath,
   "brand-assets.json", path.join(outputDir, "assets/brand/dna-os/v1/brand-assets.json"),
 ]);
 await writeFile(path.join(outputDir, "system-map.html"), `${html}\n`);
-await writeFile(path.join(root, "workers/landing-entry/system-map-html.ts"), `// purpose: Generated public HTML for the source-backed DNA OS system map, served by the landing Worker.\nexport const systemMapHtml = ${JSON.stringify(`${html}\n`)};\n`);
 console.log(`Generated public system map at ${outputDir}`);
 }
 
