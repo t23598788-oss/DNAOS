@@ -2,7 +2,7 @@
 
 # DNA OS sign-in route map
 
-**Snapshot:** 2026-11-23 19:23 Bangkok time
+**Snapshot:** 2026-11-24 06:19 Bangkok time
 **Scope:** public entry, identity providers, sessions, auth email, and production-to-source mapping.
 
 This page separates three kinds of evidence: live HTTP observations, checked-in source configuration, and provider-dashboard settings that cannot be confirmed from the repository. A route in source is not proof that it is deployed.
@@ -18,44 +18,44 @@ Browser → Cloudflare route dnaos.dev/login
         └─ OAuth provider → Supabase OAuth callback → DNA OS /auth/confirm → one DNA OS session → safe in-app destination
 ```
 
-The email path is the active sign-in path. The OAuth path describes the intended and previously implemented route; its production callback currently fails because `/auth/confirm` returns 404. The Worker has no allowlisted OAuth start or callback endpoint today.
+The email path is the active sign-in path. OAuth remains a separate incomplete path: the production callback returns 404, and the auth Worker has no allowlisted OAuth start or callback endpoint.
 
 ## Services and connections
 
 | Category | Service / owner | Public route or source | Current evidence | Remaining connection |
 |---|---|---|---|---|
-| Entry page | Cloudflare Worker `dnaos-auth-entry` | `/login`, `/start` → `workers/auth-entry/index.ts`; route declarations in `workers/auth-entry/cloudflare.config.ts` | Production `/login` and `/start` return 200. `/login` is served by the auth Worker and is not the same Worker as the homepage. | Publish the reviewed sign-in UI through this Worker and confirm it on the production route. |
-| Auth gateway | `dnaos-auth-entry` → imported `workers/business-onboarding/index.ts` | `/v1/auth/csrf`, `/otp`, `/verify`, `/refresh`, `/logout`, `/session` | Source allowlist is explicit. Production `/v1/auth/session` returns 401 while signed out, as expected. OTP route is the current interactive method. | Run a signed-in browser flow to confirm email OTP, cookie persistence, refresh, and logout end to end. |
+| Entry page | Cloudflare Worker `dnaos-auth-entry` | `/login`, `/start` → `workers/auth-entry/index.ts`; route declarations in `workers/auth-entry/cloudflare.config.ts` | Production `/login` and `/start` return 200. The homepage sign-in links point to `/login`. The auth-only Worker is separate from the homepage Worker. | Finish the post-login return destination when the workspace shell exists. |
+| Auth gateway | `dnaos-auth-entry` → imported `workers/business-onboarding/index.ts` | `/v1/auth/csrf`, `/otp`, `/verify`, `/refresh`, `/logout`, `/session` | CSRF endpoint responds 200; a signed-out session responds 401; a malformed OTP request is rejected before provider delivery. A valid OTP request returned 202 and one matching message arrived in the owner inbox. | Complete code verification in the user's browser, then verify cookie persistence, refresh, and logout. No OTP value was read or used in this inspection. |
 | Identity database | Supabase Auth, project `xeytcavxejhyzxwevgto` | Supabase Auth API; Worker secrets `SUPABASE_URL` and `SUPABASE_ANON_KEY` | OTP/session logic is present in source. Provider enablement and redirect allowlist in the live Dashboard are not proven by repository files. | Confirm provider toggles, site URL and exact redirect allowlist in Supabase Dashboard. Never put secrets in this document. |
 | Google / Apple / Facebook / LINE / TikTok | External identity providers via Supabase Auth | Intended provider → Supabase → DNA OS callback | Current Worker UI does not start OAuth; provider tiles are illustrative. The release ledger records a live Google OAuth probe returning `400 provider is not enabled`, with provider toggles, redirects and Google Console callback still blocked (`V2_PRODUCTION_REPLACEMENT_MATRIX.md`, OAuth row). This is the latest code-side evidence found, not proof of current Dashboard state. | Recheck current Supabase and Google Cloud settings. Supabase's Google callback is `https://xeytcavxejhyzxwevgto.supabase.co/auth/v1/callback`; the DNA OS post-login redirect must separately allow `https://dnaos.dev/auth/confirm`. Verify both exact values in their respective consoles; then exercise a real sign-in and return. Do not assume either console is configured from the domain being live. |
 | OAuth callback and session handoff | DNA OS auth application | `app/auth/confirm/route.ts` | Callback code exists in source and handles OAuth PKCE exchange plus OTP verification. Production `GET /auth/confirm` returns 404; `/auth/verify` also returns 404. Auth Worker has no such route. | Expose the canonical callback on the production host or add a safe allowlisted callback route in the auth Worker; preserve one-time code verification, safe internal `next`, and one-account session issuance. |
 | Session memory | Worker auth cookies / Supabase Auth | `workers/business-onboarding/index.ts` | Source sets access cookie up to 1 hour and refresh cookie to 30 days; refresh endpoint rotates the pair. This supports returning sessions while cookies remain valid. Browser/device persistence is not proven by an unauthenticated HTTP probe. | Verify cookie attributes and real browser refresh behavior; add device/passkey only as a separate follow-up after this core route is complete. |
-| Auth email | Supabase Auth → Custom SMTP → Resend | [`AUTH_EMAIL_TEMPLATES`](AUTH_EMAIL_TEMPLATES_2026-11-23.md), template package and index | The configured path and sender are recorded. The 13-template source package exists; all production Dashboard templates have not been verified. | Reconcile all 13 templates in Supabase Dashboard and run one controlled OTP delivery/return flow. |
-| DNA OS identity artwork | Homepage Worker static assets on `dnaos.dev` | `/assets/dna-os-mark-d.png`, `/assets/dna-os-integration-generic.svg` | The login Worker referenced `/brand/*`, which returned 404 because those requests do not belong to its auth-only route allowlist. The exact existing public assets are copied byte-for-byte into the homepage Worker bundle, and the login markup now uses `/assets/*`, already routed to that Worker. Not yet deployed. | Release the auth markup and homepage assets together, then confirm both asset paths return 200 on production. |
-| Website navigation | Cloudflare homepage Worker `dnaos-homepage` | `/` and `/assets/*`; source `workers/landing-entry/wrangler.jsonc` | Source routes the home page and static assets separately from `dnaos-auth-entry`. | Ensure the landing page's sign-in button points to `https://dnaos.dev/login`; verify the destination after publishing. |
-| Public system map and brand kit | Cloudflare Worker `dnaos-homepage` → static `public/landing-preview` assets | `/system-map*`, `/assets/brand/dna-os/v1/*` | Map exports and brand assets are live. The map pins revision `77d539c20f52860fe650d5cd47301b36cdf039e4`; that revision contains the files and route declarations. The current working branch had dropped them; the static map and 10-file brand kit are restored in the local release source. | Keep the documents and brand kit as static assets. Production release still needs review/deploy. |
-| PWA service worker | `public/sw.js` → `components/pwa/PwaRegistration.tsx` | `/sw.js` | The app registers this URL, but production returned 404 and Cloudflare had no matching Worker route. The existing source is now copied unchanged into the homepage asset bundle and its route is declared locally. | Release the homepage Worker with `/sw.js`; then confirm the public URL returns the expected JavaScript. |
-| `www` alias | Dedicated Cloudflare Worker `dnaos-www-redirect` → apex canonical host | `www.dnaos.dev/*` → `https://dnaos.dev/*` | The host receives traffic but returned 404. A separate Worker with no static asset binding redirects all methods with 308 while preserving path and query. Its route is declared locally; DNS remains unchanged. | Publish this Worker and verify root, `/login`, `/assets/*`, and a query-string path. |
+| Auth email | Supabase Auth → Custom SMTP → Resend | [`AUTH_EMAIL_TEMPLATES`](AUTH_EMAIL_TEMPLATES_2026-11-23.md), template package and index | One production OTP request was accepted and a matching message was found in the owner inbox. Source package has 13 templates; the production Dashboard configuration for all 13 has not been verified. | Complete code verification and reconcile the hosted templates; do not treat the email receipt alone as a completed login. |
+| DNA OS identity artwork | Homepage Worker static assets on `dnaos.dev` | `/assets/dna-os-mark-d.png`, `/assets/dna-os-integration-generic.svg` | Both assets now return 200 from the live homepage Worker; login markup uses these shared static paths. | None for the current login artwork. |
+| Website navigation | Cloudflare homepage Worker `dnaos-homepage` | `/` and `/assets/*`; source `workers/landing-entry/wrangler.jsonc` | Production homepage is live, and its sign-in links point to `/login`, which reaches the separate auth Worker. | Keep the two Worker route sets separate. |
+| Public system map and brand kit | Cloudflare Worker `dnaos-homepage` → static `public/landing-preview` assets | `/system-map*`, `/assets/brand/dna-os/v1/*` | Map exports and brand assets respond from the deployed homepage Worker. The map pins source revision `77d539c20f52860fe650d5cd47301b36cdf039e4`. | Keep the documents and brand kit as static assets. |
+| PWA service worker | `public/sw.js` → `components/pwa/PwaRegistration.tsx` | `/sw.js` | The existing source is copied unchanged into the homepage asset bundle; production now returns 200. | None for route delivery. |
+| `www` alias | Dedicated Cloudflare Worker `dnaos-www-redirect` → apex canonical host | `www.dnaos.dev/*` → `https://dnaos.dev/*` | A separate Worker with no static asset binding returns 308 and preserves path and query. Production root and a query-string `/login` request both redirect correctly; DNS remains unchanged. | Search Console re-crawl/removal of old indexed snippets remains separate. |
 
 ## Google OAuth and Google Search are separate routes
 
 Google OAuth is an identity-provider connection: Google returns authorization to Supabase's callback, then Supabase redirects the user to the allowlisted DNA OS callback. Current source/history does **not** prove it is enabled: the release matrix records the production error `400 provider is not enabled`. This needs a fresh console check because settings could have changed after that record. The DNA OS callback currently responds 404, so even an enabled provider cannot complete the intended return path until that route is restored.
 
-Google Search indexing is separate from OAuth and does not grant or deny login. The exact Google result opened from the owner's link for query `dna os.dev` shows **“DNA OS — Developer Portal”** at **`https://www.dnaos.dev/`**, with an old snippet describing the 8-layer architecture. In the same inspection, `https://www.dnaos.dev/` and `/login` both returned 404 without redirect, while the apex `https://dnaos.dev/` returned the current landing page with title `DNA OS — Connect business with clear rules`. This is evidence of a stale Google result for the old `www` URL; the old page is not currently served there.
+Google Search indexing is separate from OAuth and does not grant or deny login. The owner's exact Google result at 19:09 Bangkok time showed **“DNA OS — Developer Portal”** at **`https://www.dnaos.dev/`**, with an old snippet describing the 8-layer architecture. At that time `www` root and `/login` returned 404 while apex `/` returned the live landing page. The later release added a `www` → apex redirect; the indexed snippet may remain stale until Google recrawls.
 
 The apex `robots.txt` allows public search, `/sitemap.xml` returns 404, and the public `/system-map`, `.json`, and `.md` routes are available. That generated map says `2026-11-23T07:53:56.027Z` and source revision `77d539c20f52860fe650d5cd47301b36cdf039e4`, older than the login source changes recorded above. A generic `site:dnaos.dev` query returned no result in one search lookup; the owner's exact Google query did return the old `www` result. The signed-in browser result may be region/account personalized, so current index state still needs confirmation in Search Console.
 
-**Next check for Search:** inspect verified apex and `www` properties in Google Search Console, their Page Indexing / URL Inspection results, and submitted sitemap state. Missing sitemap and `www` 404 are confirmed; Search Console ownership and submission are not visible from this repository or public HTTP. Decide whether to establish a permanent `www` → apex redirect before requesting re-crawl/removal of the old indexed URL. Refreshing search results is not an OAuth setting and may take time after the live routes and sitemap are correct.
+**Next check for Search:** inspect verified apex and `www` properties in Google Search Console, their Page Indexing / URL Inspection results, and submitted sitemap state. `/sitemap.xml` previously returned 404; current Search Console ownership, sitemap submission and index state are not visible from this repository or public HTTP. The `www` → apex redirect is now live. Refreshing search results is not an OAuth setting and may take time after Google recrawls.
 
 ## Cloudflare route reconciliation (DNS unchanged)
 
-The stale Google result and the old document exports are **two different route groups**:
+The pre-release Cloudflare inspection found these route groups. Their current live status follows each item:
 
-1. `www.dnaos.dev/` — Google indexes the old “DNA OS — Developer Portal” page here. The live host returns 404. A separate `dnaos-www-redirect` Worker with a path/query-preserving 308 route is prepared locally; not yet deployed. DNS remains unchanged.
-2. `dnaos.dev/system-map*` — the apex serves the HTML map, JSON index, Markdown reference, and AI ZIP. The production-pinned source revision (`77d539c…`) contains those exact routes and files; the current working branch had omitted them. They are restored locally to prevent a future homepage release from dropping the map.
-3. `dnaos.dev/sw.js` — the current app registers this source, but the URL returned 404 because the Worker bundle and route omitted it. The exact existing worker file is now included in the local asset bundle and the route is declared.
+1. `www.dnaos.dev/*` — Google previously indexed the old “DNA OS — Developer Portal” at this host. The separate `dnaos-www-redirect` Worker now redirects requests to the apex with 308, preserving path and query. DNS remains unchanged.
+2. `dnaos.dev/system-map*` — the HTML map, JSON index, Markdown reference and AI ZIP are included in the homepage Worker's deployed static assets and respond 200.
+3. `dnaos.dev/sw.js` — the existing service worker is included unchanged in the deployed homepage asset bundle and responds 200.
 
-The signed-in Cloudflare Dashboard confirms nine active Worker route attachments on the apex zone: `dnaos.dev/`, `dnaos.dev/assets/*`, `dnaos.dev/login`, `dnaos.dev/start`, `dnaos.dev/v1/auth/*`, and the four `dnaos.dev/system-map*` routes. It has no `www` or `/sw.js` attachment. The homepage source restores the four map paths and bundles the registered `/sw.js` unchanged. A separate `dnaos-www-redirect` Worker handles the `www` alias so homepage static assets do not need Worker-first processing. These route changes remain local and have not been released. DNS is unchanged. Read-only dashboard analytics showed 0.00% 5xx in the last 24 hours; details are in the [Cloudflare traffic audit](CLOUDFLARE_TRAFFIC_AUDIT_2026-11-23.md).
+The signed-in dashboard's nine-route table and 24-hour analytics are pre-release snapshots. Current production additionally serves `/sw.js`, all four `/system-map*` paths, and a separate `www.dnaos.dev/*` redirect Worker; see the [Cloudflare traffic audit](CLOUDFLARE_TRAFFIC_AUDIT_2026-11-23.md). DNS is unchanged.
 
 ## Production observations
 
@@ -79,7 +79,25 @@ Read-only HTTP checks against `https://dnaos.dev` on 2026-11-23 around 18:58 Ban
 | `GET /system-map.md` | `200 text/markdown` | Markdown reference is still live. |
 | `GET /system-map-ai.zip` | `200 application/zip` | Download package is still live. |
 
-These checks prove route responses only. They do not prove a provider login, email arrival, successful callback, or Dashboard credential state.
+Those checks are retained as pre-release evidence and do not describe the current `www` or static-asset routes.
+
+Latest read-only production observations on 2026-11-23 around 20:15 Bangkok time:
+
+| Request | Result | Meaning |
+|---|---|---|
+| `GET /` | `200` | Homepage Worker serves the first screen. |
+| `GET /login`, `GET /start` | `200 text/html` | Auth entry page and start route respond. |
+| `GET /v1/auth/csrf` with exact origin | `200` | CSRF bootstrap is configured and reachable. |
+| `GET /v1/auth/session` without cookies | `401` | No session is established in this probe; endpoint responds. |
+| `POST /v1/auth/otp` with malformed email | `400 EMAIL_INVALID` | Input is rejected before the Auth provider call. |
+| `POST /v1/auth/otp` for the owner account | `202 accepted`; one matching inbox message found | Supabase Auth → Custom SMTP → Resend delivered the sign-in-code message. The code was not read or used. |
+| `/assets/dna-os-mark-d.png`, `/assets/dna-os-integration-generic.svg` | `200` | Login artwork loads from the homepage static route. |
+| `/sw.js`, `/system-map`, `/system-map.json`, `/system-map.md` | `200` | Deployed homepage assets and reference routes respond. |
+| `https://www.dnaos.dev/` | `308` → `https://dnaos.dev/` | Canonical host redirect is live. |
+| `https://www.dnaos.dev/login?next=%2Fworkspace` | `308` preserving path and query | Return-path query survives canonicalization. |
+| `GET /auth/confirm` | `404` | OAuth callback is not deployed; social sign-in is not complete. |
+
+The inbox match proves delivery only. Code verification, authenticated browser cookie persistence, refresh, logout and organization-scoped access still need a signed-in session flow.
 
 ## Change and evidence timeline
 
@@ -101,16 +119,20 @@ Times are Bangkok time (UTC+7), taken from Git commit metadata or the production
 | 2026-11-23 19:35 | Source reconciliation | Corrected the `/sw.js` diagnosis after tracing the app's real registration and worker source. Restored production-pinned system-map and brand-kit assets/routes; added the unchanged service-worker asset/route, mirrored the two existing DNA OS assets into the homepage bundle and corrected the login asset paths, and prepared a `www` → apex 308 redirect. No DNS or production settings changed; production release remains pending. |
 | 2026-11-23 19:46 | Owner-approved cleanup and sequence | Removed the unused public price table and its only caller; registry sync records both as retired. Set the release order: first-screen website, identity/session/permissions, email triggers, workspace category navigation, then capability-to-processor gateway links. |
 | 2026-11-23 19:55 | Redirect route isolation | Review identified that asset-first routing could bypass a redirect inside the homepage Worker. Moved `www` canonicalization into its own Worker with no asset binding, keeping homepage static requests on the asset-first path and leaving DNS unchanged. |
+| 2026-11-23 20:04 | GitHub PR #35 merge `efab9db` | Merged homepage routes/assets, retired public price components and the isolated `www` redirect. Governance jobs could not start under the billing lock; the owner had approved skipping them. PR/review/status rules were restored after merge. |
+| 2026-11-23 20:05 | Cloudflare Worker deployment | `dnaos-homepage` deployed version `d7c11b7e-60e3-41bc-b3f8-887515c38ac8`; added `/sw.js`, system-map paths and shared login artwork while retaining asset-first serving. |
+| 2026-11-23 20:06 | Cloudflare Worker deployment | `dnaos-www-redirect` deployed version `35e04be4-3d7a-472f-868b-4f7e8ab3def1`; `www` redirects to apex. DNS remains unchanged. |
+| 2026-11-23 20:17 | Live auth and email route check | Login links and `/login`, `/start`, CSRF and signed-out session routes respond. One owner OTP request returned 202 and one matching inbox message was found; the code was not read or used. |
 
 ## Build and release order
 
-1. **Publish the first screen and site scope.** Keep the homepage, system-map documents, brand kit and static assets on the homepage Worker. Route the landing-page sign-in action into `/login`; preserve DNS.
-2. **Finish the single account entrance.** Connect the sign-in page to the auth Worker, identity source, DNA OS user record, session lifecycle and organization permission boundary. Keep provider buttons aligned with providers actually enabled in Supabase; complete callback routing and safe in-app return paths.
-3. **Complete email sign-in triggers.** Keep OTP templates as static source files; Supabase Auth sends through Custom SMTP → Resend. Finish the send, inbox receipt, code verify, session creation and return-to-entry flow, then record the exact provider and template route.
+1. **Publish the first screen and site scope — complete.** Homepage, system-map documents, brand kit, static assets, service worker and `www` redirect are live. The home sign-in action opens `/login`; DNS is unchanged.
+2. **Finish the single account entrance — in progress.** The auth-only Worker, CSRF bootstrap, OTP request/verify handlers, HTTP-only session/refresh cookies and gateway permission boundary exist in source and production routes. Next verify an authenticated session and define a safe return destination; OAuth providers and `/auth/confirm` are not connected.
+3. **Complete email sign-in triggers — delivery confirmed, sign-in not yet confirmed.** One owner OTP request was accepted and one inbox message was found through Supabase Auth → Custom SMTP → Resend. Next complete OTP verification and session creation, then reconcile the 13 hosted templates. The code was not retrieved or used in this run.
 4. **Build the workspace shell and category navigation.** Add the blank workspace, settings entry and category/icon markers as navigation only. Do not couple category presentation to backend processors yet.
 5. **Connect capabilities through the gateway.** For each capability, wire the authenticated request from the gateway to its authorized backend processor and return path. Add its event record and scope only when the processor boundary is defined.
 
-The current task prepares the homepage/asset route reconciliation and the single entrance asset paths. The email delivery flow and provider callbacks still need their production end-to-end completion before workspace categories are connected to capabilities.
+Next, complete an authenticated OTP session and its permissions/return boundary. Then build the blank workspace and category navigation; only afterward connect capability requests to backend processors.
 
 At this snapshot, do not label Google, Apple, Facebook, LINE, TikTok or device biometrics as production-connected. Their dashboard setup and end-to-end callbacks have not been verified. Email OTP is the only documented/current route to finish first.
 
