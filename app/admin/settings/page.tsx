@@ -47,6 +47,19 @@ export default async function SettingsPage() {
         <ConnectionsCredentialsBoard />
       </section>
 
+      <section style={{ marginBottom: 32 }} id="system-references">
+        <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>System references</h2>
+        <div style={{ border: "1px solid #e5e5e5", borderRadius: 8, padding: 12 }}>
+          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>Login, identity &amp; session</div>
+          <p style={{ fontSize: 12, color: "#888", margin: "0 0 8px" }}>
+            เส้นทางจากหน้าเข้าสู่ระบบไปยังบริการยืนยันตัวตน ซอร์สโค้ด และประวัติรุ่นที่บันทึกในฐานข้อมูล
+          </p>
+          <a href="https://dnaos.dev/system-map#login-identity" target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#1e6fa8" }}>
+            Open login &amp; identity reference
+          </a>
+        </div>
+      </section>
+
       <section style={{ marginBottom: 32 }}>
         <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>Environment Variables ({envVarNames.length})</h2>
         <p style={{ fontSize: 12, color: "#888", marginBottom: 12 }}>

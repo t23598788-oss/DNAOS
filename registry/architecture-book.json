@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T12:56:58.983Z",
+  "generated_at": "2026-11-23T23:36:54.804Z",
   "version": 1,
   "nodes": [
     {
@@ -44991,7 +44991,7 @@
           "name": "SettingsPage",
           "kind": "function",
           "line_start": 32,
-          "line_end": 97
+          "line_end": 110
         }
       ],
       "import_sites": [
