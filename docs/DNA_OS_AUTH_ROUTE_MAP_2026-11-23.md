@@ -2,7 +2,7 @@
 
 # DNA OS sign-in route map
 
-**Snapshot:** 2026-11-23 18:58 Bangkok time  
+**Snapshot:** 2026-11-23 19:23 Bangkok time
 **Scope:** public entry, identity providers, sessions, auth email, and production-to-source mapping.
 
 This page separates three kinds of evidence: live HTTP observations, checked-in source configuration, and provider-dashboard settings that cannot be confirmed from the repository. A route in source is not proof that it is deployed.
@@ -52,7 +52,7 @@ The stale Google result and the old document exports are **two different route g
 1. `www.dnaos.dev/` — Google indexes the old “DNA OS — Developer Portal” page here. The live host currently returns 404; it is not declared in the current checked-in Cloudflare Worker route config. No DNS record or target was changed during this audit.
 2. `dnaos.dev/system-map*` — the apex still serves the HTML map, JSON index, Markdown reference, and AI ZIP from Cloudflare. The source revision named by the live map (`77d539c…`) has these exact routes in `workers/landing-entry/wrangler.jsonc`, while current checked-in source no longer declares or handles them. This is a Cloudflare deployment/source mismatch, not evidence that the DNS record should change.
 
-Cloudflare Dashboard was opened in the existing Chrome session, but it displayed the sign-in page; its active route table and deployment list could not be read. Public responses plus the production map identify the old route set and source revision, but only an authenticated Cloudflare Workers & Routes view can confirm which live attachment/version owns each path. This inspection made no DNS, route, Worker, or document changes.
+The signed-in Cloudflare Dashboard now confirms nine active Worker route attachments on the apex zone: `dnaos.dev/`, `dnaos.dev/assets/*`, `dnaos.dev/login`, `dnaos.dev/start`, `dnaos.dev/v1/auth/*`, and the four `dnaos.dev/system-map*` routes. The `www` host and `/sw.js` have no Worker route attachment. This matches the old public documentation routes still visible in production, while the current checked-in homepage config only declares `/` and `/assets/*`. Read-only dashboard analytics show that most failed requests are 404s, with 0.00% 5xx in the last 24 hours. The detailed figures and path breakdown are recorded in the [Cloudflare traffic audit](CLOUDFLARE_TRAFFIC_AUDIT_2026-11-23.md). No DNS, route, Worker, or provider settings were changed.
 
 ## Production observations
 
@@ -94,6 +94,7 @@ Times are Bangkok time (UTC+7), taken from Git commit metadata or the production
 | 2026-11-23 19:03 | Live HTTP + release ledger | `/sitemap.xml` is 404; public system map identifies older source revision `77d539c...`; release matrix records the previous Google OAuth live probe as `400 provider is not enabled`. These are independent search-index and login-configuration gaps. |
 | 2026-11-23 19:09 | Owner Google result + live HTTP | Google shows “DNA OS — Developer Portal” at `https://www.dnaos.dev/`; live `www` root and login return 404, while apex root returns the current landing page. The indexed `www` URL has no current redirect. |
 | 2026-11-23 19:16 | Production map + Git source + Cloudflare session | The live map serves four `/system-map*` resources from the `dnaos-homepage` asset Worker and pins revision `77d539c…`; that revision declares all four routes, while the current source declares only `/` and `/assets/*`. Cloudflare Dashboard in Chrome required sign-in, so active route attachments remain unverified. DNS unchanged. |
+| 2026-11-23 19:23 | Cloudflare Analytics + Workers Routes (signed-in dashboard) | 2.25k requests in 24h; 1.31k 404, 1.43k 4xx total, 0 5xx; 2.06k desktop requests. Of 404s, 282 are on `www.dnaos.dev` and 1.03k on apex. Dashboard confirms nine apex Worker routes, none for `www` or `/sw.js`. Top 404 paths include `/sw.js` (99), root `/` (42), and automated-looking probes such as `/.env*`, `/nuxt/.env`, and `/admin/dashboard`. No DNS or production settings changed. |
 
 ## Finish order for the sign-in route
 

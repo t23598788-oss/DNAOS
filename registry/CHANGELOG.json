@@ -3619,5 +3619,21 @@
     ],
     "summary": "Read-only reconciliation with DNS unchanged. Identified two separate route groups: (1) www.dnaos.dev root/login, shown by Google as the old Developer Portal but currently returning 404 without redirect; (2) dnaos.dev/system-map, .json, .md and -ai.zip, all returning 200. The live system map says dnaos-homepage and pins source revision 77d539c20f52860fe650d5cd47301b36cdf039e4. At that exact revision, workers/landing-entry/wrangler.jsonc declares all four system-map paths and its Worker passes requests to static assets. Current checked-in config only declares apex root and /assets/* and current source rejects all other paths, proving a production/source route-set mismatch. Cloudflare Dashboard in the existing Chrome session opened at the sign-in page, so active deployed route attachments/version could not be read. Recorded exact pending verification; no DNS, routes, Workers, or docs changed in Production; no tests run.",
     "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000224",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:23:49+07:00",
+    "session_id": "cloudflare-apex-traffic-audit-2026-11-23",
+    "files": [
+      "docs/CLOUDFLARE_TRAFFIC_AUDIT_2026-11-23.md (Cloudflare Analytics 24-hour traffic, 404 and host/path breakdown, active Worker route attachments, evidence limits, and ordered remediation)",
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (updated signed-in Cloudflare route verification and traffic evidence timeline)",
+      "README.md (linked the Cloudflare traffic audit from the documentation index)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Read-only audit in the owner's signed-in Cloudflare dashboard. Analytics showed 2.25k requests in the prior 24 hours, 1.31k 404 (58.2%), 1.43k 4xx, 0.00% 5xx, 2.06k desktop requests, and 8.30% cache hit ratio. The www host had 282 404s; apex had 1.03k. Top 404 paths included /sw.js (99) and automated-looking .env, .git, and admin probes. Cloudflare Workers Routes confirmed nine apex attachments for homepage, assets, auth, and system-map routes, with no www or /sw.js route. Recorded likely causes separately from verified facts and prioritized a www-to-apex redirect, stale service-worker investigation, asset path cleanup, and production/source route reconciliation. No DNS, route, Worker, security setting, or production content changed; no tests run.",
+    "contract_changed": false
   }
 ]
