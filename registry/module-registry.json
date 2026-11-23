@@ -17467,6 +17467,17 @@
       "exports": [],
       "status": "active",
       "entry_point": true
+    },
+    "workers/landing-entry/index.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "purpose: Serve the public DNA OS landing page and its assets on the root domain route.",
+      "purpose_th": "purpose: Serve the public DNA OS landing page and its assets on the root domain route.",
+      "exports": [
+        "default"
+      ],
+      "status": "active",
+      "entry_point": true
     }
   },
   "excluded": [

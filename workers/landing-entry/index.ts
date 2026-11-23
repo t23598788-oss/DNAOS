@@ -5,14 +5,11 @@ interface Env {
 
 export default {
   fetch(request: Request, env: Env): Promise<Response> {
-    const { pathname } = new URL(request.url);
-    if (pathname === "/" || pathname.startsWith("/assets/")) {
-      return env.ASSETS.fetch(request);
+    const url = new URL(request.url);
+    if (url.hostname === "www.dnaos.dev") {
+      url.hostname = "dnaos.dev";
+      return Promise.resolve(Response.redirect(url.toString(), 308));
     }
-
-    return Promise.resolve(new Response("Not Found", {
-      status: 404,
-      headers: { "cache-control": "no-store" },
-    }));
+    return env.ASSETS.fetch(request);
   },
 };

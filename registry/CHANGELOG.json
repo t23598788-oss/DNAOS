@@ -3635,5 +3635,50 @@
     ],
     "summary": "Read-only audit in the owner's signed-in Cloudflare dashboard. Analytics showed 2.25k requests in the prior 24 hours, 1.31k 404 (58.2%), 1.43k 4xx, 0.00% 5xx, 2.06k desktop requests, and 8.30% cache hit ratio. The www host had 282 404s; apex had 1.03k. Top 404 paths included /sw.js (99) and automated-looking .env, .git, and admin probes. Cloudflare Workers Routes confirmed nine apex attachments for homepage, assets, auth, and system-map routes, with no www or /sw.js route. Recorded likely causes separately from verified facts and prioritized a www-to-apex redirect, stale service-worker investigation, asset path cleanup, and production/source route reconciliation. No DNS, route, Worker, security setting, or production content changed; no tests run.",
     "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000225",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:35:00+07:00",
+    "session_id": "cloudflare-production-debt-ordering-2026-11-23",
+    "files": [
+      "workers/landing-entry/wrangler.jsonc (restores map routes, adds /sw.js and www routes)",
+      "workers/landing-entry/index.ts (preserves request paths while redirecting www to apex)",
+      "public/landing-preview/system-map.html",
+      "public/landing-preview/system-map.json",
+      "public/landing-preview/system-map.md",
+      "public/landing-preview/system-map-ai.zip",
+      "public/landing-preview/system-map-ai-README.md",
+      "public/landing-preview/sw.js (same source as public/sw.js)",
+      "public/landing-preview/assets/dna-os-mark-d.png (byte-identical copy of public/brand/dna-os-mark-d.png)",
+      "public/landing-preview/assets/dna-os-integration-generic.svg (byte-identical copy of public/brand/dna-os-integration-generic.svg)",
+      "public/landing-preview/assets/brand/dna-os/v1/* (restores the production-pinned DNA OS brand kit)",
+      "workers/business-onboarding/entry-page.ts (points sign-in artwork to the homepage Worker asset route)",
+      "docs/CLOUDFLARE_TRAFFIC_AUDIT_2026-11-23.md (corrects /sw.js finding and orders remediations)",
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (records local route reconciliation and pending release)",
+      "registry/module-registry.json (marks the Wrangler main module as a genuine Worker entry point)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Addressed production debt in dependency order, locally. Verified the registered /sw.js source exists and copied it unchanged into the Worker asset bundle; restored the static system-map and brand assets/routes from the production-pinned source; mirrored the existing DNA OS assets into the homepage bundle and corrected login-page paths; prepared a www-to-apex 308 redirect preserving path and query. DNS and production were not changed. Production Worker release remains pending; legacy stamp URLs remain unresolved because their source is not identified. No tests run.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000226",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:46:03+07:00",
+    "session_id": "cloudflare-production-debt-ordering-2026-11-23",
+    "files": [
+      "components/public/PublicPriceTable.tsx (removed per owner request; no callers existed)",
+      "components/public/LineContactButton.tsx (removed with its sole unused price-table caller)",
+      "registry/module-registry.json (sync retires both removed source modules)",
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (records owner-approved release sequence)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Removed the unused public price table and its sole unused LINE contact component per the owner's instruction; neither file had live callers. Recorded the required delivery sequence: publish first-screen site scope, complete identity/session/permission plumbing, finish inbound/outbound email triggers, build workspace category/icon navigation, and only then connect capability requests through the gateway to backend processors. No tests run.",
+    "contract_changed": false
   }
 ]

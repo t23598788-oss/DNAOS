@@ -97,19 +97,19 @@ input::placeholder,textarea::placeholder{color:#8b98a9}
 .roles label,fieldset{border-color:#d4deea}
 legend{color:#344b68}
 </style>
-<header class="topbar"><a class="brand" href="/" aria-label="DNA OS home"><img src="/brand/dna-os-mark-d.png" alt="DNA OS"></a><a class="back" href="/">Back to DNA OS</a></header>
+<header class="topbar"><a class="brand" href="/" aria-label="DNA OS home"><img src="/assets/dna-os-mark-d.png" alt="DNA OS"></a><a class="back" href="/">Back to DNA OS</a></header>
 <main><div class="card"><header><p class="eyebrow">DNA OS · Secure access</p><h1>Sign in to your account</h1><p class="intro">One identity for DNA OS. Choose an identity source, then follow its connection into your account.</p></header>
 <section class="identity-flow" aria-label="Identity connection flow">
   <div class="flow-side"><p class="flow-label">Identity sources</p><div class="provider-list">
-    <div class="provider" data-auth-provider="apple"><span class="provider-mark generic" aria-hidden="true"><img src="/brand/dna-os-integration-generic.svg" alt=""></span>Apple</div>
-    <div class="provider" data-auth-provider="google"><span class="provider-mark generic" aria-hidden="true"><img src="/brand/dna-os-integration-generic.svg" alt=""></span>Google</div>
-    <div class="provider" data-auth-provider="facebook"><span class="provider-mark generic" aria-hidden="true"><img src="/brand/dna-os-integration-generic.svg" alt=""></span>Facebook</div>
-    <div class="provider" data-auth-provider="line"><span class="provider-mark generic" aria-hidden="true"><img src="/brand/dna-os-integration-generic.svg" alt=""></span>LINE</div>
-    <div class="provider" data-auth-provider="tiktok"><span class="provider-mark generic" aria-hidden="true"><img src="/brand/dna-os-integration-generic.svg" alt=""></span>TikTok</div>
+    <div class="provider" data-auth-provider="apple"><span class="provider-mark generic" aria-hidden="true"><img src="/assets/dna-os-integration-generic.svg" alt=""></span>Apple</div>
+    <div class="provider" data-auth-provider="google"><span class="provider-mark generic" aria-hidden="true"><img src="/assets/dna-os-integration-generic.svg" alt=""></span>Google</div>
+    <div class="provider" data-auth-provider="facebook"><span class="provider-mark generic" aria-hidden="true"><img src="/assets/dna-os-integration-generic.svg" alt=""></span>Facebook</div>
+    <div class="provider" data-auth-provider="line"><span class="provider-mark generic" aria-hidden="true"><img src="/assets/dna-os-integration-generic.svg" alt=""></span>LINE</div>
+    <div class="provider" data-auth-provider="tiktok"><span class="provider-mark generic" aria-hidden="true"><img src="/assets/dna-os-integration-generic.svg" alt=""></span>TikTok</div>
     <div class="provider" data-auth-provider="email"><span class="provider-mark email" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m4 7 8 6 8-6"/></svg></span>Email OTP</div>
   </div></div>
   <div class="bridge" aria-label="Secure connection" data-connection-slot="provider-callback-account-match-session"><p class="bridge-label">Secure sign-in</p><div class="bridge-flow"><span class="bridge-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h17m-6-6 6 6-6 6"/></svg></span><div class="bridge-core"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg><small>SECURE</small><strong>One identity</strong><span>DNA OS session</span></div><span class="bridge-arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12h17m-6-6 6 6-6 6"/></svg></span></div><p class="flow-caption">Verified identity · one account</p></div>
-  <div class="flow-side dnaos-node" data-identity-target="dnaos-session"><p class="flow-label">Single account</p><div class="identity-brand"><img src="/brand/dna-os-mark-d.png" alt="DNA OS"></div><strong>DNA OS identity</strong><span>One account · permissions follow the organization</span></div>
+  <div class="flow-side dnaos-node" data-identity-target="dnaos-session"><p class="flow-label">Single account</p><div class="identity-brand"><img src="/assets/dna-os-mark-d.png" alt="DNA OS"></div><strong>DNA OS identity</strong><span>One account · permissions follow the organization</span></div>
 </section>
 <div class="email-divider">Email verification</div>
 <section id="login" class="login-method"><form id="emailForm"><label for="email">Email address</label><input id="email" type="email" required autocomplete="email" placeholder="name@company.com"><button class="primary">Send a sign-in code</button></form><form id="otpForm" hidden><label for="code">Enter the six-digit code</label><input id="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code" placeholder="000000"><div class="actions"><button class="primary">Verify and continue</button><button class="secondary" id="back" type="button">Use another email</button></div></form></section>

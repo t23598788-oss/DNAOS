@@ -37,7 +37,7 @@ Top paths within all 404s included:
 
 | Path | Count | Interpretation |
 |---|---:|---|
-| `/sw.js` | 99 | No current source file or Worker route was found. Could be old installed clients asking for a former service worker, or probes; source alone cannot determine which. |
+| `/sw.js` | 99 | A service-worker source and registration call exist (`public/sw.js`, `components/pwa/PwaRegistration.tsx`), but the live URL returned 404 and had no Worker route. The source asset was missing from the homepage Worker bundle. |
 | `/` | 42 | This is within 404s across hosts; the filtered `www` view had 21 root requests. Apex `/` has an active route. |
 | `/assets/dnaos-internal-rectangular-stamp.png` | 13 | Missing/stale asset path in the requests. |
 | `/nuxt/.env` | 12 | Looks like an automated environment-file probe. Cloudflare recorded it as 404. |
@@ -67,17 +67,17 @@ Cloudflare Workers Routes listed these nine route attachments on the apex zone:
 | `dnaos.dev/system-map.md` | `dnaos-homepage` |
 | `dnaos.dev/system-map-ai.zip` | `dnaos-homepage` |
 
-No route for `www.dnaos.dev/*` or `dnaos.dev/sw.js` appeared. The four system-map routes are attached in production even though the current checked-in homepage config only declares `/` and `/assets/*`; this is a deployment/source mismatch already described in the [auth route map](DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md). The route table confirms path attachment, not source revision or request-level ownership of each 404.
+No route for `www.dnaos.dev/*` or `dnaos.dev/sw.js` appeared. The four system-map routes are attached in production; this branch had omitted their declarations and static files, although the production-pinned source revision contains them. `/sw.js` is a separate missing route and asset. The route table confirms path attachment, not source revision or request-level ownership of each 404.
 
 ## What to fix, in order
 
-1. **Decide `www` behavior.** If `www` should be a supported alias, add a Cloudflare redirect from `www.dnaos.dev/*` to `https://dnaos.dev/$1` preserving path and query, and ensure the existing DNS record remains as-is. This is the clearest fix for old Google links and `www` traffic. Do not change DNS as part of this fix.
-2. **Resolve `/sw.js` origin.** Check historical PWA/service-worker releases and client references. If it was a retired service worker, publish a small retirement response at `/sw.js` that unregisters/clears the old worker safely; do not invent a service-worker implementation without matching source/history evidence.
-3. **Reconcile stale image URLs.** Check the stamp paths in historical public pages and replace or redirect only paths that should remain supported. Current canonical brand assets are under `/assets/brand/dna-os/v1/`.
+1. **Align homepage source with current production paths.** Restore the production-pinned system-map files and route declarations so an ordinary homepage release does not drop them.
+2. **Restore `/sw.js`.** Bundle the existing worker source unchanged and route the registered URL through the homepage Worker. This fixes the concrete PWA 404 without changing its cache behavior.
+3. **Normalize `www`.** A `www` → apex 308 redirect preserving path and query is prepared locally. It needs a `www.dnaos.dev/*` Worker route in Cloudflare; DNS stays unchanged. This has not been deployed.
 4. **Keep scanner requests fail-closed.** The listed `/.env*`, `/.git/*`, `/nuxt/.env`, and `/admin/dashboard` probes received 404s. Do not expose files or create placeholder admin routes to make these requests succeed. Review Security Events/WAF only if the volume or request pattern continues to affect service.
-5. **Reconcile source and production route records.** The active route list and repository disagree on `system-map*`. Update the public map/source ledger to match after choosing the canonical deployment state.
+5. **Leave unknown legacy stamp URLs unresolved until identified.** The two observed image paths are not present in repository history; they remain 404 rather than being redirected to an assumed replacement. Current canonical brand assets are under `/assets/brand/dna-os/v1/`.
 
-The first item requires a production redirect/route change; it has not been applied. This audit was read-only.
+Source reconciliation is prepared locally. The `www`, `/sw.js`, and restored system-map route changes still need a reviewed Cloudflare Worker release. No production change has been applied as part of this follow-up.
 
 ## Evidence boundary
 
