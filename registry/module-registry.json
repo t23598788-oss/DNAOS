@@ -17450,6 +17450,24 @@
       ],
       "status": "active",
       "entry_point": true
+    },
+    "scripts/record-development-event.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Append immutable commit, migration, verification and deployment references to the development provenance ledger.",
+      "purpose_th": "บันทึกรหัสคอมมิต migration ผลตรวจ และ deployment ลง ledger ประวัติพัฒนาแบบแก้ย้อนหลังไม่ได้",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
+    },
+    "scripts/read-development-history.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Read bounded, sanitized development provenance for an AI or release operator to resume work from recorded evidence.",
+      "purpose_th": "อ่านประวัติพัฒนาแบบจำกัดและไม่ปนข้อมูลลับ เพื่อให้ AI หรือผู้ดูแลทำงานต่อจากหลักฐานที่บันทึกไว้",
+      "exports": [],
+      "status": "active",
+      "entry_point": true
     }
   },
   "excluded": [
