@@ -33,6 +33,12 @@ alter table system.development_events
   ));
 
 alter table system.development_events
+  drop constraint if exists development_events_environment_check;
+alter table system.development_events
+  add constraint development_events_environment_check
+  check (environment is null or environment in ('local', 'development', 'staging', 'production'));
+
+alter table system.development_events
   drop constraint if exists development_events_main_merge_branch_check;
 alter table system.development_events
   add constraint development_events_main_merge_branch_check
