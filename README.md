@@ -1,3 +1,5 @@
+<p><img src="https://dnaos.dev/assets/brand/dna-os/v1/dna-os-horizontal-mono.svg" alt="DNA OS" width="148" height="60"></p>
+
 # DNA OS Developer Guide
 
 ## AI Execution Protocol (อ่านก่อนเริ่มงานทุกครั้ง)
@@ -80,6 +82,12 @@ DNA OS ใช้สถาปัตยกรรมแบบ Layered ซึ่ง�
     *   `services/supabase/queries`: เป็นที่เดียวสำหรับสร้าง Supabase client และฟังก์ชัน Query ทั้งหมด. [4]
     *   `services/ai/bridge-openai`: ใช้ GPT-4o-mini ในการแปลภาษาไทยเป็น JSON command. [4]
     *   `services/middleware/auth`: Middleware สำหรับตรวจสอบสิทธิ์ผู้ใช้ผ่าน Bearer token. [4]
+
+## คู่มือและสารบัญระบบ
+
+- [คู่มือระบบและแผนผังการส่งอีเมลยืนยันตัวตน](docs/AUTH_EMAIL_TEMPLATES_2026-11-23.md) — รวมเส้นทาง Supabase Auth → Resend, จุดตั้งค่า Production, และข้อกำหนดเรื่องรหัสลับ
+- [ชุดเทมเพลตอีเมล Auth ทั้ง 13 แบบ](supabase/templates/dna-os-auth-v1/README.md) — ไฟล์ต้นฉบับและสารบัญจับคู่เหตุการณ์กับเทมเพลต
+- [ดัชนีเครื่องอ่านได้ของเทมเพลตและเส้นทางส่ง](supabase/templates/dna-os-auth-v1/template-index.json)
 
 ## คำสั่งที่สำคัญสำหรับนักพัฒนา
 

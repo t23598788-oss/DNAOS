@@ -12,7 +12,7 @@
     "managed_by": "DNA OS Registry",
     "owner": "เฮีย (t23598788@gmail.com)",
     "last_verified": null,
-    "policy_note": "ยังไม่ได้ configure — ต้องการ SMTP provider ก่อน activate"
+    "policy_note": "ช่องทางอีเมลธุรกิจสำหรับใบแจ้งหนี้ ใบเสนอราคา และคู่ค้ายัง DISABLED/NOT_CONFIGURED; อีเมลยืนยันตัวตนเป็นคนละเส้นทาง ใช้ Supabase Auth → Custom SMTP → Resend ดู docs/AUTH_EMAIL_TEMPLATES_2026-11-23.md"
   },
 
   "health": {
@@ -105,6 +105,6 @@
       "แจ้งเตือนหนี้เกินกำหนด",
       "แจ้งสถานะงานให้คู่ค้า"
     ],
-    "note": "ยังไม่ได้ configure — ต้องการ SMTP provider (เช่น SendGrid, Resend, Nodemailer)"
+    "note": "อีเมลธุรกิจสำหรับใบแจ้งหนี้ ใบเสนอราคา แจ้งหนี้ และสถานะงานยังไม่ได้เปิดใช้งาน/ยังไม่มี provider ที่ตั้งค่าในช่องทางนี้; อย่าสับสนกับอีเมล Auth ซึ่งใช้ Supabase Auth → Custom SMTP → Resend และมีบันทึกที่ docs/AUTH_EMAIL_TEMPLATES_2026-11-23.md"
   }
 }
