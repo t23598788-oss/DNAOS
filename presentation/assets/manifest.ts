@@ -32,12 +32,28 @@ export const presentationAssets: PresentationAsset[] = [
     url: '/brand/dna-os-mark-d.png',
     file: 'public/brand/dna-os-mark-d.png',
     status: 'LIVE',
-    consumers: ['app/login/page.tsx'],
+    consumers: ['app/login/page.tsx', 'app/register/page.tsx', 'workers/business-onboarding/entry-page.ts'],
     note:
       'Official Owner brand mark (D สี่เหลี่ยมสีรุ้ง + NA OS). Provenance: ' +
       'DNA-OS-INFRASTRUCTURE/connections/connection-registry/brand-assets/dna-os/PROVENANCE.md, ' +
       'sha256 e48d08e63e0deaf30fe24ae916a7e6843bfabac9965eed3de1cdb842c50e4c55. ' +
       'Login presentation is OWNER LOCKED — this asset must not be moved, renamed, or re-drawn.',
+  },
+  {
+    key: 'dna-os-logo-dark-surface',
+    url: '/landing-preview/assets/dna-os-logo-transparent.png',
+    file: 'public/landing-preview/assets/dna-os-logo-transparent.png',
+    status: 'LIVE',
+    consumers: ['public/landing-preview/index.html'],
+    note: 'Locked white-wordmark variant for dark surfaces only. SHA-256 is recorded in public/landing-preview/brand-lock.json; never use on white surfaces or rebuild from a cropped mark.',
+  },
+  {
+    key: 'dna-os-integration-generic',
+    url: '/brand/dna-os-integration-generic.svg',
+    file: 'public/brand/dna-os-integration-generic.svg',
+    status: 'LIVE',
+    consumers: ['workers/business-onboarding/entry-page.ts'],
+    note: 'DNA OS neutral integration glyph. Use when an external provider asset is absent or its permitted use is not documented.',
   },
   {
     key: 'favicon',
@@ -66,13 +82,5 @@ export const presentationAssets: PresentationAsset[] = [
     file: 'public/icons/apple-touch-icon.png',
     status: 'LIVE',
     consumers: ['app/layout.tsx (metadata icons)'],
-  },
-  {
-    key: 'logo-master',
-    url: '/icons/logo-master.png',
-    file: 'public/icons/logo-master.png',
-    status: 'UNREFERENCED',
-    consumers: [],
-    note: 'Zero references found in any source/config. DELETE_CANDIDATE for Phase 4 (Owner decision).',
   },
 ];
