@@ -152,6 +152,8 @@ export interface ConnectRuntimeDeps {
   /** This app's own public origin, or null when it is genuinely unset. */
   appOrigin(): string | null;
   getConnectorSummary(slug: string): Promise<ConnectorSummary | null>;
+  /** Resolve exactly one connector by its declared provider id; ambiguity fails closed. */
+  getConnectorSummaryByProvider(providerId: string): Promise<ConnectorSummary | null>;
   /**
    * The canonical Test stage — gateway/connectors.ts#runConnectorTest, injected
    * rather than imported: engines may not import gateway

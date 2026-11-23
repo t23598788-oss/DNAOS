@@ -76,6 +76,17 @@ export async function getConnectorById(id: string): Promise<ConnectorRecord | nu
   return data as ConnectorRecord;
 }
 
+/** Resolve one connector by declared provider identity. Duplicates are ambiguous and fail closed. */
+export async function getConnectorByProvider(providerId: string): Promise<ConnectorRecord | null> {
+  const { data, error } = await supabaseAdmin()
+    .from("connectors")
+    .select("*")
+    .filter("config->>provider", "eq", providerId.trim().toLowerCase())
+    .limit(2);
+  if (error || !data || data.length !== 1) return null;
+  return data[0] as ConnectorRecord;
+}
+
 /**
  * Find the single Connector that DECLARES this provider (config.provider — the
  * declared Connect Core provider identity, 2026-09-20). Read-only lookup for

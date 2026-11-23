@@ -6,6 +6,10 @@ interface Env {
 export default {
   fetch(request: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(request.url);
+    if (pathname === "/system-map.json" || pathname === "/system-map.md") {
+      return env.ASSETS.fetch(request);
+    }
+
     if (pathname === "/" || pathname.startsWith("/assets/")) {
       return env.ASSETS.fetch(request);
     }

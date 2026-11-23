@@ -26,6 +26,10 @@ export const ADAPTERS: AdapterDescription[] = [
   // identity signal / interaction. Listed by provider because this record is
   // about which adapter exists, not about a business capability.
   { provider: "line", observes: ["message", "document", "location", "identity_signal", "interaction"], ingress: "webhook" },
+  // Meta messaging receive surfaces share the same signed webhook adapter,
+  // but remain separate provider identities for account binding and audit.
+  { provider: "facebook", observes: ["message", "document", "interaction"], ingress: "webhook" },
+  { provider: "instagram", observes: ["message", "document", "interaction"], ingress: "webhook" },
 ];
 
 export const CHANNELS: { channel: GatewayChannel; enabled: boolean; description: string }[] = [

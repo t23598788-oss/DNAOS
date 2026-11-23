@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T03:31:23.574Z",
+  "generated_at": "2026-11-23T05:58:30.052Z",
   "version": 1,
   "nodes": [
     {
@@ -17104,6 +17104,7 @@
         "deleteConnector",
         "findConnectorIdByProvider",
         "getConnectorById",
+        "getConnectorByProvider",
         "listConnectors",
         "recordConnectorTest",
         "recordWebhookEvent",
@@ -17136,6 +17137,7 @@
         "module:app/api/admin/system-config/route.ts",
         "module:app/api/connectors/oauth/callback/[slug]/route.ts",
         "module:app/api/connectors/webhook/[slug]/route.ts",
+        "module:app/api/gateway/observe/meta/route.ts",
         "module:app/api/internal/gmail/token/route.ts",
         "module:scripts/register-github-oauth-connector.ts"
       ],
@@ -17196,52 +17198,58 @@
           "line_end": 77
         },
         {
+          "name": "getConnectorByProvider",
+          "kind": "function",
+          "line_start": 80,
+          "line_end": 88
+        },
+        {
           "name": "findConnectorIdByProvider",
           "kind": "function",
-          "line_start": 86,
-          "line_end": 94
+          "line_start": 97,
+          "line_end": 105
         },
         {
           "name": "createConnector",
           "kind": "function",
-          "line_start": 96,
-          "line_end": 143
+          "line_start": 107,
+          "line_end": 154
         },
         {
           "name": "updateConnector",
           "kind": "function",
-          "line_start": 145,
-          "line_end": 167
+          "line_start": 156,
+          "line_end": 178
         },
         {
           "name": "deleteConnector",
           "kind": "function",
-          "line_start": 169,
-          "line_end": 173
+          "line_start": 180,
+          "line_end": 184
         },
         {
           "name": "setConnectorEnabled",
           "kind": "function",
-          "line_start": 179,
-          "line_end": 200
+          "line_start": 190,
+          "line_end": 211
         },
         {
           "name": "recordConnectorTest",
           "kind": "function",
-          "line_start": 202,
-          "line_end": 244
+          "line_start": 213,
+          "line_end": 255
         },
         {
           "name": "runConnectorTest",
           "kind": "function",
-          "line_start": 246,
-          "line_end": 255
+          "line_start": 257,
+          "line_end": 266
         },
         {
           "name": "recordWebhookEvent",
           "kind": "function",
-          "line_start": 257,
-          "line_end": 287
+          "line_start": 268,
+          "line_end": 298
         }
       ],
       "import_sites": [
@@ -17509,7 +17517,7 @@
           "name": "POST",
           "kind": "function",
           "line_start": 30,
-          "line_end": 119
+          "line_end": 139
         }
       ],
       "import_sites": [
@@ -43072,6 +43080,7 @@
         "module:app/api/admin/connectors/_lib/catalog.ts",
         "module:engines/connectors/providers/github.ts",
         "module:engines/connectors/providers/line.ts",
+        "module:engines/connectors/providers/meta.ts",
         "module:engines/connectors/providers/railway.ts",
         "module:scripts/railway-adapter-test.ts"
       ],
@@ -43098,19 +43107,19 @@
           "name": "ADAPTERS",
           "kind": "const",
           "line_start": 19,
-          "line_end": 29
+          "line_end": 33
         },
         {
           "name": "CHANNELS",
           "kind": "const",
-          "line_start": 31,
-          "line_end": 35
+          "line_start": 35,
+          "line_end": 39
         },
         {
           "name": "describeGateway",
           "kind": "function",
-          "line_start": 37,
-          "line_end": 44
+          "line_start": 41,
+          "line_end": 48
         }
       ],
       "import_sites": [
@@ -71898,19 +71907,19 @@
           "name": "KNOWN_PROVIDER_DESCRIPTORS",
           "kind": "const",
           "line_start": 35,
-          "line_end": 104
+          "line_end": 134
         },
         {
           "name": "AI_WORKER_DESCRIPTORS",
           "kind": "const",
-          "line_start": 110,
-          "line_end": 151
+          "line_start": 140,
+          "line_end": 181
         },
         {
           "name": "describeConnectorSlug",
           "kind": "function",
-          "line_start": 153,
-          "line_end": 159
+          "line_start": 183,
+          "line_end": 189
         }
       ],
       "import_sites": [
@@ -71992,20 +72001,20 @@
         {
           "name": "buildConnectorCatalog",
           "kind": "function",
-          "line_start": 189,
-          "line_end": 198
+          "line_start": 190,
+          "line_end": 199
         },
         {
           "name": "groupByFamily",
           "kind": "function",
-          "line_start": 200,
-          "line_end": 210
+          "line_start": 201,
+          "line_end": 211
         },
         {
           "name": "groupByFunction",
           "kind": "function",
-          "line_start": 212,
-          "line_end": 223
+          "line_start": 213,
+          "line_end": 224
         }
       ],
       "import_sites": [
@@ -77564,6 +77573,7 @@
         "module:engines/connectors/contract.ts",
         "module:engines/connectors/providers/github.ts",
         "module:engines/connectors/providers/line.ts",
+        "module:engines/connectors/providers/meta.ts",
         "module:engines/connectors/providers/railway.ts"
       ],
       "dependents": [
@@ -77594,20 +77604,20 @@
         {
           "name": "CONNECT_CONTRACTS",
           "kind": "const",
-          "line_start": 26,
-          "line_end": 26
+          "line_start": 27,
+          "line_end": 27
         },
         {
           "name": "findContract",
           "kind": "function",
-          "line_start": 29,
-          "line_end": 33
+          "line_start": 30,
+          "line_end": 34
         },
         {
           "name": "listConnectContractIds",
           "kind": "function",
-          "line_start": 36,
-          "line_end": 38
+          "line_start": 37,
+          "line_end": 39
         }
       ],
       "import_sites": [
@@ -77630,6 +77640,11 @@
           "specifier": "./providers/line",
           "line": 19,
           "resolved_target": "engines/connectors/providers/line.ts"
+        },
+        {
+          "specifier": "./providers/meta",
+          "line": 20,
+          "resolved_target": "engines/connectors/providers/meta.ts"
         }
       ]
     },
@@ -77669,6 +77684,7 @@
         "module:app/api/admin/connectors/providers/route.ts",
         "module:engines/connectors/providers/github.ts",
         "module:engines/connectors/providers/line.ts",
+        "module:engines/connectors/providers/meta.ts",
         "module:engines/connectors/providers/railway.ts",
         "module:engines/connectors/registry.ts",
         "module:scripts/connect-core-acceptance-test.ts"
@@ -77780,19 +77796,19 @@
           "name": "ConnectRuntimeDeps",
           "kind": "interface",
           "line_start": 151,
-          "line_end": 163
+          "line_end": 165
         },
         {
           "name": "ConnectIntent",
           "kind": "interface",
-          "line_start": 166,
-          "line_end": 169
+          "line_start": 168,
+          "line_end": 171
         },
         {
           "name": "ConnectContract",
           "kind": "interface",
-          "line_start": 177,
-          "line_end": 207
+          "line_start": 179,
+          "line_end": 209
         }
       ],
       "import_sites": [
@@ -77943,7 +77959,8 @@
         "appOrigin",
         "buildConnectRuntimeDeps",
         "buildDetectDeps",
-        "getConnectorSummary"
+        "getConnectorSummary",
+        "getConnectorSummaryByProvider"
       ],
       "status": "OK",
       "runtime_entry_point": false,
@@ -77976,26 +77993,32 @@
         {
           "name": "buildDetectDeps",
           "kind": "function",
-          "line_start": 25,
-          "line_end": 30
+          "line_start": 26,
+          "line_end": 31
         },
         {
           "name": "appOrigin",
           "kind": "function",
-          "line_start": 33,
-          "line_end": 36
+          "line_start": 34,
+          "line_end": 37
         },
         {
           "name": "getConnectorSummary",
           "kind": "function",
-          "line_start": 39,
-          "line_end": 51
+          "line_start": 40,
+          "line_end": 52
+        },
+        {
+          "name": "getConnectorSummaryByProvider",
+          "kind": "function",
+          "line_start": 54,
+          "line_end": 66
         },
         {
           "name": "buildConnectRuntimeDeps",
           "kind": "function",
-          "line_start": 54,
-          "line_end": 65
+          "line_start": 69,
+          "line_end": 81
         }
       ],
       "import_sites": [
@@ -78015,8 +78038,13 @@
           "resolved_target": "gateway/connectors.ts"
         },
         {
-          "specifier": "@/engines/connectors/contract",
+          "specifier": "@/gateway/connectors",
           "line": 18,
+          "resolved_target": "gateway/connectors.ts"
+        },
+        {
+          "specifier": "@/engines/connectors/contract",
+          "line": 19,
           "resolved_target": "engines/connectors/contract.ts"
         }
       ]
@@ -85494,6 +85522,57 @@
       ]
     },
     {
+      "id": "module:engines/connectors/providers/meta.ts",
+      "type": "Module",
+      "layer": "engines",
+      "name_en": "engines/connectors/providers/meta.ts",
+      "purpose_th": "สัญญา Connect Core ของ Meta App webhook ใช้ที่เก็บ secret และ lifecycle Register/Test/Enable เดิมสำหรับรับข้อความขาเข้าที่ตรวจลายเซ็นแล้ว ยังไม่ครอบคลุม OAuth เลือกเพจ ซิงก์แค็ตตาล็อก โพสต์ หรือจัดการคำสั่งซื้อ",
+      "exports": [
+        "metaConnectContract"
+      ],
+      "status": "OK",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:engines/connectors/contract.ts",
+        "module:engines/integration-gateway/selfDescription.ts"
+      ],
+      "dependents": [
+        "module:engines/connectors/registry.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "engines",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "metaConnectContract",
+          "kind": "const",
+          "line_start": 123,
+          "line_end": 133
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "@/engines/integration-gateway/selfDescription",
+          "line": 10,
+          "resolved_target": "engines/integration-gateway/selfDescription.ts"
+        },
+        {
+          "specifier": "../contract",
+          "line": 11,
+          "resolved_target": "engines/connectors/contract.ts"
+        }
+      ]
+    },
+    {
       "id": "module:app/api/gateway/observe/line/route.ts",
       "type": "Module",
       "layer": "app",
@@ -90760,8 +90839,10 @@
       "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [
+        "module:app/api/connectors/webhook/[slug]/_lib/webhookGate.ts",
         "module:engines/integration-gateway/adapters/meta.ts",
         "module:engines/integration-gateway/event-bus/bus.ts",
+        "module:gateway/connectors.ts",
         "module:services/supabase/queries.ts"
       ],
       "dependents": [],
@@ -90781,14 +90862,14 @@
         {
           "name": "GET",
           "kind": "function",
-          "line_start": 31,
-          "line_end": 50
+          "line_start": 35,
+          "line_end": 55
         },
         {
           "name": "POST",
           "kind": "function",
-          "line_start": 52,
-          "line_end": 79
+          "line_start": 57,
+          "line_end": 96
         }
       ],
       "import_sites": [
@@ -90806,6 +90887,16 @@
           "specifier": "@/services/supabase/queries",
           "line": 29,
           "resolved_target": "services/supabase/queries.ts"
+        },
+        {
+          "specifier": "@/gateway/connectors",
+          "line": 30,
+          "resolved_target": "gateway/connectors.ts"
+        },
+        {
+          "specifier": "@/app/api/connectors/webhook/[slug]/_lib/webhookGate",
+          "line": 31,
+          "resolved_target": "app/api/connectors/webhook/[slug]/_lib/webhookGate.ts"
         }
       ]
     },
@@ -97371,7 +97462,7 @@
           "name": "entryPage",
           "kind": "function",
           "line_start": 2,
-          "line_end": 36
+          "line_end": 61
         }
       ]
     },
@@ -97610,6 +97701,7 @@
       ],
       "dependents": [
         "module:app/api/connectors/webhook/[slug]/route.ts",
+        "module:app/api/gateway/observe/meta/route.ts",
         "module:scripts/connect-gateway-webhook-gate.test.ts"
       ],
       "data_tables": "UNKNOWN",
@@ -97877,7 +97969,7 @@
           "name": "default",
           "kind": "default",
           "line_start": 6,
-          "line_end": 18
+          "line_end": 22
         }
       ]
     },
@@ -97904,6 +97996,31 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:scripts/build-public-system-map.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/build-public-system-map.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/build-public-system-map.ts",
+      "exports": [],
+      "status": "UNREGISTERED",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "unregistered",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json"
     }
   ],
   "edges": [
@@ -102034,6 +102151,11 @@
     },
     {
       "source": "layer:engines",
+      "target": "module:engines/connectors/providers/meta.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:engines",
       "target": "module:engines/connectors/providers/railway.ts",
       "label": "contains"
     },
@@ -103565,6 +103687,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/build-governance-summary.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/build-public-system-map.ts",
       "label": "contains"
     },
     {
@@ -106455,6 +106582,11 @@
     {
       "source": "module:app/api/admin/connectors/_lib/connectRuntime.ts",
       "target": "module:engines/connectors/contract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/admin/connectors/_lib/connectRuntime.ts",
+      "target": "module:gateway/connectors.ts",
       "label": "imports"
     },
     {
@@ -113869,12 +114001,22 @@
     },
     {
       "source": "module:app/api/gateway/observe/meta/route.ts",
+      "target": "module:app/api/connectors/webhook/[slug]/_lib/webhookGate.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/gateway/observe/meta/route.ts",
       "target": "module:engines/integration-gateway/adapters/meta.ts",
       "label": "imports"
     },
     {
       "source": "module:app/api/gateway/observe/meta/route.ts",
       "target": "module:engines/integration-gateway/event-bus/bus.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:app/api/gateway/observe/meta/route.ts",
+      "target": "module:gateway/connectors.ts",
       "label": "imports"
     },
     {
@@ -117803,6 +117945,16 @@
       "label": "imports"
     },
     {
+      "source": "module:engines/connectors/providers/meta.ts",
+      "target": "module:engines/connectors/contract.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/connectors/providers/meta.ts",
+      "target": "module:engines/integration-gateway/selfDescription.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:engines/connectors/providers/railway.ts",
       "target": "module:engines/connectors/contract.ts",
       "label": "imports"
@@ -117830,6 +117982,11 @@
     {
       "source": "module:engines/connectors/registry.ts",
       "target": "module:engines/connectors/providers/line.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:engines/connectors/registry.ts",
+      "target": "module:engines/connectors/providers/meta.ts",
       "label": "imports"
     },
     {
@@ -123974,10 +124131,10 @@
     }
   ],
   "summary": {
-    "total": 1441,
-    "ok": 1441,
+    "total": 1443,
+    "ok": 1442,
     "broken": 0,
     "unused": 0,
-    "unregistered": 0
+    "unregistered": 1
   }
 }

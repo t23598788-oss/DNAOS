@@ -119,6 +119,7 @@ function stubRuntimeDeps(over: Partial<ConnectRuntimeDeps> = {}): ConnectRuntime
       // No secret stored yet: a fresh connector row has nothing under any name.
       secret_keys: [],
     }),
+    getConnectorSummaryByProvider: async () => null,
     runCanonicalTest: async () => ({ status: "disconnected", last_error: null }),
     ...over,
   };

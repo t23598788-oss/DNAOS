@@ -3079,6 +3079,7 @@
         "deleteConnector",
         "findConnectorIdByProvider",
         "getConnectorById",
+        "getConnectorByProvider",
         "listConnectors",
         "recordConnectorTest",
         "recordWebhookEvent",
@@ -13666,7 +13667,8 @@
         "appOrigin",
         "buildConnectRuntimeDeps",
         "buildDetectDeps",
-        "getConnectorSummary"
+        "getConnectorSummary",
+        "getConnectorSummaryByProvider"
       ],
       "status": "active"
     },
@@ -15012,6 +15014,16 @@
       "purpose_th": "Connect Core — LINE provider contract (capability A, 2026-09-23).",
       "exports": [
         "lineConnectContract"
+      ],
+      "status": "active"
+    },
+    "engines/connectors/providers/meta.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Connect Core provider contract for the Meta App webhook. Uses the existing connector secret store and Register/Test/Enable lifecycle for the signed inbound messaging receiver; does not claim Page OAuth, catalog sync, publishing, or order operations.",
+      "purpose_th": "สัญญา Connect Core ของ Meta App webhook ใช้ที่เก็บ secret และ lifecycle Register/Test/Enable เดิมสำหรับรับข้อความขาเข้าที่ตรวจลายเซ็นแล้ว ยังไม่ครอบคลุม OAuth เลือกเพจ ซิงก์แค็ตตาล็อก โพสต์ หรือจัดการคำสั่งซื้อ",
+      "exports": [
+        "metaConnectContract"
       ],
       "status": "active"
     },
@@ -17462,6 +17474,14 @@
       "layer": "scripts",
       "purpose": "DNA OS MODULE: Register one capability-sized DNA bundle, its Git-tracked files,",
       "purpose_th": "DNA OS MODULE: Register one capability-sized DNA bundle, its Git-tracked files,",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/build-public-system-map.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Generate a public, source-backed DNA OS system and integration map for the production landing Worker. Includes source hashes and pinned GitHub references, Gateway adapters, Connect contracts, observed Worker deployment IDs, Supabase provenance ledger objects, and compute registry count; excludes secrets and business data.",
+      "purpose_th": "สร้างแผนผังระบบและการเชื่อมต่อ DNA OS ที่อ้างอิงซอร์สโค้ด สำหรับเผยแพร่ผ่าน Landing Worker โดยรวม hash และลิงก์ GitHub ที่ชี้รุ่น, Gateway adapters, Connect contracts, deployment ID ที่ตรวจพบ, วัตถุใน provenance ledger ของ Supabase และจำนวน compute ใน registry โดยไม่เผยแพร่ secret หรือข้อมูลธุรกิจ",
       "exports": [],
       "status": "active"
     }
