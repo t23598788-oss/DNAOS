@@ -3543,5 +3543,24 @@
     ],
     "summary": "RAILWAY NATIVE CLINE RUNTIME. Linux cline 3.0.62 proven on Railway sandbox (completed, deepseek via cline account, $0.00018, 1.3s). Separate Railway service dna-os-cline-worker (project 1af5cafa, env 8/8 incl CLINE_SEED_PROVIDERS_JSON) reusing ai_tasks+ai-callback contracts; deadboard enqueues when local binary missing (userId-bound, duplicate guard) and polls synchronously; Mac watcher skips owner tasks; secrets never in prompts/logs (cookie injected server-side). Deploy-path FIX: production = INFRA project service dna-os-deadboard (c08254e4); earlier railway ups targeted duplicate project d1271290 auto-created by an old up — relinked; deployed DNA-000217 (2d5f14d0) + DNA-000218 (f6df7a97) with registry_version=2 canary proof; ai-callback edge deployed. BLOCKER at report: supabase db push hung before applying 20261011000001 (ai_tasks new columns absent) -> task-queue path fail-closed (insert error -> null -> existing behavior). Owner applies migration via SQL editor or completing push, then flow goes live with zero code change. Gates: tsc, build, census business24/monetary2 unchanged, owner-routing 15/15.",
     "contract_changed": true
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000219",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T15:54:18+07:00",
+    "session_id": "auth-email-and-brand-reference-2026-11-23",
+    "files": [
+      "README.md (main documentation index links to Auth email route and grouped template package)",
+      "docs/AUTH_EMAIL_TEMPLATES_2026-11-23.md (Supabase Auth → Resend route and settings references)",
+      "supabase/templates/dna-os-auth-v1/README.md (static event-triggered template package guide)",
+      "supabase/templates/dna-os-auth-v1/template-index.json (delivery route, provider, and no-worker/no-webhook execution facts)",
+      "registry/communication/email.registry.json (separates Auth mail from disabled business mail)",
+      "supabase/migrations/20261123000003_dna_os_brand_asset_usage.sql (brand usage metadata seed)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Verified separate Cloudflare deployments for dnaos-auth-entry (login and auth routes) and dnaos-homepage (root and static assets). Authentication email delivery remains Supabase Auth → Custom SMTP → Resend; Supabase Auth selects and renders each template on its auth event. No custom mail webhook, dedicated email Worker, cron, or always-on template process exists. Kept business email separate and disabled. Added links from the root developer guide to the email route and grouped static template package. Reused the existing published monochrome DNA OS brand asset URLs; wrote the two official logo shapes and their color/document/icon use contexts to public.app_configs under dna-os-brand-asset-usage. Verified the Production row contains four asset variants at 2026-11-23 15:53 Bangkok time; migration 20261123000003 was applied through a focused SQL execution and recorded in migration history. The repository package is not fully synchronized to Production; only a subset of the 13 templates had been manually saved at last review. No SMTP secrets stored.",
+    "contract_changed": false
   }
 ]

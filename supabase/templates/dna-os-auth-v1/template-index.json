@@ -8,6 +8,24 @@
     "cron": false,
     "securityNotificationsRequireProjectSetting": true
   },
+  "delivery": {
+    "path": ["Supabase Auth", "Custom SMTP", "Resend"],
+    "provider": "Resend",
+    "smtpHost": "smtp.resend.com",
+    "smtpPort": 465,
+    "fromAddress": "no-reply@auth.dnaos.dev",
+    "fromName": "DNA OS",
+    "trigger": "Supabase Auth internal authentication or security event",
+    "templateSelection": "Supabase Auth event-to-template mapping",
+    "customWebhook": false,
+    "dedicatedMailWorker": false,
+    "credentialStoredIn": "Supabase Auth SMTP settings",
+    "credentialIncludedInRepository": false,
+    "productionProjectRef": "xeytcavxejhyzxwevgto",
+    "settingsPath": "Supabase Dashboard → Authentication → SMTP Settings",
+    "domainManagement": "Resend Dashboard → Domains",
+    "sourceReference": "docs/AUTH_EMAIL_TEMPLATES_2026-11-23.md#delivery-route"
+  },
   "templates": [
     {
       "id": "confirm-sign-up",
