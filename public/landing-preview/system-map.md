@@ -10,6 +10,12 @@ Source revision: 77d539c20f52860fe650d5cd47301b36cdf039e4
 - **dnaos-auth-entry** — Cloudflare Worker; https://dnaos.dev/login, https://dnaos.dev/start, https://dnaos.dev/v1/auth/*. Source: [workers/auth-entry/index.ts](https://github.com/t23598788-oss/DNAOS/blob/77d539c20f52860fe650d5cd47301b36cdf039e4/workers/auth-entry/index.ts).
 - **dnaos-business-onboarding** — shared source imported by auth Worker; not_a_separately_deployed_worker_per_2026_11_23_inspection. Source: [workers/business-onboarding/index.ts](https://github.com/t23598788-oss/DNAOS/blob/77d539c20f52860fe650d5cd47301b36cdf039e4/workers/business-onboarding/index.ts).
 
+## Login and identity
+- Sign-in page: [https://dnaos.dev/login](https://dnaos.dev/login), served by `dnaos-auth-entry`.
+- Route, session, and release reference: [DNA OS sign-in route map](https://github.com/t23598788-oss/DNAOS/blob/main/docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md).
+- Screen source: [workers/business-onboarding/entry-page.ts](https://github.com/t23598788-oss/DNAOS/blob/main/workers/business-onboarding/entry-page.ts); route/gateway entry: [workers/auth-entry/index.ts](https://github.com/t23598788-oss/DNAOS/blob/main/workers/auth-entry/index.ts).
+- Production release and live route verification are linked under the `dnaos-platform` identity lineage in Supabase `system.development_events` (sequences 14–15; Worker version `c23863da-109f-4d28-8f01-f525c64f3b49`).
+
 ## Connection pipeline
 1. provider webhook or poll
 2. signature/authentication boundary

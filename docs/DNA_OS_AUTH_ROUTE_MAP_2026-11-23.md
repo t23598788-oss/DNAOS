@@ -144,3 +144,16 @@ At this snapshot, do not label Google, Apple, Facebook, LINE, TikTok or device b
 - Email delivery and template boundary: [`Auth email guide`](AUTH_EMAIL_TEMPLATES_2026-11-23.md), [`template index`](../supabase/templates/dna-os-auth-v1/template-index.json)
 - Provider logo use: [`DNA OS Brand Standard`](brand/DNA_OS_BRAND_STANDARD.md)
 - Provider setup references: [Supabase Google login](https://supabase.com/docs/guides/auth/social-sign-in/auth-google) — Google Console's authorized redirect URI is the Supabase project's callback; [Supabase redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls) — DNA OS `redirectTo` must separately match the project's allowlist; [Google Search indexing FAQ](https://developers.google.com/search/help/crawling-index-faq) — sitemap submission helps discovery but does not guarantee indexing; [Request Google recrawl](https://developers.google.com/search/docs/crawling-indexing/ask-google-to-recrawl) — URL Inspection requires a verified Search Console owner/full user.
+
+## Production login release record — 2026-11-24
+
+The current white sign-in screen is served at [`https://dnaos.dev/login`](https://dnaos.dev/login) by the separate Cloudflare Worker `dnaos-auth-entry`. The homepage's sign-in action routes into this page. The UI source is `workers/business-onboarding/entry-page.ts`, reached through `workers/auth-entry/index.ts`; the route and auth API bindings are declared in `workers/auth-entry/cloudflare.config.ts`.
+
+The deployment and live-page check are recorded under the existing `dnaos-platform` identity lineage in Supabase `system.development_events`:
+
+| Sequence | Event | Status | Production Worker version | Source commit |
+|---:|---|---|---|---|
+| 14 | `deployment_completed` | passed | `c23863da-109f-4d28-8f01-f525c64f3b49` | `16000a9d8f6bacdb3c711d0ca24397e93dcf56cb` |
+| 15 | `live_route_verified` | passed | `c23863da-109f-4d28-8f01-f525c64f3b49` | `16000a9d8f6bacdb3c711d0ca24397e93dcf56cb` |
+
+The shared commit and deployment ID link the visible login page to the code and its live Worker version. The event rows are append-only; use the `dnaos-platform` history projection to follow later releases. This records the page delivery and visual route check only; it does not claim that every identity provider is enabled or that a signed-in session has been completed.
