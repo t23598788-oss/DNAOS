@@ -16856,28 +16856,6 @@
       ],
       "status": "active"
     },
-    "components/public/PublicPriceTable.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Public price table (2026-10-24) — columns required by the owner:",
-      "purpose_th": "Public price table (2026-10-24) — columns required by the owner:",
-      "exports": [
-        "PublicPriceTable",
-        "PublicPriceTableProps"
-      ],
-      "status": "active"
-    },
-    "components/public/LineContactButton.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "LINE OA contact button (2026-10-24 public entry pass).",
-      "purpose_th": "LINE OA contact button (2026-10-24 public entry pass).",
-      "exports": [
-        "LineContactButton",
-        "LineContactButtonProps"
-      ],
-      "status": "active"
-    },
     "core/public-catalog/structured-data.ts": {
       "owner": "core",
       "layer": "core",
@@ -17889,6 +17867,20 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "skeleton ระหว่างโหลดหน้า Products"
+    },
+    {
+      "path": "components/public/PublicPriceTable.tsx",
+      "retired_at": "2026-11-23T12:47:03.910Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "Public price table (2026-10-24) — columns required by the owner:"
+    },
+    {
+      "path": "components/public/LineContactButton.tsx",
+      "retired_at": "2026-11-23T12:47:03.911Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "LINE OA contact button (2026-10-24 public entry pass)."
     }
   ]
 }
