@@ -15,6 +15,7 @@ const generatedArtifacts = [
   "public/landing-preview/system-map.md",
   "public/landing-preview/assets/brand/dna-os/v1/",
   "workers/landing-entry/system-map-html.ts",
+  "registry/architecture-book.json",
 ];
 const dirty = porcelain.split("\n").filter(Boolean).some((line) => {
   const path = line.slice(3).replace(/^"|"$/g, "");
