@@ -9,7 +9,17 @@ const outputDir = path.join(root, "public/landing-preview");
 const repository = "https://github.com/t23598788-oss/DNAOS";
 const sourceRevision = execFileSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8" }).trim();
 const porcelain = execFileSync("git", ["status", "--porcelain"], { cwd: root, encoding: "utf8" });
-const dirty = porcelain.trim().length > 0;
+const generatedArtifacts = [
+  "public/landing-preview/system-map.html",
+  "public/landing-preview/system-map.json",
+  "public/landing-preview/system-map.md",
+  "public/landing-preview/assets/brand/dna-os/v1/",
+  "workers/landing-entry/system-map-html.ts",
+];
+const dirty = porcelain.split("\n").filter(Boolean).some((line) => {
+  const path = line.slice(3).replace(/^"|"$/g, "");
+  return !generatedArtifacts.some((artifact) => artifact.endsWith("/") ? path.startsWith(artifact) : path === artifact);
+});
 
 const sources = [
   "workers/landing-entry/index.ts",
