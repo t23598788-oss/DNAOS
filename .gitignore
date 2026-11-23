@@ -66,6 +66,7 @@ yarn-error.log*
 
 # vercel
 .vercel
+workers/landing-entry/.wrangler/
 
 # /admin/ide workspace trash (owner, 2026-08-05, Phase 3) — trashed items
 # and their metadata ledger must never be committed
