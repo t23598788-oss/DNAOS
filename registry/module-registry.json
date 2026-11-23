@@ -68,9 +68,8 @@
       "purpose": "Root Domain UI Conversion: Server Component gate for \"/\" — calls requireAuthPage(ADMIN_TIER) then renders OperationalWorkspace.tsx. \"/\" is the Owner Control Center now, not a public landing page.",
       "purpose_th": "Root Domain UI Conversion: จุดตรวจสิทธิ์ (Server Component) ของ \"/\" — เรียก requireAuthPage(ADMIN_TIER) แล้ว render OperationalWorkspace.tsx เพราะ \"/\" กลายเป็น Owner Control Center แล้ว ไม่ใช่หน้าเว็บสาธารณะ",
       "exports": [
-        "PublicHomePage",
-        "metadata",
-        "revalidate"
+        "HomePage",
+        "metadata"
       ],
       "status": "active"
     },
