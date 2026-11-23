@@ -1,0 +1,581 @@
+{
+  "document": "DNA OS public system and integration map",
+  "schema_version": 1,
+  "generated_at": "2026-11-23T06:33:23.113Z",
+  "source": {
+    "repository": "t23598788-oss/DNAOS",
+    "revision": "6d966e6074523ff521c7afb33c725a27b0b8e2b2",
+    "working_tree_dirty_at_generation": true,
+    "github_revision_links_are_pinned_to": "6d966e6074523ff521c7afb33c725a27b0b8e2b2"
+  },
+  "brand_assets": {
+    "manifest_url": "https://dnaos.dev/assets/brand/dna-os/v1/brand-assets.json",
+    "base_url": "https://dnaos.dev/assets/brand/dna-os/v1/",
+    "source_sha256": "92077471929c5d5e876ce995be381e8c43bcca3e39a60a6e7412d33941c07c19",
+    "recommended_document_header": {
+      "url": "https://dnaos.dev/assets/brand/dna-os/v1/dna-os-horizontal-mono.png",
+      "variant": "monochrome",
+      "display_width_px": 148
+    },
+    "assets": {
+      "color": {
+        "horizontal": "https://dnaos.dev/assets/brand/dna-os/v1/dna-os-horizontal-color.png",
+        "mark": "https://dnaos.dev/assets/brand/dna-os/v1/dna-os-mark-color.png"
+      },
+      "monochrome": {
+        "horizontal": "https://dnaos.dev/assets/brand/dna-os/v1/dna-os-horizontal-mono.png",
+        "mark": "https://dnaos.dev/assets/brand/dna-os/v1/dna-os-mark-mono.png"
+      }
+    },
+    "provider_logo_rule": "External services use their own approved brand marks; DNA OS assets identify DNA OS only."
+  },
+  "boundaries": {
+    "production_deployments": "Observed deployment records are dated evidence; they do not prove this source revision is deployed.",
+    "database": "Migration files prove schema intent. Dated production evidence is shown with its own migration number, checksum, and evidence reference.",
+    "compute": "Compute entries are included only when registered in the provider-neutral compute registry; no resource payloads are published.",
+    "privacy": "This public map excludes credentials, business records, personal data, transaction payloads, and private account identifiers."
+  },
+  "services": [
+    {
+      "name": "dnaos-homepage",
+      "layer": "Cloudflare Worker",
+      "configured_routes": [
+        "https://dnaos.dev/",
+        "https://dnaos.dev/assets/*",
+        "https://dnaos.dev/system-map",
+        "https://dnaos.dev/system-map.json",
+        "https://dnaos.dev/system-map.md"
+      ],
+      "source": "workers/landing-entry/index.ts",
+      "configuration_source": "workers/landing-entry/wrangler.jsonc",
+      "source_state": "configured_in_source",
+      "deployment_observation": {
+        "service": "dnaos-homepage",
+        "deployment_id": "a763d013-b2d3-4452-b919-54ef2bccff64",
+        "observed_at": "2026-11-23T01:15:00.000Z",
+        "evidence": "docs/CLOUDFLARE_SERVICE_ROUTE_MAP_2026-11-23.md"
+      }
+    },
+    {
+      "name": "dnaos-auth-entry",
+      "layer": "Cloudflare Worker",
+      "configured_routes": [
+        "https://dnaos.dev/login",
+        "https://dnaos.dev/start",
+        "https://dnaos.dev/v1/auth/*"
+      ],
+      "source": "workers/auth-entry/index.ts",
+      "configuration_source": "workers/auth-entry/cloudflare.config.ts",
+      "source_state": "configured_in_source",
+      "deployment_observation": {
+        "service": "dnaos-auth-entry",
+        "deployment_id": "ebdac195-7eec-4e7e-8e76-de4190397816",
+        "observed_at": "2026-11-22T11:46:00.000Z",
+        "evidence": "docs/CLOUDFLARE_SERVICE_ROUTE_MAP_2026-11-23.md"
+      }
+    },
+    {
+      "name": "dnaos-business-onboarding",
+      "layer": "shared source imported by auth Worker",
+      "source": "workers/business-onboarding/index.ts",
+      "source_state": "not_a_separately_deployed_worker_per_2026_11_23_inspection"
+    }
+  ],
+  "connection_pipeline": {
+    "sequence": [
+      "provider webhook or poll",
+      "signature/authentication boundary",
+      "provider adapter normalization",
+      "canonical Gateway event bus",
+      "scoped authorized consumer"
+    ],
+    "adapters": [
+      {
+        "provider": "github",
+        "ingress": "webhook",
+        "events": [
+          "repository",
+          "branch",
+          "commit",
+          "pull_request",
+          "workflow_run"
+        ],
+        "source": "engines/integration-gateway/selfDescription.ts"
+      },
+      {
+        "provider": "supabase",
+        "ingress": "poll",
+        "events": [
+          "health",
+          "migration_state"
+        ],
+        "source": "engines/integration-gateway/selfDescription.ts"
+      },
+      {
+        "provider": "vercel",
+        "ingress": "webhook",
+        "events": [
+          "deployment"
+        ],
+        "source": "engines/integration-gateway/selfDescription.ts"
+      },
+      {
+        "provider": "railway",
+        "ingress": "webhook",
+        "events": [
+          "deployment"
+        ],
+        "source": "engines/integration-gateway/selfDescription.ts"
+      },
+      {
+        "provider": "line",
+        "ingress": "webhook",
+        "events": [
+          "message",
+          "document",
+          "location",
+          "identity_signal",
+          "interaction"
+        ],
+        "source": "engines/integration-gateway/selfDescription.ts"
+      },
+      {
+        "provider": "facebook",
+        "ingress": "webhook",
+        "events": [
+          "message",
+          "document",
+          "interaction"
+        ],
+        "source": "engines/integration-gateway/selfDescription.ts"
+      },
+      {
+        "provider": "instagram",
+        "ingress": "webhook",
+        "events": [
+          "message",
+          "document",
+          "interaction"
+        ],
+        "source": "engines/integration-gateway/selfDescription.ts"
+      }
+    ],
+    "connect_contracts": [
+      {
+        "provider": "railway",
+        "contract_export": "railwayConnectContract",
+        "source": "engines/connectors/providers/railway.ts"
+      },
+      {
+        "provider": "github",
+        "contract_export": "githubConnectContract",
+        "source": "engines/connectors/providers/github.ts"
+      },
+      {
+        "provider": "line",
+        "contract_export": "lineConnectContract",
+        "source": "engines/connectors/providers/line.ts"
+      },
+      {
+        "provider": "meta",
+        "contract_export": "metaConnectContract",
+        "source": "engines/connectors/providers/meta.ts"
+      }
+    ],
+    "evidence": [
+      "engines/integration-gateway/selfDescription.ts",
+      "engines/integration-gateway/event-bus/bus.ts"
+    ]
+  },
+  "identity_and_access": {
+    "rule": "A provider login proves identity; organization and business permissions are assigned within the user's authorized organization scope.",
+    "evidence": [
+      "workers/auth-entry/index.ts",
+      "workers/business-onboarding/index.ts",
+      "engines/connectors/contract.ts"
+    ]
+  },
+  "data_and_processing": {
+    "database_service": {
+      "name": "Supabase",
+      "evidence": [
+        "services/supabase/server.ts",
+        "supabase/migrations/"
+      ]
+    },
+    "production_observation": {
+      "provider": "Supabase",
+      "environment": "production",
+      "project_ref": "xeytcavxejhyzxwevgto",
+      "observed_on": "2026-11-23",
+      "migration_history": [
+        {
+          "version": "20261123000001",
+          "status": "history_reconciled_after_existing_objects_were_verified",
+          "sql_execution_claimed": false
+        },
+        {
+          "version": "20261123000002",
+          "status": "applied_via_management_api",
+          "sql_sha256": "90c00c5459d461b73ac95185c4b8992bf722b78af8909d53a147910fd6ce3ebd"
+        }
+      ],
+      "access_boundary": "public projection is read-only; private change-set records require authorized access; owner approval is checked against the exact company and organization binding",
+      "migration_graph": "divergent: older remote versions are absent from this checkout; no bulk db push was run",
+      "evidence": "docs/PRODUCTION_RELEASE_READINESS_2026-11-23.md"
+    },
+    "provenance_ledger_objects": [
+      {
+        "name": "system.development_lineages",
+        "kind": "table",
+        "migration": "supabase/migrations/20261123000001_development_provenance_ledger.sql"
+      },
+      {
+        "name": "system.development_events",
+        "kind": "table",
+        "migration": "supabase/migrations/20261123000001_development_provenance_ledger.sql"
+      },
+      {
+        "name": "system.assign_development_event_sequence",
+        "kind": "function",
+        "migration": "supabase/migrations/20261123000001_development_provenance_ledger.sql"
+      },
+      {
+        "name": "system.reject_development_event_mutation",
+        "kind": "function",
+        "migration": "supabase/migrations/20261123000001_development_provenance_ledger.sql"
+      },
+      {
+        "name": "public.record_development_event",
+        "kind": "function",
+        "migration": "supabase/migrations/20261123000001_development_provenance_ledger.sql"
+      },
+      {
+        "name": "public.read_development_history",
+        "kind": "function",
+        "migration": "supabase/migrations/20261123000001_development_provenance_ledger.sql"
+      },
+      {
+        "name": "system.development_release_readiness",
+        "kind": "function",
+        "migration": "supabase/migrations/20261123000001_development_provenance_ledger.sql"
+      },
+      {
+        "name": "system.development_change_sets",
+        "kind": "table",
+        "migration": "supabase/migrations/20261123000002_development_change_sets.sql"
+      },
+      {
+        "name": "system.development_change_files",
+        "kind": "table",
+        "migration": "supabase/migrations/20261123000002_development_change_sets.sql"
+      },
+      {
+        "name": "system.development_event_change_sets",
+        "kind": "table",
+        "migration": "supabase/migrations/20261123000002_development_change_sets.sql"
+      },
+      {
+        "name": "system.development_change_set_approvals",
+        "kind": "table",
+        "migration": "supabase/migrations/20261123000002_development_change_sets.sql"
+      },
+      {
+        "name": "public.register_development_change_set",
+        "kind": "function",
+        "migration": "supabase/migrations/20261123000002_development_change_sets.sql"
+      },
+      {
+        "name": "public.read_development_change_set_for_approval",
+        "kind": "function",
+        "migration": "supabase/migrations/20261123000002_development_change_sets.sql"
+      },
+      {
+        "name": "public.approve_development_change_set",
+        "kind": "function",
+        "migration": "supabase/migrations/20261123000002_development_change_sets.sql"
+      },
+      {
+        "name": "public.link_development_event_to_change_set",
+        "kind": "function",
+        "migration": "supabase/migrations/20261123000002_development_change_sets.sql"
+      },
+      {
+        "name": "public.read_development_change_sets",
+        "kind": "function",
+        "migration": "supabase/migrations/20261123000002_development_change_sets.sql"
+      },
+      {
+        "name": "public.read_public_development_change_sets",
+        "kind": "function",
+        "migration": "supabase/migrations/20261123000002_development_change_sets.sql"
+      },
+      {
+        "name": "system.development_release_readiness",
+        "kind": "function",
+        "migration": "supabase/migrations/20261123000002_development_change_sets.sql"
+      }
+    ],
+    "compute_registry": {
+      "source": "registry/COMPUTE_RESOURCE_REGISTRY.json",
+      "registered_resources": 0,
+      "live_resource_details_published": false
+    },
+    "infrastructure_service_names": [
+      "anthropic",
+      "deno_runtime",
+      "domain",
+      "gemini",
+      "github",
+      "gmail",
+      "google_maps",
+      "line_messaging",
+      "line_notify",
+      "node_runtime",
+      "openai",
+      "supabase",
+      "vercel"
+    ],
+    "compute_runtime": "No live compute instance is claimed unless a resource is present in the registry and has fresh provider verification."
+  },
+  "source_files": [
+    {
+      "path": "workers/landing-entry/index.ts",
+      "sha256_working_tree": "90c2c9c457fec94e0a81f85d9fe30fe88c8cb8bd81c29373e772188e3c1bdd85",
+      "sha256_at_pinned_revision": "82c3d9fc27f282eadb0c2a3e959dca8d8a0b4b75f835cc2266a591b701de9249",
+      "matches_pinned_revision": false,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/workers/landing-entry/index.ts"
+    },
+    {
+      "path": "workers/landing-entry/wrangler.jsonc",
+      "sha256_working_tree": "ee78f511477af476d2e9c105d596da346236ef69decb51d3059af46898746dad",
+      "sha256_at_pinned_revision": "b5eb329ca66eda7cfe2b3327497f84a86abbaa1660958546d715eb78104aa26b",
+      "matches_pinned_revision": false,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/workers/landing-entry/wrangler.jsonc"
+    },
+    {
+      "path": "scripts/build-public-system-map.ts",
+      "sha256_working_tree": "76b7ac6db4d8d322396baae1f5c53f9ebf139d89f0d562cd407a092d78d916c8",
+      "sha256_at_pinned_revision": "50bc930c55b9f910b23ef60fcfa2f3136682b221a9d99187fe12f59ae9f9c04b",
+      "matches_pinned_revision": false,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/scripts/build-public-system-map.ts"
+    },
+    {
+      "path": "workers/auth-entry/index.ts",
+      "sha256_working_tree": "8a9b974d4bdd05f3284700d2504816bd768895af3f7dda96a5d48f843c3af9b8",
+      "sha256_at_pinned_revision": "8a9b974d4bdd05f3284700d2504816bd768895af3f7dda96a5d48f843c3af9b8",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/workers/auth-entry/index.ts"
+    },
+    {
+      "path": "workers/auth-entry/cloudflare.config.ts",
+      "sha256_working_tree": "1b5024cc87e989f4e3c8f7a1276fa5c7c17d1c028078a96f52d6297a558c3279",
+      "sha256_at_pinned_revision": "1b5024cc87e989f4e3c8f7a1276fa5c7c17d1c028078a96f52d6297a558c3279",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/workers/auth-entry/cloudflare.config.ts"
+    },
+    {
+      "path": "workers/business-onboarding/index.ts",
+      "sha256_working_tree": "933f6cf5b261273e7a12d743ce7a6f08be178d6464855bc82299ad24fa189568",
+      "sha256_at_pinned_revision": "933f6cf5b261273e7a12d743ce7a6f08be178d6464855bc82299ad24fa189568",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/workers/business-onboarding/index.ts"
+    },
+    {
+      "path": "docs/CLOUDFLARE_SERVICE_ROUTE_MAP_2026-11-23.md",
+      "sha256_working_tree": "b59f507531f10a626854a153c348fb1d56fc6e01c8782fd26fcc12ba5b17cf32",
+      "sha256_at_pinned_revision": "b59f507531f10a626854a153c348fb1d56fc6e01c8782fd26fcc12ba5b17cf32",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/docs/CLOUDFLARE_SERVICE_ROUTE_MAP_2026-11-23.md"
+    },
+    {
+      "path": "docs/PRODUCTION_RELEASE_READINESS_2026-11-23.md",
+      "sha256_working_tree": "01344f2dbd1ddb5006a6dbabdaca6c46582521056f216d5683046e2bfca5d3a0",
+      "sha256_at_pinned_revision": "01344f2dbd1ddb5006a6dbabdaca6c46582521056f216d5683046e2bfca5d3a0",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/docs/PRODUCTION_RELEASE_READINESS_2026-11-23.md"
+    },
+    {
+      "path": "public/landing-preview/assets/dna-os-logo-transparent.png",
+      "sha256_working_tree": "3760cc8ff4abcb177439dddef3929d3d34d10a8a5092093dabdb098d58fde2a4",
+      "sha256_at_pinned_revision": "3760cc8ff4abcb177439dddef3929d3d34d10a8a5092093dabdb098d58fde2a4",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/public/landing-preview/assets/dna-os-logo-transparent.png"
+    },
+    {
+      "path": "public/landing-preview/brand-lock.json",
+      "sha256_working_tree": "969fb4d6a80ff4c4870ad9c48d9aecbddefa3c2f4750136ee2820c13ec1a2217",
+      "sha256_at_pinned_revision": "08da1b43ecfe8b912237b168502fac5cc5a0c4a5fb80c119f19a65f5c3305827",
+      "matches_pinned_revision": false,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/public/landing-preview/brand-lock.json"
+    },
+    {
+      "path": "public/icons/logo-master.png",
+      "sha256_working_tree": "80bd898b2b90e54074b6210f465182ed397754051717d3adb50dcf1a1739f125",
+      "sha256_at_pinned_revision": "1731c74af251ea666d9eebb3ebf99463615bb8f08aab8afca6123e2a1fa71ffe",
+      "matches_pinned_revision": false,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/public/icons/logo-master.png"
+    },
+    {
+      "path": "public/brand/dna-os/v1/brand-assets.json",
+      "sha256_working_tree": "7cb3708dd12c2bc27079e7449d1f6d6e3b7646431a824c9200747a19c25122c3",
+      "sha256_at_pinned_revision": null,
+      "matches_pinned_revision": false,
+      "github": null
+    },
+    {
+      "path": "public/brand/dna-os/v1/README.md",
+      "sha256_working_tree": "eb711245ad78871ccaa03a2e795ebe3b808062ee9a8baa4a92e371abb41659ad",
+      "sha256_at_pinned_revision": null,
+      "matches_pinned_revision": false,
+      "github": null
+    },
+    {
+      "path": "public/brand/dna-os/v1/dna-os-horizontal-color.png",
+      "sha256_working_tree": "3760cc8ff4abcb177439dddef3929d3d34d10a8a5092093dabdb098d58fde2a4",
+      "sha256_at_pinned_revision": null,
+      "matches_pinned_revision": false,
+      "github": null
+    },
+    {
+      "path": "public/brand/dna-os/v1/dna-os-horizontal-color.svg",
+      "sha256_working_tree": "f3bdaff23b352228255c6cf0da383b9032289cbc60a59949124e78c8424e2cec",
+      "sha256_at_pinned_revision": null,
+      "matches_pinned_revision": false,
+      "github": null
+    },
+    {
+      "path": "public/brand/dna-os/v1/dna-os-horizontal-mono.png",
+      "sha256_working_tree": "58aab2bdd249cee0f59f959446b4653154c7b02a075865592737b4e76583f996",
+      "sha256_at_pinned_revision": null,
+      "matches_pinned_revision": false,
+      "github": null
+    },
+    {
+      "path": "public/brand/dna-os/v1/dna-os-horizontal-mono.svg",
+      "sha256_working_tree": "df52d119ce6bc5bd30ed6ca9da5272f3024e100f64cb8d77df710fafa96da171",
+      "sha256_at_pinned_revision": null,
+      "matches_pinned_revision": false,
+      "github": null
+    },
+    {
+      "path": "public/brand/dna-os/v1/dna-os-mark-color.png",
+      "sha256_working_tree": "59380ff29e7824e4fc55956f9bdce2cd7a011b0cdc91fe9b5388e6366f179497",
+      "sha256_at_pinned_revision": null,
+      "matches_pinned_revision": false,
+      "github": null
+    },
+    {
+      "path": "public/brand/dna-os/v1/dna-os-mark-color.svg",
+      "sha256_working_tree": "8fb245f1486c85172d1e8518bc9581efa9ac48504f632e8e2a544f0c8c3441bb",
+      "sha256_at_pinned_revision": null,
+      "matches_pinned_revision": false,
+      "github": null
+    },
+    {
+      "path": "public/brand/dna-os/v1/dna-os-mark-mono.png",
+      "sha256_working_tree": "4f2b7548d246240adb74b4b8a2cd3064e8a497fe36cea27fe542f952a6baf13a",
+      "sha256_at_pinned_revision": null,
+      "matches_pinned_revision": false,
+      "github": null
+    },
+    {
+      "path": "public/brand/dna-os/v1/dna-os-mark-mono.svg",
+      "sha256_working_tree": "d4f68b7badd7b4aef0f2a0e1ebb02d6a6bb8b7f30b0b52369dcde7e424faa601",
+      "sha256_at_pinned_revision": null,
+      "matches_pinned_revision": false,
+      "github": null
+    },
+    {
+      "path": "engines/connectors/registry.ts",
+      "sha256_working_tree": "4bce381801940380da26e185c23ca930ab69d48b4e01ed73dda133c9d1a7c9ea",
+      "sha256_at_pinned_revision": "4bce381801940380da26e185c23ca930ab69d48b4e01ed73dda133c9d1a7c9ea",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/connectors/registry.ts"
+    },
+    {
+      "path": "engines/connectors/providers/line.ts",
+      "sha256_working_tree": "fbaf4b959631b280481f9816ee0350c1060080383eddeb98f7b3356e29e4da0f",
+      "sha256_at_pinned_revision": "fbaf4b959631b280481f9816ee0350c1060080383eddeb98f7b3356e29e4da0f",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/connectors/providers/line.ts"
+    },
+    {
+      "path": "engines/connectors/providers/meta.ts",
+      "sha256_working_tree": "0653ac96658681f6763a88ee9e11bd4f151755c1a7bd42aba431f9520e43390f",
+      "sha256_at_pinned_revision": "0653ac96658681f6763a88ee9e11bd4f151755c1a7bd42aba431f9520e43390f",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/connectors/providers/meta.ts"
+    },
+    {
+      "path": "engines/integration-gateway/selfDescription.ts",
+      "sha256_working_tree": "8c2c9fe9da20e2e71041d6a4406318fead054dcad7b00f8c6c26ef01fde91121",
+      "sha256_at_pinned_revision": "8c2c9fe9da20e2e71041d6a4406318fead054dcad7b00f8c6c26ef01fde91121",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/integration-gateway/selfDescription.ts"
+    },
+    {
+      "path": "engines/integration-gateway/adapters/line.ts",
+      "sha256_working_tree": "81bc2388cfefe6a97a91b79fc51e41cf1e46a666c314efa02ff1eba8c0776937",
+      "sha256_at_pinned_revision": "81bc2388cfefe6a97a91b79fc51e41cf1e46a666c314efa02ff1eba8c0776937",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/integration-gateway/adapters/line.ts"
+    },
+    {
+      "path": "engines/integration-gateway/adapters/meta.ts",
+      "sha256_working_tree": "be6aec1c180805ed7e018654bb5b62e3cc4dd31fd33c5a7a8ed450768d5a42fc",
+      "sha256_at_pinned_revision": "be6aec1c180805ed7e018654bb5b62e3cc4dd31fd33c5a7a8ed450768d5a42fc",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/integration-gateway/adapters/meta.ts"
+    },
+    {
+      "path": "engines/integration-gateway/event-bus/bus.ts",
+      "sha256_working_tree": "a21fc18f37466919f0f60ad63e760afe699d02a2d99ca3b37d09670719fe6fdf",
+      "sha256_at_pinned_revision": "a21fc18f37466919f0f60ad63e760afe699d02a2d99ca3b37d09670719fe6fdf",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/integration-gateway/event-bus/bus.ts"
+    },
+    {
+      "path": "app/api/gateway/observe/line/route.ts",
+      "sha256_working_tree": "5159724662a8e2c06da4603c9e56ca0e28db47d995af2e525fa39b9d44e11091",
+      "sha256_at_pinned_revision": "5159724662a8e2c06da4603c9e56ca0e28db47d995af2e525fa39b9d44e11091",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/app/api/gateway/observe/line/route.ts"
+    },
+    {
+      "path": "app/api/gateway/observe/meta/route.ts",
+      "sha256_working_tree": "216cae995686a8def0cf98059735dac226b6c31a4154c8b1ea57f3b31f4fc156",
+      "sha256_at_pinned_revision": "216cae995686a8def0cf98059735dac226b6c31a4154c8b1ea57f3b31f4fc156",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/app/api/gateway/observe/meta/route.ts"
+    },
+    {
+      "path": "registry/COMPUTE_RESOURCE_REGISTRY.json",
+      "sha256_working_tree": "0ee48daa053f1e676f99c0c8a703d9e3cf336e800b93e2d2062c7f4cb56bd397",
+      "sha256_at_pinned_revision": "0ee48daa053f1e676f99c0c8a703d9e3cf336e800b93e2d2062c7f4cb56bd397",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/registry/COMPUTE_RESOURCE_REGISTRY.json"
+    },
+    {
+      "path": "registry/infrastructure.json",
+      "sha256_working_tree": "2a454336b3400519a7917fb68c4a40c8259b4e584e2d312cb853e26703a53209",
+      "sha256_at_pinned_revision": "2a454336b3400519a7917fb68c4a40c8259b4e584e2d312cb853e26703a53209",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/registry/infrastructure.json"
+    },
+    {
+      "path": "supabase/migrations/20261123000001_development_provenance_ledger.sql",
+      "sha256_working_tree": "14601afb88cae30545e9db6a407106eabbaef9c6da8f07ac87acc4a3790f16df",
+      "sha256_at_pinned_revision": "14601afb88cae30545e9db6a407106eabbaef9c6da8f07ac87acc4a3790f16df",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/supabase/migrations/20261123000001_development_provenance_ledger.sql"
+    },
+    {
+      "path": "supabase/migrations/20261123000002_development_change_sets.sql",
+      "sha256_working_tree": "90c00c5459d461b73ac95185c4b8992bf722b78af8909d53a147910fd6ce3ebd",
+      "sha256_at_pinned_revision": "90c00c5459d461b73ac95185c4b8992bf722b78af8909d53a147910fd6ce3ebd",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/supabase/migrations/20261123000002_development_change_sets.sql"
+    }
+  ]
+}

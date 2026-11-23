@@ -1,4 +1,6 @@
 // purpose: Serve the public DNA OS landing page and its assets on the root domain route.
+import { systemMapHtml } from "./system-map-html";
+
 interface Env {
   ASSETS: { fetch(request: Request): Promise<Response> };
   CF_VERSION_METADATA: { id: string; tag: string; timestamp: string };
@@ -7,6 +9,36 @@ interface Env {
 export default {
   fetch(request: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(request.url);
+    const isVersionedBrandAsset = pathname.startsWith("/assets/brand/dna-os/v1/");
+    if (isVersionedBrandAsset && request.method === "OPTIONS") {
+      return Promise.resolve(new Response(null, {
+        status: 204,
+        headers: {
+          "access-control-allow-origin": "*",
+          "access-control-allow-methods": "GET, HEAD, OPTIONS",
+          "access-control-allow-headers": "Content-Type",
+          "access-control-max-age": "86400",
+          "cache-control": "public, max-age=86400",
+        },
+      }));
+    }
+    if (isVersionedBrandAsset && (request.method === "GET" || request.method === "HEAD")) {
+      return env.ASSETS.fetch(request).then((asset) => {
+        const headers = new Headers(asset.headers);
+        headers.set("access-control-allow-origin", "*");
+        headers.set("access-control-allow-methods", "GET, HEAD, OPTIONS");
+        headers.set("cache-control", "public, max-age=31536000, immutable");
+        return new Response(asset.body, { status: asset.status, statusText: asset.statusText, headers });
+      });
+    }
+    if (pathname === "/system-map") {
+      const headers = new Headers({ "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
+      const version = env.CF_VERSION_METADATA;
+      const html = systemMapHtml
+        .replaceAll("__DNAOS_WORKER_VERSION__", version.id)
+        .replaceAll("__DNAOS_WORKER_CREATED_AT__", version.timestamp);
+      return Promise.resolve(new Response(html, { status: 200, headers }));
+    }
     if (pathname === "/system-map.json" || pathname === "/system-map.md") {
       return env.ASSETS.fetch(request).then(async (asset) => {
         if (!asset.ok) return asset;

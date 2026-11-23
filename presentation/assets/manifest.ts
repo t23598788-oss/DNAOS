@@ -19,8 +19,8 @@ export interface PresentationAsset {
   url: string;
   /** Canonical file on disk, relative to the repository root. */
   file: string;
-  /** LIVE = rendered by a real route/component today. */
-  status: 'LIVE' | 'UNREFERENCED';
+  /** LIVE = rendered by a real route/component today; ARCHIVED = reference-only. */
+  status: 'LIVE' | 'UNREFERENCED' | 'ARCHIVED';
   /** Real consumers found by tracing imports/references. */
   consumers: string[];
   note?: string;
@@ -71,8 +71,8 @@ export const presentationAssets: PresentationAsset[] = [
     key: 'logo-master',
     url: '/icons/logo-master.png',
     file: 'public/icons/logo-master.png',
-    status: 'UNREFERENCED',
+    status: 'ARCHIVED',
     consumers: [],
-    note: 'Zero references found in any source/config. DELETE_CANDIDATE for Phase 4 (Owner decision).',
+    note: 'Review-only brown background asset, updated with the current color D mark and the exact source wordmark. Not used in production pages, documents, or provider integrations; active brand package has only color and monochrome variants.',
   },
 ];

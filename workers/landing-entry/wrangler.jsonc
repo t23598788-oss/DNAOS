@@ -7,6 +7,7 @@
   "preview_urls": false,
   "routes": [
     { "pattern": "dnaos.dev/", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/system-map", "zone_name": "dnaos.dev" },
     { "pattern": "dnaos.dev/system-map.json", "zone_name": "dnaos.dev" },
     { "pattern": "dnaos.dev/system-map.md", "zone_name": "dnaos.dev" },
     { "pattern": "dnaos.dev/assets/*", "zone_name": "dnaos.dev" }
@@ -15,7 +16,7 @@
     "directory": "../../public/landing-preview",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/system-map.json", "/system-map.md"]
+    "run_worker_first": ["/system-map", "/system-map.json", "/system-map.md", "/assets/brand/dna-os/v1/*"]
   },
   "version_metadata": { "binding": "CF_VERSION_METADATA" },
   "observability": { "enabled": true }

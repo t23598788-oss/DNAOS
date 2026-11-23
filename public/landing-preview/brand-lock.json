@@ -37,7 +37,17 @@
     "assets/partners/github.svg": "476ba7aa67b86da7d6e7567b08a4bf0eb1a2fd28da5fc243f8ee39a2f1ea6773",
     "assets/partners/google.svg": "147b64b183daad84440103815845150903f6175357419b0ccf2e5a6b622e62fa",
     "assets/partners/line.svg": "b33b86ee7c335abcccb12c08188823d40eb3ddc9521362ac94d9d9c55077db68",
-    "assets/partners/supabase.svg": "75f9566421d97d4f1d8d7f34526189fd6e727ca83987432fc2477c2fc8388086"
+    "assets/partners/supabase.svg": "75f9566421d97d4f1d8d7f34526189fd6e727ca83987432fc2477c2fc8388086",
+    "assets/brand/dna-os/v1/README.md": "eb711245ad78871ccaa03a2e795ebe3b808062ee9a8baa4a92e371abb41659ad",
+    "assets/brand/dna-os/v1/brand-assets.json": "7cb3708dd12c2bc27079e7449d1f6d6e3b7646431a824c9200747a19c25122c3",
+    "assets/brand/dna-os/v1/dna-os-horizontal-color.png": "92077471929c5d5e876ce995be381e8c43bcca3e39a60a6e7412d33941c07c19",
+    "assets/brand/dna-os/v1/dna-os-horizontal-color.svg": "f3bdaff23b352228255c6cf0da383b9032289cbc60a59949124e78c8424e2cec",
+    "assets/brand/dna-os/v1/dna-os-horizontal-mono.png": "524094cf84fbc19a3dc25cba1b87bef6d0c42ecb3c52e74d292be5b084bff142",
+    "assets/brand/dna-os/v1/dna-os-horizontal-mono.svg": "df52d119ce6bc5bd30ed6ca9da5272f3024e100f64cb8d77df710fafa96da171",
+    "assets/brand/dna-os/v1/dna-os-mark-color.png": "f58a5772145fb2d615c487eb41a8332073b6d6048602061e69b51e2f2fd0c47b",
+    "assets/brand/dna-os/v1/dna-os-mark-color.svg": "8fb245f1486c85172d1e8518bc9581efa9ac48504f632e8e2a544f0c8c3441bb",
+    "assets/brand/dna-os/v1/dna-os-mark-mono.png": "2714add4ab3176f9cfadf08c134dd0610a1b5e29c9616b6af38e95fa741a56c5",
+    "assets/brand/dna-os/v1/dna-os-mark-mono.svg": "d4f68b7badd7b4aef0f2a0e1ebb02d6a6bb8b7f30b0b52369dcde7e424faa601"
   },
   "files_sha256": {
     "index.html": "e88318b660efb49cd9b3b1352785e9e679270d91c414a41f9bfc6c75eb49c0e0",
@@ -49,6 +59,26 @@
     "assets/partners/line.svg": "b33b86ee7c335abcccb12c08188823d40eb3ddc9521362ac94d9d9c55077db68",
     "assets/partners/supabase.svg": "75f9566421d97d4f1d8d7f34526189fd6e727ca83987432fc2477c2fc8388086",
     "assets/source/dna-os-logo-original-blue.png": "e7c91256e7032cbc06a150be4631229da296660d620bbe008033328e32dc4542",
-    "assets/source/dna-os-logo-original-white.jpg": "e48d08e63e0deaf30fe24ae916a7e6843bfabac9965eed3de1cdb842c50e4c55"
+    "assets/source/dna-os-logo-original-white.jpg": "e48d08e63e0deaf30fe24ae916a7e6843bfabac9965eed3de1cdb842c50e4c55",
+    "assets/brand/dna-os/v1/README.md": "eb711245ad78871ccaa03a2e795ebe3b808062ee9a8baa4a92e371abb41659ad",
+    "assets/brand/dna-os/v1/brand-assets.json": "7cb3708dd12c2bc27079e7449d1f6d6e3b7646431a824c9200747a19c25122c3",
+    "assets/brand/dna-os/v1/dna-os-horizontal-color.png": "92077471929c5d5e876ce995be381e8c43bcca3e39a60a6e7412d33941c07c19",
+    "assets/brand/dna-os/v1/dna-os-horizontal-color.svg": "f3bdaff23b352228255c6cf0da383b9032289cbc60a59949124e78c8424e2cec",
+    "assets/brand/dna-os/v1/dna-os-horizontal-mono.png": "524094cf84fbc19a3dc25cba1b87bef6d0c42ecb3c52e74d292be5b084bff142",
+    "assets/brand/dna-os/v1/dna-os-horizontal-mono.svg": "df52d119ce6bc5bd30ed6ca9da5272f3024e100f64cb8d77df710fafa96da171",
+    "assets/brand/dna-os/v1/dna-os-mark-color.png": "f58a5772145fb2d615c487eb41a8332073b6d6048602061e69b51e2f2fd0c47b",
+    "assets/brand/dna-os/v1/dna-os-mark-color.svg": "8fb245f1486c85172d1e8518bc9581efa9ac48504f632e8e2a544f0c8c3441bb",
+    "assets/brand/dna-os/v1/dna-os-mark-mono.png": "2714add4ab3176f9cfadf08c134dd0610a1b5e29c9616b6af38e95fa741a56c5",
+    "assets/brand/dna-os/v1/dna-os-mark-mono.svg": "d4f68b7badd7b4aef0f2a0e1ebb02d6a6bb8b7f30b0b52369dcde7e424faa601"
+  },
+  "brand_variants": [
+    "color",
+    "monochrome"
+  ],
+  "brown_archive": {
+    "path": "/icons/logo-master.png",
+    "status": "review_only_not_in_active_pack",
+    "sha256": "02b8c76ace4dbde26a58b6c91199efb1d21d36c00e96b396ed2d695d3c8c4ebe",
+    "current_D_mark_included": true
   }
 }
