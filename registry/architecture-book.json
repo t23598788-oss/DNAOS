@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T12:53:05.622Z",
+  "generated_at": "2026-11-23T12:56:58.983Z",
   "version": 1,
   "nodes": [
     {
@@ -97877,6 +97877,40 @@
           "name": "default",
           "kind": "default",
           "line_start": 6,
+          "line_end": 10
+        }
+      ]
+    },
+    {
+      "id": "module:workers/www-redirect/index.ts",
+      "type": "Module",
+      "layer": "workers",
+      "name_en": "workers/www-redirect/index.ts",
+      "purpose_th": "ส่งคำขอจาก www.dnaos.dev ไปยัง dnaos.dev โดยคง path และ query ไว้",
+      "exports": [
+        "default"
+      ],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "workers",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "symbols": [
+        {
+          "name": "default",
+          "kind": "default",
+          "line_start": 2,
           "line_end": 15
         }
       ]
@@ -105081,6 +105115,11 @@
     {
       "source": "layer:workers",
       "target": "module:workers/stock-ingest/vite.config.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:workers",
+      "target": "module:workers/www-redirect/index.ts",
       "label": "contains"
     },
     {
@@ -123945,8 +123984,8 @@
     }
   ],
   "summary": {
-    "total": 1440,
-    "ok": 1440,
+    "total": 1441,
+    "ok": 1441,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

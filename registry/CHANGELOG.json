@@ -3708,6 +3708,7 @@
       "workers/www-redirect/wrangler.jsonc (attaches only www.dnaos.dev/*)",
       "workers/landing-entry/index.ts (returns to asset pass-through only)",
       "workers/landing-entry/wrangler.jsonc (removes www route from homepage Worker)",
+      "registry/module-registry.json and registry/architecture-book.json (registers the separate redirect Worker entry point)",
       "docs/CLOUDFLARE_TRAFFIC_AUDIT_2026-11-23.md (documents asset-first-safe routing)",
       "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (records dedicated redirect Worker)",
       "registry/CHANGELOG.json"
