@@ -26,19 +26,11 @@
       384
     ]
   },
-  "brown_legacy": {
-    "source_path": "public/icons/logo-master.png",
-    "status": "review_only_not_in_active_pack",
-    "current_D_mark_included": true,
-    "wordmark_source": "public/landing-preview/assets/dna-os-logo-transparent.png",
-    "sha256": "02b8c76ace4dbde26a58b6c91199efb1d21d36c00e96b396ed2d695d3c8c4ebe",
-    "note": "Brown background retained for reference only; the temporary mark was replaced with the approved D icon and matching source wordmark."
-  },
   "files": [
     {
       "file": "README.md",
-      "sha256": "eb711245ad78871ccaa03a2e795ebe3b808062ee9a8baa4a92e371abb41659ad",
-      "bytes": 1930
+      "sha256": "c5f976bd90cefe93381f60bd678b1d1c119a6b352d5e3bb1b04c6386fad09357",
+      "bytes": 1905
     },
     {
       "file": "dna-os-horizontal-color.png",
@@ -81,5 +73,12 @@
       "bytes": 9778
     }
   ],
-  "provider_logo_rule": "Use each external provider’s own approved logo. DNA OS assets identify DNA OS only."
+  "provider_logo_rule": "Use each external provider’s own approved logo. DNA OS assets identify DNA OS only.",
+  "background": "transparent",
+  "icon_fit": {
+    "recommended_asset": "dna-os-mark-color.png",
+    "fit": "contain",
+    "background": "transparent",
+    "padding": "Preserve the existing transparent safe area; do not crop or add a fill."
+  }
 }

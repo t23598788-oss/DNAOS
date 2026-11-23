@@ -19,8 +19,8 @@ export interface PresentationAsset {
   url: string;
   /** Canonical file on disk, relative to the repository root. */
   file: string;
-  /** LIVE = rendered by a real route/component today; ARCHIVED = reference-only. */
-  status: 'LIVE' | 'UNREFERENCED' | 'ARCHIVED';
+  /** LIVE = rendered by a real route/component today. */
+  status: 'LIVE' | 'UNREFERENCED';
   /** Real consumers found by tracing imports/references. */
   consumers: string[];
   note?: string;
@@ -66,13 +66,5 @@ export const presentationAssets: PresentationAsset[] = [
     file: 'public/icons/apple-touch-icon.png',
     status: 'LIVE',
     consumers: ['app/layout.tsx (metadata icons)'],
-  },
-  {
-    key: 'logo-master',
-    url: '/icons/logo-master.png',
-    file: 'public/icons/logo-master.png',
-    status: 'ARCHIVED',
-    consumers: [],
-    note: 'Review-only brown background asset, updated with the current color D mark and the exact source wordmark. Not used in production pages, documents, or provider integrations; active brand package has only color and monochrome variants.',
   },
 ];

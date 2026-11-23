@@ -38,8 +38,8 @@
     "assets/partners/google.svg": "147b64b183daad84440103815845150903f6175357419b0ccf2e5a6b622e62fa",
     "assets/partners/line.svg": "b33b86ee7c335abcccb12c08188823d40eb3ddc9521362ac94d9d9c55077db68",
     "assets/partners/supabase.svg": "75f9566421d97d4f1d8d7f34526189fd6e727ca83987432fc2477c2fc8388086",
-    "assets/brand/dna-os/v1/README.md": "eb711245ad78871ccaa03a2e795ebe3b808062ee9a8baa4a92e371abb41659ad",
-    "assets/brand/dna-os/v1/brand-assets.json": "7cb3708dd12c2bc27079e7449d1f6d6e3b7646431a824c9200747a19c25122c3",
+    "assets/brand/dna-os/v1/README.md": "c5f976bd90cefe93381f60bd678b1d1c119a6b352d5e3bb1b04c6386fad09357",
+    "assets/brand/dna-os/v1/brand-assets.json": "9626aa8160efd99d46a2953d74d7de6afb5ac63254c21b534734df2ac585dc04",
     "assets/brand/dna-os/v1/dna-os-horizontal-color.png": "92077471929c5d5e876ce995be381e8c43bcca3e39a60a6e7412d33941c07c19",
     "assets/brand/dna-os/v1/dna-os-horizontal-color.svg": "f3bdaff23b352228255c6cf0da383b9032289cbc60a59949124e78c8424e2cec",
     "assets/brand/dna-os/v1/dna-os-horizontal-mono.png": "524094cf84fbc19a3dc25cba1b87bef6d0c42ecb3c52e74d292be5b084bff142",
@@ -60,8 +60,8 @@
     "assets/partners/supabase.svg": "75f9566421d97d4f1d8d7f34526189fd6e727ca83987432fc2477c2fc8388086",
     "assets/source/dna-os-logo-original-blue.png": "e7c91256e7032cbc06a150be4631229da296660d620bbe008033328e32dc4542",
     "assets/source/dna-os-logo-original-white.jpg": "e48d08e63e0deaf30fe24ae916a7e6843bfabac9965eed3de1cdb842c50e4c55",
-    "assets/brand/dna-os/v1/README.md": "eb711245ad78871ccaa03a2e795ebe3b808062ee9a8baa4a92e371abb41659ad",
-    "assets/brand/dna-os/v1/brand-assets.json": "7cb3708dd12c2bc27079e7449d1f6d6e3b7646431a824c9200747a19c25122c3",
+    "assets/brand/dna-os/v1/README.md": "c5f976bd90cefe93381f60bd678b1d1c119a6b352d5e3bb1b04c6386fad09357",
+    "assets/brand/dna-os/v1/brand-assets.json": "9626aa8160efd99d46a2953d74d7de6afb5ac63254c21b534734df2ac585dc04",
     "assets/brand/dna-os/v1/dna-os-horizontal-color.png": "92077471929c5d5e876ce995be381e8c43bcca3e39a60a6e7412d33941c07c19",
     "assets/brand/dna-os/v1/dna-os-horizontal-color.svg": "f3bdaff23b352228255c6cf0da383b9032289cbc60a59949124e78c8424e2cec",
     "assets/brand/dna-os/v1/dna-os-horizontal-mono.png": "524094cf84fbc19a3dc25cba1b87bef6d0c42ecb3c52e74d292be5b084bff142",
@@ -74,11 +74,5 @@
   "brand_variants": [
     "color",
     "monochrome"
-  ],
-  "brown_archive": {
-    "path": "/icons/logo-master.png",
-    "status": "review_only_not_in_active_pack",
-    "sha256": "02b8c76ace4dbde26a58b6c91199efb1d21d36c00e96b396ed2d695d3c8c4ebe",
-    "current_D_mark_included": true
-  }
+  ]
 }

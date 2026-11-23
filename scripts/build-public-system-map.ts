@@ -22,7 +22,6 @@ const sources = [
   "docs/PRODUCTION_RELEASE_READINESS_2026-11-23.md",
   "public/landing-preview/assets/dna-os-logo-transparent.png",
   "public/landing-preview/brand-lock.json",
-  "public/icons/logo-master.png",
   "public/brand/dna-os/v1/brand-assets.json",
   "public/brand/dna-os/v1/README.md",
   "public/brand/dna-os/v1/dna-os-horizontal-color.png",

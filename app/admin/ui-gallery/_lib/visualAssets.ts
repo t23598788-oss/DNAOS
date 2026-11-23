@@ -105,18 +105,6 @@ export const BRAND_ASSETS: VisualAsset[] = [
     usedBy: ["app/layout.tsx", "presentation/assets/manifest.ts"],
   },
   {
-    key: "logo-master-legacy",
-    displayName: "Brown archive mark (current D + wordmark, review only)",
-    category: "BRAND",
-    url: "/icons/logo-master.png",
-    sourcePath: "public/icons/logo-master.png",
-    bytes: 121424,
-    sha256Prefix: "02b8c76a",
-    state: "UNUSED",
-    usedBy: ["presentation/assets/manifest.ts (ประกาศไว้เท่านั้น)"],
-    note: "Brown background retained for reference only. Updated with the approved D mark and the exact NA OS source wordmark; active documents and provider connections use the color or monochrome brand pack.",
-  },
-  {
     key: "favicon-app",
     displayName: "favicon (app/)",
     category: "APP_ICON",
