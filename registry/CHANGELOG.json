@@ -3690,6 +3690,7 @@
     "session_id": "cloudflare-production-debt-ordering-2026-11-23",
     "files": [
       "workers/business-onboarding/entry-page.ts (allows mobile/short screens to reach all entry and onboarding content; fixes light-theme status text contrast)",
+      "registry/architecture-book.json (refreshes generated line map for the entry-page source)",
       "registry/CHANGELOG.json"
     ],
     "summary": "Addressed both unresolved GitHub review comments on the sign-in entry. The desktop frame remains fixed; narrow or short viewports can scroll vertically so the sign-in button, status feedback and expanded onboarding fields remain reachable. Changed status text to a readable dark blue on the white card. No tests run.",
