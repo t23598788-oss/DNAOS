@@ -1,12 +1,12 @@
 {
   "document": "DNA OS public system and integration map",
   "schema_version": 1,
-  "generated_at": "2026-11-23T06:33:23.113Z",
+  "generated_at": "2026-11-23T06:35:15.336Z",
   "source": {
     "repository": "t23598788-oss/DNAOS",
-    "revision": "6d966e6074523ff521c7afb33c725a27b0b8e2b2",
+    "revision": "4170204f51b2dbb2449af640053dda1d97365c0d",
     "working_tree_dirty_at_generation": true,
-    "github_revision_links_are_pinned_to": "6d966e6074523ff521c7afb33c725a27b0b8e2b2"
+    "github_revision_links_are_pinned_to": "4170204f51b2dbb2449af640053dda1d97365c0d"
   },
   "brand_assets": {
     "manifest_url": "https://dnaos.dev/assets/brand/dna-os/v1/brand-assets.json",
@@ -342,240 +342,240 @@
     {
       "path": "workers/landing-entry/index.ts",
       "sha256_working_tree": "90c2c9c457fec94e0a81f85d9fe30fe88c8cb8bd81c29373e772188e3c1bdd85",
-      "sha256_at_pinned_revision": "82c3d9fc27f282eadb0c2a3e959dca8d8a0b4b75f835cc2266a591b701de9249",
-      "matches_pinned_revision": false,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/workers/landing-entry/index.ts"
+      "sha256_at_pinned_revision": "90c2c9c457fec94e0a81f85d9fe30fe88c8cb8bd81c29373e772188e3c1bdd85",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/workers/landing-entry/index.ts"
     },
     {
       "path": "workers/landing-entry/wrangler.jsonc",
       "sha256_working_tree": "ee78f511477af476d2e9c105d596da346236ef69decb51d3059af46898746dad",
-      "sha256_at_pinned_revision": "b5eb329ca66eda7cfe2b3327497f84a86abbaa1660958546d715eb78104aa26b",
-      "matches_pinned_revision": false,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/workers/landing-entry/wrangler.jsonc"
+      "sha256_at_pinned_revision": "ee78f511477af476d2e9c105d596da346236ef69decb51d3059af46898746dad",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/workers/landing-entry/wrangler.jsonc"
     },
     {
       "path": "scripts/build-public-system-map.ts",
-      "sha256_working_tree": "76b7ac6db4d8d322396baae1f5c53f9ebf139d89f0d562cd407a092d78d916c8",
-      "sha256_at_pinned_revision": "50bc930c55b9f910b23ef60fcfa2f3136682b221a9d99187fe12f59ae9f9c04b",
+      "sha256_working_tree": "11a83ac5b5365a6c107f96dfd7b5a565543551367982098c2d8b95a81d6b9fa2",
+      "sha256_at_pinned_revision": "76b7ac6db4d8d322396baae1f5c53f9ebf139d89f0d562cd407a092d78d916c8",
       "matches_pinned_revision": false,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/scripts/build-public-system-map.ts"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/scripts/build-public-system-map.ts"
     },
     {
       "path": "workers/auth-entry/index.ts",
       "sha256_working_tree": "8a9b974d4bdd05f3284700d2504816bd768895af3f7dda96a5d48f843c3af9b8",
       "sha256_at_pinned_revision": "8a9b974d4bdd05f3284700d2504816bd768895af3f7dda96a5d48f843c3af9b8",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/workers/auth-entry/index.ts"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/workers/auth-entry/index.ts"
     },
     {
       "path": "workers/auth-entry/cloudflare.config.ts",
       "sha256_working_tree": "1b5024cc87e989f4e3c8f7a1276fa5c7c17d1c028078a96f52d6297a558c3279",
       "sha256_at_pinned_revision": "1b5024cc87e989f4e3c8f7a1276fa5c7c17d1c028078a96f52d6297a558c3279",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/workers/auth-entry/cloudflare.config.ts"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/workers/auth-entry/cloudflare.config.ts"
     },
     {
       "path": "workers/business-onboarding/index.ts",
       "sha256_working_tree": "933f6cf5b261273e7a12d743ce7a6f08be178d6464855bc82299ad24fa189568",
       "sha256_at_pinned_revision": "933f6cf5b261273e7a12d743ce7a6f08be178d6464855bc82299ad24fa189568",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/workers/business-onboarding/index.ts"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/workers/business-onboarding/index.ts"
     },
     {
       "path": "docs/CLOUDFLARE_SERVICE_ROUTE_MAP_2026-11-23.md",
       "sha256_working_tree": "b59f507531f10a626854a153c348fb1d56fc6e01c8782fd26fcc12ba5b17cf32",
       "sha256_at_pinned_revision": "b59f507531f10a626854a153c348fb1d56fc6e01c8782fd26fcc12ba5b17cf32",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/docs/CLOUDFLARE_SERVICE_ROUTE_MAP_2026-11-23.md"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/docs/CLOUDFLARE_SERVICE_ROUTE_MAP_2026-11-23.md"
     },
     {
       "path": "docs/PRODUCTION_RELEASE_READINESS_2026-11-23.md",
       "sha256_working_tree": "01344f2dbd1ddb5006a6dbabdaca6c46582521056f216d5683046e2bfca5d3a0",
       "sha256_at_pinned_revision": "01344f2dbd1ddb5006a6dbabdaca6c46582521056f216d5683046e2bfca5d3a0",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/docs/PRODUCTION_RELEASE_READINESS_2026-11-23.md"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/docs/PRODUCTION_RELEASE_READINESS_2026-11-23.md"
     },
     {
       "path": "public/landing-preview/assets/dna-os-logo-transparent.png",
       "sha256_working_tree": "3760cc8ff4abcb177439dddef3929d3d34d10a8a5092093dabdb098d58fde2a4",
       "sha256_at_pinned_revision": "3760cc8ff4abcb177439dddef3929d3d34d10a8a5092093dabdb098d58fde2a4",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/public/landing-preview/assets/dna-os-logo-transparent.png"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/public/landing-preview/assets/dna-os-logo-transparent.png"
     },
     {
       "path": "public/landing-preview/brand-lock.json",
       "sha256_working_tree": "969fb4d6a80ff4c4870ad9c48d9aecbddefa3c2f4750136ee2820c13ec1a2217",
-      "sha256_at_pinned_revision": "08da1b43ecfe8b912237b168502fac5cc5a0c4a5fb80c119f19a65f5c3305827",
-      "matches_pinned_revision": false,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/public/landing-preview/brand-lock.json"
+      "sha256_at_pinned_revision": "969fb4d6a80ff4c4870ad9c48d9aecbddefa3c2f4750136ee2820c13ec1a2217",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/public/landing-preview/brand-lock.json"
     },
     {
       "path": "public/icons/logo-master.png",
       "sha256_working_tree": "80bd898b2b90e54074b6210f465182ed397754051717d3adb50dcf1a1739f125",
-      "sha256_at_pinned_revision": "1731c74af251ea666d9eebb3ebf99463615bb8f08aab8afca6123e2a1fa71ffe",
-      "matches_pinned_revision": false,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/public/icons/logo-master.png"
+      "sha256_at_pinned_revision": "80bd898b2b90e54074b6210f465182ed397754051717d3adb50dcf1a1739f125",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/public/icons/logo-master.png"
     },
     {
       "path": "public/brand/dna-os/v1/brand-assets.json",
       "sha256_working_tree": "7cb3708dd12c2bc27079e7449d1f6d6e3b7646431a824c9200747a19c25122c3",
-      "sha256_at_pinned_revision": null,
-      "matches_pinned_revision": false,
-      "github": null
+      "sha256_at_pinned_revision": "7cb3708dd12c2bc27079e7449d1f6d6e3b7646431a824c9200747a19c25122c3",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/public/brand/dna-os/v1/brand-assets.json"
     },
     {
       "path": "public/brand/dna-os/v1/README.md",
       "sha256_working_tree": "eb711245ad78871ccaa03a2e795ebe3b808062ee9a8baa4a92e371abb41659ad",
-      "sha256_at_pinned_revision": null,
-      "matches_pinned_revision": false,
-      "github": null
+      "sha256_at_pinned_revision": "eb711245ad78871ccaa03a2e795ebe3b808062ee9a8baa4a92e371abb41659ad",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/public/brand/dna-os/v1/README.md"
     },
     {
       "path": "public/brand/dna-os/v1/dna-os-horizontal-color.png",
       "sha256_working_tree": "3760cc8ff4abcb177439dddef3929d3d34d10a8a5092093dabdb098d58fde2a4",
-      "sha256_at_pinned_revision": null,
-      "matches_pinned_revision": false,
-      "github": null
+      "sha256_at_pinned_revision": "3760cc8ff4abcb177439dddef3929d3d34d10a8a5092093dabdb098d58fde2a4",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/public/brand/dna-os/v1/dna-os-horizontal-color.png"
     },
     {
       "path": "public/brand/dna-os/v1/dna-os-horizontal-color.svg",
       "sha256_working_tree": "f3bdaff23b352228255c6cf0da383b9032289cbc60a59949124e78c8424e2cec",
-      "sha256_at_pinned_revision": null,
-      "matches_pinned_revision": false,
-      "github": null
+      "sha256_at_pinned_revision": "f3bdaff23b352228255c6cf0da383b9032289cbc60a59949124e78c8424e2cec",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/public/brand/dna-os/v1/dna-os-horizontal-color.svg"
     },
     {
       "path": "public/brand/dna-os/v1/dna-os-horizontal-mono.png",
       "sha256_working_tree": "58aab2bdd249cee0f59f959446b4653154c7b02a075865592737b4e76583f996",
-      "sha256_at_pinned_revision": null,
-      "matches_pinned_revision": false,
-      "github": null
+      "sha256_at_pinned_revision": "58aab2bdd249cee0f59f959446b4653154c7b02a075865592737b4e76583f996",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/public/brand/dna-os/v1/dna-os-horizontal-mono.png"
     },
     {
       "path": "public/brand/dna-os/v1/dna-os-horizontal-mono.svg",
       "sha256_working_tree": "df52d119ce6bc5bd30ed6ca9da5272f3024e100f64cb8d77df710fafa96da171",
-      "sha256_at_pinned_revision": null,
-      "matches_pinned_revision": false,
-      "github": null
+      "sha256_at_pinned_revision": "df52d119ce6bc5bd30ed6ca9da5272f3024e100f64cb8d77df710fafa96da171",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/public/brand/dna-os/v1/dna-os-horizontal-mono.svg"
     },
     {
       "path": "public/brand/dna-os/v1/dna-os-mark-color.png",
       "sha256_working_tree": "59380ff29e7824e4fc55956f9bdce2cd7a011b0cdc91fe9b5388e6366f179497",
-      "sha256_at_pinned_revision": null,
-      "matches_pinned_revision": false,
-      "github": null
+      "sha256_at_pinned_revision": "59380ff29e7824e4fc55956f9bdce2cd7a011b0cdc91fe9b5388e6366f179497",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/public/brand/dna-os/v1/dna-os-mark-color.png"
     },
     {
       "path": "public/brand/dna-os/v1/dna-os-mark-color.svg",
       "sha256_working_tree": "8fb245f1486c85172d1e8518bc9581efa9ac48504f632e8e2a544f0c8c3441bb",
-      "sha256_at_pinned_revision": null,
-      "matches_pinned_revision": false,
-      "github": null
+      "sha256_at_pinned_revision": "8fb245f1486c85172d1e8518bc9581efa9ac48504f632e8e2a544f0c8c3441bb",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/public/brand/dna-os/v1/dna-os-mark-color.svg"
     },
     {
       "path": "public/brand/dna-os/v1/dna-os-mark-mono.png",
       "sha256_working_tree": "4f2b7548d246240adb74b4b8a2cd3064e8a497fe36cea27fe542f952a6baf13a",
-      "sha256_at_pinned_revision": null,
-      "matches_pinned_revision": false,
-      "github": null
+      "sha256_at_pinned_revision": "4f2b7548d246240adb74b4b8a2cd3064e8a497fe36cea27fe542f952a6baf13a",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/public/brand/dna-os/v1/dna-os-mark-mono.png"
     },
     {
       "path": "public/brand/dna-os/v1/dna-os-mark-mono.svg",
       "sha256_working_tree": "d4f68b7badd7b4aef0f2a0e1ebb02d6a6bb8b7f30b0b52369dcde7e424faa601",
-      "sha256_at_pinned_revision": null,
-      "matches_pinned_revision": false,
-      "github": null
+      "sha256_at_pinned_revision": "d4f68b7badd7b4aef0f2a0e1ebb02d6a6bb8b7f30b0b52369dcde7e424faa601",
+      "matches_pinned_revision": true,
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/public/brand/dna-os/v1/dna-os-mark-mono.svg"
     },
     {
       "path": "engines/connectors/registry.ts",
       "sha256_working_tree": "4bce381801940380da26e185c23ca930ab69d48b4e01ed73dda133c9d1a7c9ea",
       "sha256_at_pinned_revision": "4bce381801940380da26e185c23ca930ab69d48b4e01ed73dda133c9d1a7c9ea",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/connectors/registry.ts"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/engines/connectors/registry.ts"
     },
     {
       "path": "engines/connectors/providers/line.ts",
       "sha256_working_tree": "fbaf4b959631b280481f9816ee0350c1060080383eddeb98f7b3356e29e4da0f",
       "sha256_at_pinned_revision": "fbaf4b959631b280481f9816ee0350c1060080383eddeb98f7b3356e29e4da0f",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/connectors/providers/line.ts"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/engines/connectors/providers/line.ts"
     },
     {
       "path": "engines/connectors/providers/meta.ts",
       "sha256_working_tree": "0653ac96658681f6763a88ee9e11bd4f151755c1a7bd42aba431f9520e43390f",
       "sha256_at_pinned_revision": "0653ac96658681f6763a88ee9e11bd4f151755c1a7bd42aba431f9520e43390f",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/connectors/providers/meta.ts"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/engines/connectors/providers/meta.ts"
     },
     {
       "path": "engines/integration-gateway/selfDescription.ts",
       "sha256_working_tree": "8c2c9fe9da20e2e71041d6a4406318fead054dcad7b00f8c6c26ef01fde91121",
       "sha256_at_pinned_revision": "8c2c9fe9da20e2e71041d6a4406318fead054dcad7b00f8c6c26ef01fde91121",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/integration-gateway/selfDescription.ts"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/engines/integration-gateway/selfDescription.ts"
     },
     {
       "path": "engines/integration-gateway/adapters/line.ts",
       "sha256_working_tree": "81bc2388cfefe6a97a91b79fc51e41cf1e46a666c314efa02ff1eba8c0776937",
       "sha256_at_pinned_revision": "81bc2388cfefe6a97a91b79fc51e41cf1e46a666c314efa02ff1eba8c0776937",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/integration-gateway/adapters/line.ts"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/engines/integration-gateway/adapters/line.ts"
     },
     {
       "path": "engines/integration-gateway/adapters/meta.ts",
       "sha256_working_tree": "be6aec1c180805ed7e018654bb5b62e3cc4dd31fd33c5a7a8ed450768d5a42fc",
       "sha256_at_pinned_revision": "be6aec1c180805ed7e018654bb5b62e3cc4dd31fd33c5a7a8ed450768d5a42fc",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/integration-gateway/adapters/meta.ts"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/engines/integration-gateway/adapters/meta.ts"
     },
     {
       "path": "engines/integration-gateway/event-bus/bus.ts",
       "sha256_working_tree": "a21fc18f37466919f0f60ad63e760afe699d02a2d99ca3b37d09670719fe6fdf",
       "sha256_at_pinned_revision": "a21fc18f37466919f0f60ad63e760afe699d02a2d99ca3b37d09670719fe6fdf",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/engines/integration-gateway/event-bus/bus.ts"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/engines/integration-gateway/event-bus/bus.ts"
     },
     {
       "path": "app/api/gateway/observe/line/route.ts",
       "sha256_working_tree": "5159724662a8e2c06da4603c9e56ca0e28db47d995af2e525fa39b9d44e11091",
       "sha256_at_pinned_revision": "5159724662a8e2c06da4603c9e56ca0e28db47d995af2e525fa39b9d44e11091",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/app/api/gateway/observe/line/route.ts"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/app/api/gateway/observe/line/route.ts"
     },
     {
       "path": "app/api/gateway/observe/meta/route.ts",
       "sha256_working_tree": "216cae995686a8def0cf98059735dac226b6c31a4154c8b1ea57f3b31f4fc156",
       "sha256_at_pinned_revision": "216cae995686a8def0cf98059735dac226b6c31a4154c8b1ea57f3b31f4fc156",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/app/api/gateway/observe/meta/route.ts"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/app/api/gateway/observe/meta/route.ts"
     },
     {
       "path": "registry/COMPUTE_RESOURCE_REGISTRY.json",
       "sha256_working_tree": "0ee48daa053f1e676f99c0c8a703d9e3cf336e800b93e2d2062c7f4cb56bd397",
       "sha256_at_pinned_revision": "0ee48daa053f1e676f99c0c8a703d9e3cf336e800b93e2d2062c7f4cb56bd397",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/registry/COMPUTE_RESOURCE_REGISTRY.json"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/registry/COMPUTE_RESOURCE_REGISTRY.json"
     },
     {
       "path": "registry/infrastructure.json",
       "sha256_working_tree": "2a454336b3400519a7917fb68c4a40c8259b4e584e2d312cb853e26703a53209",
       "sha256_at_pinned_revision": "2a454336b3400519a7917fb68c4a40c8259b4e584e2d312cb853e26703a53209",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/registry/infrastructure.json"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/registry/infrastructure.json"
     },
     {
       "path": "supabase/migrations/20261123000001_development_provenance_ledger.sql",
       "sha256_working_tree": "14601afb88cae30545e9db6a407106eabbaef9c6da8f07ac87acc4a3790f16df",
       "sha256_at_pinned_revision": "14601afb88cae30545e9db6a407106eabbaef9c6da8f07ac87acc4a3790f16df",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/supabase/migrations/20261123000001_development_provenance_ledger.sql"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/supabase/migrations/20261123000001_development_provenance_ledger.sql"
     },
     {
       "path": "supabase/migrations/20261123000002_development_change_sets.sql",
       "sha256_working_tree": "90c00c5459d461b73ac95185c4b8992bf722b78af8909d53a147910fd6ce3ebd",
       "sha256_at_pinned_revision": "90c00c5459d461b73ac95185c4b8992bf722b78af8909d53a147910fd6ce3ebd",
       "matches_pinned_revision": true,
-      "github": "https://github.com/t23598788-oss/DNAOS/blob/6d966e6074523ff521c7afb33c725a27b0b8e2b2/supabase/migrations/20261123000002_development_change_sets.sql"
+      "github": "https://github.com/t23598788-oss/DNAOS/blob/4170204f51b2dbb2449af640053dda1d97365c0d/supabase/migrations/20261123000002_development_change_sets.sql"
     }
   ]
 }
