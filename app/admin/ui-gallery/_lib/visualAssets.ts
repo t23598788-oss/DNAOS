@@ -105,18 +105,6 @@ export const BRAND_ASSETS: VisualAsset[] = [
     usedBy: ["app/layout.tsx", "presentation/assets/manifest.ts"],
   },
   {
-    key: "logo-master-legacy",
-    displayName: "Logo master (ตัวอักษร DNAOS สีเบจ · ไม่ใช่ D สี่เหลี่ยม)",
-    category: "BRAND",
-    url: "/icons/logo-master.png",
-    sourcePath: "public/icons/logo-master.png",
-    bytes: 85107,
-    sha256Prefix: "3d682ecd",
-    state: "UNUSED",
-    usedBy: ["presentation/assets/manifest.ts (ประกาศไว้เท่านั้น)"],
-    note: "ตรวจแล้ว: ไม่มี component ใด render ไฟล์นี้",
-  },
-  {
     key: "favicon-app",
     displayName: "favicon (app/)",
     category: "APP_ICON",

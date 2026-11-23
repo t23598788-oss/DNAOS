@@ -127,7 +127,7 @@ export default function VisualReviewPage() {
             ))}
           </div>
           <p className="mt-2 text-[10px] text-stone-400">
-            ตัวอย่างที่ยกมา: PWA 512/192 · apple-touch · logo-master (UNUSED) · next/vercel/window.svg (UNUSED) ·
+            ตัวอย่างที่ยกมา: PWA 512/192 · apple-touch · next/vercel/window.svg (UNUSED) ·
             favicon 2 ไฟล์ (คนละภาพ บทบาทซ้ำ) · desktop icon set 29 ไฟล์
           </p>
         </section>

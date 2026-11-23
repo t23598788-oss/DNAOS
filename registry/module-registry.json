@@ -3079,6 +3079,7 @@
         "deleteConnector",
         "findConnectorIdByProvider",
         "getConnectorById",
+        "getConnectorByProvider",
         "listConnectors",
         "recordConnectorTest",
         "recordWebhookEvent",
@@ -13666,7 +13667,8 @@
         "appOrigin",
         "buildConnectRuntimeDeps",
         "buildDetectDeps",
-        "getConnectorSummary"
+        "getConnectorSummary",
+        "getConnectorSummaryByProvider"
       ],
       "status": "active"
     },
@@ -15012,6 +15014,16 @@
       "purpose_th": "Connect Core — LINE provider contract (capability A, 2026-09-23).",
       "exports": [
         "lineConnectContract"
+      ],
+      "status": "active"
+    },
+    "engines/connectors/providers/meta.ts": {
+      "owner": "engines",
+      "layer": "engines",
+      "purpose": "Connect Core provider contract for the Meta App webhook. Uses the existing connector secret store and Register/Test/Enable lifecycle for the signed inbound messaging receiver; does not claim Page OAuth, catalog sync, publishing, or order operations.",
+      "purpose_th": "สัญญา Connect Core ของ Meta App webhook ใช้ที่เก็บ secret และ lifecycle Register/Test/Enable เดิมสำหรับรับข้อความขาเข้าที่ตรวจลายเซ็นแล้ว ยังไม่ครอบคลุม OAuth เลือกเพจ ซิงก์แค็ตตาล็อก โพสต์ หรือจัดการคำสั่งซื้อ",
+      "exports": [
+        "metaConnectContract"
       ],
       "status": "active"
     },
@@ -16856,28 +16868,6 @@
       ],
       "status": "active"
     },
-    "components/public/PublicPriceTable.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "Public price table (2026-10-24) — columns required by the owner:",
-      "purpose_th": "Public price table (2026-10-24) — columns required by the owner:",
-      "exports": [
-        "PublicPriceTable",
-        "PublicPriceTableProps"
-      ],
-      "status": "active"
-    },
-    "components/public/LineContactButton.tsx": {
-      "owner": "components",
-      "layer": "components",
-      "purpose": "LINE OA contact button (2026-10-24 public entry pass).",
-      "purpose_th": "LINE OA contact button (2026-10-24 public entry pass).",
-      "exports": [
-        "LineContactButton",
-        "LineContactButtonProps"
-      ],
-      "status": "active"
-    },
     "core/public-catalog/structured-data.ts": {
       "owner": "core",
       "layer": "core",
@@ -17467,6 +17457,33 @@
       "exports": [],
       "status": "active",
       "entry_point": true
+    },
+    "workers/landing-entry/index.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "Cloudflare Worker entry point for the DNA OS public landing page and its static assets.",
+      "purpose_th": "Worker entry point ของ Cloudflare สำหรับหน้าแรก DNA OS และไฟล์ภาพ/สไตล์ของหน้า",
+      "exports": [
+        "default"
+      ],
+      "status": "active",
+      "entry_point": true
+    },
+    "scripts/register-development-change-set.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "DNA OS MODULE: Register one capability-sized DNA bundle, its Git-tracked files,",
+      "purpose_th": "DNA OS MODULE: Register one capability-sized DNA bundle, its Git-tracked files,",
+      "exports": [],
+      "status": "active"
+    },
+    "scripts/build-public-system-map.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "Generate a public, source-backed DNA OS system and integration map for the production landing Worker. Includes source hashes and pinned GitHub references, Gateway adapters, Connect contracts, observed Worker deployment IDs, Supabase provenance ledger objects, and compute registry count; excludes secrets and business data.",
+      "purpose_th": "สร้างแผนผังระบบและการเชื่อมต่อ DNA OS ที่อ้างอิงซอร์สโค้ด สำหรับเผยแพร่ผ่าน Landing Worker โดยรวม hash และลิงก์ GitHub ที่ชี้รุ่น, Gateway adapters, Connect contracts, deployment ID ที่ตรวจพบ, วัตถุใน provenance ledger ของ Supabase และจำนวน compute ใน registry โดยไม่เผยแพร่ secret หรือข้อมูลธุรกิจ",
+      "exports": [],
+      "status": "active"
     }
   },
   "excluded": [
@@ -17878,6 +17895,27 @@
       "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
       "last_status": "active",
       "purpose_th": "skeleton ระหว่างโหลดหน้า Products"
+    },
+    {
+      "path": "components/public/PublicPriceTable.tsx",
+      "retired_at": "2026-11-23T02:54:55.308Z",
+      "reason": "No imports remained. The active public catalog route already renders the published catalog directly, so this duplicate component was removed without changing the route.",
+      "last_status": "active",
+      "purpose_th": "Public price table (2026-10-24) — columns required by the owner:"
+    },
+    {
+      "path": "components/public/LineContactButton.tsx",
+      "retired_at": "2026-11-23T02:54:55.309Z",
+      "reason": "No imports remained after retiring PublicPriceTable; the live catalog route has its own current contact behavior.",
+      "last_status": "active",
+      "purpose_th": "LINE OA contact button (2026-10-24 public entry pass)."
+    },
+    {
+      "path": "workers/landing-entry/system-map-html.ts",
+      "retired_at": "2026-11-23T07:46:02.271Z",
+      "reason": "ไฟล์ไม่มีอยู่ใน Source แล้ว (Git/Source = source of truth) — ย้ายออกจาก modules ไม่นับเป็น BROKEN ปัจจุบัน",
+      "last_status": "active",
+      "purpose_th": "Generated by scripts/build-public-system-map.ts. Do not edit by hand."
     }
   ]
 }

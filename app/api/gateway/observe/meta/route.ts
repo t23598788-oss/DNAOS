@@ -6,20 +6,20 @@
  * authenticity via Meta's own signature (X-Hub-Signature-256, HMAC-SHA256 of
  * the raw body with the App Secret) instead.
  *
- * GET  = Meta's subscription verification: hub.verify_token match -> echo
- *        hub.challenge (403 otherwise; 503 when META_VERIFY_TOKEN unset).
- * POST = verify signature (401 on mismatch; 503 when META_APP_SECRET unset)
+ * GET  = Meta's subscription verification: connector verify_token match -> echo
+ *        hub.challenge (403 otherwise; 503 when the Meta Connect record is absent).
+ * POST = verify signature (401 on mismatch; 503 when the Meta Connect record is absent)
  *        -> normalize into canonical GatewayEvents (meta.ts adapter) ->
  *        publish to the event bus (observe channel only). Bus rejection = 500
  *        so Meta retries later; the evidence store upserts on event_id so the
  *        retry is idempotent (dedup by provider message id).
  *
- * Fail-closed on every path: no env/secret = 503, bad signature = 403/401,
+ * Fail-closed on every path: no central credential = 503, disabled connector = 404, bad signature = 403/401,
  * unparseable JSON = 400, bus rejection = 500 — never a direct business write,
  * never a fallback. Channel surfaces: object "page" -> provider facebook,
  * object "instagram" -> provider instagram (both allowed by the
  * integration_gateway_events provider CHECK after migration
- * 20261007000002_gateway_allow_meta_providers — apply that migration before
+ * 20261007000001_propose_meta_gateway_providers — apply that migration before
  * enabling this endpoint against production, same release order as the LINE
  * provider migration).
  */
@@ -27,11 +27,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { normalizeMetaWebhook, verifyMetaSignature, metaVerifyChallenge } from "@/engines/integration-gateway/adapters/meta";
 import { publish } from "@/engines/integration-gateway/event-bus/bus";
 import { supabaseAdmin } from "@/services/supabase/queries";
+import { getConnectorByProvider } from "@/gateway/connectors";
+import { MAX_WEBHOOK_BODY_BYTES } from "@/app/api/connectors/webhook/[slug]/_lib/webhookGate";
+
+const PROVIDER_ID = "meta";
 
 export async function GET(req: NextRequest) {
-  const verifyToken = process.env.META_VERIFY_TOKEN;
-  if (!verifyToken) {
-    return NextResponse.json({ error: "META_VERIFY_TOKEN not configured" }, { status: 503 });
+  const connector = await getConnectorByProvider(PROVIDER_ID);
+  const verifyToken = connector?.secret?.verify_token;
+  if (!connector || connector.auth_type !== "webhook" || typeof verifyToken !== "string" || !verifyToken) {
+    return NextResponse.json({ error: "Meta webhook connector is not configured" }, { status: 503 });
   }
   const url = new URL(req.url);
   const challenge = metaVerifyChallenge(
@@ -50,12 +55,24 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const appSecret = process.env.META_APP_SECRET;
-  if (!appSecret) {
-    return NextResponse.json({ error: "META_APP_SECRET not configured" }, { status: 503 });
+  const connector = await getConnectorByProvider(PROVIDER_ID);
+  const appSecret = connector?.secret?.app_secret;
+  if (!connector || connector.auth_type !== "webhook" || typeof appSecret !== "string" || !appSecret) {
+    return NextResponse.json({ error: "Meta webhook connector is not configured" }, { status: 503 });
+  }
+  if (connector.enabled !== true || connector.status !== "connected") {
+    return NextResponse.json({ error: "Meta connector is not enabled" }, { status: 404 });
+  }
+
+  const declaredLength = Number(req.headers.get("content-length") ?? "");
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_WEBHOOK_BODY_BYTES) {
+    return NextResponse.json({ error: "request body too large" }, { status: 413 });
   }
 
   const rawBody = await req.text();
+  if (Buffer.byteLength(rawBody, "utf8") > MAX_WEBHOOK_BODY_BYTES) {
+    return NextResponse.json({ error: "request body too large" }, { status: 413 });
+  }
   const signature = req.headers.get("x-hub-signature-256");
   if (!verifyMetaSignature(rawBody, signature, appSecret)) {
     return NextResponse.json({ error: "invalid signature" }, { status: 401 });

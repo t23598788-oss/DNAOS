@@ -4,7 +4,9 @@ const EVENT_TYPES = new Set([
   "work_started",
   "code_committed",
   "github_published",
+  "github_main_merged",
   "github_ci_completed",
+  "manual_checks_completed",
   "migration_applied",
   "migration_verified",
   "build_verified",
@@ -12,7 +14,7 @@ const EVENT_TYPES = new Set([
   "live_route_verified",
 ]);
 const STATUSES = new Set(["passed", "failed", "blocked", "recorded"]);
-const ENVIRONMENTS = new Set(["local", "staging", "production"]);
+const ENVIRONMENTS = new Set(["local", "development", "staging", "production"]);
 const SOURCES = new Set(["codex", "github_actions", "supabase_cli", "operator"]);
 
 function required(name: string): string {
@@ -49,6 +51,7 @@ async function main(): Promise<void> {
   const deploymentId = optional("DNAOS_DEPLOYMENT_ID");
   const occurredAt = optional("DNAOS_OCCURRED_AT") ?? new Date().toISOString();
   const branch = optional("DNAOS_BRANCH");
+  const changeSetKey = optional("DNAOS_CHANGE_SET_KEY");
   const status = rawStatus === "success"
     ? "passed"
     : rawStatus === "failure"
@@ -94,7 +97,22 @@ async function main(): Promise<void> {
     throw new Error(`Development event was not recorded (${error?.code ?? "database error"})`);
   }
 
-  console.log(JSON.stringify({ ok: true, record_key: recordKey, event_key: eventKey, event_type: eventType, status }));
+  if (changeSetKey) {
+    const { error: linkError } = await supabase.rpc("link_development_event_to_change_set", {
+      p_event_key: eventKey,
+      p_change_set_key: changeSetKey,
+    });
+    if (linkError) throw new Error("Development event was saved but could not be linked to its DNA change set");
+  }
+
+  console.log(JSON.stringify({
+    ok: true,
+    record_key: recordKey,
+    event_key: eventKey,
+    event_type: eventType,
+    status,
+    change_set_key: changeSetKey,
+  }));
 }
 
 main().catch((error: unknown) => {

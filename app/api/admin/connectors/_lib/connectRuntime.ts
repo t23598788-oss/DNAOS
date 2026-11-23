@@ -15,6 +15,7 @@ import { join } from "node:path";
 import { getConnector } from "@/core/connector-loader";
 import { supabaseAdmin } from "@/services/supabase/queries";
 import { runConnectorTest } from "@/gateway/connectors";
+import { getConnectorByProvider } from "@/gateway/connectors";
 import type {
   ConnectRuntimeDeps,
   ConnectorSummary,
@@ -50,11 +51,26 @@ export async function getConnectorSummary(slug: string): Promise<ConnectorSummar
   };
 }
 
+export async function getConnectorSummaryByProvider(providerId: string): Promise<ConnectorSummary | null> {
+  const record = await getConnectorByProvider(providerId);
+  if (!record) return null;
+  return {
+    id: record.id,
+    slug: record.slug,
+    status: record.status,
+    enabled: record.enabled,
+    auth_type: record.auth_type,
+    config: record.config ?? {},
+    secret_keys: Object.keys(record.secret ?? {}),
+  };
+}
+
 /** Full runtime deps for a Connect contract. */
 export function buildConnectRuntimeDeps(): ConnectRuntimeDeps {
   return {
     appOrigin,
     getConnectorSummary,
+    getConnectorSummaryByProvider,
     // The canonical Test stage — the same function the admin Test route uses, so
     // auto-disable on failure and audit_logs behaviour stay identical.
     runCanonicalTest: async (connectorId: string) => {

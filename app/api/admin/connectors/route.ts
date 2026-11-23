@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/core/auth/requireAuth"
 import { ADMIN_TIER } from "@/core/auth/session"
 import { supabaseAdmin } from "@/services/supabase/queries"
-import { listConnectors, createConnector, runConnectorTest, redactConnector, redactConnectors, type CreateConnectorInput } from "@/gateway/connectors"
+import { listConnectors, createConnector, runConnectorTest, redactConnector, redactConnectors, findConnectorIdByProvider, type CreateConnectorInput } from "@/gateway/connectors"
 import { findContract } from "@/engines/connectors/registry"
 import { getLatestProposal } from "@/engines/integration-gateway/evidence/proposalStore"
 import { buildConnectRuntimeDeps } from "./_lib/connectRuntime"
@@ -44,9 +44,23 @@ export async function POST(req: NextRequest) {
 
     const provider = typeof body.provider === "string" ? body.provider.trim().toLowerCase() : ""
 
+    const contract = provider ? findContract(provider) : undefined
+    if (contract && await findConnectorIdByProvider(provider)) {
+      return NextResponse.json({ error: "PROVIDER_ALREADY_REGISTERED", provider }, { status: 409 })
+    }
+    const connectorConfig = body.config && typeof body.config === "object" && !Array.isArray(body.config)
+      ? { ...(body.config as Record<string, unknown>) }
+      : {}
+    const preparation = contract ? await contract.prepareConnect(buildConnectRuntimeDeps()) : null
+    // Provider defaults participate in the same generic validation path as
+    // explicitly supplied settings (for example Meta's signature header).
+    for (const value of preparation?.defaults ?? []) {
+      if (connectorConfig[value.key] === undefined) connectorConfig[value.key] = value.value
+    }
+
     // webhook ต้องประกาศชื่อ header ที่ใช้ตรวจลายเซ็น ไม่งั้นตรวจไม่ได้เลย →
     // ปฏิเสธตั้งแต่ที่นี่ (fail-closed ตาม owner audit 2026-10-26, C3)
-    const signatureHeader = normalizeSignatureHeader(body.signature_header ?? body.config?.signature_header)
+    const signatureHeader = normalizeSignatureHeader(body.signature_header ?? connectorConfig.signature_header)
     if (authType === "webhook" && !signatureHeader) {
       return NextResponse.json(
         { error: "SIGNATURE_HEADER_REQUIRED", detail: "webhook connector ต้องระบุ signature_header" },
@@ -60,7 +74,7 @@ export async function POST(req: NextRequest) {
       provider: provider || undefined,
       signature_header: signatureHeader || undefined,
       event_id_path: typeof body.event_id_path === "string" ? body.event_id_path : undefined,
-      config: body.config ?? {},
+      config: connectorConfig,
       secret: body.secret ?? {},
     }
 
@@ -69,9 +83,8 @@ export async function POST(req: NextRequest) {
     // Required secret field NAMES must be present, and the provider's own
     // non-secret defaults are filled in so one Connect is enough. Field names are
     // reported; secret values are never echoed back.
-    const contract = provider ? findContract(provider) : undefined
     if (contract) {
-      const prep = await contract.prepareConnect(buildConnectRuntimeDeps())
+      const prep = preparation!
       const secretObj = input.secret as Record<string, unknown>
       const missing = prep.required_secret_field_keys.filter((key) => {
         const value = secretObj[key]
@@ -80,9 +93,12 @@ export async function POST(req: NextRequest) {
       if (missing.length > 0) {
         return NextResponse.json({ error: "missing_required_secret_fields", missing_fields: missing }, { status: 400 })
       }
-      const configObj = input.config as Record<string, unknown>
-      for (const d of prep.defaults) {
-        if (configObj[d.key] === undefined) configObj[d.key] = d.value
+      const missingConfig = prep.fields
+        .filter((field) => field.target === "config" && field.required)
+        .filter((field) => connectorConfig[field.key] === undefined || connectorConfig[field.key] === null || String(connectorConfig[field.key]).trim() === "")
+        .map((field) => field.key)
+      if (missingConfig.length > 0) {
+        return NextResponse.json({ error: "missing_required_config_fields", missing_fields: missingConfig }, { status: 400 })
       }
     }
 
@@ -107,9 +123,13 @@ export async function POST(req: NextRequest) {
       connector = await runConnectorTest(connector.id)
     }
 
-    // webhook มี signing_secret ที่ระบบสร้างให้เอง — ต้องโชว์ให้ copy ครั้งเดียวตอนสร้าง
-    // ประเภทอื่นเป็นค่าที่ผู้ใช้พิมพ์เองอยู่แล้ว ไม่ต้อง echo กลับ
-    const responseConnector = connector.auth_type === "webhook" ? connector : redactConnector(connector)
+    // Only the server-generated generic webhook signing key may be revealed
+    // once. Any supplied provider secrets (Meta app_secret/verify_token, etc.)
+    // stay masked in the response.
+    const redacted = redactConnector(connector)
+    const responseConnector = connector.auth_type === "webhook"
+      ? { ...redacted, secret: { ...redacted.secret, signing_secret: connector.secret.signing_secret } }
+      : redacted
 
     return NextResponse.json({ connector: responseConnector }, { status: 201 })
   } catch (err) {

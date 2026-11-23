@@ -1,0 +1,58 @@
+{
+  "project_ref": "cxxatziqyddkxbmepjzm",
+  "verified_at": "2026-11-18T19:02:37.417Z",
+  "results": [
+    {
+      "template": "password-changed",
+      "exact": true
+    },
+    {
+      "template": "email-address-changed",
+      "exact": true
+    },
+    {
+      "template": "phone-number-changed",
+      "exact": true
+    },
+    {
+      "template": "sign-in-method-linked",
+      "exact": true
+    },
+    {
+      "template": "sign-in-method-removed",
+      "exact": true
+    },
+    {
+      "template": "mfa-method-added",
+      "exact": true
+    },
+    {
+      "template": "mfa-method-removed",
+      "exact": true
+    },
+    {
+      "template": "confirm-sign-up",
+      "exact": true
+    },
+    {
+      "template": "invite-user",
+      "exact": true
+    },
+    {
+      "template": "magic-link-or-otp",
+      "exact": true
+    },
+    {
+      "template": "change-email-address",
+      "exact": true
+    },
+    {
+      "template": "reset-password",
+      "exact": true
+    },
+    {
+      "template": "reauthentication",
+      "exact": true
+    }
+  ]
+}

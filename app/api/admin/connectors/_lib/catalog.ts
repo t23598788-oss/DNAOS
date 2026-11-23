@@ -153,9 +153,8 @@ function aiWorkerEntries(): CatalogEntry[] {
 
 function gatewayEntries(dbConnectors: ConnectorRecord[]): CatalogEntry[] {
   const gw = describeGateway();
-  const executeOpen = channelIsEnabled("execute");
   return gw.adapters
-    .filter((a) => a.provider === "github" || a.provider === "vercel")
+    .filter((a) => ["github", "vercel", "facebook", "instagram"].includes(a.provider))
     .map((a) => {
       const descriptor = KNOWN_PROVIDER_DESCRIPTORS[a.provider];
       const matchingConnector = dbConnectors.find((c) => `${c.slug} ${c.name}`.toLowerCase().includes(a.provider));
@@ -170,7 +169,9 @@ function gatewayEntries(dbConnectors: ConnectorRecord[]): CatalogEntry[] {
         connectionType: a.ingress,
         capabilities: a.observes,
         role: descriptor?.role ?? "External Service",
-        direction: executeOpen ? "BIDIRECTIONAL" : "INBOUND",
+        // This catalogue represents observer adapters only. The global
+        // Execute channel gate does not grant a provider an outbound action.
+        direction: "INBOUND",
         runtimeStatus: matchingConnector?.status ?? (observeOn ? "observe_enabled" : "disabled"),
         healthStatus: matchingConnector ? healthFromConnector(matchingConnector) : observeOn ? "UNKNOWN" : "NOT_CONFIGURED",
         enabled: matchingConnector?.enabled ?? observeOn,
@@ -178,7 +179,7 @@ function gatewayEntries(dbConnectors: ConnectorRecord[]): CatalogEntry[] {
         permissions: descriptor?.permissions ?? [],
         lastVerifiedAt: matchingConnector?.last_checked_at ?? null,
         lastError: matchingConnector?.last_error ?? null,
-        family: a.provider === "github" ? "GITHUB" : "VERCEL",
+        family: a.provider === "github" ? "GITHUB" : a.provider === "vercel" ? "VERCEL" : "OTHER",
         functionGroup: descriptor?.functionGroup ?? "OTHER",
         connectorId: matchingConnector?.id,
         slug: a.provider,
@@ -188,10 +189,10 @@ function gatewayEntries(dbConnectors: ConnectorRecord[]): CatalogEntry[] {
 
 export async function buildConnectorCatalog(): Promise<CatalogEntry[]> {
   const dbConnectors = await listConnectors().catch(() => [] as ConnectorRecord[]);
-  const gatewayProviderNames = new Set(["github", "vercel"]);
+  const gatewayProviderNames = new Set(["github", "vercel", "facebook", "instagram"]);
 
   const dbEntries = dbConnectors
-    .filter((c) => !gatewayProviderNames.has(familyForConnector(c) === "GITHUB" ? "github" : familyForConnector(c) === "VERCEL" ? "vercel" : ""))
+    .filter((c) => !gatewayProviderNames.has(resolveConnectorProvider(c.config as Record<string, unknown>, c.slug)))
     .map(connectorEntry);
 
   return [...dbEntries, ...aiWorkerEntries(), ...gatewayEntries(dbConnectors)];
