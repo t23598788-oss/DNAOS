@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T06:34:29.299Z",
+  "generated_at": "2026-11-23T06:50:51.326Z",
   "version": 1,
   "nodes": [
     {
@@ -81499,7 +81499,7 @@
           "name": "presentationAssets",
           "kind": "const",
           "line_start": 29,
-          "line_end": 78
+          "line_end": 70
         }
       ]
     },
@@ -83815,31 +83815,31 @@
           "name": "BRAND_ASSETS",
           "kind": "const",
           "line_start": 49,
-          "line_end": 191
+          "line_end": 179
         },
         {
           "name": "PROVIDER_BRANDS",
           "kind": "const",
-          "line_start": 195,
-          "line_end": 216
+          "line_start": 183,
+          "line_end": 204
         },
         {
           "name": "INTERNAL_CAPABILITY_IDENTITIES",
           "kind": "const",
-          "line_start": 218,
-          "line_end": 225
+          "line_start": 206,
+          "line_end": 213
         },
         {
           "name": "BUSINESS_MODULE_ICONS",
           "kind": "const",
-          "line_start": 229,
-          "line_end": 243
+          "line_start": 217,
+          "line_end": 231
         },
         {
           "name": "VISUAL_ASSET_SOURCE_NOTES",
           "kind": "const",
-          "line_start": 245,
-          "line_end": 251
+          "line_start": 233,
+          "line_end": 239
         }
       ]
     },
