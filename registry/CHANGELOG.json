@@ -3577,5 +3577,19 @@
     ],
     "summary": "Read-only production inspection and source mapping for DNA OS sign-in. Categorized Cloudflare entry and homepage Workers, Supabase Auth gateway, email OTP and Resend, callback/session flow, external identity providers, and public brand assets. Live HTTP evidence: /login and /start return 200; /auth/confirm and /auth/verify return 404; /v1/auth/session returns 401 while unauthenticated; canonical /assets/brand/dna-os/v1/ manifest and logo files return 200 while /brand/dna-os-mark-d.png returns 404. Source includes a historical OAuth callback and Worker OTP/session handlers, but provider Dashboard settings and signed-in browser completion are not proven. Listed exact remaining steps and linked the route map from README. No production configuration or credentials changed; no tests run.",
     "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000221",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:05:07+07:00",
+    "session_id": "auth-google-domain-and-indexing-audit-2026-11-23",
+    "files": [
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (separates Google OAuth redirect configuration from search indexing; records sitemap and stale system map observations)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Follow-up read-only audit distinguished Google OAuth from Google Search discovery. The auth route map now records the release ledger's previous live Google probe (400 provider is not enabled), separates the Supabase provider callback URI from DNA OS's post-login redirect URI, and marks both dashboard values as requiring a fresh console check. Production /sitemap.xml returns 404; robots.txt allows search; public system-map, JSON and Markdown routes respond but report generation time 2026-11-23T07:53:56.027Z and source revision 77d539c20f52860fe650d5cd47301b36cdf039e4. Public site:dnaos.dev search returned no results during this inspection; Search Console ownership/index state cannot be proven publicly. No OAuth, DNS, Search Console, or production settings changed; no tests run.",
+    "contract_changed": false
   }
 ]
