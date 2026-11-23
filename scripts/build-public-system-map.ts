@@ -19,6 +19,7 @@ const sources = [
   "workers/auth-entry/cloudflare.config.ts",
   "workers/business-onboarding/index.ts",
   "docs/CLOUDFLARE_SERVICE_ROUTE_MAP_2026-11-23.md",
+  "docs/PRODUCTION_RELEASE_READINESS_2026-11-23.md",
   "engines/connectors/registry.ts",
   "engines/connectors/providers/line.ts",
   "engines/connectors/providers/meta.ts",
@@ -95,6 +96,23 @@ const workerConfig = await read("workers/landing-entry/wrangler.jsonc");
 const authConfig = await read("workers/auth-entry/cloudflare.config.ts");
 const deploymentEvidencePath = "docs/CLOUDFLARE_SERVICE_ROUTE_MAP_2026-11-23.md";
 const deploymentEvidence = await read(deploymentEvidencePath);
+const productionReadinessPath = "docs/PRODUCTION_RELEASE_READINESS_2026-11-23.md";
+const productionReadiness = await read(productionReadinessPath);
+const productionProjectRef = productionReadiness.match(/Supabase project `([a-z0-9]+)` already contained/)?.[1] ?? null;
+const changeSetMigrationHash = productionReadiness.match(/Applied only `20261123000002_development_change_sets\.sql`[^\n]*SHA-256 is `([a-f0-9]{64})`/)?.[1] ?? null;
+const productionDatabaseEvidence = {
+  provider: "Supabase",
+  environment: "production",
+  project_ref: productionProjectRef,
+  observed_on: "2026-11-23",
+  migration_history: [
+    { version: "20261123000001", status: "history_reconciled_after_existing_objects_were_verified", sql_execution_claimed: false },
+    { version: "20261123000002", status: "applied_via_management_api", sql_sha256: changeSetMigrationHash },
+  ],
+  access_boundary: "public projection is read-only; private change-set records require authorized access; owner approval is checked against the exact company and organization binding",
+  migration_graph: "divergent: older remote versions are absent from this checkout; no bulk db push was run",
+  evidence: productionReadinessPath,
+};
 function deploymentObservation(service: string): { service: string; deployment_id: string; observed_at: string; evidence: string } | null {
   const line = deploymentEvidence.split("\n").find((item) => item.includes(`| \`${service}\` `));
   if (!line) return null;
@@ -136,8 +154,8 @@ const manifest = {
   },
   data_and_processing: {
     database_service: { name: "Supabase", evidence: ["services/supabase/server.ts", "supabase/migrations/"] },
+    production_observation: productionDatabaseEvidence,
     provenance_ledger_objects: databaseObjects,
-    migration_application_state: "not_asserted_by_source_manifest; verify against the target Supabase migration history",
     compute_registry: { source: "registry/COMPUTE_RESOURCE_REGISTRY.json", registered_resources: (compute.resources ?? []).length, live_resource_details_published: false },
     infrastructure_service_names: Object.keys(infrastructure.services ?? {}).sort(),
     compute_runtime: "No live compute instance is claimed unless a resource is present in the registry and has fresh provider verification.",
@@ -162,7 +180,7 @@ const md = [
   "",
   "## Database and compute",
   `Supabase migration objects in the provenance ledger: ${databaseObjects.map((object) => `${object.kind} ${object.name}`).join(", ")}.`,
-  "Migration application state is not inferred from source. Verify the migration history of the intended Supabase project.",
+  `Production Supabase migration evidence (observed ${productionDatabaseEvidence.observed_on}): project ${productionProjectRef}; 20261123000002 was applied with SQL SHA-256 ${changeSetMigrationHash}; 20261123000001 history was reconciled after existing objects were verified. Older remote migration versions diverge from this checkout, and no bulk migration push was run. Evidence: [${productionReadinessPath}](${sourceLink(productionReadinessPath)}).`,
   `Registered compute resources: ${manifest.data_and_processing.compute_registry.registered_resources}. Live instance status is not claimed unless recorded and freshly verified.`,
   "",
   "## Evidence limits",
