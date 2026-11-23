@@ -12,8 +12,7 @@
     { "pattern": "dnaos.dev/system-map.md", "zone_name": "dnaos.dev" },
     { "pattern": "dnaos.dev/system-map-ai.zip", "zone_name": "dnaos.dev" },
     { "pattern": "dnaos.dev/sw.js", "zone_name": "dnaos.dev" },
-    { "pattern": "dnaos.dev/assets/*", "zone_name": "dnaos.dev" },
-    { "pattern": "www.dnaos.dev/*", "zone_name": "dnaos.dev" }
+    { "pattern": "dnaos.dev/assets/*", "zone_name": "dnaos.dev" }
   ],
   "assets": {
     "directory": "../../public/landing-preview",

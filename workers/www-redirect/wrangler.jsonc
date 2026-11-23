@@ -1,0 +1,12 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "dnaos-www-redirect",
+  "main": "index.ts",
+  "compatibility_date": "2026-11-23",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "www.dnaos.dev/*", "zone_name": "dnaos.dev" }
+  ],
+  "observability": { "enabled": true }
+}

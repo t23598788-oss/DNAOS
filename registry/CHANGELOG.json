@@ -3695,5 +3695,24 @@
     ],
     "summary": "Addressed both unresolved GitHub review comments on the sign-in entry. The desktop frame remains fixed; narrow or short viewports can scroll vertically so the sign-in button, status feedback and expanded onboarding fields remain reachable. Changed status text to a readable dark blue on the white card. No tests run.",
     "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000228",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:55:49+07:00",
+    "session_id": "cloudflare-production-debt-ordering-2026-11-23",
+    "files": [
+      "workers/www-redirect/index.ts (isolated apex redirect preserving path and query)",
+      "workers/www-redirect/wrangler.jsonc (attaches only www.dnaos.dev/*)",
+      "workers/landing-entry/index.ts (returns to asset pass-through only)",
+      "workers/landing-entry/wrangler.jsonc (removes www route from homepage Worker)",
+      "docs/CLOUDFLARE_TRAFFIC_AUDIT_2026-11-23.md (documents asset-first-safe routing)",
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (records dedicated redirect Worker)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Addressed review feedback that Cloudflare serves matching static assets before running a Worker by isolating www-to-apex handling in a small Worker with no asset binding. This avoids forcing Worker-first processing for homepage static files. DNS stays unchanged. Deployment has not occurred.",
+    "contract_changed": false
   }
 ]

@@ -73,11 +73,11 @@ No route for `www.dnaos.dev/*` or `dnaos.dev/sw.js` appeared. The four system-ma
 
 1. **Align homepage source with current production paths.** Restore the production-pinned system-map files and route declarations so an ordinary homepage release does not drop them.
 2. **Restore `/sw.js`.** Bundle the existing worker source unchanged and route the registered URL through the homepage Worker. This fixes the concrete PWA 404 without changing its cache behavior.
-3. **Normalize `www`.** A `www` → apex 308 redirect preserving path and query is prepared locally. It needs a `www.dnaos.dev/*` Worker route in Cloudflare; DNS stays unchanged. This has not been deployed.
+3. **Normalize `www`.** A dedicated `dnaos-www-redirect` Worker returns an apex 308 preserving path and query. Its `www.dnaos.dev/*` route needs release in Cloudflare; DNS stays unchanged. The homepage Worker's static asset order is not changed.
 4. **Keep scanner requests fail-closed.** The listed `/.env*`, `/.git/*`, `/nuxt/.env`, and `/admin/dashboard` probes received 404s. Do not expose files or create placeholder admin routes to make these requests succeed. Review Security Events/WAF only if the volume or request pattern continues to affect service.
 5. **Leave unknown legacy stamp URLs unresolved until identified.** The two observed image paths are not present in repository history; they remain 404 rather than being redirected to an assumed replacement. Current canonical brand assets are under `/assets/brand/dna-os/v1/`.
 
-Source reconciliation is prepared locally. The `www`, `/sw.js`, and restored system-map route changes still need a reviewed Cloudflare Worker release. No production change has been applied as part of this follow-up.
+Source reconciliation is prepared locally. The dedicated `www` Worker route, `/sw.js`, and restored system-map routes still need a Cloudflare Worker release. No production change has been applied as part of this follow-up.
 
 ## Evidence boundary
 

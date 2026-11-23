@@ -17456,6 +17456,17 @@
       ],
       "status": "active",
       "entry_point": true
+    },
+    "workers/www-redirect/index.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "Canonicalize www.dnaos.dev requests to dnaos.dev while preserving path and query.",
+      "purpose_th": "ส่งคำขอจาก www.dnaos.dev ไปยัง dnaos.dev โดยคง path และ query ไว้",
+      "exports": [
+        "default"
+      ],
+      "status": "active",
+      "entry_point": true
     }
   },
   "excluded": [
