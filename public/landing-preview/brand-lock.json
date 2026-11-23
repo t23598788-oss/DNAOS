@@ -1,0 +1,54 @@
+{
+  "identity": "DNA OS landing page identity lock",
+  "version": "1.0.0",
+  "status": "LOCKED",
+  "font_stack": [
+    "Inter",
+    "Noto Sans Thai",
+    "Leelawadee UI",
+    "system-ui",
+    "-apple-system",
+    "sans-serif"
+  ],
+  "palette": {
+    "canvas": "#050914",
+    "surface": "#071225",
+    "surfaceRaised": "#0a172a",
+    "blue": "#3588ff",
+    "cyan": "#67c9ff",
+    "textPrimary": "#f4f7ff",
+    "textSecondary": "#b5c4da",
+    "outline": "rgba(104,159,224,0.26)"
+  },
+  "scope": [
+    "buyer channels",
+    "seller commerce",
+    "business, finance and supply",
+    "transport and logistics",
+    "AI and cloud processing",
+    "identity and platform services"
+  ],
+  "assets": {
+    "assets/dna-os-logo-transparent.png": "92077471929c5d5e876ce995be381e8c43bcca3e39a60a6e7412d33941c07c19",
+    "assets/dna-os-logo-primary.png": "e7c91256e7032cbc06a150be4631229da296660d620bbe008033328e32dc4542",
+    "assets/dna-os-logo-header-crop.png": "bbd04e6e19322ea5f505975b40d5e59a39f9b409582b6443c334aed10d488457",
+    "assets/source/dna-os-logo-original-blue.png": "e7c91256e7032cbc06a150be4631229da296660d620bbe008033328e32dc4542",
+    "assets/source/dna-os-logo-original-white.jpg": "e48d08e63e0deaf30fe24ae916a7e6843bfabac9965eed3de1cdb842c50e4c55",
+    "assets/partners/github.svg": "476ba7aa67b86da7d6e7567b08a4bf0eb1a2fd28da5fc243f8ee39a2f1ea6773",
+    "assets/partners/google.svg": "147b64b183daad84440103815845150903f6175357419b0ccf2e5a6b622e62fa",
+    "assets/partners/line.svg": "b33b86ee7c335abcccb12c08188823d40eb3ddc9521362ac94d9d9c55077db68",
+    "assets/partners/supabase.svg": "75f9566421d97d4f1d8d7f34526189fd6e727ca83987432fc2477c2fc8388086"
+  },
+  "files_sha256": {
+    "index.html": "e88318b660efb49cd9b3b1352785e9e679270d91c414a41f9bfc6c75eb49c0e0",
+    "assets/dna-os-logo-header-crop.png": "bbd04e6e19322ea5f505975b40d5e59a39f9b409582b6443c334aed10d488457",
+    "assets/dna-os-logo-primary.png": "e7c91256e7032cbc06a150be4631229da296660d620bbe008033328e32dc4542",
+    "assets/dna-os-logo-transparent.png": "92077471929c5d5e876ce995be381e8c43bcca3e39a60a6e7412d33941c07c19",
+    "assets/partners/github.svg": "476ba7aa67b86da7d6e7567b08a4bf0eb1a2fd28da5fc243f8ee39a2f1ea6773",
+    "assets/partners/google.svg": "147b64b183daad84440103815845150903f6175357419b0ccf2e5a6b622e62fa",
+    "assets/partners/line.svg": "b33b86ee7c335abcccb12c08188823d40eb3ddc9521362ac94d9d9c55077db68",
+    "assets/partners/supabase.svg": "75f9566421d97d4f1d8d7f34526189fd6e727ca83987432fc2477c2fc8388086",
+    "assets/source/dna-os-logo-original-blue.png": "e7c91256e7032cbc06a150be4631229da296660d620bbe008033328e32dc4542",
+    "assets/source/dna-os-logo-original-white.jpg": "e48d08e63e0deaf30fe24ae916a7e6843bfabac9965eed3de1cdb842c50e4c55"
+  }
+}
