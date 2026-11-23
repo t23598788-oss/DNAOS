@@ -3562,5 +3562,20 @@
     ],
     "summary": "Verified separate Cloudflare deployments for dnaos-auth-entry (login and auth routes) and dnaos-homepage (root and static assets). Authentication email delivery remains Supabase Auth → Custom SMTP → Resend; Supabase Auth selects and renders each template on its auth event. No custom mail webhook, dedicated email Worker, cron, or always-on template process exists. Kept business email separate and disabled. Added links from the root developer guide to the email route and grouped static template package. Reused the existing published monochrome DNA OS brand asset URLs; wrote the two official logo shapes and their color/document/icon use contexts to public.app_configs under dna-os-brand-asset-usage. Verified the Production row contains four asset variants at 2026-11-23 15:53 Bangkok time; migration 20261123000003 was applied through a focused SQL execution and recorded in migration history. The repository package is not fully synchronized to Production; only a subset of the 13 templates had been manually saved at last review. No SMTP secrets stored.",
     "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000220",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T18:58:19+07:00",
+    "session_id": "auth-route-map-and-provider-gaps-2026-11-23",
+    "files": [
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (production-to-source route map, categories, live observations, event timeline, remaining connection steps)",
+      "README.md (main documentation index links to auth route map)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Read-only production inspection and source mapping for DNA OS sign-in. Categorized Cloudflare entry and homepage Workers, Supabase Auth gateway, email OTP and Resend, callback/session flow, external identity providers, and public brand assets. Live HTTP evidence: /login and /start return 200; /auth/confirm and /auth/verify return 404; /v1/auth/session returns 401 while unauthenticated; canonical /assets/brand/dna-os/v1/ manifest and logo files return 200 while /brand/dna-os-mark-d.png returns 404. Source includes a historical OAuth callback and Worker OTP/session handlers, but provider Dashboard settings and signed-in browser completion are not proven. Listed exact remaining steps and linked the route map from README. No production configuration or credentials changed; no tests run.",
+    "contract_changed": false
   }
 ]
