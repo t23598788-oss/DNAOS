@@ -72,7 +72,7 @@ export default {
       });
     }
 
-    if (pathname === "/" || pathname.startsWith("/assets/")) {
+    if (pathname === "/" || pathname.startsWith("/assets/") || pathname === "/system-map-ai.zip") {
       return env.ASSETS.fetch(request);
     }
 
