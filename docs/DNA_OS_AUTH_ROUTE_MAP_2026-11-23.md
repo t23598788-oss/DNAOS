@@ -38,9 +38,11 @@ The email path is the active sign-in path. The OAuth path describes the intended
 
 Google OAuth is an identity-provider connection: Google returns authorization to Supabase's callback, then Supabase redirects the user to the allowlisted DNA OS callback. Current source/history does **not** prove it is enabled: the release matrix records the production error `400 provider is not enabled`. This needs a fresh console check because settings could have changed after that record. The DNA OS callback currently responds 404, so even an enabled provider cannot complete the intended return path until that route is restored.
 
-Google Search indexing is separate from OAuth and does not grant or deny login. On 2026-11-23 the public root returned the title `DNA OS — Connect business with clear rules`, `robots.txt` allows public search, and `/sitemap.xml` returned 404. The public `/system-map`, `.json`, and `.md` routes are available, but the generated map says `2026-11-23T07:53:56.027Z` and source revision `77d539c20f52860fe650d5cd47301b36cdf039e4`, older than the login source changes recorded above. A public search for `site:dnaos.dev` returned no results in this inspection; that alone cannot establish the state of Google's index or Search Console.
+Google Search indexing is separate from OAuth and does not grant or deny login. The exact Google result opened from the owner's link for query `dna os.dev` shows **“DNA OS — Developer Portal”** at **`https://www.dnaos.dev/`**, with an old snippet describing the 8-layer architecture. In the same inspection, `https://www.dnaos.dev/` and `/login` both returned 404 without redirect, while the apex `https://dnaos.dev/` returned the current landing page with title `DNA OS — Connect business with clear rules`. This is evidence of a stale Google result for the old `www` URL; the old page is not currently served there.
 
-**Next check for Search:** inspect the verified `dnaos.dev` property in Google Search Console, its Page Indexing / URL Inspection results, and the submitted sitemap state. A missing sitemap is confirmed; Search Console ownership and submission are not visible from this repository or public HTTP. Refreshing search results is not an OAuth setting and may take time after the live pages and sitemap are correct.
+The apex `robots.txt` allows public search, `/sitemap.xml` returns 404, and the public `/system-map`, `.json`, and `.md` routes are available. That generated map says `2026-11-23T07:53:56.027Z` and source revision `77d539c20f52860fe650d5cd47301b36cdf039e4`, older than the login source changes recorded above. A generic `site:dnaos.dev` query returned no result in one search lookup; the owner's exact Google query did return the old `www` result. The signed-in browser result may be region/account personalized, so current index state still needs confirmation in Search Console.
+
+**Next check for Search:** inspect verified apex and `www` properties in Google Search Console, their Page Indexing / URL Inspection results, and submitted sitemap state. Missing sitemap and `www` 404 are confirmed; Search Console ownership and submission are not visible from this repository or public HTTP. Decide whether to establish a permanent `www` → apex redirect before requesting re-crawl/removal of the old indexed URL. Refreshing search results is not an OAuth setting and may take time after the live routes and sitemap are correct.
 
 ## Production observations
 
@@ -57,6 +59,8 @@ Read-only HTTP checks against `https://dnaos.dev` on 2026-11-23 around 18:58 Ban
 | `GET /assets/brand/dna-os/v1/dna-os-horizontal-mono.svg` | `200 image/svg+xml` | Document/logo variant is reachable. |
 | `GET /assets/brand/dna-os/v1/dna-os-mark-color.svg` | `200 image/svg+xml` | Color mark is reachable. |
 | `GET /brand/dna-os-mark-d.png` | `404` | Current app-style asset path is not served by the production static asset route. |
+| `GET https://www.dnaos.dev/` | `404` (no redirect) | The `www` host does not serve the live site or redirect to the apex host. |
+| `GET https://www.dnaos.dev/login` | `404` | Login is reachable on the apex host, not `www`, in this inspection. |
 
 These checks prove route responses only. They do not prove a provider login, email arrival, successful callback, or Dashboard credential state.
 
@@ -74,6 +78,7 @@ Times are Bangkok time (UTC+7), taken from Git commit metadata or the production
 | 2026-11-23 18:37 | Git `2d6f99a`, `b26e018` | DNA OS asset usage standardized and account panel background aligned. These commits are on `codex/auth-entry-email-card-2026-11-23`; production still serves the older login rendering. |
 | 2026-11-23 18:58 | Live HTTP observation | `/login` and `/start` respond, but `/auth/confirm` is 404 and the `/brand/*` login image path is 404. |
 | 2026-11-23 19:03 | Live HTTP + release ledger | `/sitemap.xml` is 404; public system map identifies older source revision `77d539c...`; release matrix records the previous Google OAuth live probe as `400 provider is not enabled`. These are independent search-index and login-configuration gaps. |
+| 2026-11-23 19:09 | Owner Google result + live HTTP | Google shows “DNA OS — Developer Portal” at `https://www.dnaos.dev/`; live `www` root and login return 404, while apex root returns the current landing page. The indexed `www` URL has no current redirect. |
 
 ## Finish order for the sign-in route
 
