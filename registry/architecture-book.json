@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T05:58:30.052Z",
+  "generated_at": "2026-11-23T06:01:29.263Z",
   "version": 1,
   "nodes": [
     {
@@ -97968,8 +97968,8 @@
         {
           "name": "default",
           "kind": "default",
-          "line_start": 6,
-          "line_end": 22
+          "line_start": 7,
+          "line_end": 52
         }
       ]
     },
@@ -98002,16 +98002,16 @@
       "type": "Module",
       "layer": "scripts",
       "name_en": "scripts/build-public-system-map.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] scripts/build-public-system-map.ts",
+      "purpose_th": "สร้างแผนผังระบบและการเชื่อมต่อ DNA OS ที่อ้างอิงซอร์สโค้ด สำหรับเผยแพร่ผ่าน Landing Worker โดยรวม hash และลิงก์ GitHub ที่ชี้รุ่น, Gateway adapters, Connect contracts, deployment ID ที่ตรวจพบ, วัตถุใน provenance ledger ของ Supabase และจำนวน compute ใน registry โดยไม่เผยแพร่ secret หรือข้อมูลธุรกิจ",
       "exports": [],
-      "status": "UNREGISTERED",
+      "status": "OK",
       "runtime_entry_point": true,
       "internal_dependencies": [],
       "dependents": [],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "scripts",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -98019,8 +98019,7 @@
       "related_business_events": "UNKNOWN",
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
-      "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json"
+      "related_services": "UNKNOWN"
     }
   ],
   "edges": [
@@ -124132,9 +124131,9 @@
   ],
   "summary": {
     "total": 1443,
-    "ok": 1442,
+    "ok": 1443,
     "broken": 0,
     "unused": 0,
-    "unregistered": 1
+    "unregistered": 0
   }
 }
