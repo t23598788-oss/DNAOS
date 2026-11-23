@@ -1,0 +1,111 @@
+{
+  "package": "DNA OS Auth Email Templates",
+  "version": 1,
+  "execution": {
+    "mode": "event-triggered",
+    "sender": "Supabase Auth",
+    "persistentWorker": false,
+    "cron": false,
+    "securityNotificationsRequireProjectSetting": true
+  },
+  "templates": [
+    {
+      "id": "confirm-sign-up",
+      "category": "authentication",
+      "event": "auth.email.template.confirmation",
+      "subject": "confirm-sign-up.subject.txt",
+      "html": "confirm-sign-up.html"
+    },
+    {
+      "id": "invite-user",
+      "category": "authentication",
+      "event": "auth.email.template.invite",
+      "subject": "invite-user.subject.txt",
+      "html": "invite-user.html"
+    },
+    {
+      "id": "magic-link-or-otp",
+      "category": "authentication",
+      "event": "auth.email.template.magic_link",
+      "subject": "magic-link-or-otp.subject.txt",
+      "html": "magic-link-or-otp.html"
+    },
+    {
+      "id": "change-email-address",
+      "category": "authentication",
+      "event": "auth.email.template.email_change",
+      "subject": "change-email-address.subject.txt",
+      "html": "change-email-address.html"
+    },
+    {
+      "id": "reset-password",
+      "category": "authentication",
+      "event": "auth.email.template.recovery",
+      "subject": "reset-password.subject.txt",
+      "html": "reset-password.html"
+    },
+    {
+      "id": "reauthentication",
+      "category": "authentication",
+      "event": "auth.email.template.reauthentication",
+      "subject": "reauthentication.subject.txt",
+      "html": "reauthentication.html"
+    },
+    {
+      "id": "password-changed",
+      "category": "security_notification",
+      "event": "auth.email.notification.password_changed",
+      "subject": "password-changed.subject.txt",
+      "html": "password-changed.html",
+      "projectSettingRequired": true
+    },
+    {
+      "id": "email-address-changed",
+      "category": "security_notification",
+      "event": "auth.email.notification.email_changed",
+      "subject": "email-address-changed.subject.txt",
+      "html": "email-address-changed.html",
+      "projectSettingRequired": true
+    },
+    {
+      "id": "phone-number-changed",
+      "category": "security_notification",
+      "event": "auth.email.notification.phone_changed",
+      "subject": "phone-number-changed.subject.txt",
+      "html": "phone-number-changed.html",
+      "projectSettingRequired": true
+    },
+    {
+      "id": "sign-in-method-linked",
+      "category": "security_notification",
+      "event": "auth.email.notification.identity_linked",
+      "subject": "sign-in-method-linked.subject.txt",
+      "html": "sign-in-method-linked.html",
+      "projectSettingRequired": true
+    },
+    {
+      "id": "sign-in-method-removed",
+      "category": "security_notification",
+      "event": "auth.email.notification.identity_unlinked",
+      "subject": "sign-in-method-removed.subject.txt",
+      "html": "sign-in-method-removed.html",
+      "projectSettingRequired": true
+    },
+    {
+      "id": "mfa-method-added",
+      "category": "security_notification",
+      "event": "auth.email.notification.mfa_factor_enrolled",
+      "subject": "mfa-method-added.subject.txt",
+      "html": "mfa-method-added.html",
+      "projectSettingRequired": true
+    },
+    {
+      "id": "mfa-method-removed",
+      "category": "security_notification",
+      "event": "auth.email.notification.mfa_factor_unenrolled",
+      "subject": "mfa-method-removed.subject.txt",
+      "html": "mfa-method-removed.html",
+      "projectSettingRequired": true
+    }
+  ]
+}
