@@ -33,6 +33,7 @@ The email path is the active sign-in path. The OAuth path describes the intended
 | Auth email | Supabase Auth → Custom SMTP → Resend | [`AUTH_EMAIL_TEMPLATES`](AUTH_EMAIL_TEMPLATES_2026-11-23.md), template package and index | The configured path and sender are recorded. The 13-template source package exists; all production Dashboard templates have not been verified. | Reconcile all 13 templates in Supabase Dashboard and run one controlled OTP delivery/return flow. |
 | DNA OS identity artwork | Static assets on `dnaos.dev` | [`brand asset index`](https://dnaos.dev/assets/brand/dna-os/v1/brand-assets.json) | Production index and monochrome SVG return 200. `/brand/dna-os-mark-d.png` returns 404, while the documented distribution route `/assets/brand/dna-os/v1/` works. | Change login asset references to a production-served canonical path or add the assets to the auth Worker. Do not substitute DNA OS art for provider marks. |
 | Website navigation | Cloudflare homepage Worker `dnaos-homepage` | `/` and `/assets/*`; source `workers/landing-entry/wrangler.jsonc` | Source routes the home page and static assets separately from `dnaos-auth-entry`. | Ensure the landing page's sign-in button points to `https://dnaos.dev/login`; verify the destination after publishing. |
+| Legacy public documentation routes | Cloudflare Worker `dnaos-homepage` → static `public/landing-preview` assets | `/system-map`, `/system-map.json`, `/system-map.md`, `/system-map-ai.zip` | All four return 200. The map claims Worker `dnaos-homepage` and pins source revision `77d539c20f52860fe650d5cd47301b36cdf039e4`. That revision's `wrangler.jsonc` explicitly declares all four paths. The current checked-in config has only `/` and `/assets/*`, and current `index.ts` returns 404 for every other path. Production is still serving the earlier documentation route set; Dashboard route attachments need confirmation. | Inspect the active Worker version and route list in Cloudflare before changing anything. Decide which document exports are still canonical; then update source/deployment to match. Do not remove the public docs or alter DNS until that mapping is confirmed. |
 
 ## Google OAuth and Google Search are separate routes
 
@@ -43,6 +44,15 @@ Google Search indexing is separate from OAuth and does not grant or deny login. 
 The apex `robots.txt` allows public search, `/sitemap.xml` returns 404, and the public `/system-map`, `.json`, and `.md` routes are available. That generated map says `2026-11-23T07:53:56.027Z` and source revision `77d539c20f52860fe650d5cd47301b36cdf039e4`, older than the login source changes recorded above. A generic `site:dnaos.dev` query returned no result in one search lookup; the owner's exact Google query did return the old `www` result. The signed-in browser result may be region/account personalized, so current index state still needs confirmation in Search Console.
 
 **Next check for Search:** inspect verified apex and `www` properties in Google Search Console, their Page Indexing / URL Inspection results, and submitted sitemap state. Missing sitemap and `www` 404 are confirmed; Search Console ownership and submission are not visible from this repository or public HTTP. Decide whether to establish a permanent `www` → apex redirect before requesting re-crawl/removal of the old indexed URL. Refreshing search results is not an OAuth setting and may take time after the live routes and sitemap are correct.
+
+## Cloudflare route reconciliation (DNS unchanged)
+
+The stale Google result and the old document exports are **two different route groups**:
+
+1. `www.dnaos.dev/` — Google indexes the old “DNA OS — Developer Portal” page here. The live host currently returns 404; it is not declared in the current checked-in Cloudflare Worker route config. No DNS record or target was changed during this audit.
+2. `dnaos.dev/system-map*` — the apex still serves the HTML map, JSON index, Markdown reference, and AI ZIP from Cloudflare. The source revision named by the live map (`77d539c…`) has these exact routes in `workers/landing-entry/wrangler.jsonc`, while current checked-in source no longer declares or handles them. This is a Cloudflare deployment/source mismatch, not evidence that the DNS record should change.
+
+Cloudflare Dashboard was opened in the existing Chrome session, but it displayed the sign-in page; its active route table and deployment list could not be read. Public responses plus the production map identify the old route set and source revision, but only an authenticated Cloudflare Workers & Routes view can confirm which live attachment/version owns each path. This inspection made no DNS, route, Worker, or document changes.
 
 ## Production observations
 
@@ -61,6 +71,10 @@ Read-only HTTP checks against `https://dnaos.dev` on 2026-11-23 around 18:58 Ban
 | `GET /brand/dna-os-mark-d.png` | `404` | Current app-style asset path is not served by the production static asset route. |
 | `GET https://www.dnaos.dev/` | `404` (no redirect) | The `www` host does not serve the live site or redirect to the apex host. |
 | `GET https://www.dnaos.dev/login` | `404` | Login is reachable on the apex host, not `www`, in this inspection. |
+| `GET /system-map` | `200 text/html` | Static public document is still live. |
+| `GET /system-map.json` | `200 application/json` | Machine-readable system map is still live. |
+| `GET /system-map.md` | `200 text/markdown` | Markdown reference is still live. |
+| `GET /system-map-ai.zip` | `200 application/zip` | Download package is still live. |
 
 These checks prove route responses only. They do not prove a provider login, email arrival, successful callback, or Dashboard credential state.
 
@@ -79,6 +93,7 @@ Times are Bangkok time (UTC+7), taken from Git commit metadata or the production
 | 2026-11-23 18:58 | Live HTTP observation | `/login` and `/start` respond, but `/auth/confirm` is 404 and the `/brand/*` login image path is 404. |
 | 2026-11-23 19:03 | Live HTTP + release ledger | `/sitemap.xml` is 404; public system map identifies older source revision `77d539c...`; release matrix records the previous Google OAuth live probe as `400 provider is not enabled`. These are independent search-index and login-configuration gaps. |
 | 2026-11-23 19:09 | Owner Google result + live HTTP | Google shows “DNA OS — Developer Portal” at `https://www.dnaos.dev/`; live `www` root and login return 404, while apex root returns the current landing page. The indexed `www` URL has no current redirect. |
+| 2026-11-23 19:16 | Production map + Git source + Cloudflare session | The live map serves four `/system-map*` resources from the `dnaos-homepage` asset Worker and pins revision `77d539c…`; that revision declares all four routes, while the current source declares only `/` and `/assets/*`. Cloudflare Dashboard in Chrome required sign-in, so active route attachments remain unverified. DNS unchanged. |
 
 ## Finish order for the sign-in route
 

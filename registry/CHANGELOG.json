@@ -3605,5 +3605,19 @@
     ],
     "summary": "Inspected the exact Google search URL supplied by the owner in the authenticated browser. Its first result is titled 'DNA OS — Developer Portal', links to https://www.dnaos.dev/, and shows an old 8-layer architecture snippet. Read-only production HTTP checks: www.dnaos.dev/ and /login return 404 with no redirect; apex dnaos.dev/ returns 200 and the current landing title; apex /sitemap.xml returns 404. Updated the route map to identify this as a stale indexed www URL, distinguish it from the active apex site and OAuth redirects, and record the pending www-to-apex redirect/Search Console check. No DNS/Cloudflare/Search Console changes made; no tests run.",
     "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000223",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:16:49+07:00",
+    "session_id": "cloudflare-legacy-route-reconciliation-2026-11-23",
+    "files": [
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (maps stale www search result and legacy system-map route group; records current-source versus deployed evidence)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Read-only reconciliation with DNS unchanged. Identified two separate route groups: (1) www.dnaos.dev root/login, shown by Google as the old Developer Portal but currently returning 404 without redirect; (2) dnaos.dev/system-map, .json, .md and -ai.zip, all returning 200. The live system map says dnaos-homepage and pins source revision 77d539c20f52860fe650d5cd47301b36cdf039e4. At that exact revision, workers/landing-entry/wrangler.jsonc declares all four system-map paths and its Worker passes requests to static assets. Current checked-in config only declares apex root and /assets/* and current source rejects all other paths, proving a production/source route-set mismatch. Cloudflare Dashboard in the existing Chrome session opened at the sign-in page, so active deployed route attachments/version could not be read. Recorded exact pending verification; no DNS, routes, Workers, or docs changed in Production; no tests run.",
+    "contract_changed": false
   }
 ]
