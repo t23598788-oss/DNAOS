@@ -298,7 +298,8 @@ as $function$
       and commit_sha = lower(p_commit_sha)
   ), required as (
     select unnest(array[
-      'github_published', 'build_verified', 'deployment_completed', 'live_route_verified'
+      'github_published', 'github_ci_completed', 'build_verified',
+      'deployment_completed', 'live_route_verified'
     ]) as event_type
   ), missing_required as (
     select r.event_type
