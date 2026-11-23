@@ -96,6 +96,8 @@ input::placeholder,textarea::placeholder{color:#8b98a9}
 .secondary{background:#f4f7fb;color:#213a59;border-color:#cbd7e5}
 .roles label,fieldset{border-color:#d4deea}
 legend{color:#344b68}
+#message{color:#275477}
+@media(max-width:760px),(max-height:560px){:root{overflow-x:hidden;overflow-y:auto}html,body{height:auto;min-height:100%;overflow-x:hidden;overflow-y:auto}body{height:auto;min-height:100dvh}main{height:auto;min-height:calc(100dvh - 64px);align-items:flex-start;overflow:visible;padding:10px 0 20px}.card{max-height:none;overflow:visible}}
 </style>
 <header class="topbar"><a class="brand" href="/" aria-label="DNA OS home"><img src="/assets/dna-os-mark-d.png" alt="DNA OS"></a><a class="back" href="/">Back to DNA OS</a></header>
 <main><div class="card"><header><p class="eyebrow">DNA OS · Secure access</p><h1>Sign in to your account</h1><p class="intro">One identity for DNA OS. Choose an identity source, then follow its connection into your account.</p></header>

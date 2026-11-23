@@ -3680,5 +3680,19 @@
     ],
     "summary": "Removed the unused public price table and its sole unused LINE contact component per the owner's instruction; neither file had live callers. Recorded the required delivery sequence: publish first-screen site scope, complete identity/session/permission plumbing, finish inbound/outbound email triggers, build workspace category/icon navigation, and only then connect capability requests through the gateway to backend processors. No tests run.",
     "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000227",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:52:47+07:00",
+    "session_id": "cloudflare-production-debt-ordering-2026-11-23",
+    "files": [
+      "workers/business-onboarding/entry-page.ts (allows mobile/short screens to reach all entry and onboarding content; fixes light-theme status text contrast)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Addressed both unresolved GitHub review comments on the sign-in entry. The desktop frame remains fixed; narrow or short viewports can scroll vertically so the sign-in button, status feedback and expanded onboarding fields remain reachable. Changed status text to a readable dark blue on the white card. No tests run.",
+    "contract_changed": false
   }
 ]
