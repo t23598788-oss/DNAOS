@@ -17456,6 +17456,14 @@
       ],
       "status": "active",
       "entry_point": true
+    },
+    "scripts/register-development-change-set.ts": {
+      "owner": "scripts",
+      "layer": "scripts",
+      "purpose": "DNA OS MODULE: Register one capability-sized DNA bundle, its Git-tracked files,",
+      "purpose_th": "DNA OS MODULE: Register one capability-sized DNA bundle, its Git-tracked files,",
+      "exports": [],
+      "status": "active"
     }
   },
   "excluded": [

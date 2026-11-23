@@ -18,6 +18,8 @@ Document-derived facts must retain provider/document reference, source file and 
 
 Operational records should link order → resource/movement → milestone → document → handover → cost → exception. Each external provider remains authoritative for its own source records; DNA OS stores references and verified transitions rather than claiming ownership of provider data.
 
+The new provenance schema defines capability-sized DNA bundles in Supabase. Each bundle links its category, exact repository paths and file hashes, source commit, event timestamps, intended system/environment, and (for Production) company and organization IDs plus policy version/hash. Production approval is captured separately by an authenticated owner of that organization after reviewing the exact bundle; the database records the approver profile and timestamp. `occurred_at` and `recorded_at` retain the actual event time and the Supabase write time separately. GitHub Actions results are optional evidence; a recorded manual check/build can carry the release evidence when Actions is unavailable. Readiness requires merge, checks, build, deployment, route verification, and migration verification where migrations are recorded to be linked to the same DNA bundle. The schema is only a migration until applied and verified on the approved project. See `supabase/migrations/20261123000002_development_change_sets.sql` and `docs/DEVELOPMENT_PROVENANCE_LEDGER.md`.
+
 ## Production rollback evidence
 
 Before a Worker release, preserve source commit, lockfile hash, Worker version/deployment ID, config hash, compatibility date, binding names (never secret values), migration set, environment/approver, and post-deploy verification. Keep this evidence outside Cloudflare's short deployment history. Use Worker Previews for branch and PR review.
@@ -32,7 +34,7 @@ Read-only Production dashboard observation on 2026-11-23: Authentication → Ema
 
 ## Current release blockers
 
-- GitHub Actions supplies the broad `SUPABASE_SERVICE_ROLE_KEY` to provenance and deploy-gate jobs, while the target URL comes from a secret. The repository does not hard-limit that URL to a non-Production project, so it cannot prove CI is unable to write Production. Replace the path with a narrowly authorized evidence writer or remove database writes from CI before release; do not reuse the broad service-role key.
+- Existing GitHub Actions workflows supply the broad `SUPABASE_SERVICE_ROLE_KEY` to provenance and deploy-gate jobs, while the target URL comes from a secret. The repository does not hard-limit that URL to a non-Production project, so it cannot prove CI is unable to write Production. The new manual history path does not depend on Actions, but this existing CI credential path remains a release blocker until removed or replaced with a narrowly authorized non-Production evidence writer.
 - The available database audit dated 2026-11-20/22 is a read-only Local catalog, not a Production catalog. It also records migration-source divergence and missing source checksums. It cannot prove Production schema or migration alignment.
 - The originating development checkout has multiple unrelated uncommitted changes. This release-preparation change is isolated from them; any release must still be built from a clean, reviewed commit whose GitHub SHA is the exact deployed SHA.
 - Cloudflare and Supabase target identities in source configuration are source evidence only until confirmed against the authenticated live dashboards. Unknown or mismatched target IDs block release.
@@ -43,4 +45,4 @@ Read-only Production dashboard observation on 2026-11-23: Authentication → Ema
 2. A reviewed authority manifest for each database/deployment operation with exact target, approver, and least-privilege credential class.
 3. No Production write credential in CI, Workers, or AI-agent runtime.
 4. Verified email-template source, Production dashboard body, sender/domain, OTP length, code-only behavior, and successful login through the real Production entry route.
-5. Clean published commit, passing required checks, rollback manifest, and post-deploy route/database verification tied to that exact commit and deployment ID.
+5. Clean published commit, passing recorded checks (manual evidence is acceptable when Actions is unavailable), rollback manifest, and post-deploy route/database verification tied to that exact commit and deployment ID.

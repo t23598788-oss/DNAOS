@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T02:55:23.013Z",
+  "generated_at": "2026-11-23T03:31:23.574Z",
   "version": 1,
   "nodes": [
     {
@@ -97880,6 +97880,30 @@
           "line_end": 18
         }
       ]
+    },
+    {
+      "id": "module:scripts/register-development-change-set.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/register-development-change-set.ts",
+      "purpose_th": "DNA OS MODULE: Register one capability-sized DNA bundle, its Git-tracked files,",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
     }
   ],
   "edges": [
@@ -104146,6 +104170,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/recovery-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/register-development-change-set.ts",
       "label": "contains"
     },
     {
@@ -123945,8 +123974,8 @@
     }
   ],
   "summary": {
-    "total": 1440,
-    "ok": 1440,
+    "total": 1441,
+    "ok": 1441,
     "broken": 0,
     "unused": 0,
     "unregistered": 0
