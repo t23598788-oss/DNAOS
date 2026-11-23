@@ -1029,7 +1029,6 @@ public/favicon.ico
 public/icons/apple-touch-icon.png
 public/icons/icon-192.png
 public/icons/icon-512.png
-public/icons/logo-master.png
 public/manifest.json
 public/next.svg
 public/vercel.svg
