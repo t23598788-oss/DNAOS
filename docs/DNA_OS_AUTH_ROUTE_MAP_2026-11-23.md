@@ -7,6 +7,8 @@
 
 This page separates three kinds of evidence: live HTTP observations, checked-in source configuration, and provider-dashboard settings that cannot be confirmed from the repository. A route in source is not proof that it is deployed.
 
+The production observations above are a dated snapshot. The later local candidate audit at the end of this document supersedes its source-code descriptions where they differ; it does not supersede or imply a Production deployment.
+
 ## Route map
 
 ```text
@@ -157,3 +159,55 @@ The deployment and live-page check are recorded under the existing `dnaos-platfo
 | 15 | `live_route_verified` | passed | `c23863da-109f-4d28-8f01-f525c64f3b49` | `16000a9d8f6bacdb3c711d0ca24397e93dcf56cb` |
 
 The shared commit and deployment ID link the visible login page to the code and its live Worker version. The event rows are append-only; use the `dnaos-platform` history projection to follow later releases. This records the page delivery and visual route check only; it does not claim that every identity provider is enabled or that a signed-in session has been completed.
+
+## Local authentication release candidate audit — 2026-11-24 08:14 Bangkok time
+
+This candidate is based on `main` at `42191e944a1af58797cc703a5b9a9efae0314683` and is published in [PR #38](https://github.com/t23598788-oss/DNAOS/pull/38). It is not merged or deployed. The initial audit's latest Production history event was sequence 20 (`deployment_completed`) for the base commit; later local-commit, verification, and change-set records are now in the `dnaos-platform` ledger. No main-merge or Worker-deploy event is claimed.
+
+### Change groups
+
+| Group | Changed source and assets | Intended flow | Local evidence |
+|---|---|---|---|
+| Auth entry and session | `workers/auth-entry/index.ts`, `workers/auth-entry/cloudflare.config.ts`, `workers/business-onboarding/index.ts`, `workers/business-onboarding/entry-page.ts` | Landing `/login` → email OTP or Google start → Supabase → DNA OS `/auth/confirm` → `/workspace`; workspace logout returns to `/login` | Worker typecheck, Vite build, and `test-auth-surface.mjs` pass locally. This does not prove live OTP completion, provider enablement, browser cookie persistence, or organization authorization. |
+| Provider button asset | `public/landing-preview/assets/providers/google/` | The Google sign-in control uses the official Google-provided artwork and points to `/auth/google?next=%2Fworkspace`. Other provider tiles remain noninteractive. | Source asset and its provenance README are present. Google OAuth credentials are not in source. |
+| App and brand assets | `public/favicon.ico`, `public/icons/*`, `public/manifest.json`, `public/landing-preview/favicon.ico`, `public/landing-preview/icons/*`, `public/landing-preview/manifest.json`, `public/landing-preview/index.html`, `presentation/assets/manifest.ts` | Homepage serves the current color DNA OS mark and app icons; PWA start destination is `/workspace`. | Source paths and asset manifests are locally present; the homepage Worker still needs a release before production serves these candidate files. |
+| Static asset route | `workers/landing-entry/wrangler.jsonc` | Homepage Worker routes `/favicon.ico`, `/manifest.json`, and `/icons/*` to its static assets. | Local route declaration only; not evidence of a live Cloudflare route. |
+| Auth surface verification | `workers/auth-entry/test-auth-surface.mjs` | Exercises auth-only route boundaries and callback/session surfaces. | Passed locally at 2026-11-24 08:07 Bangkok time. |
+| Provenance ledger hardening | `supabase/migrations/20261124000001_harden_development_change_sets.sql` | Prevents retries from appending files to an existing approved change set and ensures unlinked successful migrations remain release blockers. | Source-only forward migration; not applied to Production. The already-applied `20261123000002` file remains unchanged. |
+
+### Live settings and release gates
+
+- Supabase production project is `xeytcavxejhyzxwevgto`. `https://dnaos.dev/auth/confirm` is visible in its redirect allowlist. The Site URL is still `https://dna-os-deadboard-production.up.railway.app`; it was not changed. A fresh Auth settings read at 2026-11-24 08:50 Bangkok time reports Google disabled. The public settings response does not reveal whether Google Client ID/Secret values are present.
+- Google Cloud's authorized redirect URI must be `https://xeytcavxejhyzxwevgto.supabase.co/auth/v1/callback`. This is separate from Supabase's post-login allowlist URL above. Credentials must be configured by the owner in the provider console; do not store them in this repository or history ledger.
+- The auth Worker route and Google OAuth callback code are source-only until the auth Worker is deployed. The changed favicon, PWA manifest, and icon routes are source-only until the homepage Worker is deployed.
+- The real email OTP → verified browser session → `/workspace` route and Google sign-in → callback → `/workspace` route have not been completed against Production. The current candidate is not ready for a Production release.
+- Supabase's live migration history records `20261123000002 development_change_sets` as applied. The `main` baseline used for this candidate lacked that migration source; this candidate restores the exact file from Git commit `5fd49b8b18e528842c0019079b51cabf0d241d18` and restores the ledger manual and registration script. This closes the source-file gap in the candidate branch, not in `main` until merged. Do not reapply the migration. The live migration table records version/name, not a SQL checksum, so the exact applied bytes still need a checksum/catalog reconciliation before a production release claim.
+
+### Provenance status
+
+The database remains the source of truth for append-only events and per-file hashes. The service-role credential is held in the local macOS Keychain. The 2026-11-24 audit has recorded actual commit times, local checks, and two source change sets: `dnaos-auth-provider-status-docs-2026-11-24` and `dnaos-development-ledger-hardening-2026-11-24`. Publication, main merge, migration application, Worker deployments, and live-route checks remain separate events and must be written only after they happen. The forward migration is source-only until an authorized database release applies and verifies it.
+
+### Supabase provider configuration recheck — 2026-11-24 08:50 Asia/Bangkok
+
+Read the Production Supabase Auth public settings endpoint using the locally stored service credential. Email is enabled; Google, Apple, Facebook, LINE, TikTok, phone, and the other listed external providers report disabled. This read does not reveal whether provider client credentials are present, and no provider setting was changed. The Google route still returns 404 in Production, so the Auth Worker must not be released as a completed Google sign-in flow until the provider is enabled with valid credentials and its callback is verified. The refreshed public endpoint status records this observation.
+
+## Public endpoint and crawler audit — 2026-11-24 08:28 Bangkok time
+
+Fresh unauthenticated Production probes used exact GET paths and did not submit an OTP, start an OAuth flow, send a webhook, or write business data. Results are published in the candidate's `public/landing-preview/api-status.json` and summarized in `api-reference.md`:
+
+| GET path | Production result | Meaning |
+|---|---:|---|
+| `/`, `/login`, `/start` | 200 | Public page/entry routes respond. |
+| `/v1/auth/csrf` with `Origin: https://dnaos.dev` | 200 | Browser CSRF bootstrap responds; returned token was not recorded. |
+| `/v1/auth/session` without session cookie | 401 | Session route responds and correctly has no authenticated session. |
+| `/auth/google`, `/auth/confirm`, `/workspace` | 404 | Candidate routes are not deployed to Production. |
+| `/system-map`, `.json`, `.md`, `-ai.zip` | 200 | Public reference resources respond. Their map snapshot is stale: generated `2026-11-23T07:53:56.027Z`, source revision `77d539c20f52860fe650d5cd47301b36cdf039e4`. |
+| `/llms.txt`, `/openapi.json`, `/sitemap.xml` | 404 | These discovery/contract files are not served by Production yet. |
+
+GET probes for POST-only refresh/logout endpoints returned 404 by design, so they are not classified as unavailable. The OTP endpoint's last successful 202/delivery observation remains the separately dated 2026-11-23 record; this audit did not send another email. The public map's Railway/Vercel entries identify source-level adapters only, not public DNA OS API routes or proof of live provider accounts. The candidate adds a method-aware endpoint guide, JSON status index, and `llms.txt` as static homepage assets; these files remain unavailable until the homepage Worker is deployed.
+
+The live `robots.txt` allows the general Googlebot via `User-agent: *` / `Allow: /` but explicitly disallows Google-Extended, GoogleOther, Google-CloudVertexBot, and Google-Agent. Google says Google-Extended controls Gemini training/grounding and does not affect Google Search inclusion; these crawler policies are distinct. This candidate does not change `robots.txt` or authorize broader AI content access. A sitemap is also not served yet. See [Google's crawler documentation](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers).
+
+### Review follow-up — 2026-11-24 09:04 Asia/Bangkok
+
+PR review identified two release-ledger defects in the already-applied migration source. They are addressed in the new forward migration `20261124000001_harden_development_change_sets.sql`; the original `20261123000002_development_change_sets.sql` remains unchanged. The fix has not been applied to Production. GitHub Actions for PR #38 could not start because the repository account is locked due to billing; local Auth Worker tests, type-check, both Worker build preparations, and pre-commit governance completed successfully. The Auth Worker remains gated on Google being enabled and the callback being verified.

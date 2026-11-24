@@ -16,6 +16,8 @@ export default defineConfig({
     triggers: [
       triggers.fetch({ pattern: "dnaos.dev/login", zone: "dnaos.dev" }),
       triggers.fetch({ pattern: "dnaos.dev/start", zone: "dnaos.dev" }),
+      triggers.fetch({ pattern: "dnaos.dev/workspace", zone: "dnaos.dev" }),
+      triggers.fetch({ pattern: "dnaos.dev/auth/*", zone: "dnaos.dev" }),
       triggers.fetch({ pattern: "dnaos.dev/v1/auth/*", zone: "dnaos.dev" }),
     ],
     env: {
