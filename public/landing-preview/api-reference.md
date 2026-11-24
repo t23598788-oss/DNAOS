@@ -2,7 +2,7 @@
 
 # DNA OS API and connection reference
 
-**Status checked:** 2026-11-24 08:28 Asia/Bangkok  
+**Status checked:** 2026-11-24 08:50 Asia/Bangkok
 **Status source:** [machine-readable endpoint status](/api-status.json) · [system map](/system-map.md)
 
 ## What is available now
@@ -19,7 +19,7 @@ The public site serves the sign-in page and the browser-oriented email OTP entry
 | `POST /v1/auth/verify` | **Configured; live completion unverified** | No real OTP was submitted during this audit |
 | `POST /v1/auth/refresh` | **Configured; live completion unverified** | POST-only route; a GET returning 404 is not a valid route test |
 | `POST /v1/auth/logout` | **Configured; live completion unverified** | POST-only route; a GET returning 404 is not a valid route test |
-| `GET /auth/google` | **In Development** · 404 | Candidate code exists but is not deployed; OAuth credentials are not verified |
+| `GET /auth/google` | **In Development** · 404 | Candidate code exists but is not deployed; Supabase Production reports Google provider disabled (checked 2026-11-24 08:50 Asia/Bangkok) |
 | `GET /auth/confirm` | **In Development** · 404 | Candidate callback exists but is not deployed |
 | `GET /workspace` | **In Development** · 404 | Candidate signed-in destination exists but is not deployed |
 

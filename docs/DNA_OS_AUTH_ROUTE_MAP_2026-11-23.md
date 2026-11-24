@@ -184,7 +184,11 @@ This is a local release-candidate branch based on `main` at `42191e944a1af58797c
 
 ### Provenance status
 
-The database remains the source of truth for append-only events and per-file hashes. This candidate restores the bundle-registration workflow and the source migration that the live database already lists as applied; it does not run that migration again. After the candidate commit, register separate capability-sized bundles for authentication/session and provenance-source recovery, link honest verification events, and retain publication, merge, deployment, and live-route events for when those actions actually occur. No `github_published`, merge, Production deployment, or live-route event is claimed for this candidate. No new database event or change set has been written: the documented bundle command requires the service-role credential through the local secret manager, which is not configured in this workspace. The last database history event remains sequence 20; record the candidate after a clean commit and authorized credential become available.
+The database remains the source of truth for append-only events and per-file hashes. This candidate restores the bundle-registration workflow and the source migration that the live database already lists as applied; it does not run that migration again. At the time of the initial candidate audit, no event or change set had been written. The service-role credential has since been stored in the local macOS Keychain, and a fresh read at 2026-11-24 08:50 Asia/Bangkok still found the prior 20 events and no public change-set rows. Candidate commits remain local until their publication, merge, deployment, and live-route events are recorded after those actions actually occur.
+
+### Supabase provider configuration recheck — 2026-11-24 08:50 Asia/Bangkok
+
+Read the Production Supabase Auth public settings endpoint using the locally stored service credential. Email is enabled; Google, Apple, Facebook, LINE, TikTok, phone, and the other listed external providers report disabled. This read does not reveal whether provider client credentials are present, and no provider setting was changed. The Google route still returns 404 in Production, so the Auth Worker must not be released as a completed Google sign-in flow until the provider is enabled with valid credentials and its callback is verified. The refreshed public endpoint status records this observation.
 
 ## Public endpoint and crawler audit — 2026-11-24 08:28 Bangkok time
 
