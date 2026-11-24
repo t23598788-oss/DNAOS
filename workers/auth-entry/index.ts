@@ -11,6 +11,9 @@ interface AuthEnv {
 const allowedMethods = new Map<string, ReadonlySet<string>>([
   ["/login", new Set(["GET"])],
   ["/start", new Set(["GET"])],
+  ["/workspace", new Set(["GET"])],
+  ["/auth/google", new Set(["GET"])],
+  ["/auth/confirm", new Set(["GET"])],
   ["/v1/auth/csrf", new Set(["GET"])],
   ["/v1/auth/otp", new Set(["POST"])],
   ["/v1/auth/verify", new Set(["POST"])],

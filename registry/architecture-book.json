@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-23T23:36:54.804Z",
+  "generated_at": "2026-11-24T01:16:52.851Z",
   "version": 1,
   "nodes": [
     {
@@ -81471,7 +81471,7 @@
           "name": "presentationAssets",
           "kind": "const",
           "line_start": 29,
-          "line_end": 86
+          "line_end": 106
         }
       ]
     },
@@ -97312,8 +97312,8 @@
         {
           "name": "default",
           "kind": "default",
-          "line_start": 801,
-          "line_end": 834
+          "line_start": 858,
+          "line_end": 891
         }
       ],
       "import_sites": [
@@ -97371,7 +97371,7 @@
           "name": "entryPage",
           "kind": "function",
           "line_start": 2,
-          "line_end": 146
+          "line_end": 149
         }
       ]
     },
@@ -97753,8 +97753,8 @@
         {
           "name": "default",
           "kind": "default",
-          "line_start": 26,
-          "line_end": 43
+          "line_start": 29,
+          "line_end": 46
         }
       ],
       "import_sites": [
@@ -97795,7 +97795,7 @@
           "name": "default",
           "kind": "default",
           "line_start": 4,
-          "line_end": 33
+          "line_end": 35
         }
       ]
     },
@@ -97914,6 +97914,30 @@
           "line_end": 15
         }
       ]
+    },
+    {
+      "id": "module:scripts/register-development-change-set.ts",
+      "type": "Module",
+      "layer": "scripts",
+      "name_en": "scripts/register-development-change-set.ts",
+      "purpose_th": "DNA OS MODULE: Register one capability-sized DNA bundle, its Git-tracked files,",
+      "exports": [],
+      "status": "OK",
+      "runtime_entry_point": true,
+      "internal_dependencies": [],
+      "dependents": [],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "scripts",
+      "lifecycle_status": "active",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN"
     }
   ],
   "edges": [
@@ -104180,6 +104204,11 @@
     {
       "source": "layer:scripts",
       "target": "module:scripts/recovery-test.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:scripts",
+      "target": "module:scripts/register-development-change-set.ts",
       "label": "contains"
     },
     {
@@ -123984,8 +124013,8 @@
     }
   ],
   "summary": {
-    "total": 1441,
-    "ok": 1441,
+    "total": 1442,
+    "ok": 1442,
     "broken": 0,
     "unused": 0,
     "unregistered": 0

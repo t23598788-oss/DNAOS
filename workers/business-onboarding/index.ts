@@ -27,6 +27,7 @@ const MAX_BODY = 8_192;
 const ACCESS_COOKIE = "__Host-dnaos_access";
 const REFRESH_COOKIE = "__Host-dnaos_refresh";
 const CSRF_COOKIE = "__Host-dnaos_csrf";
+const OAUTH_VERIFIER_COOKIE = "__Host-dnaos_oauth_verifier";
 
 const toolManifest = {
   tools: [
@@ -152,6 +153,38 @@ async function authFetch(env: Env, path: string, body: Record<string, unknown>, 
 }
 
 async function authRoute(request: Request, env: Env, pathname: string): Promise<Response | null> {
+  if (pathname === "/auth/google" && request.method === "GET") {
+    const verifier = encodeBase64(crypto.getRandomValues(new Uint8Array(32)), true);
+    const challenge = encodeBase64(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier))), true);
+    const authorize = new URL(`${env.SUPABASE_URL.replace(/\/$/, "")}/auth/v1/authorize`);
+    authorize.searchParams.set("provider", "google");
+    authorize.searchParams.set("redirect_to", `${env.AUTH_APP_ORIGIN}/auth/confirm`);
+    authorize.searchParams.set("code_challenge", challenge);
+    authorize.searchParams.set("code_challenge_method", "s256");
+    const response = new Response(null, { status: 302, headers: { location: authorize.toString(), "cache-control": "no-store" } });
+    response.headers.append("set-cookie", sessionCookie(OAUTH_VERIFIER_COOKIE, verifier, 600));
+    return response;
+  }
+  if (pathname === "/auth/confirm" && request.method === "GET") {
+    const url = new URL(request.url);
+    const code = url.searchParams.get("code");
+    const verifier = cookie(request, OAUTH_VERIFIER_COOKIE);
+    if (!code || code.length > 4096 || !verifier) return clearOAuthCookie(Response.redirect(`${env.AUTH_APP_ORIGIN}/login?error=oauth_failed`, 303));
+    try {
+      const upstream = await authFetch(env, "/auth/v1/token?grant_type=pkce", { auth_code: code, code_verifier: verifier });
+      if (!upstream.ok) return clearOAuthCookie(Response.redirect(`${env.AUTH_APP_ORIGIN}/login?error=oauth_failed`, 303));
+      const session = readSessionTokens(await upstream.json());
+      if (env[GATEWAY_TRACE]) env[GATEWAY_TRACE]!.actorId = session.user!.id as string;
+      const response = new Response(null, { status: 303, headers: { location: `${env.AUTH_APP_ORIGIN}/workspace`, "cache-control": "no-store" } });
+      response.headers.append("set-cookie", `${OAUTH_VERIFIER_COOKIE}=; Path=/; Max-Age=0; Secure; HttpOnly; SameSite=Lax`);
+      response.headers.append("set-cookie", sessionCookie(ACCESS_COOKIE, session.access_token!, Math.min(Math.max(session.expires_in!, 60), 3600)));
+      response.headers.append("set-cookie", sessionCookie(REFRESH_COOKIE, session.refresh_token!, 60 * 60 * 24 * 30));
+      response.headers.append("set-cookie", sessionCookie(CSRF_COOKIE, encodeBase64(crypto.getRandomValues(new Uint8Array(32)), true), 3600, false));
+      return response;
+    } catch {
+      return clearOAuthCookie(Response.redirect(`${env.AUTH_APP_ORIGIN}/login?error=oauth_failed`, 303));
+    }
+  }
   if (pathname === "/v1/auth/csrf" && request.method === "GET") {
     if (!exactAppOrigin(request, env)) return json({ error: "ORIGIN_REJECTED" }, 403);
     const token = encodeBase64(crypto.getRandomValues(new Uint8Array(32)), true);
@@ -260,6 +293,21 @@ async function authRoute(request: Request, env: Env, pathname: string): Promise<
     }
   }
   return null;
+}
+
+function clearOAuthCookie(response: Response): Response {
+  const headers = new Headers(response.headers);
+  headers.append("set-cookie", `${OAUTH_VERIFIER_COOKIE}=; Path=/; Max-Age=0; Secure; HttpOnly; SameSite=Lax`);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
+function workspacePage(userId: string): Response {
+  const nonce = encodeBase64(crypto.getRandomValues(new Uint8Array(18)));
+  return new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>DNA OS Workspace</title><style nonce="${nonce}">*{box-sizing:border-box}body{margin:0;background:#f5f7fa;color:#152238;font:16px Inter,system-ui,sans-serif}.top{height:72px;padding:12px clamp(20px,6vw,80px);display:flex;align-items:center;justify-content:space-between;background:#fff}.top img{width:142px;height:48px;object-fit:contain}.top button{padding:10px 15px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#24466e;font-weight:650;cursor:pointer}main{max-width:1100px;margin:48px auto;padding:0 24px}h1{font-size:32px;margin:0 0 8px}p{color:#536782}.panel{margin-top:28px;padding:28px;border:1px solid #d9e1eb;border-radius:16px;background:#fff;min-height:280px}.panel small{color:#526782}#status{margin-top:18px;color:#2464a4}</style><header class="top"><img src="/assets/brand/dna-os/v1/dna-os-horizontal-color.png" alt="DNA OS"><button id="signout">Sign out</button></header><main><h1>Workspace</h1><p>Your DNA OS account is signed in.</p><section class="panel"><strong>Workspace</strong><p id="status">Your account session is active.</p><small>Account ID · ${userId}</small></section></main><script nonce="${nonce}">async function getCsrf(){const r=await fetch('/v1/auth/csrf',{credentials:'same-origin'});if(!r.ok)throw new Error();return (await r.json()).csrf_token}document.getElementById('signout').onclick=async()=>{try{const token=await getCsrf();await fetch('/v1/auth/logout',{method:'POST',credentials:'same-origin',headers:{'x-dna-csrf':token}})}finally{location.replace('/login')}};</script></html>`, { headers: {
+    "content-type": "text/html; charset=utf-8", "cache-control": "no-store",
+    "content-security-policy": `default-src 'none'; script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}'; img-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'`,
+    "x-content-type-options": "nosniff", "referrer-policy": "no-referrer",
+  } });
 }
 
 async function readJson(request: Request): Promise<Record<string, unknown>> {
@@ -472,7 +520,16 @@ async function handleRequest(request: Request, env: Env): Promise<Response> {
     if (request.method === "GET" && url.pathname === "/") return landingPage();
     if (request.method === "GET" && url.pathname === "/connections") return connectionsPage();
     if (request.method === "GET" && ["/login", "/start"].includes(url.pathname)) return entryPage(env.AUTH_ONLY === "true");
-    if (env.AUTH_ONLY === "true" && !url.pathname.startsWith("/v1/auth/") && url.pathname !== "/health") return json({ error: "CAPABILITY_NOT_AVAILABLE" }, 404);
+    if (request.method === "GET" && url.pathname === "/workspace" && env.AUTH_ONLY === "true") {
+      try {
+        const { userId } = await authenticate(request, env);
+        return workspacePage(userId);
+      } catch {
+        return new Response(null, { status: 303, headers: { location: `${env.AUTH_APP_ORIGIN || ""}/login?next=%2Fworkspace`, "cache-control": "no-store" } });
+      }
+    }
+    if (env.AUTH_ONLY === "true" && !url.pathname.startsWith("/v1/auth/")
+      && !url.pathname.startsWith("/auth/") && url.pathname !== "/health") return json({ error: "CAPABILITY_NOT_AVAILABLE" }, 404);
     if (env.ENTRY_ONLY === "true" && !url.pathname.startsWith("/v1/auth/")
       && !["/v1/tools/onboarding.read", "/v1/tools/onboarding.save", "/health"].includes(url.pathname)) {
       return json({ error: "CAPABILITY_NOT_AVAILABLE" }, 404);

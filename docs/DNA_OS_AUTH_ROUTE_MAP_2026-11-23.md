@@ -7,6 +7,8 @@
 
 This page separates three kinds of evidence: live HTTP observations, checked-in source configuration, and provider-dashboard settings that cannot be confirmed from the repository. A route in source is not proof that it is deployed.
 
+The production observations above are a dated snapshot. The later local candidate audit at the end of this document supersedes its source-code descriptions where they differ; it does not supersede or imply a Production deployment.
+
 ## Route map
 
 ```text
@@ -157,3 +159,29 @@ The deployment and live-page check are recorded under the existing `dnaos-platfo
 | 15 | `live_route_verified` | passed | `c23863da-109f-4d28-8f01-f525c64f3b49` | `16000a9d8f6bacdb3c711d0ca24397e93dcf56cb` |
 
 The shared commit and deployment ID link the visible login page to the code and its live Worker version. The event rows are append-only; use the `dnaos-platform` history projection to follow later releases. This records the page delivery and visual route check only; it does not claim that every identity provider is enabled or that a signed-in session has been completed.
+
+## Local authentication release candidate audit — 2026-11-24 08:14 Bangkok time
+
+This is a local release-candidate branch based on `main` at `42191e944a1af58797cc703a5b9a9efae0314683`. It has not been published to GitHub, merged, or deployed. The latest Production history event remains sequence 20 (`deployment_completed`) for commit `42191e944a1af58797cc703a5b9a9efae0314683`; that event does not include the files listed below.
+
+### Change groups
+
+| Group | Changed source and assets | Intended flow | Local evidence |
+|---|---|---|---|
+| Auth entry and session | `workers/auth-entry/index.ts`, `workers/auth-entry/cloudflare.config.ts`, `workers/business-onboarding/index.ts`, `workers/business-onboarding/entry-page.ts` | Landing `/login` → email OTP or Google start → Supabase → DNA OS `/auth/confirm` → `/workspace`; workspace logout returns to `/login` | Worker typecheck, Vite build, and `test-auth-surface.mjs` pass locally. This does not prove live OTP completion, provider enablement, browser cookie persistence, or organization authorization. |
+| Provider button asset | `public/landing-preview/assets/providers/google/` | The Google sign-in control uses the official Google-provided artwork and points to `/auth/google?next=%2Fworkspace`. Other provider tiles remain noninteractive. | Source asset and its provenance README are present. Google OAuth credentials are not in source. |
+| App and brand assets | `public/favicon.ico`, `public/icons/*`, `public/manifest.json`, `public/landing-preview/favicon.ico`, `public/landing-preview/icons/*`, `public/landing-preview/manifest.json`, `public/landing-preview/index.html`, `presentation/assets/manifest.ts` | Homepage serves the current color DNA OS mark and app icons; PWA start destination is `/workspace`. | Source paths and asset manifests are locally present; the homepage Worker still needs a release before production serves these candidate files. |
+| Static asset route | `workers/landing-entry/wrangler.jsonc` | Homepage Worker routes `/favicon.ico`, `/manifest.json`, and `/icons/*` to its static assets. | Local route declaration only; not evidence of a live Cloudflare route. |
+| Auth surface verification | `workers/auth-entry/test-auth-surface.mjs` | Exercises auth-only route boundaries and callback/session surfaces. | Passed locally at 2026-11-24 08:07 Bangkok time. |
+
+### Live settings and release gates
+
+- Supabase production project is `xeytcavxejhyzxwevgto`. `https://dnaos.dev/auth/confirm` is visible in its redirect allowlist. The Site URL is still `https://dna-os-deadboard-production.up.railway.app`; it was not changed. The Google provider page could not be reloaded successfully during this audit. The latest readable provider inspection from the preceding session showed Google disabled with no Client ID/Secret configured; treat that as last-known, not a fresh verification.
+- Google Cloud's authorized redirect URI must be `https://xeytcavxejhyzxwevgto.supabase.co/auth/v1/callback`. This is separate from Supabase's post-login allowlist URL above. Credentials must be configured by the owner in the provider console; do not store them in this repository or history ledger.
+- The auth Worker route and Google OAuth callback code are source-only until the auth Worker is deployed. The changed favicon, PWA manifest, and icon routes are source-only until the homepage Worker is deployed.
+- The real email OTP → verified browser session → `/workspace` route and Google sign-in → callback → `/workspace` route have not been completed against Production. The current candidate is not ready for a Production release.
+- Supabase's live migration history records `20261123000002 development_change_sets` as applied. The `main` baseline used for this candidate lacked that migration source; this candidate restores the exact file from Git commit `5fd49b8b18e528842c0019079b51cabf0d241d18` and restores the ledger manual and registration script. This closes the source-file gap in the candidate branch, not in `main` until merged. Do not reapply the migration. The live migration table records version/name, not a SQL checksum, so the exact applied bytes still need a checksum/catalog reconciliation before a production release claim.
+
+### Provenance status
+
+The database remains the source of truth for append-only events and per-file hashes. This candidate restores the bundle-registration workflow and the source migration that the live database already lists as applied; it does not run that migration again. After the candidate commit, register separate capability-sized bundles for authentication/session and provenance-source recovery, link honest verification events, and retain publication, merge, deployment, and live-route events for when those actions actually occur. No `github_published`, merge, Production deployment, or live-route event is claimed for this candidate. No new database event or change set has been written: the documented bundle command requires the service-role credential through the local secret manager, which is not configured in this workspace. The last database history event remains sequence 20; record the candidate after a clean commit and authorized credential become available.

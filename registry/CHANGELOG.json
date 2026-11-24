@@ -3747,5 +3747,37 @@
     ],
     "summary": "Connected the production login screen and auth Worker to the central documentation index and the Settings reference entry. The public map links back to the existing dnaos-platform identity lineage; deployment and live-route evidence remain the database events at sequences 14–15 for Worker version c23863da-109f-4d28-8f01-f525c64f3b49 and commit 16000a9d8f6bacdb3c711d0ca24397e93dcf56cb. Documentation and Settings source edits are prepared locally; homepage map and Settings-app publication are not claimed here.",
     "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000231",
+    "date": "2026-11-24",
+    "timestamp": "2026-11-24T08:17:00+07:00",
+    "session_id": "auth-route-audit-2026-11-24",
+    "files": [
+      "workers/auth-entry/index.ts (allowlists the workspace and OAuth start/callback routes)",
+      "workers/auth-entry/cloudflare.config.ts (routes workspace and auth callback paths to the auth Worker)",
+      "workers/business-onboarding/index.ts (adds Google PKCE start/callback and session-backed workspace/logout)",
+      "workers/business-onboarding/entry-page.ts (uses the canonical color logo, official Google sign-in artwork, and workspace return path)",
+      "public/landing-preview/assets/providers/google/ (official Google sign-in asset and provenance)",
+      "public/favicon.ico, public/icons/*, public/landing-preview/favicon.ico, public/landing-preview/icons/* (current DNA OS mark and app icons)",
+      "public/manifest.json, public/landing-preview/manifest.json, public/landing-preview/index.html (PWA and page metadata point to the current brand and workspace)",
+      "workers/landing-entry/wrangler.jsonc (maps favicon, manifest, and icon paths to homepage static assets)",
+      "presentation/assets/manifest.ts (records brand asset usage)",
+      "workers/auth-entry/test-auth-surface.mjs (covers the new auth route surface)",
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (records candidate flow, local verification, live settings, blockers, and migration-source drift)",
+      "registry/CHANGELOG.json",
+      "README.md (links the development provenance ledger from the main guide index)",
+      "docs/DEVELOPMENT_PROVENANCE_LEDGER.md (restored database-history and bundle recording guide)",
+      "scripts/register-development-change-set.ts (restored bundle registration command)",
+      "scripts/read-development-history.ts and scripts/record-development-event.ts (restore change-set reads and event linking)",
+      "supabase/migrations/20261123000002_development_change_sets.sql (restored the exact migration source already applied in production; do not reapply)",
+      "package.json (adds history read/event/bundle scripts)",
+      "registry/module-registry.json (module entry generated for the bundle-registration script)",
+      "registry/architecture-book.json (generated source index for this candidate)"
+    ],
+    "summary": "Audited the source-to-production authentication path and recorded a local release candidate for OTP/Google start → Supabase → DNA OS callback → /workspace, plus canonical brand/PWA assets. Auth typecheck, worker build, and auth-surface checks pass locally. Supabase history shows the production migration development_change_sets is already applied; this candidate restores its exact source and the history/bundle tools to the main tree. The dnaos.dev callback is allowlisted, while Site URL still points to Railway; Google provider credentials and a real end-to-end session remain unverified. This is local source preparation only: no change-set/event registration, publication, merge, or deployment is claimed. No new database event was written because the documented service-role credential is unavailable in this workspace.",
+    "contract_changed": false
   }
 ]
