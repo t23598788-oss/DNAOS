@@ -185,3 +185,20 @@ This is a local release-candidate branch based on `main` at `42191e944a1af58797c
 ### Provenance status
 
 The database remains the source of truth for append-only events and per-file hashes. This candidate restores the bundle-registration workflow and the source migration that the live database already lists as applied; it does not run that migration again. After the candidate commit, register separate capability-sized bundles for authentication/session and provenance-source recovery, link honest verification events, and retain publication, merge, deployment, and live-route events for when those actions actually occur. No `github_published`, merge, Production deployment, or live-route event is claimed for this candidate. No new database event or change set has been written: the documented bundle command requires the service-role credential through the local secret manager, which is not configured in this workspace. The last database history event remains sequence 20; record the candidate after a clean commit and authorized credential become available.
+
+## Public endpoint and crawler audit — 2026-11-24 08:28 Bangkok time
+
+Fresh unauthenticated Production probes used exact GET paths and did not submit an OTP, start an OAuth flow, send a webhook, or write business data. Results are published in the candidate's `public/landing-preview/api-status.json` and summarized in `api-reference.md`:
+
+| GET path | Production result | Meaning |
+|---|---:|---|
+| `/`, `/login`, `/start` | 200 | Public page/entry routes respond. |
+| `/v1/auth/csrf` with `Origin: https://dnaos.dev` | 200 | Browser CSRF bootstrap responds; returned token was not recorded. |
+| `/v1/auth/session` without session cookie | 401 | Session route responds and correctly has no authenticated session. |
+| `/auth/google`, `/auth/confirm`, `/workspace` | 404 | Candidate routes are not deployed to Production. |
+| `/system-map`, `.json`, `.md`, `-ai.zip` | 200 | Public reference resources respond. Their map snapshot is stale: generated `2026-11-23T07:53:56.027Z`, source revision `77d539c20f52860fe650d5cd47301b36cdf039e4`. |
+| `/llms.txt`, `/openapi.json`, `/sitemap.xml` | 404 | These discovery/contract files are not served by Production yet. |
+
+GET probes for POST-only refresh/logout endpoints returned 404 by design, so they are not classified as unavailable. The OTP endpoint's last successful 202/delivery observation remains the separately dated 2026-11-23 record; this audit did not send another email. The public map's Railway/Vercel entries identify source-level adapters only, not public DNA OS API routes or proof of live provider accounts. The candidate adds a method-aware endpoint guide, JSON status index, and `llms.txt` as static homepage assets; these files remain unavailable until the homepage Worker is deployed.
+
+The live `robots.txt` allows the general Googlebot via `User-agent: *` / `Allow: /` but explicitly disallows Google-Extended, GoogleOther, Google-CloudVertexBot, and Google-Agent. Google says Google-Extended controls Gemini training/grounding and does not affect Google Search inclusion; these crawler policies are distinct. This candidate does not change `robots.txt` or authorize broader AI content access. A sitemap is also not served yet. See [Google's crawler documentation](https://developers.google.com/crawling/docs/crawlers-fetchers/google-common-crawlers).

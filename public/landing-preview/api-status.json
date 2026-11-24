@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "document": "DNA OS public endpoint status",
+  "base_url": "https://dnaos.dev",
+  "observed_at": "2026-11-24T08:28:29+07:00",
+  "observation": "Unauthenticated GET probes only, except the historical OTP observation explicitly dated below. No OTP, OAuth, webhook, or business write was triggered during this audit.",
+  "status_definitions": {
+    "LIVE": "The exact public method/path returned an expected live response during the observation.",
+    "LIVE_AUTH_REQUIRED": "The route responded and requires an authenticated session; this probe did not establish a session.",
+    "IN_DEVELOPMENT": "The path returned 404 in Production; source candidate exists but is not deployed.",
+    "NOT_PUBLISHED": "No public document or endpoint is currently served at this path.",
+    "CONFIGURED_UNVERIFIED": "The method/path is present in the Production source route contract, but a safe live request of that method was not made."
+  },
+  "endpoints": [
+    { "method": "GET", "path": "/", "status": "LIVE", "http_status": 200, "purpose": "Public landing page" },
+    { "method": "GET", "path": "/login", "status": "LIVE", "http_status": 200, "purpose": "DNA OS sign-in page" },
+    { "method": "GET", "path": "/start", "status": "LIVE", "http_status": 200, "purpose": "Sign-in entry alias" },
+    { "method": "GET", "path": "/v1/auth/csrf", "status": "LIVE", "http_status": 200, "purpose": "Browser CSRF bootstrap; requires Origin: https://dnaos.dev" },
+    { "method": "GET", "path": "/v1/auth/session", "status": "LIVE_AUTH_REQUIRED", "http_status": 401, "purpose": "Session lookup; 401 is expected without a session cookie" },
+    { "method": "POST", "path": "/v1/auth/otp", "status": "LIVE", "http_status": 202, "observed_at": "2026-11-23", "purpose": "Email sign-in code request; prior production probe received 202 and matching delivery. Not re-triggered in this audit." },
+    { "method": "POST", "path": "/v1/auth/verify", "status": "CONFIGURED_UNVERIFIED", "purpose": "OTP verification; no real verification was triggered in this audit" },
+    { "method": "POST", "path": "/v1/auth/refresh", "status": "CONFIGURED_UNVERIFIED", "purpose": "Refresh an existing session; a GET request is not a valid test for this POST-only route" },
+    { "method": "POST", "path": "/v1/auth/logout", "status": "CONFIGURED_UNVERIFIED", "purpose": "End the current session; a GET request is not a valid test for this POST-only route" },
+    { "method": "GET", "path": "/auth/google", "status": "IN_DEVELOPMENT", "http_status": 404, "purpose": "Google OAuth start; source candidate exists but is not deployed and provider credentials are unverified" },
+    { "method": "GET", "path": "/auth/confirm", "status": "IN_DEVELOPMENT", "http_status": 404, "purpose": "OAuth callback; source candidate exists but is not deployed" },
+    { "method": "GET", "path": "/workspace", "status": "IN_DEVELOPMENT", "http_status": 404, "purpose": "Signed-in destination; source candidate exists but is not deployed" },
+    { "method": "GET", "path": "/system-map", "status": "LIVE", "http_status": 200, "purpose": "Public system reference" },
+    { "method": "GET", "path": "/system-map.json", "status": "LIVE", "http_status": 200, "purpose": "Machine-readable system reference; generated snapshot is dated 2026-11-23T07:53:56.027Z from revision 77d539c20f52860fe650d5cd47301b36cdf039e4" },
+    { "method": "GET", "path": "/system-map.md", "status": "LIVE", "http_status": 200, "purpose": "Markdown system reference; same dated snapshot as system-map.json" },
+    { "method": "GET", "path": "/system-map-ai.zip", "status": "LIVE", "http_status": 200, "purpose": "AI reference package; same dated snapshot as system-map.json" },
+    { "method": "GET", "path": "/llms.txt", "status": "NOT_PUBLISHED", "http_status": 404, "purpose": "No public AI index at time of audit" },
+    { "method": "GET", "path": "/openapi.json", "status": "NOT_PUBLISHED", "http_status": 404, "purpose": "No public OpenAPI contract at time of audit" }
+  ],
+  "developer_access": {
+    "public_api_key_self_service": "NOT_PUBLISHED",
+    "public_rate_limit_policy": "NOT_PUBLISHED",
+    "sandbox_or_playground": "NOT_PUBLISHED",
+    "line_n8n_webhook_quickstart": "NOT_PUBLISHED",
+    "technical_support_and_status_page": "NOT_PUBLISHED",
+    "railway_and_vercel": "Source-level adapter/registry references only; not evidence of current public DNA OS API endpoints or a live provider account."
+  },
+  "crawler_access": {
+    "robots_txt_observed_at": "2026-11-24T08:28:29+07:00",
+    "googlebot_search_and_images": "Allowed by User-agent: * / Allow: /. This permits crawling but does not guarantee indexing.",
+    "google_extended": "Disallowed. Google documents that Google-Extended controls Gemini training/grounding and does not affect Google Search inclusion.",
+    "googleother_and_google_cloudvertexbot": "Disallowed by explicit robots.txt groups.",
+    "google_agent": "Disallowed by an explicit robots.txt group.",
+    "sitemap_xml": "Not published; GET /sitemap.xml returned 404.",
+    "robots_policy_changed_by_this_candidate": false
+  }
+}

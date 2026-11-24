@@ -3779,5 +3779,29 @@
     ],
     "summary": "Audited the source-to-production authentication path and recorded a local release candidate for OTP/Google start → Supabase → DNA OS callback → /workspace, plus canonical brand/PWA assets. Auth typecheck, worker build, and auth-surface checks pass locally. Supabase history shows the production migration development_change_sets is already applied; this candidate restores its exact source and the history/bundle tools to the main tree. The dnaos.dev callback is allowlisted, while Site URL still points to Railway; Google provider credentials and a real end-to-end session remain unverified. This is local source preparation only: no change-set/event registration, publication, merge, or deployment is claimed. No new database event was written because the documented service-role credential is unavailable in this workspace.",
     "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000232",
+    "date": "2026-11-24",
+    "timestamp": "2026-11-24T08:34:00+07:00",
+    "session_id": "auth-route-audit-2026-11-24",
+    "files": [
+      "public/landing-preview/api-reference.md",
+      "public/landing-preview/api-status.json",
+      "public/landing-preview/llms.txt",
+      "public/landing-preview/sitemap.xml",
+      "public/landing-preview/system-map.md",
+      "public/landing-preview/system-map.html",
+      "public/landing-preview/system-map-ai-README.md",
+      "public/landing-preview/system-map-ai.zip",
+      "public/landing-preview/index.html",
+      "workers/landing-entry/wrangler.jsonc",
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Recorded a fresh production route audit and added static, method-aware API status documentation, an AI reference index, and a search sitemap to the homepage asset candidate. The existing system-map snapshot is explicitly identified as stale; Railway/Vercel are labelled as source adapters rather than public live endpoints. robots.txt policy was inspected and left unchanged. These files are local and not deployed; production currently returns 404 for /llms.txt, /openapi.json, /sitemap.xml, /auth/google, /auth/confirm, and /workspace. No Supabase history event was written because the documented service-role credential is unavailable.",
+    "contract_changed": false
   }
 ]

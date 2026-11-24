@@ -12,6 +12,7 @@ Source revision: 77d539c20f52860fe650d5cd47301b36cdf039e4
 
 ## Login and identity
 - Sign-in page: [https://dnaos.dev/login](https://dnaos.dev/login), served by `dnaos-auth-entry`.
+- Current production endpoint status: [method-by-method table](/api-reference.md) · [machine-readable status](/api-status.json). The map's source revision and generated timestamp below are older than the 2026-11-24 live probe; check the status file before using a route.
 - Route, session, and release reference: [DNA OS sign-in route map](https://github.com/t23598788-oss/DNAOS/blob/main/docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md).
 - Screen source: [workers/business-onboarding/entry-page.ts](https://github.com/t23598788-oss/DNAOS/blob/main/workers/business-onboarding/entry-page.ts); route/gateway entry: [workers/auth-entry/index.ts](https://github.com/t23598788-oss/DNAOS/blob/main/workers/auth-entry/index.ts).
 - Production release and live route verification are linked under the `dnaos-platform` identity lineage in Supabase `system.development_events` (sequences 14–15; Worker version `c23863da-109f-4d28-8f01-f525c64f3b49`).
@@ -24,7 +25,15 @@ Source revision: 77d539c20f52860fe650d5cd47301b36cdf039e4
 5. scoped authorized consumer
 
 Gateway adapters in source: github (webhook: repository, branch, commit, pull_request, workflow_run); supabase (poll: health, migration_state); vercel (webhook: deployment); railway (webhook: deployment); line (webhook: message, document, location, identity_signal, interaction); facebook (webhook: message, document, interaction); instagram (webhook: message, document, interaction).
-Connect contracts in source: railway, github, line, meta. A registered contract does not prove a live account is connected.
+These are source-level adapter/contract declarations, not public DNA OS API endpoints and not proof that an external provider account or webhook is connected. See the [endpoint status reference](/api-reference.md) for verified routes.
+
+## API access and endpoint status
+- Public API and connection guide: [api-reference.md](/api-reference.md).
+- Machine-readable endpoint status: [api-status.json](/api-status.json).
+- AI-readable index: [llms.txt](/llms.txt).
+- Search crawler sitemap candidate: [sitemap.xml](/sitemap.xml); Production currently returns 404 until the homepage Worker candidate is deployed.
+- The 2026-11-24 probe found `/login`, `/start`, `/v1/auth/csrf`, `/v1/auth/session`, and the four system-map resources responding. `/auth/google`, `/auth/confirm`, and `/workspace` returned 404 in Production; they remain In Development until the auth Worker candidate is deployed.
+- `/llms.txt` and `/openapi.json` returned 404 at the time of the probe. This candidate adds a static `llms.txt` and public endpoint status files, but they become available only after the homepage asset Worker is deployed. No public OpenAPI contract, developer API key issuance, rate-limit policy, sandbox/playground, or LINE/n8n webhook quickstart is currently published.
 
 ## Database and compute
 Supabase migration objects in the provenance ledger: table system.development_lineages, table system.development_events, function system.assign_development_event_sequence, function system.reject_development_event_mutation, function public.record_development_event, function public.read_development_history, function system.development_release_readiness, table system.development_change_sets, table system.development_change_files, table system.development_event_change_sets, table system.development_change_set_approvals, function public.register_development_change_set, function public.read_development_change_set_for_approval, function public.approve_development_change_set, function public.link_development_event_to_change_set, function public.read_development_change_sets, function public.read_public_development_change_sets, function system.development_release_readiness.
