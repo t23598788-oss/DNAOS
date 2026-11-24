@@ -172,74 +172,78 @@ as $function$
     select event_id, event_type, status, environment, migration_id, sql_sha256, branch, occurred_at
     from system.development_events
     where lineage_id = p_lineage_id and commit_sha = lower(p_commit_sha)
+  ), production_bundles as (
+    select distinct s.change_set_id, s.change_set_key, s.target_ref,
+      s.target_company_id, s.target_organization_id, s.policy_ref,
+      s.policy_sha256, s.credential_class
+    from system.development_change_sets s
+    join system.development_change_files f on f.change_set_id = s.change_set_id
+    where s.target_environment = 'production'
+      and f.commit_sha = lower(p_commit_sha)
   ), required as (
     select unnest(array[
       'github_main_merged', 'manual_checks_completed', 'build_verified',
       'deployment_completed', 'live_route_verified'
     ]) as event_type
   ), missing_required as (
-    select r.event_type
-    from required r
+    select r.event_type || ':' || b.change_set_key as evidence
+    from production_bundles b
+    cross join required r
     where not exists (
       select 1
       from matching m
-      join system.development_event_change_sets l on l.event_id = m.event_id
-      join system.development_change_sets s on s.change_set_id = l.change_set_id
+      join system.development_event_change_sets l
+        on l.event_id = m.event_id and l.change_set_id = b.change_set_id
       where m.event_type = r.event_type and m.status = 'passed'
         and (r.event_type <> 'github_main_merged' or m.branch = 'main')
         and (r.event_type <> 'deployment_completed' or m.environment = 'production')
         and (r.event_type <> 'live_route_verified' or m.environment = 'production')
-        and s.target_environment = 'production'
-        and exists (
-          select 1 from system.development_change_files f
-          where f.change_set_id = s.change_set_id and f.commit_sha = lower(p_commit_sha)
-        )
     )
   ), missing_bundle as (
-    select 'change_set_and_file_manifest' as evidence
+    select 'production_change_set:' || lower(p_commit_sha) as evidence
+    where not exists (select 1 from production_bundles)
+    union all
+    select 'approval:' || b.change_set_key
+    from production_bundles b
+    where b.target_ref is null
+       or b.target_company_id is null
+       or b.target_organization_id is null
+       or b.policy_ref is null
+       or b.policy_sha256 is null
+       or b.credential_class is distinct from 'production_release_scoped'
+       or not exists (
+         select 1
+         from system.development_change_sets s
+         join system.development_change_set_approvals approval
+           on approval.change_set_id = s.change_set_id
+          and approval.target_company_id = s.target_company_id
+          and approval.target_organization_id = s.target_organization_id
+          and approval.operation = s.operation
+          and approval.policy_sha256 = s.policy_sha256
+         where s.change_set_id = b.change_set_id
+       )
+    union all
+    select 'post_approval_release:' || b.change_set_key
+    from production_bundles b
     where not exists (
       select 1
-      from matching m
-      join system.development_event_change_sets l on l.event_id = m.event_id
-      join system.development_change_sets s on s.change_set_id = l.change_set_id
-      where s.target_environment = 'production'
-        and s.target_ref is not null
-        and s.target_company_id is not null
-        and s.target_organization_id is not null
-        and s.policy_ref is not null
-        and s.policy_sha256 is not null
-        and s.credential_class = 'production_release_scoped'
-        and exists (
-          select 1
-          from system.development_change_set_approvals approval
-          where approval.change_set_id = s.change_set_id
-            and approval.target_company_id = s.target_company_id
-            and approval.target_organization_id = s.target_organization_id
-            and approval.operation = s.operation
-            and approval.policy_sha256 = s.policy_sha256
-        )
-        and exists (
-          select 1
-          from matching release_event
-          join system.development_event_change_sets release_link
-            on release_link.event_id = release_event.event_id
-           and release_link.change_set_id = s.change_set_id
-          where release_event.event_type in ('migration_applied', 'deployment_completed')
-            and release_event.status = 'passed'
-            and release_event.occurred_at >= (
-              select approval.approved_at from system.development_change_set_approvals approval
-              where approval.change_set_id = s.change_set_id
-            )
-        )
-        and exists (
-          select 1 from system.development_change_files f
-          where f.change_set_id = s.change_set_id and f.commit_sha = lower(p_commit_sha)
-        )
+      from system.development_change_set_approvals approval
+      join matching release_event
+        on release_event.event_type in ('migration_applied', 'deployment_completed')
+       and release_event.status = 'passed'
+       and release_event.occurred_at >= approval.approved_at
+      join system.development_event_change_sets release_link
+        on release_link.event_id = release_event.event_id
+       and release_link.change_set_id = approval.change_set_id
+      where approval.change_set_id = b.change_set_id
+        and approval.target_company_id = b.target_company_id
+        and approval.target_organization_id = b.target_organization_id
+        and approval.policy_sha256 = b.policy_sha256
     )
   ), applied_migrations as (
     -- Keep successful migration events even when they lack a bundle link;
     -- an unlinked application is incomplete release evidence, not an absence.
-    select distinct m.migration_id, m.sql_sha256, m.environment, l.change_set_id
+    select m.migration_id, m.sql_sha256, m.environment, l.change_set_id
     from matching m
     left join system.development_event_change_sets l on l.event_id = m.event_id
     where m.event_type = 'migration_applied' and m.status = 'passed'
@@ -256,7 +260,7 @@ as $function$
         and m.environment is not distinct from a.environment
     )
   ), all_missing as (
-    select event_type as evidence from missing_required
+    select evidence from missing_required
     union all select evidence from missing_bundle
     union all select 'migration_verified:' || migration_id from missing_migrations
   )
