@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-25T23:53:34.871Z",
+  "generated_at": "2026-11-25T23:54:39.216Z",
   "version": 1,
   "nodes": [
     {
@@ -97947,12 +97947,12 @@
       "type": "Module",
       "layer": "workers",
       "name_en": "workers/meta-webhook/index.ts",
-      "purpose_th": "[ตรวจพบอัตโนมัติ] workers/meta-webhook/index.ts",
+      "purpose_th": "รับและตรวจสอบ Webhook ข้อความจาก Facebook Page แปลงเป็นเหตุการณ์กลาง แล้วส่งหลักฐานเข้า Integration Gateway โดยไม่ตอบกลับลูกค้า",
       "exports": [
         "default"
       ],
-      "status": "UNREGISTERED",
-      "runtime_entry_point": false,
+      "status": "OK",
+      "runtime_entry_point": true,
       "internal_dependencies": [
         "module:engines/integration-gateway/adapters/meta.ts",
         "module:engines/integration-gateway/event-bus/bus.ts"
@@ -97963,7 +97963,7 @@
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
       "domain_owner": "workers",
-      "lifecycle_status": "unregistered",
+      "lifecycle_status": "active",
       "deprecated": false,
       "event_producer": "UNKNOWN",
       "event_consumer": "UNKNOWN",
@@ -97972,7 +97972,6 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN",
-      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
       "symbols": [
         {
           "name": "default",
@@ -124094,9 +124093,9 @@
   ],
   "summary": {
     "total": 1443,
-    "ok": 1442,
+    "ok": 1443,
     "broken": 0,
     "unused": 0,
-    "unregistered": 1
+    "unregistered": 0
   }
 }
