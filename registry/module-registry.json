@@ -17475,6 +17475,17 @@
       "purpose_th": "DNA OS MODULE: Register one capability-sized DNA bundle, its Git-tracked files,",
       "exports": [],
       "status": "active"
+    },
+    "workers/meta-webhook/index.ts": {
+      "owner": "workers",
+      "layer": "workers",
+      "purpose": "Receive and verify Facebook Page Messenger webhooks, normalize inbound events, and publish evidence to the Integration Gateway without replying.",
+      "purpose_th": "รับและตรวจสอบ Webhook ข้อความจาก Facebook Page แปลงเป็นเหตุการณ์กลาง แล้วส่งหลักฐานเข้า Integration Gateway โดยไม่ตอบกลับลูกค้า",
+      "exports": [
+        "default"
+      ],
+      "status": "active",
+      "entry_point": true
     }
   },
   "excluded": [

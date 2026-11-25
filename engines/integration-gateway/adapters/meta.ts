@@ -86,6 +86,54 @@ interface MetaPayload {
   entry?: { id?: string; time?: number; messaging?: MetaMessagingEvent[] }[];
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function optionalString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+/** Decode Meta's untrusted JSON shape before treating it as a typed event. */
+function decodeMessagingEvent(value: unknown): MetaMessagingEvent | null {
+  if (!isRecord(value)) return null;
+
+  const sender = isRecord(value.sender) ? { id: optionalString(value.sender.id) } : undefined;
+  const recipient = isRecord(value.recipient) ? { id: optionalString(value.recipient.id) } : undefined;
+  const messageValue = isRecord(value.message) ? value.message : null;
+  const attachments = messageValue && Array.isArray(messageValue.attachments)
+    ? messageValue.attachments
+      .filter(isRecord)
+      .map((attachment) => ({
+        type: optionalString(attachment.type),
+        payload: isRecord(attachment.payload)
+          ? { url: optionalString(attachment.payload.url) }
+          : undefined,
+      }))
+    : undefined;
+  const message = messageValue
+    ? {
+        mid: optionalString(messageValue.mid),
+        text: optionalString(messageValue.text),
+        is_echo: typeof messageValue.is_echo === "boolean" ? messageValue.is_echo : undefined,
+        attachments,
+      }
+    : undefined;
+  const postback = isRecord(value.postback)
+    ? { mid: optionalString(value.postback.mid) }
+    : undefined;
+
+  return {
+    sender,
+    recipient,
+    timestamp: typeof value.timestamp === "number" && Number.isFinite(value.timestamp)
+      ? value.timestamp
+      : undefined,
+    message,
+    postback,
+  };
+}
+
 
 /** Business meaning of one inbound Meta message, provider-agnostic — same verb set as the LINE adapter. */
 export function capabilityForMetaMessage(hasMedia: boolean, messageType: string | null): GatewayCapability {
@@ -116,7 +164,20 @@ function newEventId(provider: GatewayProvider, mid: string | undefined, timestam
  * idempotent upsert in the evidence store (same dedup shape as EVT-line-*).
  */
 export function normalizeMetaWebhook(payload: unknown): { events: GatewayEvent[]; skipped: number } {
-  const body = (payload ?? {}) as MetaPayload;
+  const body: MetaPayload = isRecord(payload)
+    ? {
+        object: optionalString(payload.object),
+        entry: Array.isArray(payload.entry)
+          ? payload.entry.filter(isRecord).map((entry) => ({
+              id: optionalString(entry.id),
+              time: typeof entry.time === "number" && Number.isFinite(entry.time) ? entry.time : undefined,
+              messaging: Array.isArray(entry.messaging)
+                ? entry.messaging.map(decodeMessagingEvent).filter((event): event is MetaMessagingEvent => event !== null)
+                : undefined,
+            }))
+          : undefined,
+      }
+    : {};
   const objectType = typeof body.object === "string" ? body.object : "";
   // provider per surface: Messenger = object "page", Instagram Messaging = object "instagram".
   // Any other object (user, permissions, ...) is not a message surface — skip honestly.
@@ -124,7 +185,15 @@ export function normalizeMetaWebhook(payload: unknown): { events: GatewayEvent[]
   if (!provider) return { events: [], skipped: 1 };
 
   const events: GatewayEvent[] = [];
-  let skipped = 0;
+  let skipped = !isRecord(payload)
+    ? 1
+    : Array.isArray(payload.entry)
+      ? payload.entry.reduce((count, entry) => {
+          if (!isRecord(entry)) return count + 1;
+          if (!Array.isArray(entry.messaging)) return count;
+          return count + entry.messaging.filter((event) => !isRecord(event)).length;
+        }, 0)
+      : 0;
   const entries = Array.isArray(body.entry) ? body.entry : [];
   entries.forEach((entry, entryIndex) => {
     const list = Array.isArray(entry.messaging) ? entry.messaging : [];

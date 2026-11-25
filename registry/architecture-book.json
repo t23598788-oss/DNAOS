@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-24T01:16:52.851Z",
+  "generated_at": "2026-11-25T23:53:34.871Z",
   "version": 1,
   "nodes": [
     {
@@ -43524,7 +43524,8 @@
         "module:app/api/gateway/proposals/route.ts",
         "module:scripts/check-transitional-layers.ts",
         "module:scripts/dispatcher-execution-mode-test.ts",
-        "module:scripts/gateway-observe-supabase.ts"
+        "module:scripts/gateway-observe-supabase.ts",
+        "module:workers/meta-webhook/index.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -90693,7 +90694,9 @@
       "dependents": [
         "module:app/api/gateway/observe/meta/route.ts",
         "module:scripts/central-processing-boundary.test.ts",
-        "module:scripts/connect-channel-receive.test.ts"
+        "module:scripts/connect-channel-receive.test.ts",
+        "module:scripts/meta-messenger-adapter.test.ts",
+        "module:workers/meta-webhook/index.ts"
       ],
       "data_tables": "UNKNOWN",
       "business_capabilities": "UNKNOWN",
@@ -90729,14 +90732,14 @@
         {
           "name": "capabilityForMetaMessage",
           "kind": "function",
-          "line_start": 91,
-          "line_end": 95
+          "line_start": 139,
+          "line_end": 143
         },
         {
           "name": "normalizeMetaWebhook",
           "kind": "function",
-          "line_start": 118,
-          "line_end": 171
+          "line_start": 166,
+          "line_end": 240
         }
       ],
       "import_sites": [
@@ -97938,6 +97941,58 @@
       "related_documents": "UNKNOWN",
       "related_commands": "UNKNOWN",
       "related_services": "UNKNOWN"
+    },
+    {
+      "id": "module:workers/meta-webhook/index.ts",
+      "type": "Module",
+      "layer": "workers",
+      "name_en": "workers/meta-webhook/index.ts",
+      "purpose_th": "[ตรวจพบอัตโนมัติ] workers/meta-webhook/index.ts",
+      "exports": [
+        "default"
+      ],
+      "status": "UNREGISTERED",
+      "runtime_entry_point": false,
+      "internal_dependencies": [
+        "module:engines/integration-gateway/adapters/meta.ts",
+        "module:engines/integration-gateway/event-bus/bus.ts"
+      ],
+      "dependents": [
+        "module:scripts/meta-webhook-worker.test.ts"
+      ],
+      "data_tables": "UNKNOWN",
+      "business_capabilities": "UNKNOWN",
+      "domain_owner": "workers",
+      "lifecycle_status": "unregistered",
+      "deprecated": false,
+      "event_producer": "UNKNOWN",
+      "event_consumer": "UNKNOWN",
+      "related_workflows": "UNKNOWN",
+      "related_business_events": "UNKNOWN",
+      "related_documents": "UNKNOWN",
+      "related_commands": "UNKNOWN",
+      "related_services": "UNKNOWN",
+      "error_th": "ตรวจพบไฟล์ใหม่ที่ยังไม่ได้ลงทะเบียนอย่างเป็นทางการ — กรุณาเพิ่ม purpose_th ใน module-registry.json",
+      "symbols": [
+        {
+          "name": "default",
+          "kind": "default",
+          "line_start": 76,
+          "line_end": 76
+        }
+      ],
+      "import_sites": [
+        {
+          "specifier": "../../engines/integration-gateway/adapters/meta",
+          "line": 2,
+          "resolved_target": "engines/integration-gateway/adapters/meta.ts"
+        },
+        {
+          "specifier": "../../engines/integration-gateway/event-bus/bus",
+          "line": 3,
+          "resolved_target": "engines/integration-gateway/event-bus/bus.ts"
+        }
+      ]
     }
   ],
   "edges": [
@@ -105119,6 +105174,11 @@
     {
       "source": "layer:workers",
       "target": "module:workers/landing-entry/index.ts",
+      "label": "contains"
+    },
+    {
+      "source": "layer:workers",
+      "target": "module:workers/meta-webhook/index.ts",
       "label": "contains"
     },
     {
@@ -122072,6 +122132,16 @@
       "label": "imports"
     },
     {
+      "source": "module:scripts/meta-messenger-adapter.test.ts",
+      "target": "module:engines/integration-gateway/adapters/meta.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:scripts/meta-webhook-worker.test.ts",
+      "target": "module:workers/meta-webhook/index.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:scripts/monitoring-test.ts",
       "target": "module:app/api/admin/ide/_lib/fsSecurity.ts",
       "label": "imports"
@@ -124007,16 +124077,26 @@
       "label": "imports"
     },
     {
+      "source": "module:workers/meta-webhook/index.ts",
+      "target": "module:engines/integration-gateway/adapters/meta.ts",
+      "label": "imports"
+    },
+    {
+      "source": "module:workers/meta-webhook/index.ts",
+      "target": "module:engines/integration-gateway/event-bus/bus.ts",
+      "label": "imports"
+    },
+    {
       "source": "module:workers/stock-ingest/index.ts",
       "target": "module:workers/shared/workerIdentity.ts",
       "label": "imports"
     }
   ],
   "summary": {
-    "total": 1442,
+    "total": 1443,
     "ok": 1442,
     "broken": 0,
     "unused": 0,
-    "unregistered": 0
+    "unregistered": 1
   }
 }
