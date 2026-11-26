@@ -34,7 +34,7 @@ async function timedFetch(url: string, init: RequestInit): Promise<Response> {
  * declared with `secret.api_token` only
  * (engines/connectors/providers/railway.ts).
  */
-function resolveBearerCredential(secret: Record<string, unknown>): string {
+export function resolveBearerCredential(secret: Record<string, unknown>): string {
   // Parity with the canonical Run-path read order (registry/communication.ts
   // #sendLineMessage, registry/line-richmenu.ts, app/api/internal/line/token):
   // channel_access_token first — otherwise lifecycle Test validates a DIFFERENT
@@ -250,6 +250,9 @@ async function testWebhook(config: Record<string, unknown>): Promise<TestResult>
   return { ok: true };
 }
 
+// ── มิเตอร์ตัวที่ 2 (L2): ยิง request จริงออกนอกวงจร ────────────────
+// @io in  tester.probe              meter=verify_calls
+// @io out ext.provider.https        meter=verify_requests
 export async function testConnector(
   authType: ConnectorAuthType,
   config: Record<string, unknown>,
