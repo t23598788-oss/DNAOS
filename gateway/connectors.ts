@@ -199,6 +199,10 @@ export async function setConnectorEnabled(id: string, enabled: boolean): Promise
   return data as ConnectorRecord;
 }
 
+// ── จุดเขียนสถานะหลังทดสอบ (ตัวส่ง → ลงดิน/G) ───────────────────
+// @io in  tester.probe              meter=verify_calls
+// @io out ext.supabase.connectors   meter=db_writes
+// @io out ext.supabase.audit_logs   meter=db_writes
 export async function recordConnectorTest(
   id: string,
   result: { ok: boolean; error?: string }
@@ -243,6 +247,9 @@ export async function recordConnectorTest(
   return data as ConnectorRecord;
 }
 
+// ── จุดส่งออกจริง (ตัวส่ง): ส่งต่อให้ tester แล้วเก็บผล ────────────
+// @io in  tester.l2                 meter=verify_calls
+// @io out tester.probe              meter=verify_calls
 export async function runConnectorTest(id: string): Promise<ConnectorRecord> {
   const connector = await getConnectorById(id);
   if (!connector) throw new Error("ไม่พบ Connector นี้");
