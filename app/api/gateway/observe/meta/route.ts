@@ -19,9 +19,9 @@
  * never a fallback. Channel surfaces: object "page" -> provider facebook,
  * object "instagram" -> provider instagram (both allowed by the
  * integration_gateway_events provider CHECK after migration
- * 20261007000002_gateway_allow_meta_providers — apply that migration before
- * enabling this endpoint against production, same release order as the LINE
- * provider migration).
+ * 20261007000001_propose_meta_gateway_providers. That migration is marked
+ * DRAFT / NOT APPLIED in source; verify the target project's migration ledger
+ * and apply the reviewed migration before enabling this endpoint in production.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { normalizeMetaWebhook, verifyMetaSignature, metaVerifyChallenge } from "@/engines/integration-gateway/adapters/meta";

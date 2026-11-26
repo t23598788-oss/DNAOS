@@ -7,6 +7,8 @@
 - [API and connection reference](https://dnaos.dev/api-reference.md): public endpoint status and developer access boundaries.
 - [Machine-readable endpoint status](https://dnaos.dev/api-status.json): method, path, status, observation time, and verification limits.
 - [Machine-readable system map](https://dnaos.dev/system-map.json): services, source files, and dated deployment observations.
+- [Facebook Page / Messenger event guide](https://dnaos.dev/docs/integrations/facebook-messenger.md): receive-only webhook path, setup, current production status, and release gates.
+- [Meta MCP and Facebook Page installation map](https://dnaos.dev/docs/integrations/meta-mcp-and-facebook-page-installation.md): Meta MCP administrator steps, customer setup path, permissions, and connection lifecycle.
 - [AI reference package](https://dnaos.dev/system-map-ai.zip): downloadable static reference files.
 - [Brand asset usage](https://dnaos.dev/assets/brand/dna-os/v1/README.md): DNA OS-owned brand files and usage notes.
 
@@ -18,4 +20,5 @@
 - A route is labelled **Live** only when the exact method and path has a dated production observation.
 - A source declaration is not proof of a deployed route or connected provider account.
 - The public developer API, self-service API keys, rate limits, sandbox, and LINE/n8n quickstarts are not published at this time.
+- The Meta Page webhook and these integration guides are currently In Development; the public endpoint returned 404 on 2026-11-26. Source code and a guide do not mean a provider account is connected.
 - General Googlebot is allowed by the observed robots.txt wildcard; Google-Extended and several AI fetcher tokens are explicitly disallowed. The AI index does not override crawler policy.

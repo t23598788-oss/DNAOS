@@ -29,6 +29,8 @@ These are source-level adapter/contract declarations, not public DNA OS API endp
 
 ## API access and endpoint status
 - Public API and connection guide: [api-reference.md](/api-reference.md).
+- Meta integration guide: [Facebook Page / Messenger webhook](/docs/integrations/facebook-messenger.md) · [Meta MCP and Page installation map](/docs/integrations/meta-mcp-and-facebook-page-installation.md).
+- Meta webhook status checked 2026-11-26: `GET` and `POST /api/gateway/observe/meta` returned 404. Worker source exists on the release branch; Production is not serving it yet. This phase is receive-only and does not connect customer Pages or send replies.
 - Machine-readable endpoint status: [api-status.json](/api-status.json).
 - AI-readable index: [llms.txt](/llms.txt).
 - Search crawler sitemap candidate: [sitemap.xml](/sitemap.xml); Production currently returns 404 until the homepage Worker candidate is deployed.
