@@ -50,6 +50,11 @@ function readSlugs(body: Record<string, unknown>): string[] {
   return [...seen]
 }
 
+// ── จุดรับเข้า: หน้าจอตั้งค่าปลั๊กอิน (ตัวรับ) ──────────────────────
+// @io in  ext.console.connectors    meter=verify_requests
+// @io out ext.supabase.connectors   meter=db_reads
+// @io out verifier.l1               meter=verify_calls
+// @io out tester.l2                 meter=verify_calls
 export async function POST(req: NextRequest) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth

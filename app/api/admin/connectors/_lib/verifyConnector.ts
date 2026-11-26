@@ -41,6 +41,8 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {}
 }
 
+// ── มิเตอร์ตัวที่ 1 (L1): วัดรูปแบบ config ไม่ยิง network ─────────────
+// @io in  verifier.l1               meter=verify_calls
 export function validateConnectorConfig(
   authType: ConnectorAuthType,
   rawConfig: unknown,
