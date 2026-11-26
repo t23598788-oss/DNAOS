@@ -2,8 +2,8 @@
   "schema_version": 1,
   "document": "DNA OS public endpoint status",
   "base_url": "https://dnaos.dev",
-  "observed_at": "2026-11-24T08:50:00+07:00",
-  "observation": "Unauthenticated GET probes only, except the historical OTP observation explicitly dated below. No OTP, OAuth, webhook, or business write was triggered during this audit.",
+  "observed_at": "2026-11-26T07:04:16+07:00",
+  "observation": "Unauthenticated read-only production probes. No OTP, OAuth, webhook delivery, or business write was triggered during this audit.",
   "status_definitions": {
     "LIVE": "The exact public method/path returned an expected live response during the observation.",
     "LIVE_AUTH_REQUIRED": "The route responded and requires an authenticated session; this probe did not establish a session.",
@@ -24,6 +24,10 @@
     { "method": "GET", "path": "/auth/google", "status": "IN_DEVELOPMENT", "http_status": 404, "purpose": "Google OAuth start; source candidate exists but is not deployed; Supabase Production reports Google provider disabled as of 2026-11-24T08:50:00+07:00" },
     { "method": "GET", "path": "/auth/confirm", "status": "IN_DEVELOPMENT", "http_status": 404, "purpose": "OAuth callback; source candidate exists but is not deployed" },
     { "method": "GET", "path": "/workspace", "status": "IN_DEVELOPMENT", "http_status": 404, "purpose": "Signed-in destination; source candidate exists but is not deployed" },
+    { "method": "GET", "path": "/api/gateway/observe/meta", "status": "IN_DEVELOPMENT", "http_status": 404, "observed_at": "2026-11-26", "purpose": "Meta Page webhook challenge verification; Worker candidate exists in release branch but is not deployed" },
+    { "method": "POST", "path": "/api/gateway/observe/meta", "status": "IN_DEVELOPMENT", "http_status": 404, "observed_at": "2026-11-26", "purpose": "Receive-only Meta Page events; Worker candidate exists in release branch but is not deployed" },
+    { "method": "GET", "path": "/docs/integrations/facebook-messenger.md", "status": "IN_DEVELOPMENT", "http_status": 404, "observed_at": "2026-11-26", "purpose": "Facebook Page webhook setup guide; static asset and homepage route candidate not deployed" },
+    { "method": "GET", "path": "/docs/integrations/meta-mcp-and-facebook-page-installation.md", "status": "IN_DEVELOPMENT", "http_status": 404, "observed_at": "2026-11-26", "purpose": "Meta MCP administrator setup and Page installation map; static asset and homepage route candidate not deployed" },
     { "method": "GET", "path": "/system-map", "status": "LIVE", "http_status": 200, "purpose": "Public system reference" },
     { "method": "GET", "path": "/system-map.json", "status": "LIVE", "http_status": 200, "purpose": "Machine-readable system reference; generated snapshot is dated 2026-11-23T07:53:56.027Z from revision 77d539c20f52860fe650d5cd47301b36cdf039e4" },
     { "method": "GET", "path": "/system-map.md", "status": "LIVE", "http_status": 200, "purpose": "Markdown system reference; same dated snapshot as system-map.json" },
@@ -45,7 +49,7 @@
     "google_extended": "Disallowed. Google documents that Google-Extended controls Gemini training/grounding and does not affect Google Search inclusion.",
     "googleother_and_google_cloudvertexbot": "Disallowed by explicit robots.txt groups.",
     "google_agent": "Disallowed by an explicit robots.txt group.",
-    "sitemap_xml": "Not published; GET /sitemap.xml returned 404.",
+    "sitemap_xml": "Not published; GET /sitemap.xml returned 404 on 2026-11-26. Candidate sitemap includes Meta integration guides after homepage Worker deployment.",
     "robots_policy_changed_by_this_candidate": false
   }
 }

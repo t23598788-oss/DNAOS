@@ -50,8 +50,16 @@ check("malformed entry and event values are ignored without throwing", malformed
 const malformedAttachments = normalizeMetaWebhook({ object: "page", entry: [{ messaging: [{ message: { mid: "safe-mid", text: "hello", attachments: { unexpected: true } } }] }] })
 check("malformed attachment container cannot crash event normalization", malformedAttachments.events.length === 1 && malformedAttachments.events[0]?.event_id === "EVT-facebook-safe-mid")
 
-const developerGuide = readFileSync("public/docs/integrations/facebook-messenger.md", "utf8")
+const developerGuide = readFileSync("public/landing-preview/docs/integrations/facebook-messenger.md", "utf8")
 check("developer guide documents callback, secrets and ACK behavior", ["/api/gateway/observe/meta", "META_APP_SECRET", "META_VERIFY_TOKEN", "HTTP 200"].every((fact) => developerGuide.includes(fact)))
+const publicGuide = readFileSync("public/landing-preview/docs/integrations/meta-mcp-and-facebook-page-installation.md", "utf8")
+check("public setup guide separates admin MCP from customer Page connection", publicGuide.includes("Meta Social Technologies MCP") && publicGuide.includes("ยังไม่อยู่ใน Production") && publicGuide.includes("ผู้ดูแลร้าน/องค์กร"))
+const landingRoutes = readFileSync("workers/landing-entry/wrangler.jsonc", "utf8")
+check("homepage Worker exposes integration guide assets", landingRoutes.includes("dnaos.dev/docs/integrations/*"))
+const publicIndex = readFileSync("public/landing-preview/llms.txt", "utf8")
+check("AI index links to public Meta integration guides", publicIndex.includes("/docs/integrations/facebook-messenger.md") && publicIndex.includes("/docs/integrations/meta-mcp-and-facebook-page-installation.md"))
+const publicStatus = JSON.parse(readFileSync("public/landing-preview/api-status.json", "utf8")) as { endpoints: { method: string; path: string; status: string; http_status?: number }[] }
+check("public status map records current Meta production routes as not deployed", ["GET", "POST"].every((method) => publicStatus.endpoints.some((endpoint) => endpoint.method === method && endpoint.path === "/api/gateway/observe/meta" && endpoint.status === "IN_DEVELOPMENT" && endpoint.http_status === 404)))
 const webhookRoute = readFileSync("app/api/gateway/observe/meta/route.ts", "utf8")
 check("webhook verifies signature before translating payload", webhookRoute.indexOf("verifyMetaSignature(rawBody") < webhookRoute.indexOf("normalizeMetaWebhook(payload)"))
 check("webhook publishes each normalized event to the central bus", webhookRoute.includes("for (const event of events)") && webhookRoute.includes("publish(supabaseAdmin(), event)"))

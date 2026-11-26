@@ -2,7 +2,8 @@
 
 # DNA OS API and connection reference
 
-**Status checked:** 2026-11-24 08:50 Asia/Bangkok
+**Meta route and public guide status checked:** 2026-11-26 07:04 Asia/Bangkok
+**Other endpoint observations:** see their individual dates in [api-status.json](/api-status.json).
 **Status source:** [machine-readable endpoint status](/api-status.json) · [system map](/system-map.md)
 
 ## What is available now
@@ -25,6 +26,12 @@ The public site serves the sign-in page and the browser-oriented email OTP entry
 
 The exact status, observation time, and evidence limits are in [api-status.json](/api-status.json). A status of **Live** means the documented method and path responded; it does not mean every identity provider or authenticated workflow has passed end-to-end verification.
 
+## Facebook Page / Messenger events
+
+The receive-only Meta webhook is **In Development**. Production currently returns 404 for both `GET` verification and `POST` event delivery at `/api/gateway/observe/meta`; the Worker and event adapter exist in the release branch but are not deployed. This phase accepts signed Page webhook events, normalizes event metadata, and forwards them to the DNA OS observe gateway. It does not connect a customer's Page, retain message text, or send replies.
+
+The installation guide explains Meta MCP administrator setup separately from the future customer Page connection flow: [Facebook Page / Messenger guide](/docs/integrations/facebook-messenger.md) · [Meta MCP and Page installation map](/docs/integrations/meta-mcp-and-facebook-page-installation.md).
+
 ## Developer API boundary
 
 The current public reference does **not** publish a general-purpose developer API contract, API-key self-service flow, quota/rate-limit policy, sandbox, or browser playground. Do not build an integration against an assumed endpoint or send business data to the sign-in routes. Those items must be designed and verified before being labelled Live.
@@ -32,6 +39,8 @@ The current public reference does **not** publish a general-purpose developer AP
 ## Integrations and hosting references
 
 LINE, n8n, Railway, and Vercel names in the source map refer to source-level adapters or registry entries. They do not prove that a public endpoint or provider account is connected. This reference does not provide a live LINE/n8n webhook contract. Provider-specific documentation should be published only after the route, authentication/signature rules, example payload, and response have been verified against the deployed service.
+
+The Meta guides linked above describe the candidate route and mark its current production status explicitly; they are not a claim that the endpoint is live.
 
 ## Search and AI crawlers
 

@@ -197,7 +197,7 @@ POST https://dnaos.dev/api/gateway/observe/meta
 - `app/api/gateway/observe/meta/route.ts` — route callback ใน Next.js; ตรวจ challenge/signature และเรียก Integration Gateway
 - `engines/integration-gateway/adapters/meta.ts` — แปลง Meta event เป็น event กลาง
 - `engines/integration-gateway/event-bus/bus.ts` — ส่ง event เข้า Observe bus
-- `public/docs/integrations/facebook-messenger.md` — คู่มือท่อรับเดิม
+- `public/landing-preview/docs/integrations/facebook-messenger.md` — คู่มือท่อรับเดิมที่เผยแพร่เป็น static asset ของ homepage Worker
 - `app/api/connectors/oauth/authorize/[slug]/route.ts` และ `app/api/connectors/oauth/callback/[slug]/route.ts` — OAuth ทั่วไปสำหรับ connector ที่ผู้ดูแลตั้งค่า; callback ใช้ state จาก connector ID และบันทึก token ลง connector จึงยังไม่ใช่ flow ที่เหมาะกับการให้ลูกค้าเชื่อมหลาย Page เข้าองค์กร
 - `app/account/connections/` — ยังไม่มีหน้าจอเชื่อม Facebook Page ใน branch Production ปัจจุบัน
 - `supabase/migrations/20261007000001_propose_meta_gateway_providers.sql` — เพิ่ม `facebook`/`instagram` ใน provider allow-list แต่หัวไฟล์ระบุ DRAFT / NOT APPLIED; ต้องตรวจ ledger ของฐานข้อมูลเป้าหมายก่อนใช้

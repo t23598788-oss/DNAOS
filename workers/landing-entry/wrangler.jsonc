@@ -13,6 +13,7 @@
     { "pattern": "dnaos.dev/system-map-ai.zip", "zone_name": "dnaos.dev" },
     { "pattern": "dnaos.dev/api-reference.md", "zone_name": "dnaos.dev" },
     { "pattern": "dnaos.dev/api-status.json", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/docs/integrations/*", "zone_name": "dnaos.dev" },
     { "pattern": "dnaos.dev/llms.txt", "zone_name": "dnaos.dev" },
     { "pattern": "dnaos.dev/sitemap.xml", "zone_name": "dnaos.dev" },
     { "pattern": "dnaos.dev/sw.js", "zone_name": "dnaos.dev" },
