@@ -32,7 +32,7 @@
 
 ## A. เชื่อม Meta MCP กับ Codex สำหรับผู้ดูแลระบบ
 
-Meta ปัจจุบันเรียกเครื่องมือนี้ว่า **Meta Social Technologies MCP** (ชื่อเดิม Meta Developer Tools MCP); endpoint และ prefix `devtools_` ยังใช้เดิม ส่วน repository `facebook/agentic-tools` มี skill สำหรับตรวจแอปและตั้ง/ตรวจ Webhook ให้เรียกใช้ขั้นตอนทางการเป็นลำดับได้
+Meta ปัจจุบันเรียกเครื่องมือนี้ว่า **Meta Social Technologies MCP** (ชื่อเดิม Meta Developer Tools MCP); endpoint และ prefix `devtools_` ยังใช้เดิม ส่วน repository ทางการย้ายมาอยู่ที่ `meta/agentic-tools` (ลิงก์ชื่อเดิม `facebook/agentic-tools` redirect มาที่นี่) มี plugin/skills สำหรับตรวจแอปและตั้ง/ตรวจ Webhook
 
 ### ข้อมูลเซิร์ฟเวอร์
 
@@ -48,11 +48,12 @@ Meta ปัจจุบันเรียกเครื่องมือนี
 
 ### ขั้นตอนเพิ่ม MCP ใน Codex
 
-1. เพิ่ม MCP server ชื่อ `devtools` ในการตั้งค่า Codex โดยใช้ URL `https://mcp.facebook.com/devtools` และ transport แบบ HTTP/Streamable HTTP
-2. บันทึกค่าและรีสตาร์ต Codex หากระบบร้องขอ
-3. เริ่มเรียก server เพื่อเปิด OAuth; เข้าระบบด้วยบัญชี Meta ที่มีบทบาทในแอปที่ต้องการจัดการ
-4. ตรวจรายการสิทธิ์ในหน้าของ Meta ก่อนอนุญาต แล้วกลับมาที่ Codex
-5. ตรวจว่าเครื่องมือของ `devtools` ปรากฏ จากนั้นเริ่มด้วยการอ่านรายการแอปและการตั้งค่า
+1. ติดตั้ง skill ที่ต้องใช้จาก repository `meta/agentic-tools` ด้วยตัวติดตั้ง skill ใน Codex; เลือกเฉพาะ `devtools`/skill ด้าน Meta ที่ต้องใช้
+2. เพิ่ม MCP server ชื่อ `devtools` ในการตั้งค่า Codex โดยใช้ URL `https://mcp.facebook.com/devtools`
+3. บันทึกค่าและรีสตาร์ต Codex หากระบบร้องขอ
+4. เริ่มเรียก server เพื่อเปิด OAuth; เข้าระบบด้วยบัญชี Meta ที่มีบทบาทในแอปที่ต้องการจัดการ
+5. ตรวจรายการสิทธิ์ในหน้าของ Meta ก่อนอนุญาต แล้วกลับมาที่ Codex
+6. ตรวจว่าเครื่องมือของ `devtools` ปรากฏ จากนั้นเริ่มด้วยการอ่านรายการแอปและการตั้งค่า
 
 รูปแบบตัวอย่างใน `~/.codex/config.toml`:
 
@@ -240,6 +241,6 @@ POST https://dnaos.dev/api/gateway/observe/meta
 - [Webhooks สำหรับ Pages](https://developers.facebook.com/docs/graph-api/webhooks/getting-started/webhooks-for-pages)
 - [Webhooks สำหรับ Messenger](https://developers.facebook.com/docs/messenger-platform/webhook)
 - [Page subscribed_apps](https://developers.facebook.com/docs/graph-api/reference/page/subscribed_apps)
-- [Meta Agentic Tools สำหรับ Codex และ MCP](https://github.com/facebook/agentic-tools)
+- [Meta Agentic Tools สำหรับ Codex และ MCP](https://github.com/meta/agentic-tools)
 
 ตรวจเอกสารวันที่ 26 พฤศจิกายน 2026: Graph API ระบุเวอร์ชันล่าสุด `v27.0`; ท่อ webhook ปัจจุบันไม่ได้เรียก Graph API โดยตรง เมื่อเพิ่ม OAuth หรือ Page subscription ให้ pin เวอร์ชัน Graph API ในคำขอและทดสอบซ้ำตามเอกสารขณะปล่อยจริง เอกสารนี้เป็นแผนเส้นทาง ไม่ใช่หลักฐานว่าแอปได้รับ App Review หรือเปิด Production แล้ว

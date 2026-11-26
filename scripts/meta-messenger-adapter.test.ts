@@ -53,7 +53,7 @@ check("malformed attachment container cannot crash event normalization", malform
 const developerGuide = readFileSync("public/landing-preview/docs/integrations/facebook-messenger.md", "utf8")
 check("developer guide documents callback, secrets and ACK behavior", ["/api/gateway/observe/meta", "META_APP_SECRET", "META_VERIFY_TOKEN", "HTTP 200"].every((fact) => developerGuide.includes(fact)))
 const publicGuide = readFileSync("public/landing-preview/docs/integrations/meta-mcp-and-facebook-page-installation.md", "utf8")
-check("public setup guide separates admin MCP from customer Page connection", publicGuide.includes("Meta Social Technologies MCP") && publicGuide.includes("ยังไม่อยู่ใน Production") && publicGuide.includes("ผู้ดูแลร้าน/องค์กร"))
+check("public setup guide separates admin MCP from customer Page connection", publicGuide.includes("Meta Social Technologies MCP") && publicGuide.includes("ยังไม่อยู่ใน Production") && publicGuide.includes("ผู้ดูแลร้าน/องค์กร") && publicGuide.includes("meta/agentic-tools"))
 const landingRoutes = readFileSync("workers/landing-entry/wrangler.jsonc", "utf8")
 check("homepage Worker exposes integration guide assets", landingRoutes.includes("dnaos.dev/docs/integrations/*"))
 const publicIndex = readFileSync("public/landing-preview/llms.txt", "utf8")
