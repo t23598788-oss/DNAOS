@@ -7,9 +7,13 @@ export const services = EXTERNAL_SERVICE_CATALOG.filter((service) => service.id 
 // The guide groups compute providers by what they do. The connection registry
 // remains the source of service names, routes, and connection capabilities.
 const computeProviders = new Set(["digitalocean-runtime", "runpod"]);
+const guideCategoryNames: Readonly<Record<string, string>> = {
+  channels: "แพลตฟอร์มสื่อสารและแจ้งเตือน",
+  "business-data": "เว็บไซต์และแพลตฟอร์มออนไลน์",
+};
 const docsCategories = CONNECTION_CATEGORIES.flatMap(({ id, name }) => id === "ai"
-  ? [{ id, name: "AI / LLM" }, { id: "compute", name: "บริการประมวลผล" }]
-  : [{ id, name }]
+  ? [{ id, name: "AI / LLM" }, { id: "compute", name: "ผู้ให้บริการโครงสร้างพื้นฐานการประมวลผล" }]
+  : [{ id, name: guideCategoryNames[id] ?? name }]
 );
 
 const catalogCategories = docsCategories.map((category) => ({

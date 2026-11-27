@@ -66,14 +66,20 @@ function resolveDoc(topic: string): Doc | undefined {
   if (Object.hasOwn(docs, topic)) return docs[topic];
   if (topic === "integrations") {
     return {
-      title: "คู่มือเชื่อมต่อบริการ",
-      description: "เลือกบริการเพื่ออ่านวิธีติดตั้ง ตั้งค่า และทดสอบก่อนขอสิทธิ์",
+      title: "คู่มือเชื่อมต่อ",
+      description: "อ่านวิธีติดตั้ง ตั้งค่า และทดสอบการเชื่อมต่อกับผู้ให้บริการ แพลตฟอร์ม และระบบประมวลผลก่อนขอสิทธิ์",
       sections: categories.map((category) => ({
         id: `category-${category.id}`,
         title: category.name,
-        content: <ul className="space-y-1">{category.services.map((item) => (
-          <li key={item.id}><Link className={docLink} href={`/developers/integrations/${item.id}`}>{item.name}</Link></li>
-        ))}</ul>,
+        content: <>
+          {category.id === "channels" && <p className="mb-3 text-stone-600">
+            DNA OS ใช้แพลตฟอร์มเหล่านี้รับข้อความและส่งการแจ้งเตือนผ่านช่องทางที่เปิดใช้ตามสิทธิ์ที่ได้รับ
+            แต่ละคู่มือระบุว่าแพลตฟอร์มนั้นรองรับการรับหรือส่งอะไรบ้าง
+          </p>}
+          <ul className="space-y-1">{category.services.map((item) => (
+            <li key={item.id}><Link className={docLink} href={`/developers/integrations/${item.id}`}>{item.name}</Link></li>
+          ))}</ul>
+        </>,
       })),
     };
   }
