@@ -7,7 +7,7 @@ export const categories = CONNECTION_CATEGORIES.filter((category) =>
 );
 
 export const docsNav = [
-  { label: "เริ่มต้น", links: [
+  { label: "เอกสารนักพัฒนา", links: [
     { href: docsHome, title: "ภาพรวม" },
     { href: `${docsHome}/quickstart`, title: "เริ่มใช้งาน" },
     { href: `${docsHome}/authentication`, title: "บัญชีและ API Token" },

@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { createElement, type ComponentType } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -32,6 +32,11 @@ for (const params of generateStaticParams()) {
   const page = await DeveloperTopicPage(props);
   const meta = await generateMetadata(props);
   await write(`developers/${params.topic.join("/")}.html`, makePage(meta.title ?? "DNA OS", renderToStaticMarkup(page)));
+}
+const brandPath = "developers/brand";
+await mkdir(join(out, brandPath), { recursive: true });
+for (const asset of ["dna-os-horizontal-mono.png", "dna-os-mark-mono.png"]) {
+  await copyFile(join("public", brandPath, asset), join(out, brandPath, asset));
 }
 const spec = await GET();
 await write("api/v1/spec", await spec.text());
