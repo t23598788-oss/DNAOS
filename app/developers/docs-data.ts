@@ -6,7 +6,7 @@ export const services = EXTERNAL_SERVICE_CATALOG.filter((service) => service.id 
 // remains the source of service names, routes, and connection capabilities.
 const computeProviders = new Set(["digitalocean-runtime", "runpod"]);
 const docsCategories = CONNECTION_CATEGORIES.flatMap(({ id, name }) => id === "ai"
-  ? [{ id, name: "AI" }, { id: "compute", name: "บริการประมวลผล" }]
+  ? [{ id, name: "AI / LLM" }, { id: "compute", name: "บริการประมวลผล" }]
   : [{ id, name }]
 );
 
