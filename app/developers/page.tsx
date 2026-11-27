@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { DocsArticle, docLink } from "./DocsArticle";
 import LegacyDocLinks from "./LegacyDocLinks";
-import { categories, docsHome, services } from "./docs-data";
+import { categories, docsHome } from "./docs-data";
 
 export const metadata = { title: "เอกสารนักพัฒนา · DNA OS" };
 
@@ -13,7 +13,7 @@ const legacyDestinations = {
   errors: `${docsHome}/errors`,
   integrations: `${docsHome}/integrations`,
   ...Object.fromEntries(categories.map(({ id }) => [`category-${id}`, `${docsHome}/integrations#category-${id}`])),
-  ...Object.fromEntries(services.map(({ id }) => [`service-${id}`, `${docsHome}/integrations/${id}#service-${id}`])),
+  ...Object.fromEntries(categories.flatMap(({ services }) => services.map(({ id }) => [`service-${id}`, `${docsHome}/integrations/${id}#service-${id}`]))),
 };
 
 export default function DevelopersPage() {

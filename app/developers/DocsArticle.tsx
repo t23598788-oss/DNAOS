@@ -22,7 +22,7 @@ export function DocsArticle({ current, title, description, sections, children }:
     <ul data-docs-toc className="text-stone-600">
       {sections.map(({ id, title: heading }) => (
         <li key={id}>
-          <a className="block border-l border-stone-100 py-1 pl-3 hover:text-sky-800 aria-[current=location]:border-sky-700 aria-[current=location]:font-semibold aria-[current=location]:text-sky-900" href={`#${id}`}>{heading}</a>
+          <a suppressHydrationWarning className="block border-l border-stone-100 py-1 pl-3 hover:text-sky-800 aria-[current=location]:border-sky-700 aria-[current=location]:font-semibold aria-[current=location]:text-sky-900" href={`#${id}`}>{heading}</a>
         </li>
       ))}
     </ul>

@@ -1,5 +1,7 @@
 import { CONNECTION_CATEGORIES, EXTERNAL_SERVICE_CATALOG } from "@/registry/external-service-catalog";
 
+import { desktopGuides, hardwareGuides, metaMcpGuide } from "./integration-guides";
+
 export const docsHome = "/developers";
 export const services = EXTERNAL_SERVICE_CATALOG.filter((service) => service.id !== "railway");
 // The guide groups compute providers by what they do. The connection registry
@@ -10,12 +12,20 @@ const docsCategories = CONNECTION_CATEGORIES.flatMap(({ id, name }) => id === "a
   : [{ id, name }]
 );
 
-export const categories = docsCategories.map((category) => ({
+const catalogCategories = docsCategories.map((category) => ({
   ...category,
   services: services.filter((service) =>
     category.id === (computeProviders.has(service.id) ? "compute" : service.categoryId)
   ),
 })).filter((category) => category.services.length > 0);
+
+export const categories = [
+  ...catalogCategories.map((category) => category.id === "developer-protocols"
+    ? { ...category, services: [...category.services, metaMcpGuide] }
+    : category),
+  { id: "hardware", name: "GPS และอุปกรณ์", services: hardwareGuides },
+  { id: "desktop", name: "ปลั๊กอินในเครื่อง Mac", services: desktopGuides },
+];
 
 export const docsNav = [
   { label: "เอกสารนักพัฒนา", links: [

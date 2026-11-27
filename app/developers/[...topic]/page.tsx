@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { CodeSample, DocsArticle, docLink, type DocSection } from "../DocsArticle";
 import { categories, docsHome, queryExample, services, specExample } from "../docs-data";
 
+import { integrationGuides } from "../integration-guides";
+
 type Doc = { title: string; description: string; sections: DocSection[] };
 
 const docs: Record<string, Doc> = {
@@ -12,15 +14,22 @@ const docs: Record<string, Doc> = {
     sections: [
       { id: "before-you-begin", title: "เตรียม URL และบัญชี", content: <p>ตั้ง <code>DNA_BASE_URL</code> เป็น URL ของระบบที่กำลังใช้งาน สำหรับเว็บนี้ใช้ <code>https://dnaos.dev</code> การอ่านข้อมูลต้องมี <Link className={docLink} href="/developers/authentication">API Token</Link> ของบัญชีที่มีสิทธิ์ API และมีขอบเขตข้อมูลองค์กร</p> },
       { id: "first-request", title: "ดูคำสั่งที่รองรับ", content: <><CodeSample>{specExample}</CodeSample><Link className={docLink} href="/api/v1/spec">เปิดผล JSON จาก API</Link></> },
-      { id: "first-query", title: "ลองเรียกคำสั่งอ่าน", content: <><p>ตั้ง <code>DNA_TOKEN</code> เป็น token ของบัญชีทดสอบ ตัวอย่างนี้เรียก <code>debt.list</code> เพื่ออ่านรายการลูกหนี้ที่ยังเปิดอยู่ตามสิทธิ์ของบัญชี</p><CodeSample>{queryExample}</CodeSample></> },
+      { id: "first-query", title: "ลองเรียกคำสั่งอ่าน", content: <><p>สำหรับระบบที่เปิด Query API แล้ว ให้ตั้ง <code>DNA_TOKEN</code> เป็น Production Token ของบัญชีที่มีสิทธิ์ ตัวอย่างนี้เรียก <code>debt.list</code> เพื่ออ่านรายการลูกหนี้ที่ยังเปิดอยู่ตามสิทธิ์ของบัญชี</p><CodeSample>{queryExample}</CodeSample></> },
       { id: "next", title: "ขั้นต่อไป", content: <p>ดู <Link className={docLink} href="/developers/api/query">รูปแบบคำขอและผลตอบกลับ</Link></p> },
     ],
   },
   authentication: {
     title: "บัญชีและ API Token",
-    description: "ใช้ token ของบัญชี DNA OS เพื่อให้ระบบรู้ว่าใครขอข้อมูลและอ่านอะไรได้",
+    description: "ใช้บัญชี DNA OS เดิมและแยก Token สำหรับทดสอบออกจากสิทธิ์ใช้งานจริง",
     sections: [
-      { id: "create-token", title: "สร้างและจัดการ token", content: <p>เมื่อเปิดหน้าจัดการ API Token ให้บัญชีของคุณแล้ว ให้เข้าสู่ระบบและเปิดเมนูจัดการ API Token เลือกขอบเขต <code>read</code> สำหรับคำขออ่านข้อมูล หน้านี้ใช้สำหรับสร้างและยกเลิก token ของบัญชีตัวเอง</p> },
+      { id: "sandbox-token", title: "Sandbox Token", content: <>
+        <p>สำหรับพรีวิวในเครื่อง ให้ล็อกอินด้วยบัญชี DNA OS เดิมแล้วสร้าง Sandbox Token อายุ 30 นาที ใช้ทดสอบการยืนยัน Token โดยไม่เรียกข้อมูลจริงหรือเครื่องประมวลผล</p>
+        <p className="mt-2"><Link className={docLink} href="/developers/sandbox-token">เปิดหน้า Sandbox Token ในเครื่อง</Link></p>
+      </> },
+      { id: "create-token", title: "Production Token", content: <>
+        <p>ใช้บัญชีเดิมที่มีสิทธิ์ผู้ดูแลสร้าง Token อีกชุดในหน้าจัดการเดิม เลือกขอบเขตตามงาน สำหรับคำสั่งอ่านให้ใช้ <code>read</code> การอนุญาตขึ้นกับสิทธิ์ของบัญชีและขอบเขตองค์กร</p>
+        <p className="mt-2"><Link className={docLink} href="/admin/api-tokens">เปิดหน้าจัดการ Production Token</Link></p>
+      </> },
       { id: "send-token", title: "ส่ง token ใน header", content: <><p>ส่ง <code>X-DNA-Token</code> กับคำขอ <code>POST /api/v1/query</code> เก็บ token ในตัวแปรสภาพแวดล้อมของเครื่องมือที่เรียก API</p><CodeSample>{'X-DNA-Token: <token ของบัญชีคุณ>'}</CodeSample></> },
       { id: "access", title: "สิทธิ์ของบัญชี", content: <p>API ตรวจบทบาทปัจจุบันและขอบเขตข้อมูลของเจ้าของ token ทุกคำขอ คำสั่งธุรกิจอย่าง <code>debt.list</code> ต้องมีองค์กรที่ยืนยันแล้ว หรือสิทธิ์ระดับแพลตฟอร์มตามกติกา ส่วน <Link className={docLink} href="/api/v1/spec">รายการคำสั่ง API</Link> เปิดอ่านได้ก่อนเข้าสู่ระบบ</p> },
     ],
@@ -58,7 +67,7 @@ function resolveDoc(topic: string): Doc | undefined {
   if (topic === "integrations") {
     return {
       title: "คู่มือเชื่อมต่อบริการ",
-      description: "เลือกบริการเพื่อดูวิธีตั้งค่าและขอบเขตที่ระบบรองรับ",
+      description: "เลือกบริการเพื่ออ่านวิธีติดตั้ง ตั้งค่า และทดสอบก่อนขอสิทธิ์",
       sections: categories.map((category) => ({
         id: `category-${category.id}`,
         title: category.name,
@@ -69,25 +78,31 @@ function resolveDoc(topic: string): Doc | undefined {
     };
   }
 
-  const service = services.find((item) => topic === `integrations/${item.id}`);
-  if (!service) return undefined;
-  const canConfigure = service.userConnection !== "not_implemented";
+  if (!topic.startsWith("integrations/")) return undefined;
+  const id = topic.slice("integrations/".length);
+  const catalogEntry = services.find((item) => item.id === id);
+  const service = categories.flatMap((category) => category.services).find((item) => item.id === id);
+  const guide = Object.hasOwn(integrationGuides, id) ? integrationGuides[id] : undefined;
+  if (!service || !guide) return undefined;
 
   return {
     title: service.name,
     description: service.description,
     sections: [
-      { id: `service-${service.id}`, title: "การใช้งานใน DNA OS", content: <>
-        {service.id === "line" && <p>ใช้บัญชี DNA OS ของเจ้าของเพื่อผูก LINE OA ในหน้าตั้งค่า โดยกรอก Channel ID, Channel Secret และ Access Token ของ OA ระบบตรวจ token กับ LINE ก่อนบันทึก</p>}
-        {canConfigure
-          ? <p>เมื่อเปิดหน้าตั้งค่าบริการให้บัญชีของคุณแล้ว ให้เลือก {service.name} ในเมนูช่องเชื่อมต่อ</p>
-          : <p>บริการนี้ยังไม่มีทางเชื่อมบัญชีรายผู้ใช้ใน DNA OS</p>}
+      { id: `service-${id}`, title: "เตรียมและติดตั้ง", content: <p>{guide.install}</p> },
+      { id: "setup", title: "ตั้งค่า", content: <p>{guide.setup}</p> },
+      { id: id === "line" ? "webhook" : "test", title: "ทดสอบ", content: <p>{guide.test}</p> },
+      { id: "access", title: "สิทธิ์และเปิดใช้งาน", content: <>
+        <p>{guide.access ?? (guide.settings
+          ? "ใช้บัญชี DNA OS เดิมและคีย์ที่องค์กรอนุญาตให้ใช้กับบริการนี้"
+          : "ผู้ดูแลระบบเป็นผู้ตั้งค่าและอนุมัติการใช้บริการนี้")}</p>
+        {guide.settings && <p className="mt-2"><Link className={docLink} href={guide.settings}>เปิดหน้าตั้งค่า</Link></p>}
       </> },
-      ...(service.id === "line" ? [{
-        id: "webhook", title: "รับเหตุการณ์จาก LINE",
-        content: <p>คัดลอก Webhook URL จากหน้าตั้งค่า LINE OA ไปบันทึกใน Messaging API ของ OA แล้วกด Verify ใช้ URL ที่ LINE เข้าถึงได้ ตัวอย่าง <code>127.0.0.1</code> ใช้ทดสอบจากเครื่องนี้เท่านั้น</p>,
+      ...(catalogEntry?.sourceUrl ? [{
+        id: "provider-docs",
+        title: "เอกสารผู้ให้บริการ",
+        content: <a href={catalogEntry.sourceUrl} className={docLink} rel="noreferrer" target="_blank">{catalogEntry.sourceLabel}</a>,
       }] : []),
-      ...(service.sourceUrl ? [{ id: "provider-docs", title: "เอกสารผู้ให้บริการ", content: <a href={service.sourceUrl} className={docLink} rel="noreferrer" target="_blank">{service.sourceLabel || "เปิดคู่มือ"}</a> }] : []),
     ],
   };
 }
@@ -95,7 +110,7 @@ function resolveDoc(topic: string): Doc | undefined {
 type PageProps = { params: Promise<{ topic: string[] }> };
 
 export function generateStaticParams() {
-  return [...Object.keys(docs), "integrations", ...services.map(({ id }) => `integrations/${id}`)]
+  return [...Object.keys(docs), "integrations", ...categories.flatMap(({ services }) => services.map(({ id }) => `integrations/${id}`))]
     .map((path) => ({ topic: path.split("/") }));
 }
 
