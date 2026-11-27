@@ -22,7 +22,7 @@ export function DocsArticle({ current, title, description, sections, children }:
     <ul data-docs-toc className="text-stone-600">
       {sections.map(({ id, title: heading }) => (
         <li key={id}>
-          <a suppressHydrationWarning className="block border-l border-stone-100 py-1 pl-3 hover:text-sky-800 aria-[current=location]:border-sky-700 aria-[current=location]:font-semibold aria-[current=location]:text-sky-900" href={`#${id}`}>{heading}</a>
+          <a suppressHydrationWarning className="block border-l border-stone-100 py-1 pl-3 hover:text-sky-800 aria-[current=location]:border-sky-700 aria-[current=location]:font-semibold aria-[current=location]:text-sky-900" href={`#${id}`}>{heading.replaceAll("DNA OS", "DNA\u00a0OS")}</a>
         </li>
       ))}
     </ul>
@@ -46,7 +46,7 @@ export function DocsArticle({ current, title, description, sections, children }:
           </div>
         </div>
       </header>
-      <div data-docs-body className="mx-auto grid min-h-0 w-full max-w-[1440px] flex-1 items-start gap-7 overflow-y-auto motion-safe:scroll-smooth [scrollbar-width:none] px-5 py-7 md:overflow-hidden md:grid-rows-[minmax(0,1fr)] md:grid-cols-[12rem_minmax(0,1fr)] md:px-8 min-[940px]:grid-cols-[12rem_minmax(0,1fr)_9rem] min-[940px]:gap-7 lg:grid-cols-[13rem_minmax(0,1fr)_10rem] lg:gap-9 xl:gap-12">
+      <div data-docs-body className="mx-auto grid min-h-0 w-full max-w-[1440px] flex-1 items-start gap-7 overflow-y-auto motion-safe:scroll-smooth [scrollbar-width:none] px-5 py-7 md:overflow-hidden md:grid-rows-[minmax(0,1fr)] md:grid-cols-[12rem_minmax(0,1fr)] md:px-8 min-[58.75rem]:grid-cols-[12rem_minmax(0,1fr)_clamp(16rem,25vw,21rem)] min-[58.75rem]:gap-7 lg:grid-cols-[13rem_minmax(0,1fr)_clamp(16rem,25vw,21rem)] lg:gap-9 xl:gap-12">
         <nav aria-label="เมนูเอกสาร" className="text-sm md:max-h-full md:overflow-y-auto md:border-r md:border-stone-200 md:pr-4">
           <div className="grid gap-3 sm:grid-cols-3 md:grid-cols-1 md:gap-5">
             {docsNav.map((group) => (
@@ -67,7 +67,7 @@ export function DocsArticle({ current, title, description, sections, children }:
           <article className="mx-auto max-w-[44rem] text-base leading-[1.7]">
             <h1 className="text-[27px] font-semibold leading-tight tracking-tight">{title}</h1>
             <p className="mt-3 text-stone-600">{description}</p>
-            <details className="mt-4 rounded-md border border-stone-200 px-3 py-2 text-sm min-[940px]:hidden">
+            <details className="mt-4 rounded-md border border-stone-200 px-3 py-2 text-sm min-[58.75rem]:hidden">
               <summary className="cursor-pointer font-semibold">ในหน้านี้</summary>
               <div className="mt-2">{toc}</div>
             </details>
@@ -81,7 +81,7 @@ export function DocsArticle({ current, title, description, sections, children }:
           </article>
         </main>
 
-        <nav aria-label="ในหน้านี้" className="hidden max-h-full overflow-y-auto text-sm min-[940px]:block">
+        <nav aria-label="ในหน้านี้" className="hidden max-h-full overflow-y-auto text-sm min-[58.75rem]:block">
           <p className="mb-2 font-semibold">ในหน้านี้</p>
           {toc}
         </nav>
