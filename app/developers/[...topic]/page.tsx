@@ -91,6 +91,16 @@ function resolveDoc(topic: string): Doc | undefined {
     sections: [
       { id: `service-${id}`, title: "เตรียมและติดตั้ง", content: <p>{guide.install}</p> },
       { id: "setup", title: "ตั้งค่า", content: <p>{guide.setup}</p> },
+      ...(guide.records ? [{
+        id: "records",
+        title: "ข้อมูลและเอกสารที่ต้องบันทึก",
+        content: <ul className="list-disc space-y-1 pl-5">{guide.records.map((record) => <li key={record}>{record}</li>)}</ul>,
+      }] : []),
+      ...(guide.implementation ? [{
+        id: "implementation",
+        title: "สิ่งที่มีในระบบตอนนี้",
+        content: <p>{guide.implementation}</p>,
+      }] : []),
       { id: id === "line" ? "webhook" : "test", title: "ทดสอบ", content: <p>{guide.test}</p> },
       { id: "access", title: "สิทธิ์และเปิดใช้งาน", content: <>
         <p>{guide.access ?? (guide.settings

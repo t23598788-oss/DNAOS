@@ -23,7 +23,7 @@ export const categories = [
   ...catalogCategories.map((category) => category.id === "developer-protocols"
     ? { ...category, services: [...category.services, metaMcpGuide] }
     : category),
-  { id: "hardware", name: "GPS และอุปกรณ์", services: hardwareGuides },
+  { id: "hardware", name: "ทะเบียน ภาษี และรอบซ่อมบำรุง", services: hardwareGuides },
   { id: "desktop", name: "ปลั๊กอินในเครื่อง Mac", services: desktopGuides },
 ];
 
