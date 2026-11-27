@@ -62,7 +62,7 @@ function resolveDoc(topic: string): Doc | undefined {
       sections: categories.map((category) => ({
         id: `category-${category.id}`,
         title: category.name,
-        content: <ul className="space-y-1">{services.filter((item) => item.categoryId === category.id).map((item) => (
+        content: <ul className="space-y-1">{category.services.map((item) => (
           <li key={item.id}><Link className={docLink} href={`/developers/integrations/${item.id}`}>{item.name}</Link></li>
         ))}</ul>,
       })),

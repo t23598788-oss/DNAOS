@@ -2,9 +2,20 @@ import { CONNECTION_CATEGORIES, EXTERNAL_SERVICE_CATALOG } from "@/registry/exte
 
 export const docsHome = "/developers";
 export const services = EXTERNAL_SERVICE_CATALOG.filter((service) => service.id !== "railway");
-export const categories = CONNECTION_CATEGORIES.filter((category) =>
-  services.some((service) => service.categoryId === category.id)
+// The guide groups compute providers by what they do. The connection registry
+// remains the source of service names, routes, and connection capabilities.
+const computeProviders = new Set(["digitalocean-runtime", "runpod"]);
+const docsCategories = CONNECTION_CATEGORIES.flatMap(({ id, name }) => id === "ai"
+  ? [{ id, name: "AI" }, { id: "compute", name: "บริการประมวลผล" }]
+  : [{ id, name }]
 );
+
+export const categories = docsCategories.map((category) => ({
+  ...category,
+  services: services.filter((service) =>
+    category.id === (computeProviders.has(service.id) ? "compute" : service.categoryId)
+  ),
+})).filter((category) => category.services.length > 0);
 
 export const docsNav = [
   { label: "เอกสารนักพัฒนา", links: [
