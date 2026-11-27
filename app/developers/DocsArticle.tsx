@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowUpRight, Braces } from "lucide-react";
 import { docsHome, docsNav } from "./docs-data";
+import { guideJsonLd } from "./guide-metadata";
 
 export const docLink = "font-medium text-sky-800 underline underline-offset-4 hover:text-sky-950";
 
@@ -11,12 +12,13 @@ export function CodeSample({ children }: { children: string }) {
 
 export type DocSection = { id: string; title: string; content: ReactNode };
 
-export function DocsArticle({ current, title, description, sections, children }: {
+export function DocsArticle({ current, title, description, sections, children, publicGuide = false }: {
   current: string;
   title: string;
   description: string;
   sections: DocSection[];
   children?: ReactNode;
+  publicGuide?: boolean;
 }) {
   const toc = (
     <ul data-docs-toc className="text-stone-600">
@@ -30,6 +32,10 @@ export function DocsArticle({ current, title, description, sections, children }:
 
   return (
     <div className="flex h-dvh w-full flex-col overflow-hidden bg-white text-stone-900 [font-family:'Noto_Sans_Thai',Thonburi,'Leelawadee_UI',system-ui,sans-serif]">
+      {publicGuide && <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: guideJsonLd(current, title, description) }}
+      />}
       <script src="/developers/scroll-nav.js" async />
       <header className="shrink-0 border-b border-stone-200 bg-white">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3 px-5 py-3 md:px-8">

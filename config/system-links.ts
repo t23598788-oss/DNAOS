@@ -18,6 +18,9 @@ export function appBaseUrl(): string | null {
   }
 }
 
+// The published documentation uses production URLs even in local previews.
+export const publicDeveloperOrigin = "https://dnaos.dev";
+
 const SUPABASE_PROJECT_REF = "xeytcavxejhyzxwevgto"
 
 function supabaseTableQuery(table: string) {

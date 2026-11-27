@@ -44,7 +44,7 @@ const desktopDrivers = [
 export const desktopGuides = desktopDrivers.map(({ id, app }) => ({
   id: `desktop-${id}`,
   name: app,
-  description: "ปลั๊กอินสำหรับแอปในเครื่อง macOS การทำงานขึ้นกับแอปและสิทธิ์ในเครื่อง",
+  description: `วิธีตั้งค่าและทดสอบปลั๊กอิน ${app} ใน DNA OS บน macOS พร้อมสิทธิ์ที่ต้องใช้ในเครื่อง`,
 }));
 
 const desktopSteps = Object.fromEntries(desktopDrivers.map(({ id, app, test }) => [`desktop-${id}`, {

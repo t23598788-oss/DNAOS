@@ -4,6 +4,10 @@ import { join } from "node:path";
 
 const dist = "workers/developer-portal/dist";
 const pages = new Map();
+const canonicals = new Set();
+const descriptions = new Set();
+const iconPath = "/developers/brand/dna-os-mark-mono.png";
+await readFile(join(dist, iconPath.slice(1)));
 for (const file of await readdir(dist, { recursive: true })) {
   if (!file.endsWith(".html")) continue;
   const html = await readFile(join(dist, file), "utf8");
@@ -11,6 +15,30 @@ for (const file of await readdir(dist, { recursive: true })) {
 }
 for (const [path, html] of pages) {
   assert(!html.includes("127.0.0.1:3183"), path);
+  const description = html.match(/<meta name="description" content="([^"]+)"/)?.[1];
+  const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
+  assert(description && !descriptions.has(description), path);
+  assert(canonical && !canonicals.has(canonical), path);
+  descriptions.add(description);
+  canonicals.add(canonical);
+  assert(html.includes(`<link rel="icon" href="${iconPath}"`), path);
+
+  const ld = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)?.[1];
+  assert(ld, path);
+  const graph = JSON.parse(ld)["@graph"];
+  const [organization, website, page] = ["Organization", "WebSite", "WebPage"].map(
+    (type) => graph.find((entry) => entry["@type"] === type),
+  );
+  const url = new URL(canonical);
+  assert.equal(url.protocol, "https:", path);
+  assert.equal(url.pathname, path);
+  assert.equal(page.url, canonical, path);
+  assert.equal(page["@id"], `${canonical}#webpage`, path);
+  assert.equal(page.isPartOf["@id"], `${url.origin}/#website`, path);
+  assert.equal(website["@id"], page.isPartOf["@id"], path);
+  assert.equal(organization["@id"], `${url.origin}/#organization`, path);
+  assert.equal(website.publisher["@id"], organization["@id"], path);
+  assert.equal(page.publisher["@id"], organization["@id"], path);
   for (const [, href] of html.matchAll(/<a\b[^>]*\bhref="([^"]+)"/g)) {
     if (!href.startsWith("/") && !href.startsWith("#")) continue;
     const [link, anchor] = href.split("#");
@@ -21,6 +49,11 @@ for (const [path, html] of pages) {
 }
 assert(pages.get("/developers/integrations/line")?.includes('id="service-line"'));
 assert(pages.get("/developers")?.includes('"/developers/integrations/line#service-line"'));
+
+const sitemap = await readFile(join(dist, "developers/sitemap.xml"), "utf8");
+const listedUrls = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+assert.equal(listedUrls.length, canonicals.size);
+assert.deepEqual(new Set(listedUrls), canonicals);
 
 const spec = JSON.parse(await readFile(join(dist, "api/v1/spec"), "utf8"));
 const registry = JSON.parse(await readFile("registry/command-registry.json", "utf8"));

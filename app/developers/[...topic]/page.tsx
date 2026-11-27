@@ -4,6 +4,7 @@ import { CodeSample, DocsArticle, docLink, type DocSection } from "../DocsArticl
 import { categories, docsHome, queryExample, services, specExample } from "../docs-data";
 
 import { integrationGuides } from "../integration-guides";
+import { guideMetadata } from "../guide-metadata";
 
 type Doc = { title: string; description: string; sections: DocSection[] };
 
@@ -151,13 +152,15 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps) {
-  const doc = resolveDoc((await params).topic.join("/"));
-  return doc ? { title: `${doc.title} · DNA OS` } : {};
+  const topic = (await params).topic.join("/");
+  const doc = resolveDoc(topic);
+  if (!doc) notFound();
+  return guideMetadata(`${docsHome}/${topic}`, doc.title, doc.description);
 }
 
 export default async function DeveloperTopicPage({ params }: PageProps) {
   const topic = (await params).topic.join("/");
   const doc = resolveDoc(topic);
   if (!doc) notFound();
-  return <DocsArticle current={`${docsHome}/${topic}`} {...doc} />;
+  return <DocsArticle current={`${docsHome}/${topic}`} publicGuide {...doc} />;
 }
