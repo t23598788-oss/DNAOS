@@ -7,6 +7,25 @@ import { integrationGuides } from "../integration-guides";
 
 type Doc = { title: string; description: string; sections: DocSection[] };
 
+const appLinksAvailable = process.env.DNAOS_PUBLIC_DOCS_ONLY !== "1";
+
+const dnaOsDoc: Doc = {
+  title: "DNA OS",
+  description: "เรียกใช้ความสามารถ ERP เอกสาร และงานจ่ายเงินจากระบบเดียว",
+  sections: [
+    { id: "service-dna-os", title: "ความสามารถ", content: <ul className="list-disc space-y-1 pl-5">
+      <li>ERP — อ่านรายการธุรกิจ เช่น ใบแจ้งหนี้และรายการชำระเงิน</li>
+      <li>เอกสาร — ออกเอกสารอัตโนมัติตามขั้นตอนของงาน และค้นหาหรือติดตามเอกสารที่บันทึกไว้</li>
+      <li>งานจ่ายเงิน — จัดทำใบสำคัญจ่าย ดูรายการชำระเงิน และบันทึกการชำระตามขั้นตอนอนุมัติ</li>
+    </ul> },
+    { id: "workflow", title: "วิธีทำงาน", content: <p>ระบบที่เชื่อมต่อส่งคำขอให้เซิร์ฟเวอร์ DNA OS ดำเนินการตามสิทธิ์ เช่น อ่านรายการเอกสารด้วย <code>document.list</code> การออกเอกสารและบันทึกการชำระทำผ่านขั้นตอนตรวจและยืนยันของงาน</p> },
+    { id: "connection", title: "เชื่อมต่อและใช้ Token", content: <>
+      <p>เปิด <Link className={docLink} href="/api/v1/spec">รายการคำสั่งอ่าน</Link> ได้ทันที เมื่อต้องการเรียกข้อมูล ให้ส่งคำขอไปยังเซิร์ฟเวอร์ DNA OS ที่เปิด Query API พร้อม <code>X-DNA-Token</code> ของบัญชีที่ได้รับสิทธิ์</p>
+      <p className="mt-3"><Link className={docLink} href="/developers/api/query">รูปแบบคำขอ API</Link> · <Link className={docLink} href="/developers/authentication">บัญชีและวิธีขอ Token</Link></p>
+    </> },
+  ],
+};
+
 const docs: Record<string, Doc> = {
   quickstart: {
     title: "เริ่มใช้งาน API",
@@ -24,11 +43,11 @@ const docs: Record<string, Doc> = {
     sections: [
       { id: "sandbox-token", title: "Sandbox Token", content: <>
         <p>สำหรับพรีวิวในเครื่อง ให้ล็อกอินด้วยบัญชี DNA OS เดิมแล้วสร้าง Sandbox Token อายุ 30 นาที ใช้ทดสอบการยืนยัน Token โดยไม่เรียกข้อมูลจริงหรือเครื่องประมวลผล</p>
-        <p className="mt-2"><Link className={docLink} href="/developers/sandbox-token">เปิดหน้า Sandbox Token ในเครื่อง</Link></p>
+        {appLinksAvailable && <p className="mt-2"><Link className={docLink} href="/developers/sandbox-token">เปิดหน้า Sandbox Token ในเครื่อง</Link></p>}
       </> },
       { id: "create-token", title: "Production Token", content: <>
         <p>ใช้บัญชีเดิมที่มีสิทธิ์ผู้ดูแลสร้าง Token อีกชุดในหน้าจัดการเดิม เลือกขอบเขตตามงาน สำหรับคำสั่งอ่านให้ใช้ <code>read</code> การอนุญาตขึ้นกับสิทธิ์ของบัญชีและขอบเขตองค์กร</p>
-        <p className="mt-2"><Link className={docLink} href="/admin/api-tokens">เปิดหน้าจัดการ Production Token</Link></p>
+        {appLinksAvailable && <p className="mt-2"><Link className={docLink} href="/admin/api-tokens">เปิดหน้าจัดการ Production Token</Link></p>}
       </> },
       { id: "send-token", title: "ส่ง token ใน header", content: <><p>ส่ง <code>X-DNA-Token</code> กับคำขอ <code>POST /api/v1/query</code> เก็บ token ในตัวแปรสภาพแวดล้อมของเครื่องมือที่เรียก API</p><CodeSample>{'X-DNA-Token: <token ของบัญชีคุณ>'}</CodeSample></> },
       { id: "access", title: "สิทธิ์ของบัญชี", content: <p>API ตรวจบทบาทปัจจุบันและขอบเขตข้อมูลของเจ้าของ token ทุกคำขอ คำสั่งธุรกิจอย่าง <code>debt.list</code> ต้องมีองค์กรที่ยืนยันแล้ว หรือสิทธิ์ระดับแพลตฟอร์มตามกติกา ส่วน <Link className={docLink} href="/api/v1/spec">รายการคำสั่ง API</Link> เปิดอ่านได้ก่อนเข้าสู่ระบบ</p> },
@@ -64,10 +83,11 @@ const docs: Record<string, Doc> = {
 
 function resolveDoc(topic: string): Doc | undefined {
   if (Object.hasOwn(docs, topic)) return docs[topic];
+  if (topic === "integrations/dna-os") return dnaOsDoc;
   if (topic === "integrations") {
     return {
       title: "คู่มือเชื่อมต่อ",
-      description: "อ่านวิธีติดตั้ง ตั้งค่า และทดสอบการเชื่อมต่อกับผู้ให้บริการ แพลตฟอร์ม และระบบประมวลผลก่อนขอสิทธิ์",
+      description: "อ่านวิธีติดตั้ง ตั้งค่า และทดสอบการเชื่อมต่อกับ DNA OS และแพลตฟอร์มอื่นก่อนขอสิทธิ์",
       sections: categories.map((category) => ({
         id: `category-${category.id}`,
         title: category.name,
@@ -112,7 +132,7 @@ function resolveDoc(topic: string): Doc | undefined {
         <p>{guide.access ?? (guide.settings
           ? "ใช้บัญชี DNA OS เดิมและคีย์ที่องค์กรอนุญาตให้ใช้กับบริการนี้"
           : "ผู้ดูแลระบบเป็นผู้ตั้งค่าและอนุมัติการใช้บริการนี้")}</p>
-        {guide.settings && <p className="mt-2"><Link className={docLink} href={guide.settings}>เปิดหน้าตั้งค่า</Link></p>}
+        {appLinksAvailable && guide.settings && <p className="mt-2"><Link className={docLink} href={guide.settings}>เปิดหน้าตั้งค่า</Link></p>}
       </> },
       ...(catalogEntry?.sourceUrl ? [{
         id: "provider-docs",

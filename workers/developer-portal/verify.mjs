@@ -4,17 +4,6 @@ import { join } from "node:path";
 
 const dist = "workers/developer-portal/dist";
 const pages = new Map();
-// These links transition from public guide pages to the authenticated app.
-const appRoutes = new Set([
-  "/admin/api-tokens",
-  "/admin/equipment",
-  "/developers/sandbox-token",
-  "/account/connections/line",
-  "/account/connections/github",
-  "/account/connections/openai-api",
-  "/account/connections/anthropic-api",
-  "/account/connections/google-gemini-api",
-]);
 for (const file of await readdir(dist, { recursive: true })) {
   if (!file.endsWith(".html")) continue;
   const html = await readFile(join(dist, file), "utf8");
@@ -26,7 +15,7 @@ for (const [path, html] of pages) {
     if (!href.startsWith("/") && !href.startsWith("#")) continue;
     const [link, anchor] = href.split("#");
     const target = link || path;
-    assert(target === "/" || target === "/api/v1/spec" || appRoutes.has(target) || pages.has(target), href);
+    assert(target === "/" || target === "/api/v1/spec" || pages.has(target), href);
     if (anchor) assert(pages.get(target)?.includes(`id="${anchor}"`), href);
   }
 }

@@ -15,6 +15,7 @@ try {
     format: "esm",
     bundle: true,
     packages: "external",
+    define: { "process.env.DNAOS_PUBLIC_DOCS_ONLY": '"1"' },
     plugins: [{
       name: "static-developer-portal",
       setup(compiler) {

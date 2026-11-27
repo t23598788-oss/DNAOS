@@ -24,6 +24,11 @@ const catalogCategories = docsCategories.map((category) => ({
 })).filter((category) => category.services.length > 0);
 
 export const categories = [
+  {
+    id: "dna-os",
+    name: "ความสามารถของ DNA OS",
+    services: [{ id: "dna-os", name: "DNA OS" }],
+  },
   ...catalogCategories.map((category) => category.id === "developer-protocols"
     ? { ...category, services: [...category.services, metaMcpGuide] }
     : category),
