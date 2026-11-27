@@ -19,15 +19,18 @@ export function DocsArticle({ current, title, description, sections, children }:
   children?: ReactNode;
 }) {
   const toc = (
-    <ul className="space-y-2 text-stone-600">
+    <ul data-docs-toc className="text-stone-600">
       {sections.map(({ id, title: heading }) => (
-        <li key={id}><a className="hover:text-sky-800 hover:underline" href={`#${id}`}>{heading}</a></li>
+        <li key={id}>
+          <a className="block border-l-2 border-stone-200 py-1 pl-3 hover:text-sky-800 aria-[current=location]:border-sky-700 aria-[current=location]:font-semibold aria-[current=location]:text-sky-900" href={`#${id}`}>{heading}</a>
+        </li>
       ))}
     </ul>
   );
 
   return (
     <div className="flex h-dvh w-full flex-col overflow-hidden bg-white text-stone-900 [font-family:'Noto_Sans_Thai',Thonburi,'Leelawadee_UI',system-ui,sans-serif]">
+      <script src="/developers/scroll-nav.js" async />
       <header className="shrink-0 border-b border-stone-200 bg-white">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3 px-5 py-3 md:px-8">
           <Link href={docsHome} className="inline-flex items-center">
@@ -43,7 +46,7 @@ export function DocsArticle({ current, title, description, sections, children }:
           </div>
         </div>
       </header>
-      <div className="mx-auto grid min-h-0 w-full max-w-[1440px] flex-1 items-start gap-7 overflow-y-auto px-5 py-7 md:overflow-hidden md:grid-rows-[minmax(0,1fr)] md:grid-cols-[12rem_minmax(0,1fr)] md:px-8 min-[940px]:grid-cols-[12rem_minmax(0,1fr)_9rem] min-[940px]:gap-7 lg:grid-cols-[13rem_minmax(0,1fr)_10rem] lg:gap-9 xl:gap-12">
+      <div data-docs-body className="mx-auto grid min-h-0 w-full max-w-[1440px] flex-1 items-start gap-7 overflow-y-auto motion-safe:scroll-smooth [scrollbar-width:thin] [scrollbar-color:#a8a29e_transparent] px-5 py-7 md:overflow-hidden md:grid-rows-[minmax(0,1fr)] md:grid-cols-[12rem_minmax(0,1fr)] md:px-8 min-[940px]:grid-cols-[12rem_minmax(0,1fr)_9rem] min-[940px]:gap-7 lg:grid-cols-[13rem_minmax(0,1fr)_10rem] lg:gap-9 xl:gap-12">
         <nav aria-label="เมนูเอกสาร" className="text-sm md:max-h-full md:overflow-y-auto md:border-r md:border-stone-200 md:pr-4">
           <div className="grid gap-3 sm:grid-cols-3 md:grid-cols-1 md:gap-5">
             {docsNav.map((group) => (
@@ -60,7 +63,7 @@ export function DocsArticle({ current, title, description, sections, children }:
           </div>
         </nav>
 
-        <main tabIndex={0} className="min-w-0 md:h-full md:overflow-y-auto">
+        <main tabIndex={0} className="min-w-0 motion-safe:scroll-smooth [scrollbar-width:thin] [scrollbar-color:#a8a29e_transparent] md:h-full md:overflow-y-auto">
           <article className="mx-auto max-w-[44rem] text-base leading-[1.7]">
             <h1 className="text-[27px] font-semibold leading-tight tracking-tight">{title}</h1>
             <p className="mt-3 text-stone-600">{description}</p>
@@ -78,7 +81,7 @@ export function DocsArticle({ current, title, description, sections, children }:
           </article>
         </main>
 
-        <nav aria-label="ในหน้านี้" className="hidden max-h-full overflow-y-auto border-l border-stone-200 pl-4 text-sm min-[940px]:block">
+        <nav aria-label="ในหน้านี้" className="hidden max-h-full overflow-y-auto text-sm min-[940px]:block">
           <p className="mb-2 font-semibold">ในหน้านี้</p>
           {toc}
         </nav>
