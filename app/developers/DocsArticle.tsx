@@ -31,7 +31,7 @@ export function DocsArticle({ current, title, description, sections, children, p
   );
 
   return (
-    <div className="flex h-dvh w-full flex-col overflow-hidden bg-white text-stone-900 [font-family:'Noto_Sans_Thai',Thonburi,'Leelawadee_UI',system-ui,sans-serif]">
+    <div className="flex h-dvh w-full flex-col overflow-hidden bg-white text-stone-900 [font-family:var(--font-ui)]">
       {publicGuide && <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: guideJsonLd(current, title, description) }}

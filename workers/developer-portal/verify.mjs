@@ -6,6 +6,12 @@ const dist = "workers/developer-portal/dist";
 const pages = new Map();
 const canonicals = new Set();
 const descriptions = new Set();
+const fonts = await readFile(join(dist, "developers/fonts/dna-fonts.css"), "utf8");
+for (const [, filename] of fonts.matchAll(/url\("\.\/([^"]+)"\)/g)) {
+  assert.equal((await readFile(join(dist, "developers/fonts", filename))).subarray(0, 4).toString(), "wOF2");
+}
+assert.equal([...fonts.matchAll(/@font-face/g)].length, 3);
+
 const iconPath = "/developers/brand/dna-os-mark-mono.png";
 await readFile(join(dist, iconPath.slice(1)));
 for (const file of await readdir(dist, { recursive: true })) {
@@ -15,6 +21,7 @@ for (const file of await readdir(dist, { recursive: true })) {
 }
 for (const [path, html] of pages) {
   assert(!html.includes("127.0.0.1:3183"), path);
+  assert(html.includes('href="/developers/fonts/dna-fonts.css"'), path);
   const description = html.match(/<meta name="description" content="([^"]+)"/)?.[1];
   const canonical = html.match(/<link rel="canonical" href="([^"]+)"/)?.[1];
   assert(description && !descriptions.has(description), path);

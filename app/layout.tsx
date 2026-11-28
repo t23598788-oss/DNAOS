@@ -1,18 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import PwaRegistration from "@/components/pwa/PwaRegistration";
 import { appBaseUrl } from "@/config/system-links";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 // Absolute origin for metadata/structured data (2026-10-24). Env-sourced via
 // config/system-links.ts so no domain literal is ever written in app code
@@ -60,9 +49,10 @@ export default function RootLayout({
   return (
     <html
       lang="th"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <head>
+        <link rel="stylesheet" href="/landing-preview/assets/fonts/dna-fonts.css" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <meta name="theme-color" content="#0b0f1a" />
         {jsonLd && (

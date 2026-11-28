@@ -1,4 +1,4 @@
-import { copyFile, mkdir, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { createElement, Fragment, type ComponentType } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -12,7 +12,7 @@ import { GET } from "../../app/api/v1/spec/route";
 const out = process.argv[2]!;
 const stylesheet = join(process.cwd(), "workers/developer-portal/portal.css");
 const css = await postcss([tailwindcss()]).process(
-  '@import "tailwindcss" source(none); @source "../../app/developers";',
+  '@import "tailwindcss" source(none); @source "../../app/developers"; @theme inline { --font-sans: var(--font-ui); --font-mono: var(--font-ui); }',
   { from: stylesheet },
 );
 
@@ -29,7 +29,7 @@ function makePage(meta: typeof metadata, content: string) {
     createElement("link", { rel: "canonical", href: meta.alternates.canonical }),
     createElement("link", { rel: "icon", href: meta.icons.icon.url, type: meta.icons.icon.type, sizes: meta.icons.icon.sizes }),
   ));
-  return `<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${tags}<style>${css.css}</style></head><body>${content}</body></html>`;
+  return `<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${tags}<link rel="stylesheet" href="/developers/fonts/dna-fonts.css"><style>${css.css}</style></head><body>${content}</body></html>`;
 }
 
 await write("developers.html", makePage(metadata, renderToStaticMarkup(createElement(DevelopersPage as ComponentType))));
@@ -47,6 +47,8 @@ await write("developers/sitemap.xml", [
   "</urlset>",
   "",
 ].join("\n"));
+
+await cp("public/landing-preview/assets/fonts", join(out, "developers/fonts"), { recursive: true });
 
 const brandPath = "developers/brand";
 await mkdir(join(out, brandPath), { recursive: true });
