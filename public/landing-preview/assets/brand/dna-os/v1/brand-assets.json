@@ -1,0 +1,84 @@
+{
+  "brand": "DNA OS",
+  "version": "1.0.0",
+  "source_file": "public/landing-preview/assets/dna-os-logo-transparent.png",
+  "source_sha256": "92077471929c5d5e876ce995be381e8c43bcca3e39a60a6e7412d33941c07c19",
+  "distribution_base_url": "https://dnaos.dev/assets/brand/dna-os/v1/",
+  "variants": {
+    "color": {
+      "meaning": "Owner-supplied original colors and transparency retained without redraw.",
+      "horizontal": "dna-os-horizontal-color.png",
+      "mark": "dna-os-mark-color.png"
+    },
+    "monochrome": {
+      "meaning": "Single dark ink (#181F2B) plus transparent negative-space D counter; derived from the exact original alpha silhouette.",
+      "horizontal": "dna-os-horizontal-mono.png",
+      "mark": "dna-os-mark-mono.png"
+    }
+  },
+  "dimensions": {
+    "horizontal": [
+      990,
+      400
+    ],
+    "mark": [
+      384,
+      384
+    ]
+  },
+  "files": [
+    {
+      "file": "README.md",
+      "sha256": "c5f976bd90cefe93381f60bd678b1d1c119a6b352d5e3bb1b04c6386fad09357",
+      "bytes": 1905
+    },
+    {
+      "file": "dna-os-horizontal-color.png",
+      "sha256": "92077471929c5d5e876ce995be381e8c43bcca3e39a60a6e7412d33941c07c19",
+      "bytes": 375763
+    },
+    {
+      "file": "dna-os-horizontal-color.svg",
+      "sha256": "f3bdaff23b352228255c6cf0da383b9032289cbc60a59949124e78c8424e2cec",
+      "bytes": 501219
+    },
+    {
+      "file": "dna-os-horizontal-mono.png",
+      "sha256": "524094cf84fbc19a3dc25cba1b87bef6d0c42ecb3c52e74d292be5b084bff142",
+      "bytes": 7699
+    },
+    {
+      "file": "dna-os-horizontal-mono.svg",
+      "sha256": "df52d119ce6bc5bd30ed6ca9da5272f3024e100f64cb8d77df710fafa96da171",
+      "bytes": 10472
+    },
+    {
+      "file": "dna-os-mark-color.png",
+      "sha256": "f58a5772145fb2d615c487eb41a8332073b6d6048602061e69b51e2f2fd0c47b",
+      "bytes": 115031
+    },
+    {
+      "file": "dna-os-mark-color.svg",
+      "sha256": "8fb245f1486c85172d1e8518bc9581efa9ac48504f632e8e2a544f0c8c3441bb",
+      "bytes": 153577
+    },
+    {
+      "file": "dna-os-mark-mono.png",
+      "sha256": "2714add4ab3176f9cfadf08c134dd0610a1b5e29c9616b6af38e95fa741a56c5",
+      "bytes": 7177
+    },
+    {
+      "file": "dna-os-mark-mono.svg",
+      "sha256": "d4f68b7badd7b4aef0f2a0e1ebb02d6a6bb8b7f30b0b52369dcde7e424faa601",
+      "bytes": 9778
+    }
+  ],
+  "provider_logo_rule": "Use each external provider’s own approved logo. DNA OS assets identify DNA OS only.",
+  "background": "transparent",
+  "icon_fit": {
+    "recommended_asset": "dna-os-mark-color.png",
+    "fit": "contain",
+    "background": "transparent",
+    "padding": "Preserve the existing transparent safe area; do not crop or add a fill."
+  }
+}

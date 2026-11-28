@@ -114,7 +114,7 @@ export interface ApplyPriceAtomicResult {
 }
 
 export interface PriceWriteDeps {
-  getPit(pitId: string): Promise<{ id: string; owner_profile_id: string | null; organization_id: string | null } | null>;
+  getPit(pitId: string): Promise<{ id: string; owner_profile_id: string | null } | null>;
   recordSellerOfferAtomic(input: SellerOfferAtomicInput): Promise<SellerOfferAtomicResult>;
   applyMaterialPriceAtomic(input: ApplyPriceAtomicInput): Promise<ApplyPriceAtomicResult>;
 }
@@ -125,20 +125,7 @@ function supabasePriceDeps(): PriceWriteDeps {
     async getPit(pitId) {
       const { data } = await db.from("pit_profiles").select("id, user_id").eq("id", pitId).maybeSingle();
       if (!data) return null;
-      const { data: partner, error: partnerError } = await db
-        .from("partner_business_profiles")
-        .select("company_id")
-        .eq("pit_profile_id", pitId)
-        .maybeSingle();
-      const companyId = !partnerError && partner?.company_id ? String(partner.company_id) : null;
-      const { data: company, error: companyError } = companyId
-        ? await db.from("companies").select("organization_id").eq("id", companyId).maybeSingle()
-        : { data: null, error: null };
-      return {
-        id: String(data.id),
-        owner_profile_id: (data.user_id as string | null) ?? null,
-        organization_id: !companyError && company?.organization_id ? String(company.organization_id) : null,
-      };
+      return { id: String(data.id), owner_profile_id: (data.user_id as string | null) ?? null };
     },
     async recordSellerOfferAtomic(input) {
       const { data, error } = await db.rpc("record_seller_offer_atomic", {
@@ -279,12 +266,7 @@ export async function applyMaterialPrice(
   const decision = resolveAuthority({
     actor: input.actor,
     action: "price.write",
-    resource: {
-      kind: "pit",
-      id: pit.id,
-      ownerProfileId: pit.owner_profile_id,
-      organizationId: pit.organization_id,
-    },
+    resource: { kind: "pit", id: pit.id, ownerProfileId: pit.owner_profile_id },
     grants: input.grants ?? [],
     at: input.at,
   });

@@ -1,13 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "./developers/dna-typography.css"; // DNA OS Typography Standard v1.1 (tokens + self-hosted @font-face)
+import "./developers/dna-typography.css";
 import PwaRegistration from "@/components/pwa/PwaRegistration";
 import { appBaseUrl } from "@/config/system-links";
-
-// FONT SOURCE (2026-11-28): ไม่ใช้ next/font/google แล้ว — ฟอนต์ทั้งหมด
-// (Inter / Noto Sans Thai / Noto Serif Thai) โฮสต์เองใน public/fonts และ
-// ประกาศ @font-face ไว้ใน app/developers/dna-typography.css ซึ่ง globals.css
-// import อยู่ จึงไม่มีคำขอออกนอกเครื่องและได้ไฟล์ชุดเดียวกันทุกเครื่อง
 
 // Absolute origin for metadata/structured data (2026-10-24). Env-sourced via
 // config/system-links.ts so no domain literal is ever written in app code
@@ -58,6 +53,7 @@ export default function RootLayout({
       className="h-full antialiased"
     >
       <head>
+        <link rel="stylesheet" href="/landing-preview/assets/fonts/dna-fonts.css" />
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
         <meta name="theme-color" content="#0b0f1a" />
         {jsonLd && (

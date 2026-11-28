@@ -12,7 +12,7 @@
  */
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { getConnectorByProvider } from "@/core/connector-loader";
+import { getConnector } from "@/core/connector-loader";
 import { supabaseAdmin } from "@/services/supabase/queries";
 import { runConnectorTest } from "@/gateway/connectors";
 import type {
@@ -37,7 +37,7 @@ export function appOrigin(): string | null {
 
 /** The connector summary a contract is allowed to see (no secret values). */
 export async function getConnectorSummary(slug: string): Promise<ConnectorSummary | null> {
-  const record = await getConnectorByProvider(supabaseAdmin(), slug);
+  const record = await getConnector(supabaseAdmin(), slug);
   if (!record) return null;
   return {
     id: record.id,

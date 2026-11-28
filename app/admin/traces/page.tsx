@@ -211,7 +211,7 @@ export default function TracesPage() {
 
   useEffect(() => {
     load();
-    const iv = setInterval(load, 15_000);
+    const iv = setInterval(load, 5_000);
     return () => clearInterval(iv);
   }, [load]);
 

@@ -8,7 +8,6 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { getAuthedUser, ADMIN_TIER } from "@/core/auth/session"
-import { connectorOAuthCookieName, createConnectorOAuthState } from "@/core/auth/connector-oauth-state"
 import { getConnector } from "@/core/connector-loader"
 import { supabaseAdmin } from "@/services/supabase/queries"
 
@@ -47,8 +46,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   url.searchParams.set("redirect_uri", redirectUri)
   url.searchParams.set("response_type", "code")
   if (scope) url.searchParams.set("scope", scope)
-  const { state, cookieValue } = createConnectorOAuthState(user.id)
-  url.searchParams.set("state", state)
+  url.searchParams.set("state", connector.id)
 
   // Google ต้องการ access_type=offline + prompt=consent เพื่อให้ได้ refresh_token
   // อย่างน่าเชื่อถือจาก code exchange (ไม่งั้น Google คืนแค่ access_token อายุ ~1 ชม.)
@@ -59,13 +57,5 @@ export async function GET(req: NextRequest, { params }: Params) {
     url.searchParams.set("prompt", "consent")
   }
 
-  const response = NextResponse.redirect(url.toString())
-  response.cookies.set(connectorOAuthCookieName(connector.id), cookieValue, {
-    httpOnly: true,
-    secure: req.nextUrl.protocol === "https:",
-    sameSite: "lax",
-    path: `/api/connectors/oauth/callback/${slug}`,
-    maxAge: 10 * 60,
-  })
-  return response
+  return NextResponse.redirect(url.toString())
 }

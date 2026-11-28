@@ -26,11 +26,6 @@ export const ADAPTERS: AdapterDescription[] = [
   // identity signal / interaction. Listed by provider because this record is
   // about which adapter exists, not about a business capability.
   { provider: "line", observes: ["message", "document", "location", "identity_signal", "interaction"], ingress: "webhook" },
-  { provider: "facebook", observes: ["message", "document", "interaction"], ingress: "webhook" },
-  { provider: "instagram", observes: ["message", "document", "interaction"], ingress: "webhook" },
-  // Kod Chat Bot API v1: native message/postback events are normalized into
-  // the provider-neutral GatewayEvent contract; runtime still follows gates.
-  { provider: "kodchat", observes: ["message", "document", "location", "interaction"], ingress: "webhook" },
 ];
 
 export const CHANNELS: { channel: GatewayChannel; enabled: boolean; description: string }[] = [

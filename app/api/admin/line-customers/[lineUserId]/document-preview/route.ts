@@ -6,7 +6,6 @@ import { DOC_LABELS } from "@/engines/documents/engine"
 import { createDocumentArtifacts } from "@/engines/documents/artifact"
 import { lineDocumentMessages } from "@/gateway/document-artifact-storage"
 import { loadDocFromRecord, buildDocDataFromRecord, type LoadedDoc } from "@/app/api/admin/documents/_lib/docDataFromRecord"
-import { denyUnscoped, isCompanyVisible, resolveAdminReadScope } from "@/app/api/admin/_lib/read-scope"
 
 type Params = { params: Promise<{ lineUserId: string }> }
 
@@ -59,9 +58,6 @@ function safeFileName(name: string, ext: string): string {
 export async function GET(req: NextRequest, { params }: Params) {
   const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
-  const scope = await resolveAdminReadScope(auth)
-  const scopeDenied = denyUnscoped(scope)
-  if (scopeDenied) return scopeDenied
 
   const { lineUserId } = await params
   const url = new URL(req.url)
@@ -83,9 +79,6 @@ export async function GET(req: NextRequest, { params }: Params) {
     .maybeSingle()
   if (!link?.company_id) {
     return NextResponse.json({ error: "NOT_LINKED_TO_CONTACT: contact นี้ไม่มีบริษัทที่ผูกไว้", code: "NOT_LINKED_TO_CONTACT" }, { status: 404 })
-  }
-  if (!isCompanyVisible(scope, link.company_id)) {
-    return NextResponse.json({ error: "ไม่พบเอกสาร", code: "DOCUMENT_NOT_FOUND" }, { status: 404 })
   }
 
   const doc = await loadDocFromRecord(table, id)

@@ -59,8 +59,6 @@ const CHORE_TABLES = new Set([
   "ai_tasks", "app_configs", "system_health_status", "conversation_states",
   "entity_registry", "fuel_price_log", "subscription_services", "supabase_billing_events",
 ]);
-/** DNA OS platform-cost attribution/evidence, not customer business records. */
-const PLATFORM_ACCOUNTING_TABLES = new Set(["subscription_costs", "subscription_evidence"]);
 /** ตารางเงินที่ provider ห้ามแตะหลัง P4 (§11 D2/D3 — ยังเปิดเป็น baseline) */
 const MONETARY_TABLES = new Set(["company_expenses", "partner_payable_requests"]);
 
@@ -263,6 +261,5 @@ function scanDirs(dirs: string[]): ScanResult {
 }
 
 function isBusiness(w: WriteSite): boolean {
-  return !EDGE_TABLES.has(w.table) && !CHORE_TABLES.has(w.table) &&
-    !PLATFORM_ACCOUNTING_TABLES.has(w.table) && !MONETARY_TABLES.has(w.table);
+  return !EDGE_TABLES.has(w.table) && !CHORE_TABLES.has(w.table) && !MONETARY_TABLES.has(w.table);
 }

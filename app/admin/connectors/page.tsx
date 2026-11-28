@@ -139,8 +139,6 @@ export default function ConnectorsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [testingId, setTestingId] = useState<string | null>(null);
-  const [registeringWebhookId, setRegisteringWebhookId] = useState<string | null>(null);
-  const [webhookRegistration, setWebhookRegistration] = useState<Record<string, { ok: boolean; message: string }>>({});
 
   // ── Connect Core: pre-Connect discovery + prepare (owner-approved design) ──
   // The provider is chosen from what the system can SEE (not typed), and the
@@ -352,24 +350,6 @@ export default function ConnectorsPage() {
       await load();
     } finally {
       setTestingId(null);
-    }
-  }
-
-  async function registerKodChatWebhook(c: Connector) {
-    setRegisteringWebhookId(c.id);
-    setWebhookRegistration((state) => ({ ...state, [c.id]: { ok: false, message: "กำลังลงทะเบียน..." } }));
-    try {
-      const res = await fetch(`/api/admin/connectors/${encodeURIComponent(c.id)}/kodchat-webhook`, { method: "POST" });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.ok) {
-        setWebhookRegistration((state) => ({ ...state, [c.id]: { ok: false, message: data.error ?? "ลงทะเบียน Webhook ไม่สำเร็จ" } }));
-        return;
-      }
-      setWebhookRegistration((state) => ({ ...state, [c.id]: { ok: true, message: `ลงทะเบียนแล้ว: ${data.callback_url}` } }));
-    } catch {
-      setWebhookRegistration((state) => ({ ...state, [c.id]: { ok: false, message: "เชื่อมต่อระบบลงทะเบียนไม่สำเร็จ" } }));
-    } finally {
-      setRegisteringWebhookId(null);
     }
   }
 
@@ -617,12 +597,6 @@ export default function ConnectorsPage() {
                   ))}
                 </div>
 
-                {providerId === "kodchat" && (
-                  <p className="rounded-lg border border-sky-100 bg-sky-50 p-3 text-[11px] leading-5 text-sky-800">
-                    api_key คือ Bot Token จากหน้า “บอทของฉัน” ใน Kob Chat ส่วน webhook_secret ต้องเป็นค่าเดียวกับ Secret ที่ตั้งตอนลงทะเบียน Webhook ปุ่มลงทะเบียนจะส่ง URL รับข้อความของ DNA OS และ Secret นี้ไปที่ Kob Chat
-                  </p>
-                )}
-
                 <details className="text-[11px] text-stone-500">
                   <summary className="cursor-pointer text-stone-400">evidence</summary>
                   <ul className="mt-1.5 space-y-1">
@@ -730,16 +704,6 @@ export default function ConnectorsPage() {
                         )}
                       </div>
                     )}
-                    {c.config?.provider === "kodchat" && (
-                      <button
-                        onClick={() => void registerKodChatWebhook(c)}
-                        disabled={registeringWebhookId === c.id || !c.enabled || c.status !== "connected"}
-                        title={!c.enabled || c.status !== "connected" ? "ทดสอบให้ผ่านและ Enable ก่อนลงทะเบียน Webhook" : "ส่ง callback URL และ webhook secret ไปตั้งค่าที่ Kob Chat"}
-                        className="text-[11px] px-2.5 py-1 rounded-lg border border-violet-200 text-violet-700 hover:bg-violet-50 disabled:opacity-40 transition"
-                      >
-                        {registeringWebhookId === c.id ? "กำลังลงทะเบียน..." : "ลงทะเบียน Kob Chat Webhook"}
-                      </button>
-                    )}
                     {c.auth_type === "webhook" && (
                       <div className="mt-2 text-[11px] text-stone-500 space-y-0.5">
                         <div>รับ event ที่: <code className="font-mono bg-stone-100 px-1 rounded">{c.config.receiving_path}</code></div>
@@ -787,11 +751,6 @@ export default function ConnectorsPage() {
                     </button>
                   </div>
                 </div>
-                {c.config?.provider === "kodchat" && webhookRegistration[c.id] && (
-                  <p className={`mt-2 text-[11px] ${webhookRegistration[c.id].ok ? "text-emerald-700" : "text-red-600"}`}>
-                    {webhookRegistration[c.id].message}
-                  </p>
-                )}
               </div>
             ))}
           </div>

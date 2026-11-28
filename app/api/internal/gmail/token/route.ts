@@ -47,8 +47,6 @@ interface TokenSuccess {
   ok: true;
   access_token: string;
   expires_at: string;
-  connector_id: string;
-  mailbox_email: string | null;
 }
 interface TokenError {
   ok: false;
@@ -60,33 +58,6 @@ function errorResponse(code: string, error: string, status: number): NextRespons
   return NextResponse.json({ ok: false, code, error }, { status });
 }
 
-async function tokenSuccess(accessToken: string, expiresAt: string, connectorId: string, includeMailboxIdentity: boolean) {
-  // Gmail profile is read only to identify which mailbox produced evidence.
-  // Failure to resolve it does not block mail observation, but ownership stays
-  // unassigned until a human verifies the mailbox owner.
-  let mailboxEmail: string | null = null;
-  if (includeMailboxIdentity) {
-    try {
-      const profile = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/profile", {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (profile.ok) {
-        const data = await profile.json() as { emailAddress?: unknown };
-        if (typeof data.emailAddress === "string") mailboxEmail = data.emailAddress.toLowerCase();
-      }
-    } catch {
-      // Keep the connection usable; the sync reports an unresolved mailbox.
-    }
-  }
-  return NextResponse.json({
-    ok: true,
-    access_token: accessToken,
-    expires_at: expiresAt,
-    connector_id: connectorId,
-    mailbox_email: mailboxEmail,
-  } satisfies TokenSuccess);
-}
-
 export async function POST(req: Request) {
   // 1. Internal bridge auth — fail closed (same pattern as openclaw/line-command bridges)
   const internalSecret = process.env.GMAIL_INTERNAL_SECRET;
@@ -96,7 +67,6 @@ export async function POST(req: Request) {
   if (req.headers.get("x-gmail-internal-secret") !== internalSecret) {
     return errorResponse("UNAUTHORIZED", "ไม่ได้รับอนุญาต", 401);
   }
-  const includeMailboxIdentity = req.headers.get("x-gmail-include-mailbox-identity") === "true";
 
   const db = supabaseAdmin();
 
@@ -170,7 +140,9 @@ export async function POST(req: Request) {
   const expiresAtMs = expiresAtRaw ? Date.parse(expiresAtRaw) : NaN;
   const accessToken = typeof secret.access_token === "string" ? secret.access_token : "";
   if (accessToken && expiresAtRaw && Number.isFinite(expiresAtMs) && expiresAtMs - EXPIRY_MARGIN_MS > Date.now()) {
-    return tokenSuccess(accessToken, expiresAtRaw, record.id, includeMailboxIdentity);
+    return NextResponse.json(
+      { ok: true, access_token: accessToken, expires_at: expiresAtRaw } satisfies TokenSuccess,
+    );
   }
 
   // 5. Expired/missing → Google's existing refresh-token grant
@@ -220,5 +192,5 @@ export async function POST(req: Request) {
   }
 
   // client_secret / refresh_token never leave this route — only the short-lived access token
-  return tokenSuccess(newAccessToken, newExpiresAt, record.id, includeMailboxIdentity);
+  return NextResponse.json({ ok: true, access_token: newAccessToken, expires_at: newExpiresAt } satisfies TokenSuccess);
 }

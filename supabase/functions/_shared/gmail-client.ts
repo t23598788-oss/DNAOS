@@ -14,13 +14,7 @@
 // (Connect → Register → Test → Enable → Run — registry/connector-lifecycle.json).
 // Fail-closed by design: bridge unreachable / connector not runnable → null —
 // NO env fallback (never silently bypass the lifecycle).
-export type GmailAccessContext = {
-  accessToken: string
-  connectorId: string | null
-  mailboxEmail: string | null
-}
-
-async function fetchAccessContextViaBridge(includeMailboxIdentity = false): Promise<GmailAccessContext | null> {
+async function fetchAccessTokenViaBridge(): Promise<string | null> {
   const appUrl = Deno.env.get("DNA_OS_APP_URL")
   const internalSecret = Deno.env.get("GMAIL_INTERNAL_SECRET")
   if (!appUrl || !internalSecret) return null
@@ -28,30 +22,18 @@ async function fetchAccessContextViaBridge(includeMailboxIdentity = false): Prom
   try {
     const res = await fetch(`${appUrl.replace(/\/+$/, "")}/api/internal/gmail/token`, {
       method: "POST",
-      headers: {
-        "x-gmail-internal-secret": internalSecret,
-        ...(includeMailboxIdentity ? { "x-gmail-include-mailbox-identity": "true" } : {}),
-      },
+      headers: { "x-gmail-internal-secret": internalSecret },
     })
     if (!res.ok) return null
     const data = await res.json()
-    if (typeof data?.access_token !== "string") return null
-    return {
-      accessToken: data.access_token,
-      connectorId: typeof data.connector_id === "string" ? data.connector_id : null,
-      mailboxEmail: typeof data.mailbox_email === "string" ? data.mailbox_email : null,
-    }
+    return data?.access_token ?? null
   } catch {
     return null
   }
 }
 
 export async function getGmailAccessToken(): Promise<string | null> {
-  return (await fetchAccessContextViaBridge())?.accessToken ?? null
-}
-
-export async function getGmailAccessContext(): Promise<GmailAccessContext | null> {
-  return fetchAccessContextViaBridge(true)
+  return fetchAccessTokenViaBridge()
 }
 
 function base64UrlDecode(data: string): string {

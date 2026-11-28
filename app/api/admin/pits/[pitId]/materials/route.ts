@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
 import { requireAuth } from "@/core/auth/requireAuth"
+import { ADMIN_TIER } from "@/core/auth/session"
 import { loadAuthorityContext } from "@/engines/authority/load"
 import { applyMaterialPrice } from "@/engines/canonical/material-price-write"
 import { invalidatePublicCatalog } from "@/services/public-catalog/reader"
@@ -22,10 +23,10 @@ type Params = { params: Promise<{ pitId: string }> }
 //     → Postgres apply_material_price_atomic (price + audit in one transaction)
 //
 // Consequences that are intentional, not regressions:
-//   · Access requires a signed-in user; the resolver then requires that user's
-//     verified org_members role to be `owner` for the seller organization.
-//     Platform admin/super-admin roles and pit_profiles.user_id do not authorize
-//     a business price change.
+//   · `ADMIN_TIER` alone no longer authorises a price change. The route keeps it
+//     as the coarse "may enter the admin area" gate; the fine decision is the
+//     resolver. A non-owner without a grant is refused (fail-closed) — the
+//     admin UI surfaces the machine reason instead of silently succeeding.
 //   · The public catalog is invalidated only after a committed change.
 //   · While migration 20261025000001 is not applied the command fails closed
 //     with PRICE_ATOMIC_RPC_MISSING (503) instead of falling back to a
@@ -39,7 +40,7 @@ const errorStatus = (message: string): number => {
 }
 
 export async function POST(req: NextRequest, { params }: Params) {
-  const auth = await requireAuth()
+  const auth = await requireAuth(ADMIN_TIER)
   if (auth instanceof NextResponse) return auth
 
   const { pitId } = await params

@@ -34,7 +34,7 @@ export default async function SettingsPage() {
   const envVarNames = readEnvVarNames();
 
   return (
-    <div style={{ padding: 24, fontFamily: "system-ui, sans-serif", maxWidth: 1000, margin: "0 auto" }}>
+    <div style={{ padding: 24, fontFamily: "var(--font-ui)", maxWidth: 1000, margin: "0 auto" }}>
       <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 24 }}>Settings</h1>
 
       <section style={{ marginBottom: 32 }} id="connections-credentials">
@@ -45,6 +45,19 @@ export default async function SettingsPage() {
           ค่ารหัสจริงอยู่ที่ Connect credential authority — หน้านี้เห็นเฉพาะสถานะ/metadata
         </p>
         <ConnectionsCredentialsBoard />
+      </section>
+
+      <section style={{ marginBottom: 32 }} id="system-references">
+        <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>System references</h2>
+        <div style={{ border: "1px solid #e5e5e5", borderRadius: 8, padding: 12 }}>
+          <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 6 }}>Login, identity &amp; session</div>
+          <p style={{ fontSize: 12, color: "#888", margin: "0 0 8px" }}>
+            เส้นทางจากหน้าเข้าสู่ระบบไปยังบริการยืนยันตัวตน ซอร์สโค้ด และประวัติรุ่นที่บันทึกในฐานข้อมูล
+          </p>
+          <a href="https://dnaos.dev/system-map#login-identity" target="_blank" rel="noreferrer" style={{ fontSize: 12, color: "#1e6fa8" }}>
+            Open login &amp; identity reference
+          </a>
+        </div>
       </section>
 
       <section style={{ marginBottom: 32 }}>

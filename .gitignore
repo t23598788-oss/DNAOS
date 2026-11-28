@@ -66,6 +66,7 @@ yarn-error.log*
 
 # vercel
 .vercel
+workers/landing-entry/.wrangler/
 
 # /admin/ide workspace trash (owner, 2026-08-05, Phase 3) — trashed items
 # and their metadata ledger must never be committed
@@ -86,16 +87,3 @@ _inventory/
 
 # Contractor pull-model runtime artifacts (NEW-2)
 .agents/
-/dist/
-.vinext/
-.cloudflare/
-
-# Local architecture exports, data inventories, linked-project metadata, and
-# generated Wrangler state are not source artifacts and may contain private
-# environment details or copied business records.
-/.archify/
-/outputs/
-/work/
-/system-db/
-/supabase/local-migration/production_*
-/workers/*/.wrangler/

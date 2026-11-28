@@ -152,7 +152,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     const code = (err as { code?: string }).code;
-    if (code === "UNKNOWN_CREDENTIAL_KEY" || code === "REQUIREMENTS_MISSING" || code === "META_TABLES_MISSING" || code === "AMBIGUOUS_CONNECTOR") {
+    if (code === "UNKNOWN_CREDENTIAL_KEY" || code === "REQUIREMENTS_MISSING" || code === "META_TABLES_MISSING") {
       return NextResponse.json({ ok: false, code, error: msg }, { status: code === "UNKNOWN_CREDENTIAL_KEY" ? 400 : 409 });
     }
     console.error("[provider-settings] rotate failed:", msg);

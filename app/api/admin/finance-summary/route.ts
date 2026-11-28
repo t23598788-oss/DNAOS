@@ -74,7 +74,7 @@ export async function GET() {
     db.from("receipt_documents").select("amount, document_date, document_type, status"),
     db.from("company_debt_current").select("ledger_outstanding, snapshot_total_outstanding"),
     db.from("fuel_price_log").select("price, fetched_at").order("fetched_at", { ascending: false }).limit(1),
-    db.from("company_expenses").select("document_type, vendor_name, amount, amount_pre_vat, vat_amount, expense_date").neq("source", "subscription_email_sync"),
+    db.from("company_expenses").select("document_type, vendor_name, amount, amount_pre_vat, vat_amount, expense_date"),
     db.from("payment_allocations").select("amount, allocated_at"),
   ])
 

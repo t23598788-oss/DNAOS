@@ -25,7 +25,7 @@
 
 export type GatewayChannel = "observe" | "propose" | "execute";
 
-export type GatewayProvider = "github" | "supabase" | "vercel" | "railway" | "vscode" | "chatgpt-mcp" | "line" | "facebook" | "instagram" | "kodchat";
+export type GatewayProvider = "github" | "supabase" | "vercel" | "railway" | "vscode" | "chatgpt-mcp" | "line" | "facebook" | "instagram";
 
 /**
  * Capability strings are dot-namespaced, provider-agnostic verbs — e.g.

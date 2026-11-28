@@ -63,7 +63,7 @@ export default function DevLoopVoiceAlerts() {
 
   useEffect(() => {
     const initialTimer = window.setTimeout(() => void loadReport(), 0);
-    const timer = window.setInterval(() => void loadReport(), 60000);
+    const timer = window.setInterval(() => void loadReport(), 15000);
     return () => {
       window.clearTimeout(initialTimer);
       window.clearInterval(timer);

@@ -17,7 +17,6 @@ import {
   Wallet, MapPin, Briefcase, Users, ScanLine, Files, FileOutput, Printer,
   Download, Share2, History, Paperclip, ArrowUp, Mic, X,
   FileSignature, Banknote, Mountain, Server, Cloud,
-  PlugZap,
 } from "lucide-react";
 import { openExternal } from "@/components/admin/openExternal";
 import FlexPreview from "@/presentation/viewer/FlexPreview";
@@ -33,7 +32,6 @@ import { createBrowserSupabase } from "@/services/supabase/browser";
 type FrameItem = {
   icon: React.ElementType;
   label: string;
-  group?: string;
   /** route เดิมของ DNA OS — map ตาม reference ใหม่ */
   route?: string;
   /** URL ภายนอก (เปิดผ่าน openExternal — Tauri+web pattern เดิมของ rail) */
@@ -103,26 +101,21 @@ const RUNPOD_CONSOLE_URL = "https://console.runpod.io/pods";
 /** apps ตาม reference: ไฟล์·เอกสาร·LINE·การเงิน·GPS·งาน·รายชื่อ·สแกน/AI (+ความสัมพันธ์ ตามคำสั่ง map ของ Owner) */
 /** รายการถัดไป = จุดหมาย rail เดิมของ relationships ที่ย้ายมา shell (คงทางเข้าไว้ครบทุกตัว) */
 const APPS: FrameItem[] = [
-  { icon: Files, label: "ไฟล์", group: "เอกสารและข้อมูล", route: "/admin/storage" },
-  { icon: FileText, label: "เอกสาร", group: "เอกสารและข้อมูล", route: "/admin/create-document" },
-  { icon: FileSignature, label: "รายการเอกสาร", group: "เอกสารและข้อมูล", route: "/admin/transactions" },
-  { icon: MessageCircle, label: "LINE", group: "ลูกค้าและงาน", route: "/admin/line-customers" },
-  { icon: Briefcase, label: "งาน", group: "ลูกค้าและงาน", route: "/admin/jobs" },
-  { icon: Users, label: "รายชื่อ", group: "ลูกค้าและงาน", route: "/admin/partners" },
-  { icon: MessageSquare, label: "ความสัมพันธ์", group: "ลูกค้าและงาน", route: "/admin/relationships" },
-  { icon: Wallet, label: "การเงิน", group: "ทรัพยากรและการเงิน", route: "/admin/finance" },
-  { icon: Banknote, label: "ลูกหนี้", group: "ทรัพยากรและการเงิน", route: "/admin/debt-tracking" },
-  { icon: Mountain, label: "บ่อวัสดุ", group: "ทรัพยากรและการเงิน", route: "/admin/pits" },
-  { icon: MapPin, label: "เครื่องจักรและซ่อมบำรุง", group: "ทรัพยากรและการเงิน", route: "/admin/equipment" },
-  { icon: ScanLine, label: "สแกน / AI", group: "ระบบและบริการ", route: "/admin/receipts" },
-  { icon: PlugZap, label: "บริการและปลั๊กอิน", group: "ระบบและบริการ", route: "/account/connections" },
-  { icon: Server, label: "ค่าใช้จ่าย", group: "ระบบและบริการ", route: "/admin/infrastructure" },
-  { icon: Cloud, label: "Cloud GPU", group: "ระบบและบริการ", external: RUNPOD_CONSOLE_URL },
+  { icon: Files, label: "ไฟล์", route: "/admin/storage" },
+  { icon: FileText, label: "เอกสาร", route: "/admin/create-document" },
+  { icon: MessageCircle, label: "LINE", route: "/admin/line-customers" },
+  { icon: Wallet, label: "การเงิน", route: "/admin/finance" },
+  { icon: MapPin, label: "เครื่องจักรและซ่อมบำรุง", route: "/admin/equipment" },
+  { icon: Briefcase, label: "งาน", route: "/admin/jobs" },
+  { icon: Users, label: "รายชื่อ", route: "/admin/partners" },
+  { icon: ScanLine, label: "สแกน / AI", route: "/admin/receipts" },
+  { icon: MessageSquare, label: "ความสัมพันธ์", route: "/admin/relationships" },
+  { icon: FileSignature, label: "รายการเอกสาร", route: "/admin/transactions" },
+  { icon: Banknote, label: "ลูกหนี้", route: "/admin/debt-tracking" },
+  { icon: Mountain, label: "บ่อวัสดุ", route: "/admin/pits" },
+  { icon: Server, label: "ค่าใช้จ่าย", route: "/admin/infrastructure" },
+  { icon: Cloud, label: "Cloud GPU", external: RUNPOD_CONSOLE_URL },
 ];
-const APP_GROUPS = ["เอกสารและข้อมูล", "ลูกค้าและงาน", "ทรัพยากรและการเงิน", "ระบบและบริการ"].map((label) => ({
-  label,
-  items: APPS.filter((item) => item.group === label),
-}));
 
 /** actions ตาม reference — เหลือแค่ตัวที่มี backend จริง (ประวัติ→event-inbox) ที่เหลือ disabled */
 const ACTIONS: FrameItem[] = [
@@ -135,7 +128,7 @@ const ACTIONS: FrameItem[] = [
 
 /** CSS ยึด tokens + โครงสร้างของ reference (paper/ink/line/soft · edge drawer · stage โล่ง) */
 const FRAME_CSS = `
-#dna-frame{--paper:var(--surface-card);--ink:var(--ink-primary);--line:var(--border-hairline);--soft:var(--surface-subtle);position:relative;background:var(--surface-paper);color:var(--ink);font-family:var(--font-ui);font-size:var(--dna-text-sm);line-height:var(--leading-ui);border:1px solid var(--line);border-radius:16px;overflow:hidden;height:100dvh;display:flex;flex-direction:column}
+#dna-frame{--paper:#fdfbf8;--ink:#36332f;--line:#e9e1d6;--soft:#f0ebe5;position:relative;background:var(--paper);color:var(--ink);font:14px/1.6 var(--font-ui);border:1px solid var(--line);border-radius:16px;overflow:hidden;height:100dvh;display:flex;flex-direction:column}
 #dna-frame *{box-sizing:border-box}
 #dna-frame,#dna-frame *{scrollbar-width:none}
 #dna-frame::-webkit-scrollbar,#dna-frame *::-webkit-scrollbar{display:none;width:0;height:0}
@@ -155,9 +148,7 @@ const FRAME_CSS = `
 #dna-frame .edge.right{right:8px;top:82px}
 #dna-frame .drawer{position:absolute;top:144px;max-height:calc(100dvh - 160px);overflow-y:auto;overscroll-behavior:contain;left:12px;right:12px;z-index:2;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 12px 24px #0002}
 #dna-frame .drawer .row,#dna-frame .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-#dna-frame .tools{display:grid;grid-template-columns:1fr;gap:12px;margin-top:12px}
-#dna-frame .tool-group{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px}
-#dna-frame .tool-group-title{grid-column:1/-1;margin:4px 0 0;color:#78716c;font-size:12px;font-weight:600}
+#dna-frame .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px;margin-top:12px}
 #dna-frame .tools button{display:flex;align-items:center;gap:8px;justify-content:flex-start;text-align:left}
 #dna-frame .canvas{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
 #dna-frame .msg-panel{position:absolute;top:76px;right:12px;bottom:76px;width:min(420px,calc(100% - 24px));z-index:5;background:var(--paper);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 24px #0002;display:flex;flex-direction:column;padding:14px;gap:10px;overflow:hidden}
@@ -616,7 +607,7 @@ export function WorkspaceFrame({
       >
         <MessageSquare />
       </button>
-      <button className="gear" onClick={() => router.push("/account/connections")} aria-label="บริการและปลั๊กอิน">
+      <button className="gear" onClick={() => router.push("/admin/settings")} aria-label="Settings">
         <Settings />
       </button>
 
@@ -652,24 +643,20 @@ export function WorkspaceFrame({
               </button>
             </div>
             <div className="tools">
-              {drawer === "apps" ? APP_GROUPS.map((group) => (
-                <section className="tool-group" key={group.label}>
-                  <strong className="tool-group-title">{group.label}</strong>
-                  {group.items.map((item) => (
-                    <button key={item.label} type="button" aria-disabled={!!item.disabledNote} title={item.disabledNote ?? item.route ?? item.external} onClick={() => go(item)}>
-                      <item.icon /> {item.label}
-                      {(itemBadges?.[item.label] ?? 0) > 0 && <span className="count">{itemBadges![item.label]}</span>}
-                    </button>
-                  ))}
-                </section>
-              )) : <section className="tool-group">
-                {ACTIONS.map((item) => (
-                  <button key={item.label} type="button" aria-disabled={!!item.disabledNote} title={item.disabledNote ?? item.route ?? item.external} onClick={() => go(item)}>
-                    <item.icon /> {item.label}
-                    {(itemBadges?.[item.label] ?? 0) > 0 && <span className="count">{itemBadges![item.label]}</span>}
-                  </button>
-                ))}
-              </section>}
+              {(drawer === "apps" ? APPS : ACTIONS).map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  aria-disabled={!!item.disabledNote}
+                  title={item.disabledNote ?? item.route ?? item.external}
+                  onClick={() => go(item)}
+                >
+                  <item.icon /> {item.label}
+                  {(itemBadges?.[item.label] ?? 0) > 0 && (
+                    <span className="count">{itemBadges![item.label]}</span>
+                  )}
+                </button>
+              ))}
             </div>
             {drawer === "actions" && (
               <p className="note" style={{ marginTop: 10 }}>
@@ -1187,7 +1174,7 @@ export function WorkspaceToolNavigation() {
   return (
     <nav className="dna-tool-access" aria-label="เครื่องมือ DNA OS">
       <style>{`
-        .dna-tool-access{position:relative;grid-row:1;align-self:stretch;padding:16px 8px;z-index:40;color:var(--ink-primary);font-family:var(--font-ui);font-size:var(--dna-text-sm);line-height:var(--leading-ui)}
+        .dna-tool-access{position:relative;grid-row:1;align-self:stretch;padding:16px 8px;z-index:40;color:#36332f;font:14px/1.6 var(--font-ui)}
         body:has(#dna-frame) .dna-tool-access{display:none}
         .dna-tool-access button{background:#fdfbf8;border:1px solid #e9e1d6;border-radius:9px;min-height:44px;padding:8px;cursor:pointer;color:inherit;font:inherit}
         .dna-tool-access button:hover{background:#f0ebe5}

@@ -1,0 +1,30 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "dnaos-homepage",
+  "main": "index.ts",
+  "compatibility_date": "2026-11-23",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    { "pattern": "dnaos.dev/", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/system-map", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/system-map.json", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/system-map.md", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/system-map-ai.zip", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/api-reference.md", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/api-status.json", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/llms.txt", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/sitemap.xml", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/sw.js", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/favicon.ico", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/manifest.json", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/icons/*", "zone_name": "dnaos.dev" },
+    { "pattern": "dnaos.dev/assets/*", "zone_name": "dnaos.dev" }
+  ],
+  "assets": {
+    "directory": "../../public/landing-preview",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page"
+  },
+  "observability": { "enabled": true }
+}

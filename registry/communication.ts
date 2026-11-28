@@ -23,7 +23,7 @@
  * message (Register/Test/Enable at /admin/connectors) — a send is never
  * silently routed around the lifecycle.
  */
-import { requireProviderConnector } from "@/core/connector-loader";
+import { requireConnector } from "@/core/connector-loader";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const LINE_MESSAGING_API = 'https://api.line.me/v2/bot/message/push';
@@ -41,7 +41,7 @@ export async function sendLineMessage(
 ): Promise<SendMessageResponse> {
   let accessToken = "";
   try {
-    const connector = await requireProviderConnector(db, "line", "registry/communication.sendLineMessage");
+    const connector = await requireConnector(db, "line", "registry/communication.sendLineMessage");
     accessToken =
       (connector.secret.channel_access_token as string) ??
       (connector.secret.token as string) ??

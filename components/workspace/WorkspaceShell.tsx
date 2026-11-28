@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import { Briefcase, Users, User, LayoutGrid } from "lucide-react";
 import IconRail, { type IconRailItem } from "@/presentation/shell/navigation/IconRail";
 import LogoutButton from "@/components/auth/LogoutButton";
-import BusinessOrganizationSwitcher from "@/components/workspace/BusinessOrganizationSwitcher";
 import type { WorkspaceNavItem } from "@/core/navigation/resolveNavItems";
 
 // Icon components resolved HERE (client side) from string names passed down
@@ -32,7 +31,6 @@ export default function WorkspaceShell({
   userEmail,
   portalStatus,
   theme = "dark",
-  businessContext = false,
   excludePathPrefixes = [],
   children,
 }: {
@@ -41,7 +39,6 @@ export default function WorkspaceShell({
   userEmail: string;
   portalStatus?: "shell" | "official";
   theme?: "dark" | "light";
-  businessContext?: boolean;
   // Paths that already bring their own full-screen shell (e.g.
   // app/admin/relationships/workspace.tsx's own AppShell + IconRail) render
   // bare here instead of getting a second, nested shell — a second h-screen
@@ -98,7 +95,6 @@ export default function WorkspaceShell({
             <span />
           )}
           <div className="flex items-center gap-3">
-            {businessContext && <BusinessOrganizationSwitcher />}
             <span className={"text-xs truncate max-w-[200px] " + (isDark ? "text-stone-500" : "text-ink-muted")}>
               {userEmail}
             </span>

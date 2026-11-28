@@ -3543,5 +3543,265 @@
     ],
     "summary": "RAILWAY NATIVE CLINE RUNTIME. Linux cline 3.0.62 proven on Railway sandbox (completed, deepseek via cline account, $0.00018, 1.3s). Separate Railway service dna-os-cline-worker (project 1af5cafa, env 8/8 incl CLINE_SEED_PROVIDERS_JSON) reusing ai_tasks+ai-callback contracts; deadboard enqueues when local binary missing (userId-bound, duplicate guard) and polls synchronously; Mac watcher skips owner tasks; secrets never in prompts/logs (cookie injected server-side). Deploy-path FIX: production = INFRA project service dna-os-deadboard (c08254e4); earlier railway ups targeted duplicate project d1271290 auto-created by an old up — relinked; deployed DNA-000217 (2d5f14d0) + DNA-000218 (f6df7a97) with registry_version=2 canary proof; ai-callback edge deployed. BLOCKER at report: supabase db push hung before applying 20261011000001 (ai_tasks new columns absent) -> task-queue path fail-closed (insert error -> null -> existing behavior). Owner applies migration via SQL editor or completing push, then flow goes live with zero code change. Gates: tsc, build, census business24/monetary2 unchanged, owner-routing 15/15.",
     "contract_changed": true
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000219",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T15:54:18+07:00",
+    "session_id": "auth-email-and-brand-reference-2026-11-23",
+    "files": [
+      "README.md (main documentation index links to Auth email route and grouped template package)",
+      "docs/AUTH_EMAIL_TEMPLATES_2026-11-23.md (Supabase Auth → Resend route and settings references)",
+      "supabase/templates/dna-os-auth-v1/README.md (static event-triggered template package guide)",
+      "supabase/templates/dna-os-auth-v1/template-index.json (delivery route, provider, and no-worker/no-webhook execution facts)",
+      "registry/communication/email.registry.json (separates Auth mail from disabled business mail)",
+      "supabase/migrations/20261123000003_dna_os_brand_asset_usage.sql (brand usage metadata seed)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Verified separate Cloudflare deployments for dnaos-auth-entry (login and auth routes) and dnaos-homepage (root and static assets). Authentication email delivery remains Supabase Auth → Custom SMTP → Resend; Supabase Auth selects and renders each template on its auth event. No custom mail webhook, dedicated email Worker, cron, or always-on template process exists. Kept business email separate and disabled. Added links from the root developer guide to the email route and grouped static template package. Reused the existing published monochrome DNA OS brand asset URLs; wrote the two official logo shapes and their color/document/icon use contexts to public.app_configs under dna-os-brand-asset-usage. Verified the Production row contains four asset variants at 2026-11-23 15:53 Bangkok time; migration 20261123000003 was applied through a focused SQL execution and recorded in migration history. The repository package is not fully synchronized to Production; only a subset of the 13 templates had been manually saved at last review. No SMTP secrets stored.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000220",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T18:58:19+07:00",
+    "session_id": "auth-route-map-and-provider-gaps-2026-11-23",
+    "files": [
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (production-to-source route map, categories, live observations, event timeline, remaining connection steps)",
+      "README.md (main documentation index links to auth route map)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Read-only production inspection and source mapping for DNA OS sign-in. Categorized Cloudflare entry and homepage Workers, Supabase Auth gateway, email OTP and Resend, callback/session flow, external identity providers, and public brand assets. Live HTTP evidence: /login and /start return 200; /auth/confirm and /auth/verify return 404; /v1/auth/session returns 401 while unauthenticated; canonical /assets/brand/dna-os/v1/ manifest and logo files return 200 while /brand/dna-os-mark-d.png returns 404. Source includes a historical OAuth callback and Worker OTP/session handlers, but provider Dashboard settings and signed-in browser completion are not proven. Listed exact remaining steps and linked the route map from README. No production configuration or credentials changed; no tests run.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000221",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:05:07+07:00",
+    "session_id": "auth-google-domain-and-indexing-audit-2026-11-23",
+    "files": [
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (separates Google OAuth redirect configuration from search indexing; records sitemap and stale system map observations)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Follow-up read-only audit distinguished Google OAuth from Google Search discovery. The auth route map now records the release ledger's previous live Google probe (400 provider is not enabled), separates the Supabase provider callback URI from DNA OS's post-login redirect URI, and marks both dashboard values as requiring a fresh console check. Production /sitemap.xml returns 404; robots.txt allows search; public system-map, JSON and Markdown routes respond but report generation time 2026-11-23T07:53:56.027Z and source revision 77d539c20f52860fe650d5cd47301b36cdf039e4. Public site:dnaos.dev search returned no results during this inspection; Search Console ownership/index state cannot be proven publicly. No OAuth, DNS, Search Console, or production settings changed; no tests run.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000222",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:09:52+07:00",
+    "session_id": "auth-google-www-index-audit-2026-11-23",
+    "files": [
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (records the owner-shared Google result and live www-versus-apex responses)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Inspected the exact Google search URL supplied by the owner in the authenticated browser. Its first result is titled 'DNA OS — Developer Portal', links to https://www.dnaos.dev/, and shows an old 8-layer architecture snippet. Read-only production HTTP checks: www.dnaos.dev/ and /login return 404 with no redirect; apex dnaos.dev/ returns 200 and the current landing title; apex /sitemap.xml returns 404. Updated the route map to identify this as a stale indexed www URL, distinguish it from the active apex site and OAuth redirects, and record the pending www-to-apex redirect/Search Console check. No DNS/Cloudflare/Search Console changes made; no tests run.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000223",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:16:49+07:00",
+    "session_id": "cloudflare-legacy-route-reconciliation-2026-11-23",
+    "files": [
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (maps stale www search result and legacy system-map route group; records current-source versus deployed evidence)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Read-only reconciliation with DNS unchanged. Identified two separate route groups: (1) www.dnaos.dev root/login, shown by Google as the old Developer Portal but currently returning 404 without redirect; (2) dnaos.dev/system-map, .json, .md and -ai.zip, all returning 200. The live system map says dnaos-homepage and pins source revision 77d539c20f52860fe650d5cd47301b36cdf039e4. At that exact revision, workers/landing-entry/wrangler.jsonc declares all four system-map paths and its Worker passes requests to static assets. Current checked-in config only declares apex root and /assets/* and current source rejects all other paths, proving a production/source route-set mismatch. Cloudflare Dashboard in the existing Chrome session opened at the sign-in page, so active deployed route attachments/version could not be read. Recorded exact pending verification; no DNS, routes, Workers, or docs changed in Production; no tests run.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000224",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:23:49+07:00",
+    "session_id": "cloudflare-apex-traffic-audit-2026-11-23",
+    "files": [
+      "docs/CLOUDFLARE_TRAFFIC_AUDIT_2026-11-23.md (Cloudflare Analytics 24-hour traffic, 404 and host/path breakdown, active Worker route attachments, evidence limits, and ordered remediation)",
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (updated signed-in Cloudflare route verification and traffic evidence timeline)",
+      "README.md (linked the Cloudflare traffic audit from the documentation index)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Read-only audit in the owner's signed-in Cloudflare dashboard. Analytics showed 2.25k requests in the prior 24 hours, 1.31k 404 (58.2%), 1.43k 4xx, 0.00% 5xx, 2.06k desktop requests, and 8.30% cache hit ratio. The www host had 282 404s; apex had 1.03k. Top 404 paths included /sw.js (99) and automated-looking .env, .git, and admin probes. Cloudflare Workers Routes confirmed nine apex attachments for homepage, assets, auth, and system-map routes, with no www or /sw.js route. Recorded likely causes separately from verified facts and prioritized a www-to-apex redirect, stale service-worker investigation, asset path cleanup, and production/source route reconciliation. No DNS, route, Worker, security setting, or production content changed; no tests run.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000225",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:35:00+07:00",
+    "session_id": "cloudflare-production-debt-ordering-2026-11-23",
+    "files": [
+      "workers/landing-entry/wrangler.jsonc (restores map routes, adds /sw.js and www routes)",
+      "workers/landing-entry/index.ts (preserves request paths while redirecting www to apex)",
+      "public/landing-preview/system-map.html",
+      "public/landing-preview/system-map.json",
+      "public/landing-preview/system-map.md",
+      "public/landing-preview/system-map-ai.zip",
+      "public/landing-preview/system-map-ai-README.md",
+      "public/landing-preview/sw.js (same source as public/sw.js)",
+      "public/landing-preview/assets/dna-os-mark-d.png (byte-identical copy of public/brand/dna-os-mark-d.png)",
+      "public/landing-preview/assets/dna-os-integration-generic.svg (byte-identical copy of public/brand/dna-os-integration-generic.svg)",
+      "public/landing-preview/assets/brand/dna-os/v1/* (restores the production-pinned DNA OS brand kit)",
+      "workers/business-onboarding/entry-page.ts (points sign-in artwork to the homepage Worker asset route)",
+      "docs/CLOUDFLARE_TRAFFIC_AUDIT_2026-11-23.md (corrects /sw.js finding and orders remediations)",
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (records local route reconciliation and pending release)",
+      "registry/module-registry.json (marks the Wrangler main module as a genuine Worker entry point)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Addressed production debt in dependency order, locally. Verified the registered /sw.js source exists and copied it unchanged into the Worker asset bundle; restored the static system-map and brand assets/routes from the production-pinned source; mirrored the existing DNA OS assets into the homepage bundle and corrected login-page paths; prepared a www-to-apex 308 redirect preserving path and query. DNS and production were not changed. Production Worker release remains pending; legacy stamp URLs remain unresolved because their source is not identified. No tests run.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000226",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:46:03+07:00",
+    "session_id": "cloudflare-production-debt-ordering-2026-11-23",
+    "files": [
+      "components/public/PublicPriceTable.tsx (removed per owner request; no callers existed)",
+      "components/public/LineContactButton.tsx (removed with its sole unused price-table caller)",
+      "registry/module-registry.json (sync retires both removed source modules)",
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (records owner-approved release sequence)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Removed the unused public price table and its sole unused LINE contact component per the owner's instruction; neither file had live callers. Recorded the required delivery sequence: publish first-screen site scope, complete identity/session/permission plumbing, finish inbound/outbound email triggers, build workspace category/icon navigation, and only then connect capability requests through the gateway to backend processors. No tests run.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000227",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:52:47+07:00",
+    "session_id": "cloudflare-production-debt-ordering-2026-11-23",
+    "files": [
+      "workers/business-onboarding/entry-page.ts (allows mobile/short screens to reach all entry and onboarding content; fixes light-theme status text contrast)",
+      "registry/architecture-book.json (refreshes generated line map for the entry-page source)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Addressed both unresolved GitHub review comments on the sign-in entry. The desktop frame remains fixed; narrow or short viewports can scroll vertically so the sign-in button, status feedback and expanded onboarding fields remain reachable. Changed status text to a readable dark blue on the white card. No tests run.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000228",
+    "date": "2026-11-23",
+    "timestamp": "2026-11-23T19:55:49+07:00",
+    "session_id": "cloudflare-production-debt-ordering-2026-11-23",
+    "files": [
+      "workers/www-redirect/index.ts (isolated apex redirect preserving path and query)",
+      "workers/www-redirect/wrangler.jsonc (attaches only www.dnaos.dev/*)",
+      "workers/landing-entry/index.ts (returns to asset pass-through only)",
+      "workers/landing-entry/wrangler.jsonc (removes www route from homepage Worker)",
+      "registry/module-registry.json and registry/architecture-book.json (registers the separate redirect Worker entry point)",
+      "docs/CLOUDFLARE_TRAFFIC_AUDIT_2026-11-23.md (documents asset-first-safe routing)",
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (records dedicated redirect Worker)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Addressed review feedback that Cloudflare serves matching static assets before running a Worker by isolating www-to-apex handling in a small Worker with no asset binding. This avoids forcing Worker-first processing for homepage static files. DNS stays unchanged. Deployment has not occurred.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000229",
+    "date": "2026-11-24",
+    "timestamp": "2026-11-24T06:20:00+07:00",
+    "session_id": "auth-entry-production-live-proof-2026-11-24",
+    "files": [
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (updates route evidence after homepage/redirect release; records the OTP request and inbox delivery as separate from completed sign-in)",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Reconciled the authentication route map with production after PR #35 and the Cloudflare Worker releases. Confirmed homepage-to-login navigation, login/start pages, CSRF bootstrap, signed-out session response, shared logo assets, static reference routes and the www redirect. A safe malformed email request was rejected before provider send. One previously owner-authorized OTP request returned 202 and one matching sign-in email was found in the owner inbox; the code was not read or used, so session creation, cookie persistence, refresh, logout and organization permission checks remain unverified. Google/Apple/Facebook/LINE/TikTok OAuth remains unconnected and hosted template reconciliation is still pending. No Auth provider settings or secrets were changed.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000230",
+    "date": "2026-11-24",
+    "timestamp": "2026-11-24T06:36:18+07:00",
+    "session_id": "auth-reference-settings-link-2026-11-24",
+    "files": [
+      "README.md (indexes the login identity route map as the starting reference for this work lineage)",
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (records the live login Worker, UI/source mapping, production version, commit, and Supabase history sequences 14–15)",
+      "app/admin/settings/page.tsx (adds a Settings → System references → Login, identity & session link)",
+      "public/landing-preview/system-map.html and system-map.md (adds a compact Login & identity index with links to the live login, guide, and source files)",
+      "registry/CHANGELOG.json",
+      "registry/architecture-book.json (refreshed generated line map for SettingsPage)"
+    ],
+    "summary": "Connected the production login screen and auth Worker to the central documentation index and the Settings reference entry. The public map links back to the existing dnaos-platform identity lineage; deployment and live-route evidence remain the database events at sequences 14–15 for Worker version c23863da-109f-4d28-8f01-f525c64f3b49 and commit 16000a9d8f6bacdb3c711d0ca24397e93dcf56cb. Documentation and Settings source edits are prepared locally; homepage map and Settings-app publication are not claimed here.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000231",
+    "date": "2026-11-24",
+    "timestamp": "2026-11-24T08:17:00+07:00",
+    "session_id": "auth-route-audit-2026-11-24",
+    "files": [
+      "workers/auth-entry/index.ts (allowlists the workspace and OAuth start/callback routes)",
+      "workers/auth-entry/cloudflare.config.ts (routes workspace and auth callback paths to the auth Worker)",
+      "workers/business-onboarding/index.ts (adds Google PKCE start/callback and session-backed workspace/logout)",
+      "workers/business-onboarding/entry-page.ts (uses the canonical color logo, official Google sign-in artwork, and workspace return path)",
+      "public/landing-preview/assets/providers/google/ (official Google sign-in asset and provenance)",
+      "public/favicon.ico, public/icons/*, public/landing-preview/favicon.ico, public/landing-preview/icons/* (current DNA OS mark and app icons)",
+      "public/manifest.json, public/landing-preview/manifest.json, public/landing-preview/index.html (PWA and page metadata point to the current brand and workspace)",
+      "workers/landing-entry/wrangler.jsonc (maps favicon, manifest, and icon paths to homepage static assets)",
+      "presentation/assets/manifest.ts (records brand asset usage)",
+      "workers/auth-entry/test-auth-surface.mjs (covers the new auth route surface)",
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md (records candidate flow, local verification, live settings, blockers, and migration-source drift)",
+      "registry/CHANGELOG.json",
+      "README.md (links the development provenance ledger from the main guide index)",
+      "docs/DEVELOPMENT_PROVENANCE_LEDGER.md (restored database-history and bundle recording guide)",
+      "scripts/register-development-change-set.ts (restored bundle registration command)",
+      "scripts/read-development-history.ts and scripts/record-development-event.ts (restore change-set reads and event linking)",
+      "supabase/migrations/20261123000002_development_change_sets.sql (restored the exact migration source already applied in production; do not reapply)",
+      "package.json (adds history read/event/bundle scripts)",
+      "registry/module-registry.json (module entry generated for the bundle-registration script)",
+      "registry/architecture-book.json (generated source index for this candidate)"
+    ],
+    "summary": "Audited the source-to-production authentication path and recorded a local release candidate for OTP/Google start → Supabase → DNA OS callback → /workspace, plus canonical brand/PWA assets. Auth typecheck, worker build, and auth-surface checks pass locally. Supabase history shows the production migration development_change_sets is already applied; this candidate restores its exact source and the history/bundle tools to the main tree. The dnaos.dev callback is allowlisted, while Site URL still points to Railway; Google provider credentials and a real end-to-end session remain unverified. This is local source preparation only: no change-set/event registration, publication, merge, or deployment is claimed. No new database event was written because the documented service-role credential is unavailable in this workspace.",
+    "contract_changed": false
+  },
+  {
+    "agent": "Codex",
+    "agent_id": "codex",
+    "change_id": "DNA-000232",
+    "date": "2026-11-24",
+    "timestamp": "2026-11-24T08:34:00+07:00",
+    "session_id": "auth-route-audit-2026-11-24",
+    "files": [
+      "public/landing-preview/api-reference.md",
+      "public/landing-preview/api-status.json",
+      "public/landing-preview/llms.txt",
+      "public/landing-preview/sitemap.xml",
+      "public/landing-preview/system-map.md",
+      "public/landing-preview/system-map.html",
+      "public/landing-preview/system-map-ai-README.md",
+      "public/landing-preview/system-map-ai.zip",
+      "public/landing-preview/index.html",
+      "workers/landing-entry/wrangler.jsonc",
+      "docs/DNA_OS_AUTH_ROUTE_MAP_2026-11-23.md",
+      "registry/CHANGELOG.json"
+    ],
+    "summary": "Recorded a fresh production route audit and added static, method-aware API status documentation, an AI reference index, and a search sitemap to the homepage asset candidate. The existing system-map snapshot is explicitly identified as stale; Railway/Vercel are labelled as source adapters rather than public live endpoints. robots.txt policy was inspected and left unchanged. These files are local and not deployed; production currently returns 404 for /llms.txt, /openapi.json, /sitemap.xml, /auth/google, /auth/confirm, and /workspace. No Supabase history event was written because the documented service-role credential is unavailable.",
+    "contract_changed": false
   }
 ]

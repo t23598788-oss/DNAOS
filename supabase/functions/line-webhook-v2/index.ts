@@ -5,8 +5,6 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.4"
 import { verifyLineSignature } from "./middleware/signature.ts"
 import { forwardLineInbound } from "../_shared/connect-forward.ts"
 import { resolveAccountCredential } from "../_shared/connect-identity.ts"
-import { isCoreEventEnvelope } from "../_shared/core-event.ts"
-import { enqueueCoreEvents, normalizeLineEvents } from "../_shared/core-event-transport.ts"
 
 /** The provider id this edge serves — identity/config is otherwise provider-neutral. */
 const PROVIDER = "line"
@@ -32,8 +30,6 @@ Deno.serve(async (req: Request) => {
 
   const rawBody = await req.text()
   const signature = req.headers.get("x-line-signature")
-  const dispatchSecret = Deno.env.get("CORE_QUEUE_DISPATCH_SECRET") ?? ""
-  const isQueueDispatch = req.headers.has("x-core-queue-dispatch-secret")
 
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL") ?? "",
@@ -43,25 +39,7 @@ Deno.serve(async (req: Request) => {
 
   let payload: LineWebhookPayload
   try {
-    if (isQueueDispatch) {
-      if (!dispatchSecret || req.headers.get("x-core-queue-dispatch-secret") !== dispatchSecret) {
-        return new Response("Unauthorized", { status: 401, headers: CORS })
-      }
-      const envelope: unknown = JSON.parse(rawBody)
-      if (!isCoreEventEnvelope(envelope) || envelope.source !== PROVIDER) {
-        return new Response("Invalid core event", { status: 400, headers: CORS })
-      }
-      const lineEvent = envelope.data.line_event
-      if (!lineEvent || typeof lineEvent !== "object") {
-        return new Response("Missing normalized LINE event", { status: 400, headers: CORS })
-      }
-      payload = {
-        destination: typeof envelope.data.channel_destination === "string" ? envelope.data.channel_destination : "",
-        events: [lineEvent as LineWebhookPayload["events"][number]],
-      }
-    } else {
-      payload = JSON.parse(rawBody)
-    }
+    payload = JSON.parse(rawBody)
   } catch {
     return new Response("Bad JSON", { status: 400, headers: CORS })
   }
@@ -86,12 +64,8 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  if (!isQueueDispatch && !channelSecret) {
-    return new Response("LINE channel secret is not configured", { status: 503, headers: CORS })
-  }
-
-  const valid = isQueueDispatch || await verifyLineSignature(rawBody, signature, channelSecret)
-  if (!valid) {
+  const valid = await verifyLineSignature(rawBody, signature, channelSecret)
+  if (!valid && channelSecret) {
     return new Response("Unauthorized", { status: 401, headers: CORS })
   }
 
@@ -137,37 +111,36 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // LINE is acknowledged only after the Main Server confirms queue acceptance.
+  // LINE requires the webhook to respond within a few seconds or it marks
+  // delivery as failed/timed out. Previously every event was processed
+  // sequentially (one `await` after another) INSIDE the request before
+  // responding — with a burst of events, or any slow handler, this could
+  // easily exceed that window. Fix: process all events concurrently, hand
+  // the whole batch to EdgeRuntime.waitUntil() so it keeps running in the
+  // background, and return the 200 ACK immediately. Business logic inside
+  // each handler is unchanged — this only changes when the response is sent.
   const events = payload.events ?? []
+  const processAll = Promise.all(events.map((event) =>
+    processEvent(event).catch((err) => console.error("[webhook] event processing failed:", err))
+  ))
 
-  // Only queue deliveries run the existing LINE business handlers. The public
-  // provider request is translated to the core envelope and queued below.
-  if (isQueueDispatch) {
-    await Promise.all(events.map((event) =>
-      processEvent(event).catch((err) => console.error("[webhook] event processing failed:", err))
-    ))
-    return new Response(JSON.stringify({ ok: true, processed: events.length }), {
-      status: 200,
-      headers: { ...CORS, "Content-Type": "application/json" },
-    })
-  }
-
-  const canonicalEvents = await normalizeLineEvents(payload)
-  const accepted = await enqueueCoreEvents(canonicalEvents)
-  if (!accepted) {
-    return new Response(JSON.stringify({ error: "core event queue unavailable" }), {
-      status: 503,
-      headers: { ...CORS, "Content-Type": "application/json" },
-    })
-  }
-
-  // The existing provider-neutral Observe path stays additive while the core
-  // queue becomes the execution path. Its failure never changes the webhook ACK.
+  // DNA OS main path (capability A, 2026-09-23): the SAME verified raw body
+  // also enters the canonical gateway observe ingress, where it is translated
+  // into the provider-neutral contract (engines/integration-gateway/adapters/line.ts)
+  // and published to the event bus. Additive only — the handling below is
+  // untouched, and a forward failure never affects the provider's ACK.
   const forward = forwardLineInbound(rawBody, signature)
 
+  // @ts-ignore — EdgeRuntime is a Supabase-specific global, not in standard Deno types
   if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
+    // @ts-ignore
+    EdgeRuntime.waitUntil(processAll)
+    // @ts-ignore
     EdgeRuntime.waitUntil(forward)
   } else {
+    // Fallback for local `supabase functions serve` (no EdgeRuntime global) —
+    // still await it directly so events aren't silently dropped in dev.
+    await processAll
     await forward
   }
 

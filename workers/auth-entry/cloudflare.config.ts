@@ -16,6 +16,8 @@ export default defineConfig({
     triggers: [
       triggers.fetch({ pattern: "dnaos.dev/login", zone: "dnaos.dev" }),
       triggers.fetch({ pattern: "dnaos.dev/start", zone: "dnaos.dev" }),
+      triggers.fetch({ pattern: "dnaos.dev/workspace", zone: "dnaos.dev" }),
+      triggers.fetch({ pattern: "dnaos.dev/auth/*", zone: "dnaos.dev" }),
       triggers.fetch({ pattern: "dnaos.dev/v1/auth/*", zone: "dnaos.dev" }),
     ],
     env: {
@@ -23,7 +25,9 @@ export default defineConfig({
       SUPABASE_ANON_KEY: bindings.secret(),
       AUTH_APP_ORIGIN: { type: "text", value: "https://dnaos.dev" },
       AUTH_RATE_LIMITER: bindings.rateLimit({
-        namespace: "dnaos-auth-entry-rate-limit",
+        // Cloudflare requires a positive integer string for namespace IDs.
+        // Keep this namespace unique to the login Worker.
+        namespace: "2026112201",
         simple: { limit: 5, period: 60 },
       }),
     },

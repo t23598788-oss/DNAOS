@@ -4,9 +4,9 @@
    ไฟล์นี้เหลือเฉพาะสิ่งที่ Tailwind ต้องรู้ (utility ที่ผูกกับ design token) */
 
 @theme inline {
-  /* --font-ui / --font-mono มาจาก :root ของ dna-typography.css แล้ว
-     จึงไม่ประกาศซ้ำ — Tailwind อ่านค่าจากตัวแปรเดียวกัน */
   --font-sans: var(--font-ui);
+  --font-mono: var(--font-ui);
+  --font-serif: var(--font-ui);
   /* เปิดใช้สีของมาตรฐานเป็น utility ด้วย: bg-paper / bg-card / bg-subtle /
      text-ink / text-ink-muted / border-hairline */
   --color-paper: var(--surface-paper);

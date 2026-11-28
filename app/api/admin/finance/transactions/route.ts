@@ -42,7 +42,6 @@ export async function GET(req: NextRequest) {
     db
       .from("company_expenses")
       .select("id, document_type, amount, expense_date, created_at, vendor_name, tax_invoice_no, source, submitted_by_name, receipt_document_id")
-      .neq("source", "subscription_email_sync")
       .order("created_at", { ascending: false })
       .limit(limit),
     db

@@ -20,7 +20,7 @@ import type { NormalizedResult } from "./normalize.js"
 import { TOOL_NAME as SYSTEM_SUMMARY, runArchitectureSystemSummary } from "./tools/architectureSystemSummary.js"
 import { TOOL_NAME as LIST_MODULES, runRegistryListModules } from "./tools/registryListModules.js"
 import { TOOL_NAME as LIST_COMMANDS, runRegistryListCommands } from "./tools/registryListCommands.js"
-import { TOOL_NAME as DEPENDENCY_GRAPH, runArchitectureGetDependencyGraph, type ArchitectureDependencyGraphInput } from "./tools/architectureDependencyGraph.js"
+import { TOOL_NAME as DEPENDENCY_GRAPH, runArchitectureGetDependencyGraph } from "./tools/architectureDependencyGraph.js"
 import { TOOL_NAME as RUNTIME_QUERY, runRuntimeQuery, type RuntimeQueryInput } from "./tools/runtimeQuery.js"
 import { TOOL_NAME as CONTRACTOR_TASK_CLAIM, runContractorTaskClaim, type ContractorTaskClaimInput } from "./tools/contractorTaskClaim.js"
 import { TOOL_NAME as CONTRACTOR_EVIDENCE_SUBMIT, runContractorEvidenceSubmit, type ContractorEvidenceSubmitInput } from "./tools/contractorEvidenceSubmit.js"
@@ -30,7 +30,7 @@ import { RESOURCE_NAME as CONSTITUTION_RESOURCE, RESOURCE_URI as CONSTITUTION_UR
 const TOOL_DEFINITIONS = [
   {
     name: SYSTEM_SUMMARY,
-    description: "Read-only summary of the latest code-graph index run in the dedicated DNA OS System Metadata database. Requires DNA_OS_API_TOKEN with read scope.",
+    description: "DNA OS layer stack, core/canonical principles, and authority model. Read-only, no args.",
     inputSchema: { type: "object" as const, properties: {}, required: [] },
   },
   {
@@ -45,20 +45,8 @@ const TOOL_DEFINITIONS = [
   },
   {
     name: DEPENDENCY_GRAPH,
-    description: "Query the versioned code graph from the dedicated DNA OS System Metadata database. Read-only; requires DNA_OS_API_TOKEN with read scope. Search or page through File, Function, Module, Task nodes and IMPORTS, CALLS, DEPENDS_ON, TASK_LINKED_TO edges.",
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        q: { type: "string", description: "Search node key, such as a file path or function name" },
-        node_type: { type: "string", enum: ["File", "Function", "Module", "Task"] },
-        edge_type: { type: "string", enum: ["IMPORTS", "CALLS", "DEPENDS_ON", "TASK_LINKED_TO"] },
-        source_node_key: { type: "string" },
-        target_node_key: { type: "string" },
-        limit: { type: "integer", minimum: 1, maximum: 500 },
-        offset: { type: "integer", minimum: 0 },
-      },
-      required: [],
-    },
+    description: "DNA OS's allowed cross-layer import graph (registry/dependency-graph.json). Read-only, no args.",
+    inputSchema: { type: "object" as const, properties: {}, required: [] },
   },
   {
     name: RUNTIME_QUERY,
@@ -198,7 +186,7 @@ export function createDnaOsMcpServer(config: DnaOsConfig): Server {
         return outcome.ok ? resultToToolResult(outcome.result) : errorToToolResult(outcome.error)
       }
       case DEPENDENCY_GRAPH: {
-        const outcome = await runArchitectureGetDependencyGraph(config, (args || {}) as unknown as ArchitectureDependencyGraphInput)
+        const outcome = await runArchitectureGetDependencyGraph(config)
         return outcome.ok ? resultToToolResult(outcome.result) : errorToToolResult(outcome.error)
       }
       case RUNTIME_QUERY: {
