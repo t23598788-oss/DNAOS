@@ -63,7 +63,7 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="dna-admin-shell bg-stone-50">
+    <div className="dna-admin-shell bg-[var(--surface-paper)]">
       {/* ONE NAVIGATION (2026-10-06): ไม่มีแถบ Back/Home ถาวร —
           navigation = shell ของแต่ละหน้า (ปุ่มขอบจอ + drawer) กับ browser
           back เท่านั้น — หน้า children ทั้งหมดเลื่อนใน region เดียวด้านล่างนี้ */}

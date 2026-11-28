@@ -74,7 +74,7 @@ export default function WorkspaceShell({
       <div
         className={
           "flex-1 min-w-0 h-full flex flex-col overflow-hidden " +
-          (isDark ? "bg-black" : "bg-stone-50")
+          (isDark ? "bg-black" : "bg-paper")
         }
       >
         <div
@@ -99,7 +99,7 @@ export default function WorkspaceShell({
           )}
           <div className="flex items-center gap-3">
             {businessContext && <BusinessOrganizationSwitcher />}
-            <span className={"text-xs truncate max-w-[200px] " + (isDark ? "text-stone-500" : "text-stone-400")}>
+            <span className={"text-xs truncate max-w-[200px] " + (isDark ? "text-stone-500" : "text-ink-muted")}>
               {userEmail}
             </span>
             <LogoutButton />

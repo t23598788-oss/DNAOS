@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./developers/dna-typography.css"; // DNA OS Typography Standard v1.1 (tokens + self-hosted @font-face)
 import PwaRegistration from "@/components/pwa/PwaRegistration";
 import { appBaseUrl } from "@/config/system-links";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+// FONT SOURCE (2026-11-28): ไม่ใช้ next/font/google แล้ว — ฟอนต์ทั้งหมด
+// (Inter / Noto Sans Thai / Noto Serif Thai) โฮสต์เองใน public/fonts และ
+// ประกาศ @font-face ไว้ใน app/developers/dna-typography.css ซึ่ง globals.css
+// import อยู่ จึงไม่มีคำขอออกนอกเครื่องและได้ไฟล์ชุดเดียวกันทุกเครื่อง
 
 // Absolute origin for metadata/structured data (2026-10-24). Env-sourced via
 // config/system-links.ts so no domain literal is ever written in app code
@@ -60,7 +55,7 @@ export default function RootLayout({
   return (
     <html
       lang="th"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <head>
         <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />

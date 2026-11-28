@@ -146,7 +146,7 @@ export default function DevLoopDashboard() {
   }
 
   return (
-    <div style={{ padding: 24, fontFamily: "system-ui, sans-serif", maxWidth: 1100, margin: "0 auto" }}>
+    <div style={{ padding: 24, fontFamily: "var(--font-ui)", maxWidth: 1100, margin: "0 auto" }}>
       <h1 style={{ fontSize: 20, fontWeight: 600, marginBottom: 4 }}>Dev Loop Pipeline</h1>
       <p style={{ color: "#666", marginBottom: 16 }}>
         ไฟล์เปลี่ยน → หลักฐาน → วิเคราะห์ผลกระทบ → ข้อเสนอ registry (ต้องอนุมัติ)

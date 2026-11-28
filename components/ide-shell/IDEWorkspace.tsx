@@ -1202,7 +1202,7 @@ export default function IDEWorkspace() {
     // scrollbar" / "whole page scrolls" bugs. height:"100%" makes this
     // root fill exactly the real space its real parent already measured
     // out for it, so that ancestor's overflow-y-auto never triggers.
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", maxHeight: "100%", width: "100%", overflow: "hidden", fontFamily: "system-ui, sans-serif", fontSize: 13, background: "#F5F7FA", color: "#334155" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", maxHeight: "100%", width: "100%", overflow: "hidden", fontFamily: "var(--font-ui)", fontSize: 13, background: "#F5F7FA", color: "#334155" }}>
       <style>{`
         @media (prefers-reduced-motion: no-preference) {
           @keyframes dna-ide-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
