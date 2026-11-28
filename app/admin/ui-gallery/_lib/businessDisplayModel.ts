@@ -373,7 +373,7 @@ export const SAMPLE_DISPLAY_MODELS: BusinessDisplayModel[] = [
         id: "d3",
         title: "พื้นที่เอกสารจริง (ขาว) — PDF/A4/ฟอร์ม ใช้สีขาวตามต้นฉบับ",
         html:
-          "<div style='font-family:system-ui;padding:28px;color:#44403c'><div style='font-size:13px;font-weight:700'>ตัวอย่างพื้นที่เอกสาร (structural)</div><div style='margin-top:12px;font-size:12px;line-height:1.9'>เลขที่: —<br/>วันที่: —<br/>ผู้ขาย: —<br/>ยอด: —<br/>VAT: —<br/>WHT: —</div><div style='margin-top:16px;border-top:1px solid #e7e5e4;padding-top:8px;font-size:11px;color:#a8a29e'>พื้นที่ขาวจริงตาม WHITE RULE</div></div>",
+          "<div style='padding:28px;color:#44403c'><div style='font-size:13px;font-weight:700'>ตัวอย่างพื้นที่เอกสาร (structural)</div><div style='margin-top:12px;font-size:12px;line-height:1.9'>เลขที่: —<br/>วันที่: —<br/>ผู้ขาย: —<br/>ยอด: —<br/>VAT: —<br/>WHT: —</div><div style='margin-top:16px;border-top:1px solid #e7e5e4;padding-top:8px;font-size:11px;color:#a8a29e'>พื้นที่ขาวจริงตาม WHITE RULE</div></div>",
       },
     ],
   },

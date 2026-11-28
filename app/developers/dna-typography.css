@@ -1,0 +1,116 @@
+/* DNA OS typography and reading tokens. The shared font loads in the root layout. */
+:root {
+  /* 2. ขนาดตัวอักษร — ใช้ prefix --dna- เพื่อไม่ทับ scale ของ Tailwind
+     (--text-xl ของ Tailwind = 20px ถ้าเราใช้ชื่อเดียวกันจะไปทับทั้งแอป)
+     ต้องการให้คลาส text-* ของ Tailwind เดินตามสเกลนี้ ให้ map เองใน @theme
+     เช่น @theme inline { --text-xl: var(--dna-text-xl); } */
+  --dna-text-xs: 0.8125rem; /* 13px — ป้ายกำกับเล็ก / metadata */
+  --dna-text-sm: 0.9375rem; /* 15px — ข้อความรอง / ตาราง */
+  --dna-text-base: 1.0625rem; /* 17px — เนื้อหาหลัก / แชท */
+  --dna-text-lg: 1.25rem;     /* 20px — หัวข้อย่อย */
+  --dna-text-xl: 1.625rem;    /* 26px — หัวข้อหลัก */
+
+  /* 3. ระยะบรรทัด / ระยะตัวอักษร */
+  --leading-tight: 1.3;
+  --leading-ui: 1.45;
+  --leading-prose: 1.75;
+  --tracking-prose: 0.005em;
+
+  /* 4. ความกว้างคอลัมน์อ่านหนังสือ */
+  --measure-prose: 68ch;
+
+  /* 5. โทนสีถนอมสายตา */
+  --surface-paper: #faf9f6;
+  --surface-card: #ffffff;
+  --surface-subtle: #f3f2ee;
+
+  --ink-primary: #1c1d1f;
+  --ink-secondary: #4a4d52;
+  --ink-muted: #6e737b;
+  --border-hairline: #e4e2dc;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+/* body = ทั้งหน้า · .dna-type-base = ครอบเฉพาะพื้นที่ (ไม่แตะ body ของทั้งแอป)
+   ประกาศชุดเดียวกันครั้งเดียวด้วย :is() แทนการก๊อปบล็อกซ้ำ */
+:is(body, .dna-type-base) {
+  background-color: var(--surface-paper);
+  color: var(--ink-primary);
+  font-family: var(--font-ui);
+  font-size: var(--dna-text-base);
+  line-height: var(--leading-ui);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+}
+
+/* หัวข้อทุกระดับ (h1–h6) ใช้ตระกูลเดียวกับ UI: Inter + Noto Sans Thai
+   — กันไม่ให้หัวข้อไปหยิบ serif หรือฟอนต์ของ OS (system-ui) ตามที่แต่ละหน้า
+   หรือเบราว์เซอร์เลือกเอง; ขนาด/ระยะบรรทัดยังมาจากคลาสของแต่ละหน้า */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-ui);
+}
+
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+/* บทความ เอกสาร คำอธิบายยาว กล่องข้อความแชท */
+.prose-reading {
+  font-family: var(--font-ui);
+  font-size: var(--dna-text-base);
+  line-height: var(--leading-prose);
+  letter-spacing: var(--tracking-prose);
+  color: var(--ink-primary);
+  max-width: var(--measure-prose);
+}
+
+.prose-reading p {
+  margin-top: 0;
+  margin-bottom: 1.1em;
+}
+
+.prose-reading h1,
+.prose-reading h2,
+.prose-reading h3,
+.prose-reading h4 {
+  font-family: var(--font-ui);
+  line-height: var(--leading-tight);
+  color: var(--ink-primary);
+}
+
+.prose-reading a {
+  color: #075985;
+  text-underline-offset: 4px;
+}
+
+/* เมนู ปุ่ม แท็บ หัวข้อระบบ ตารางข้อมูล */
+.ui-label,
+button,
+input,
+select,
+textarea,
+table {
+  font-family: var(--font-ui);
+}
+
+/* ตัวเลข ราคา คิว ยอดเงิน — หลักตรงกัน */
+.num-tabular {
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+
+/* รหัสอ้างอิง URL โค้ด */
+.code-ref {
+  font-family: var(--font-ui);
+  font-size: var(--dna-text-sm);
+  background-color: var(--surface-subtle);
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+}

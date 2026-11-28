@@ -83,7 +83,7 @@ function RegisterForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       <div>
-        <label className="block text-sm font-semibold text-stone-600 mb-2">Email</label>
+        <label className="block text-sm font-semibold text-ink-secondary mb-2">Email</label>
         <input
           ref={emailInputRef}
           name="email"
@@ -91,7 +91,7 @@ function RegisterForm() {
           autoComplete="email"
           required
           disabled={loading || !!sentTo}
-          className="w-full text-base rounded-xl px-4 py-3 bg-[#F7F4EF] border border-[#E3DACE] shadow-[inset_0_1px_2px_rgba(90,72,52,0.06)] transition hover:border-[#D5C8B6] focus:outline-none focus:border-[#B49C7C] focus:bg-white focus:ring-2 focus:ring-[#B49C7C]/25 disabled:opacity-50"
+          className="w-full text-base rounded-xl px-4 py-3 bg-subtle border border-hairline shadow-[inset_0_1px_2px_rgba(90,72,52,0.06)] transition hover:border-[#D5C8B6] focus:outline-none focus:border-[#B49C7C] focus:bg-white focus:ring-2 focus:ring-[#B49C7C]/25 disabled:opacity-50"
           placeholder="you@company.com"
         />
       </div>
@@ -104,7 +104,7 @@ function RegisterForm() {
           autoComplete="new-password"
           required
           disabled={loading || !!sentTo}
-          className="w-full text-base rounded-xl px-4 py-3 bg-[#F7F4EF] border border-[#E3DACE] focus:outline-none focus:border-[#B49C7C] focus:bg-white focus:ring-2 focus:ring-[#B49C7C]/25 disabled:opacity-50"
+          className="w-full text-base rounded-xl px-4 py-3 bg-subtle border border-hairline focus:outline-none focus:border-[#B49C7C] focus:bg-white focus:ring-2 focus:ring-[#B49C7C]/25 disabled:opacity-50"
           placeholder="อย่างน้อย 8 ตัวอักษร"
         />
       </div>
@@ -129,7 +129,7 @@ function RegisterForm() {
         {loading ? "กำลังสมัคร..." : sentTo ? "สมัครแล้ว (ตรวจอีเมลได้)" : "สมัครสมาชิก"}
       </button>
       {sentTo && (
-        <a href="/login" className="block w-full text-center text-sm text-stone-500 hover:text-stone-700">
+        <a href="/login" className="block w-full text-center text-sm text-ink-muted hover:text-ink">
           กลับไปหน้าเข้าสู่ระบบ
         </a>
       )}
@@ -139,9 +139,9 @@ function RegisterForm() {
 
 export default function RegisterPage() {
   return (
-    <div className="min-h-screen bg-[#F0EBE5] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-subtle flex items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <div className="bg-[#FDFBF8] rounded-2xl border border-[#E9E1D6] px-10 py-12 shadow-[0_2px_6px_-2px_rgba(96,78,58,0.10),0_22px_60px_-24px_rgba(96,78,58,0.30)]">
+        <div className="bg-card rounded-2xl border border-hairline px-10 py-12 shadow-[0_2px_6px_-2px_rgba(96,78,58,0.10),0_22px_60px_-24px_rgba(96,78,58,0.30)]">
           <div className="mb-10 flex justify-center">
             {/* Same official master brand mark /login uses — one identity,
                 one brand, no second logo path. */}
@@ -154,11 +154,11 @@ export default function RegisterPage() {
               className="h-[94px] w-[280px] object-cover object-center"
             />
           </div>
-          <Suspense fallback={<div className="h-48 animate-pulse bg-stone-100 rounded-xl" />}>
+          <Suspense fallback={<div className="h-48 animate-pulse bg-subtle rounded-xl" />}>
             <RegisterForm />
           </Suspense>
         </div>
-        <p className="mt-8 text-center text-sm text-stone-400">
+        <p className="mt-8 text-center text-sm text-ink-muted">
           มีบัญชีอยู่แล้ว?{" "}
           <a href="/login" className="text-[#1e6fa8] hover:underline">
             เข้าสู่ระบบ

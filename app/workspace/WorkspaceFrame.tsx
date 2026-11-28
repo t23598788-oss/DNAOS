@@ -128,7 +128,7 @@ const ACTIONS: FrameItem[] = [
 
 /** CSS ยึด tokens + โครงสร้างของ reference (paper/ink/line/soft · edge drawer · stage โล่ง) */
 const FRAME_CSS = `
-#dna-frame{--paper:#fdfbf8;--ink:#36332f;--line:#e9e1d6;--soft:#f0ebe5;position:relative;background:var(--paper);color:var(--ink);font:14px/1.6 system-ui,sans-serif;border:1px solid var(--line);border-radius:16px;overflow:hidden;height:100dvh;display:flex;flex-direction:column}
+#dna-frame{--paper:#fdfbf8;--ink:#36332f;--line:#e9e1d6;--soft:#f0ebe5;position:relative;background:var(--paper);color:var(--ink);font:14px/1.6 var(--font-ui);border:1px solid var(--line);border-radius:16px;overflow:hidden;height:100dvh;display:flex;flex-direction:column}
 #dna-frame *{box-sizing:border-box}
 #dna-frame,#dna-frame *{scrollbar-width:none}
 #dna-frame::-webkit-scrollbar,#dna-frame *::-webkit-scrollbar{display:none;width:0;height:0}
@@ -1174,7 +1174,7 @@ export function WorkspaceToolNavigation() {
   return (
     <nav className="dna-tool-access" aria-label="เครื่องมือ DNA OS">
       <style>{`
-        .dna-tool-access{position:relative;grid-row:1;align-self:stretch;padding:16px 8px;z-index:40;color:#36332f;font:14px/1.6 system-ui,sans-serif}
+        .dna-tool-access{position:relative;grid-row:1;align-self:stretch;padding:16px 8px;z-index:40;color:#36332f;font:14px/1.6 var(--font-ui)}
         body:has(#dna-frame) .dna-tool-access{display:none}
         .dna-tool-access button{background:#fdfbf8;border:1px solid #e9e1d6;border-radius:9px;min-height:44px;padding:8px;cursor:pointer;color:inherit;font:inherit}
         .dna-tool-access button:hover{background:#f0ebe5}

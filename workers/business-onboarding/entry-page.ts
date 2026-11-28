@@ -1,9 +1,9 @@
 /** Same-origin entry surface. No database client, access token or third-party script. */
 export async function entryPage(authOnly = false): Promise<Response> {
   const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(18))));
-  return new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>Sign in to DNA OS</title>
+  return new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>Sign in to DNA OS</title><link rel="stylesheet" href="/assets/fonts/dna-fonts.css" nonce="${nonce}">
 <style nonce="${nonce}">
-*{box-sizing:border-box} :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;color:#f4f7ff;background:#06101f;font-synthesis:none;text-rendering:optimizeLegibility;overflow:hidden}
+*{box-sizing:border-box} :root{font-family:var(--font-ui);color:#f4f7ff;background:#06101f;font-synthesis:none;text-rendering:optimizeLegibility;overflow:hidden}
 html,body{width:100%;height:100%;overflow:hidden}body{margin:0;min-height:100dvh;height:100dvh;background:radial-gradient(ellipse at 80% 25%,#0b2d52 0,transparent 43%),#06101f;letter-spacing:.005em}
 a{color:#8dcfff;text-decoration:none}a:hover{text-decoration:underline}
 .topbar{height:64px;padding:0 clamp(20px,5vw,72px);display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1b2d45;background:rgba(6,16,31,.72)}
@@ -143,7 +143,7 @@ el('logout').onclick=()=>run(async()=>{await call('/v1/auth/logout',{});location
 run(async()=>{csrf=(await call('/v1/auth/csrf')).csrf_token;const session=await fetch('/v1/auth/session',{credentials:'same-origin'});if(session.ok){await openProfile();return}if(session.status===401){const refresh=await fetch('/v1/auth/refresh',{method:'POST',credentials:'same-origin',headers:{'x-dna-csrf':csrf}});if(refresh.ok){await openProfile();return}csrf=(await call('/v1/auth/csrf')).csrf_token;}say(new URLSearchParams(location.search).get('error')==='oauth_failed'?'Google sign-in could not be completed. Check the provider configuration and try again.':'Enter the email address for your existing DNA OS account.')});
 </script></html>`, { headers: {
     "content-type": "text/html; charset=utf-8", "cache-control": "no-store",
-    "content-security-policy": `default-src 'none'; script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}'; connect-src 'self'; img-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'`,
+    "content-security-policy": `default-src 'none'; font-src 'self'; script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}'; connect-src 'self'; img-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'`,
     "x-content-type-options": "nosniff", "referrer-policy": "no-referrer",
   } });
 }

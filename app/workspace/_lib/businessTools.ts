@@ -91,7 +91,7 @@ export const OPEN_TARGETS: Record<string, OpenTarget> = {
       title: "ใบแจ้งหนี้ · ตัวอย่าง",
       domain: "Document → Viewer (พื้นที่ขาว)",
       blocks: [
-        { kind: "document", id: "doc", title: "เอกสารจริง (WHITE RULE)", html: "<div style='font-family:system-ui;padding:28px;color:#44403c'><div style='font-size:14px;font-weight:700'>ใบแจ้งหนี้ (ตัวอย่างโครงสร้าง)</div><div style='margin-top:14px;font-size:12.5px;line-height:2'>เลขที่: —<br/>วันที่: —<br/>ผู้ขาย: —<br/>ยอด: —<br/>VAT: —<br/>WHT: —</div></div>" },
+        { kind: "document", id: "doc", title: "เอกสารจริง (WHITE RULE)", html: "<div style='padding:28px;color:#44403c'><div style='font-size:14px;font-weight:700'>ใบแจ้งหนี้ (ตัวอย่างโครงสร้าง)</div><div style='margin-top:14px;font-size:12.5px;line-height:2'>เลขที่: —<br/>วันที่: —<br/>ผู้ขาย: —<br/>ยอด: —<br/>VAT: —<br/>WHT: —</div></div>" },
         { kind: "fields", id: "f", fields: [ fi("f1", "สถานะ", "—"), fi("f2", "หลักฐาน", "missing → found", "success") ] },
       ],
     },

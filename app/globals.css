@@ -1,29 +1,23 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* มาตรฐานตัวอักษร/สี (dna-typography.css) ถูก import ที่ app/layout.tsx
+   โดยตรง — ไม่ใช้ @import ในไฟล์นี้เพราะ pipeline ของ Turbopack ไม่ inline ให้
+   ไฟล์นี้เหลือเฉพาะสิ่งที่ Tailwind ต้องรู้ (utility ที่ผูกกับ design token) */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-ui);
+  --font-serif: var(--font-ui);
+  /* เปิดใช้สีของมาตรฐานเป็น utility ด้วย: bg-paper / bg-card / bg-subtle /
+     text-ink / text-ink-muted / border-hairline */
+  --color-paper: var(--surface-paper);
+  --color-card: var(--surface-card);
+  --color-subtle: var(--surface-subtle);
+  --color-ink: var(--ink-primary);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+  --color-hairline: var(--border-hairline);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
@@ -81,6 +75,10 @@ html:has(#dna-frame), body:has(#dna-frame) {
   overscroll-behavior: none;
 }
 .dna-admin-shell {
+  /* หน้าจอปฏิบัติการใช้ตระกูล/สีเดียวกับมาตรฐาน แต่คงความหนาแน่นของตาราง
+     ด้วยขั้น --text-sm (15px) แทน --text-base (17px) ของหน้าอ่านยาว */
+  font-family: var(--font-ui);
+  font-size: var(--dna-text-sm);
   height: 100dvh;
   min-height: 0;
   min-width: 0;
