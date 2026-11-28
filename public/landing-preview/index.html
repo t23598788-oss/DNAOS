@@ -90,12 +90,22 @@
     .flow-section:before,.flow-section:after{content:none!important;display:none!important}
     .flow-section .event-card,.flow-section .money-rail{background:transparent!important;box-shadow:none!important}
     .flow-section .event-card.event-core{background:transparent!important;box-shadow:none!important}
+    .navlinks .integration-guide{display:inline-flex;align-items:center;min-height:44px;white-space:nowrap}
+    @media(max-width:820px){
+      .nav,.navlinks,.nav-actions{gap:14px}
+    }
+    @media(max-width:640px){
+      .navlinks{display:flex;gap:0}
+      .navlinks a:not(.integration-guide){display:none}
+      .nav{gap:8px}
+      .navlinks .integration-guide{font-size:13px}
+    }
   </style>
 </head>
 <body>
   <header class="wrap nav">
     <a class="brand" href="#top" aria-label="DNA OS home"><img class="brand-logo" src="assets/dna-os-logo-transparent.png" alt="DNA OS multicolor logo"></a>
-    <nav class="navlinks" aria-label="Main navigation"><a href="#domains">Business domains</a><a href="#system-map">Systems</a><a href="#rules">How it works</a></nav>
+    <nav class="navlinks" aria-label="Main navigation"><a href="#domains">Business domains</a><a href="#system-map">Systems</a><a href="#rules">How it works</a><a class="integration-guide" href="/developers/integrations" lang="th">คู่มือเชื่อมต่อ</a></nav>
     <div class="nav-actions"><a class="login" href="/login" target="_top">Sign in</a><a class="btn primary" href="/login" target="_top">Explore DNA OS</a></div>
   </header>
   <main id="top">
