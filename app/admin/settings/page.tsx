@@ -67,7 +67,7 @@ export default async function SettingsPage() {
         </p>
         <div style={{ border: "1px solid #e5e5e5", borderRadius: 8 }}>
           {envVarNames.map((name) => (
-            <div key={name} style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", borderBottom: "1px solid #f0f0f0", fontSize: 13, fontFamily: "monospace" }}>
+            <div key={name} style={{ display: "flex", justifyContent: "space-between", padding: "8px 12px", borderBottom: "1px solid #f0f0f0", fontSize: 13, fontFamily: "var(--font-ui)" }}>
               <span>{name}</span>
               <span style={{ color: process.env[name] ? "#1e9e5a" : "#c9312b" }}>
                 {process.env[name] ? "configured" : "missing"}
@@ -82,7 +82,7 @@ export default async function SettingsPage() {
         <div style={{ border: "1px solid #e5e5e5", borderRadius: 8 }}>
           {(permissions as any).roles.map((r: any) => (
             <div key={r.id} style={{ padding: "8px 12px", borderBottom: "1px solid #f0f0f0", fontSize: 13 }}>
-              <span style={{ fontFamily: "monospace", fontWeight: 600 }}>{r.id}</span>
+              <span style={{ fontFamily: "var(--font-ui)", fontWeight: 600 }}>{r.id}</span>
               <span style={{ color: "#888", marginLeft: 8 }}>{r.th}</span>
             </div>
           ))}

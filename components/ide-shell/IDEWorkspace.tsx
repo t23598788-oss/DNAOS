@@ -1910,7 +1910,7 @@ function SearchPanel({ onOpenResult, invalidateNonce }: { onOpenResult: (relPath
               <div
                 key={i}
                 onClick={() => onOpenResult(m.relativePath, m.line, m.column, m.matchLength)}
-                style={{ padding: "2px 4px 2px 14px", fontSize: 11.5, color: "#64748B", cursor: "pointer", fontFamily: "ui-monospace, monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                style={{ padding: "2px 4px 2px 14px", fontSize: 11.5, color: "#64748B", cursor: "pointer", fontFamily: "var(--font-ui)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
                 onMouseEnter={(e) => (e.currentTarget.style.background = "#E8EDF3")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
@@ -2033,7 +2033,7 @@ function SourceControlPanel({ onOpenDiffTab, refreshNonce, activeFilePath }: { o
         <div style={{ color: "#334155" }}>{status.repositoryRoot} <span style={{ color: "#64748B" }}>· {status.branch ?? "(detached)"}</span></div>
         {status.headCommit && (
           <div style={{ color: "#64748B", marginTop: 3, fontSize: 11 }}>
-            <span style={{ fontFamily: "ui-monospace, monospace" }}>{status.headCommit.hash.slice(0, 7)}</span> {status.headCommit.message}
+            <span style={{ fontFamily: "var(--font-ui)" }}>{status.headCommit.hash.slice(0, 7)}</span> {status.headCommit.message}
             <div>{status.headCommit.author} · {new Date(status.headCommit.time).toLocaleString()}</div>
           </div>
         )}
@@ -2103,12 +2103,12 @@ function BranchesSubPanel() {
         <div key={b.name} style={{ padding: "5px 12px", borderBottom: "1px solid #E2E8F0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             {b.current && <span style={{ color: "#0F766E" }}>●</span>}
-            <span style={{ color: b.remote ? "#64748B" : "#334155", fontFamily: "ui-monospace, monospace" }}>{b.name}</span>
+            <span style={{ color: b.remote ? "#64748B" : "#334155", fontFamily: "var(--font-ui)" }}>{b.name}</span>
             {b.upstream && <span style={{ color: "#64748B", fontSize: 10 }}>→ {b.upstream}</span>}
           </div>
           {b.lastCommitSubject && (
             <div style={{ color: "#64748B", fontSize: 10.5, marginTop: 2 }}>
-              <span style={{ fontFamily: "ui-monospace, monospace" }}>{b.lastCommitHash}</span> {b.lastCommitSubject}
+              <span style={{ fontFamily: "var(--font-ui)" }}>{b.lastCommitHash}</span> {b.lastCommitSubject}
             </div>
           )}
         </div>
@@ -2133,10 +2133,10 @@ function TagsSubPanel() {
       {tags.map((t) => (
         <div key={t.name} style={{ padding: "5px 12px", borderBottom: "1px solid #E2E8F0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ color: "#334155", fontFamily: "ui-monospace, monospace" }}>{t.name}</span>
+            <span style={{ color: "#334155", fontFamily: "var(--font-ui)" }}>{t.name}</span>
             <span style={{ color: "#64748B", fontSize: 10 }}>{t.annotated ? "annotated" : "lightweight"}</span>
           </div>
-          {t.subject && <div style={{ color: "#64748B", fontSize: 10.5, marginTop: 2 }}><span style={{ fontFamily: "ui-monospace, monospace" }}>{t.hash}</span> {t.subject}</div>}
+          {t.subject && <div style={{ color: "#64748B", fontSize: 10.5, marginTop: 2 }}><span style={{ fontFamily: "var(--font-ui)" }}>{t.hash}</span> {t.subject}</div>}
         </div>
       ))}
       {tags.length === 0 && <div style={{ padding: 12, color: "#64748B" }}>No tags.</div>}
@@ -2172,19 +2172,19 @@ function HistorySubPanel({ activeFilePath }: { activeFilePath: string | null }) 
   return (
     <div style={{ fontSize: 11 }}>
       <div style={{ padding: "6px 12px 2px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ color: "#64748B", fontFamily: "ui-monospace, monospace" }}>{activeFilePath}</span>
+        <span style={{ color: "#64748B", fontFamily: "var(--font-ui)" }}>{activeFilePath}</span>
         <button onClick={loadBlame} style={miniBtnStyle}>Blame</button>
       </div>
       {!showBlame ? (
         !history ? <SidebarMessage text="Loading…" /> : history.length === 0 ? <div style={{ padding: 12, color: "#64748B" }}>No history — untracked or new file.</div> : history.map((h) => (
           <div key={h.hash} style={{ padding: "5px 12px", borderBottom: "1px solid #E2E8F0" }}>
-            <div><span style={{ fontFamily: "ui-monospace, monospace", color: "#334155" }}>{h.shortHash}</span> {h.subject}</div>
+            <div><span style={{ fontFamily: "var(--font-ui)", color: "#334155" }}>{h.shortHash}</span> {h.subject}</div>
             <div style={{ color: "#64748B", fontSize: 10 }}>{h.author} · {new Date(h.date).toLocaleString()}</div>
           </div>
         ))
       ) : (
         !blame ? <SidebarMessage text="Loading blame…" /> : blame.map((l) => (
-          <div key={l.line} style={{ display: "flex", gap: 8, padding: "1px 12px", fontFamily: "ui-monospace, monospace", fontSize: 10.5 }} title={`${l.author} · ${new Date(l.date).toLocaleString()}`}>
+          <div key={l.line} style={{ display: "flex", gap: 8, padding: "1px 12px", fontFamily: "var(--font-ui)", fontSize: 10.5 }} title={`${l.author} · ${new Date(l.date).toLocaleString()}`}>
             <span style={{ color: "#64748B", width: 40, textAlign: "right", flexShrink: 0 }}>{l.line}</span>
             <span style={{ color: "#334155", width: 60, flexShrink: 0 }}>{l.shortHash}</span>
             <span style={{ color: "#334155", whiteSpace: "pre" }}>{l.content}</span>
@@ -2215,7 +2215,7 @@ function MergeSubPanel({ refreshNonce }: { refreshNonce: number }) {
         {mergeStatus.inProgress ? `${mergeStatus.kind} in progress` : "No merge/rebase/cherry-pick/revert in progress"}
       </div>
       {mergeStatus.mergeHeads.length > 0 && (
-        <div style={{ color: "#64748B", marginTop: 4, fontFamily: "ui-monospace, monospace", fontSize: 10.5 }}>
+        <div style={{ color: "#64748B", marginTop: 4, fontFamily: "var(--font-ui)", fontSize: 10.5 }}>
           {mergeStatus.mergeHeads.map((h) => <div key={h}>{h}</div>)}
         </div>
       )}
@@ -2850,7 +2850,7 @@ function FileEditor({ tabId, path, state, highlight, onChangeContent, onConflict
             style={{ width: 4, flexShrink: 0, background: CATEGORY_COLORS[state.classification.category] }}
           />
         )}
-        <div ref={gutterRef} style={{ width: 48, flexShrink: 0, overflow: "hidden", background: "#EEF2F7", color: "#94A3B8", fontSize: 12.5, fontFamily: "ui-monospace, monospace", lineHeight: "18px", textAlign: "right", padding: "8px 8px 8px 0", userSelect: "none" }}>
+        <div ref={gutterRef} style={{ width: 48, flexShrink: 0, overflow: "hidden", background: "#EEF2F7", color: "#94A3B8", fontSize: 12.5, fontFamily: "var(--font-ui)", lineHeight: "18px", textAlign: "right", padding: "8px 8px 8px 0", userSelect: "none" }}>
           {Array.from({ length: lineCount }, (_, i) => <div key={i}>{i + 1}</div>)}
         </div>
         <textarea
@@ -2870,7 +2870,7 @@ function FileEditor({ tabId, path, state, highlight, onChangeContent, onConflict
             background: state.classification?.riskLevel === "LOCKED" ? "#F1F5F9" : "#FFFFFF",
             color: state.classification?.riskLevel === "LOCKED" ? "#64748B" : "#334155",
             cursor: state.classification?.riskLevel === "LOCKED" ? "not-allowed" : "text",
-            fontSize: 12.5, fontFamily: "ui-monospace, monospace",
+            fontSize: 12.5, fontFamily: "var(--font-ui)",
             lineHeight: "18px", padding: "8px 12px",
             // OFF (and SMART on source code) keep real line structure
             // (whiteSpace: "pre") — the horizontal scrollbar this produces
@@ -2927,7 +2927,7 @@ function computeLineDiff(oldText: string, newText: string): DiffLine[] {
 function DiskVsEditorDiff({ diskContent, editorContent }: { diskContent: string; editorContent: string }) {
   const lines = useMemo(() => computeLineDiff(diskContent, editorContent), [diskContent, editorContent]);
   return (
-    <div style={{ marginTop: 8, maxHeight: 240, overflow: "auto", background: "#FFFFFF", border: "1px solid #CBD5E1", borderRadius: 4, fontSize: 12, fontFamily: "ui-monospace, monospace" }}>
+    <div style={{ marginTop: 8, maxHeight: 240, overflow: "auto", background: "#FFFFFF", border: "1px solid #CBD5E1", borderRadius: 4, fontSize: 12, fontFamily: "var(--font-ui)" }}>
       {lines.map((line, i) => {
         const style = DIFF_LINE_STYLE[line.type];
         return (
@@ -2984,7 +2984,7 @@ function DiffPane({ path, staged, refreshNonce }: { path: string; staged: boolea
         <span>{diff.staged ? "staged" : "unstaged"}</span>
         <span style={{ marginLeft: "auto" }}>Read-only diff</span>
       </div>
-      <div style={{ flex: 1, overflow: "auto", minWidth: 0, fontSize: 12.5, fontFamily: "ui-monospace, monospace" }}>
+      <div style={{ flex: 1, overflow: "auto", minWidth: 0, fontSize: 12.5, fontFamily: "var(--font-ui)" }}>
         {diff.binary && <div style={{ padding: 16, color: "#64748B" }}>Binary file — diff not shown</div>}
         {!diff.binary && diff.lines.length === 0 && (
           <div style={{ padding: 16, color: "#64748B" }}>Untracked file — no diff against HEAD available yet.</div>
@@ -3205,7 +3205,7 @@ function BottomPanel({
               <div
                 ref={activeTab === "runtime-events" ? runtimeEvents.containerRef : undefined}
                 onScroll={activeTab === "runtime-events" ? runtimeEvents.onScroll : undefined}
-                style={{ height: "100%", overflowY: "auto", padding: 8, fontSize: 12, fontFamily: "ui-monospace, monospace" }}
+                style={{ height: "100%", overflowY: "auto", padding: 8, fontSize: 12, fontFamily: "var(--font-ui)" }}
               >
                 {activeTab === "runtime-events" && (
                   exec.execEventLog.length === 0
@@ -3426,8 +3426,8 @@ function QueuePanel({ active }: { active: boolean }) {
             </span>
             <span style={{ width: 70, flexShrink: 0, color: "#64748B" }}>{j.progress}%</span>
             <span style={{ width: 70, flexShrink: 0, color: "#64748B" }}>{j.duration != null ? `${j.duration}ms` : "—"}</span>
-            <span style={{ width: 130, flexShrink: 0, color: "#64748B", fontFamily: "ui-monospace, monospace", overflow: "hidden", textOverflow: "ellipsis" }} title={j.jobId}>{j.jobId.slice(0, 8)}</span>
-            <span style={{ width: 130, flexShrink: 0, color: "#64748B", fontFamily: "ui-monospace, monospace", overflow: "hidden", textOverflow: "ellipsis" }} title={j.executionId ?? ""}>{j.executionId ? j.executionId.slice(0, 8) : "—"}</span>
+            <span style={{ width: 130, flexShrink: 0, color: "#64748B", fontFamily: "var(--font-ui)", overflow: "hidden", textOverflow: "ellipsis" }} title={j.jobId}>{j.jobId.slice(0, 8)}</span>
+            <span style={{ width: 130, flexShrink: 0, color: "#64748B", fontFamily: "var(--font-ui)", overflow: "hidden", textOverflow: "ellipsis" }} title={j.executionId ?? ""}>{j.executionId ? j.executionId.slice(0, 8) : "—"}</span>
             <span style={{ width: 90, flexShrink: 0, color: JOB_STATUS_COLORS[j.status] }}>{j.status}</span>
             <span style={{ width: 110, flexShrink: 0, display: "flex", gap: 4 }}>
               {isActive(j) && (
@@ -3962,7 +3962,7 @@ function ProblemsPanel({ active, onOpenFinding }: { active: boolean; onOpenFindi
           {releaseCategoryFilter && <button onClick={() => setReleaseCategoryFilter(null)} style={{ fontSize: 10.5, color: "#64748B", background: "none", border: "none", cursor: "pointer" }}>Clear filter</button>}
         </div>
       )}
-      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: 8, fontSize: 12, fontFamily: "ui-monospace, monospace" }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: 8, fontSize: 12, fontFamily: "var(--font-ui)" }}>
       {error && <div style={{ color: "#B91C1C", marginBottom: 6 }}>{error}</div>}
       {findings.length === 0 && <div style={{ color: "#64748B" }}>No findings — Save a file or run a check-type command to inspect it.</div>}
       {findings.map(({ finding: f, stale, record }) => (
@@ -4147,8 +4147,8 @@ function InspectionPanel({ active, onOpenFinding }: { active: boolean; onOpenFin
               <span style={{ width: 60, flexShrink: 0, color: "#B91C1C" }}>{r.errorCount} err</span>
               <span style={{ width: 70, flexShrink: 0, color: "#B45309" }}>{r.warningCount} warn</span>
               <span style={{ width: 70, flexShrink: 0, color: "#64748B" }}>{r.durationMs != null ? `${r.durationMs}ms` : "—"}</span>
-              <span style={{ width: 110, flexShrink: 0, color: "#64748B", fontFamily: "ui-monospace, monospace", overflow: "hidden", textOverflow: "ellipsis" }} title={r.jobId ?? ""}>{r.jobId ? r.jobId.slice(0, 8) : "—"}</span>
-              <span style={{ width: 110, flexShrink: 0, color: "#64748B", fontFamily: "ui-monospace, monospace", overflow: "hidden", textOverflow: "ellipsis" }} title={r.executionId ?? ""}>{r.executionId ? r.executionId.slice(0, 8) : "—"}</span>
+              <span style={{ width: 110, flexShrink: 0, color: "#64748B", fontFamily: "var(--font-ui)", overflow: "hidden", textOverflow: "ellipsis" }} title={r.jobId ?? ""}>{r.jobId ? r.jobId.slice(0, 8) : "—"}</span>
+              <span style={{ width: 110, flexShrink: 0, color: "#64748B", fontFamily: "var(--font-ui)", overflow: "hidden", textOverflow: "ellipsis" }} title={r.executionId ?? ""}>{r.executionId ? r.executionId.slice(0, 8) : "—"}</span>
               <span style={{ width: 100, flexShrink: 0, color: INSPECTION_STATUS_COLORS[r.status] }}>{r.status}</span>
               <span style={{ width: 130, flexShrink: 0, display: "flex", gap: 4 }}>
                 {isActive(r) ? (
@@ -4252,7 +4252,7 @@ function ArtifactsPanel({ active }: { active: boolean }) {
                   {artifactFindings.length > 0 && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(185,28,28,0.08)", color: "#B91C1C", fontSize: 10 }}>{artifactFindings.length} issue{artifactFindings.length === 1 ? "" : "s"}</span>}
                 </span>
                 <span style={{ width: 50, flexShrink: 0, color: "#64748B" }}>v{a.version}</span>
-                <span style={{ width: 90, flexShrink: 0, color: "#64748B", fontFamily: "ui-monospace, monospace" }} title={a.checksum}>{a.checksum.slice(0, 10)}</span>
+                <span style={{ width: 90, flexShrink: 0, color: "#64748B", fontFamily: "var(--font-ui)" }} title={a.checksum}>{a.checksum.slice(0, 10)}</span>
                 <span style={{ width: 90, flexShrink: 0, color: "#64748B" }}>{a.childIds.length} child{a.childIds.length === 1 ? "" : "ren"}</span>
                 <span style={{ width: 90, flexShrink: 0, color: "#64748B" }}>{a.parentIds.length} parent{a.parentIds.length === 1 ? "" : "s"}</span>
                 <span style={{ width: 100, flexShrink: 0, color: ARTIFACT_STATUS_COLORS[a.status] }}>{a.status}</span>
@@ -4273,11 +4273,11 @@ function ArtifactsPanel({ active }: { active: boolean }) {
                     Producer: {a.producer} · Actor: {a.actor} · Created: {new Date(a.createdAt).toLocaleTimeString()} · Size: {a.sizeBytes}B · Immutable: {a.immutable ? "yes" : "no"}
                   </div>
                   <div style={{ marginBottom: 4, color: "#64748B" }}>{a.description}</div>
-                  {a.jobId && <div>Job: <span style={{ fontFamily: "ui-monospace, monospace" }}>{a.jobId.slice(0, 8)}</span></div>}
-                  {a.executionId && <div>Execution: <span style={{ fontFamily: "ui-monospace, monospace" }}>{a.executionId.slice(0, 8)}</span></div>}
-                  {a.inspectionId && <div>Inspection: <span style={{ fontFamily: "ui-monospace, monospace" }}>{a.inspectionId.slice(0, 8)}</span></div>}
-                  {a.sourceHash && <div>Source Hash: <span style={{ fontFamily: "ui-monospace, monospace" }}>{a.sourceHash.slice(0, 16)}</span></div>}
-                  {a.supersedes && <div>Supersedes: <span style={{ fontFamily: "ui-monospace, monospace" }}>{a.supersedes.slice(0, 8)}</span> (previous version)</div>}
+                  {a.jobId && <div>Job: <span style={{ fontFamily: "var(--font-ui)" }}>{a.jobId.slice(0, 8)}</span></div>}
+                  {a.executionId && <div>Execution: <span style={{ fontFamily: "var(--font-ui)" }}>{a.executionId.slice(0, 8)}</span></div>}
+                  {a.inspectionId && <div>Inspection: <span style={{ fontFamily: "var(--font-ui)" }}>{a.inspectionId.slice(0, 8)}</span></div>}
+                  {a.sourceHash && <div>Source Hash: <span style={{ fontFamily: "var(--font-ui)" }}>{a.sourceHash.slice(0, 16)}</span></div>}
+                  {a.supersedes && <div>Supersedes: <span style={{ fontFamily: "var(--font-ui)" }}>{a.supersedes.slice(0, 8)}</span> (previous version)</div>}
                   <div style={{ marginTop: 6, color: "#64748B" }}>Evidence ({a.evidence.length}):</div>
                   {a.evidence.length === 0 ? <div style={{ color: "#64748B" }}>No evidence attached.</div> : a.evidence.map((ev) => (
                     <div key={ev.evidenceId} style={{ padding: "1px 0", color: ev.verifiedReal ? "#0F766E" : "#B91C1C" }}>
@@ -4429,7 +4429,7 @@ function UiInspectionPanel({ active }: { active: boolean }) {
             {expandedScanId === s.scanId && (
               <div style={{ padding: "4px 10px 10px 27px", fontSize: 10.5, color: "#64748B" }}>
                 <div style={{ marginBottom: 4 }}>
-                  Environment: {s.environment} · Job: <span style={{ fontFamily: "ui-monospace, monospace" }}>{s.jobId?.slice(0, 8) ?? "—"}</span> · Manifest Artifact:{" "}
+                  Environment: {s.environment} · Job: <span style={{ fontFamily: "var(--font-ui)" }}>{s.jobId?.slice(0, 8) ?? "—"}</span> · Manifest Artifact:{" "}
                   <span style={{ color: "#334155", cursor: "pointer", textDecoration: "underline" }} onClick={() => openSnapshot(s.scanId, s.manifestArtifactId)}>{s.manifestArtifactId.slice(0, 8)}</span>
                 </div>
                 {!detail ? <div style={{ color: "#64748B" }}>Loading…</div> : detail.map((rec) => (
@@ -4540,7 +4540,7 @@ function CodeReviewPanel({ active, onOpenFinding }: { active: boolean; onOpenFin
               {expandedId === cs.changeSetId && (
                 <div style={{ padding: "4px 10px 10px 25px", fontSize: 10.5, color: "#64748B" }}>
                   <div style={{ marginBottom: 4 }}>
-                    Base: <span style={{ fontFamily: "ui-monospace, monospace" }}>{cs.baseRevision?.slice(0, 10) ?? "—"}</span> · Fingerprint: <span style={{ fontFamily: "ui-monospace, monospace" }}>{cs.workingTreeFingerprint.slice(0, 12)}</span>
+                    Base: <span style={{ fontFamily: "var(--font-ui)" }}>{cs.baseRevision?.slice(0, 10) ?? "—"}</span> · Fingerprint: <span style={{ fontFamily: "var(--font-ui)" }}>{cs.workingTreeFingerprint.slice(0, 12)}</span>
                     {cs.stale && <span style={{ marginLeft: 6, padding: "0 5px", borderRadius: 3, background: "rgba(180,83,9,0.08)", color: "#B45309", fontSize: 10 }}>STALE</span>}
                   </div>
                   <div style={{ marginBottom: 4 }}>Factories: {cs.factoriesAffected.join(", ") || "—"}</div>
@@ -4615,7 +4615,7 @@ function ChangeSetDiffPane({ changeSetId, path, onClose }: { changeSetId: string
         <span style={{ marginLeft: "auto" }}>Read-only diff — Change Set snapshot</span>
         <button onClick={onClose} style={{ background: "none", border: "none", color: "#64748B", cursor: "pointer" }}>✕</button>
       </div>
-      <div style={{ flex: 1, overflow: "auto", minWidth: 0, fontSize: 12.5, fontFamily: "ui-monospace, monospace" }}>
+      <div style={{ flex: 1, overflow: "auto", minWidth: 0, fontSize: 12.5, fontFamily: "var(--font-ui)" }}>
         {!file ? <div style={{ padding: 16, color: "#64748B" }}>Loading…</div> : file.binary ? (
           <div style={{ padding: 16, color: "#64748B" }}>Binary file ({file.status}) — real metadata only, no text diff shown</div>
         ) : file.hunks.length === 0 ? (
@@ -4852,7 +4852,7 @@ function BuildPanel({ active, onOpenFinding }: { active: boolean; onOpenFinding:
             {expandedId === run.buildRunId && (
               <div style={{ padding: "4px 10px 10px 25px", fontSize: 10.5, color: "#64748B" }}>
                 <div style={{ marginBottom: 4 }}>Change Set: {run.sourceChangeSetId.slice(0, 8)} · Test Run: {run.sourceTestRunId.slice(0, 8)} · Env: {run.environmentProfileId}</div>
-                <div style={{ marginBottom: 4 }}>Source fingerprint: <span style={{ fontFamily: "ui-monospace, monospace" }}>{run.sourceFingerprintBefore.slice(0, 16)}</span> · Exit code: {run.exitCode ?? "—"}</div>
+                <div style={{ marginBottom: 4 }}>Source fingerprint: <span style={{ fontFamily: "var(--font-ui)" }}>{run.sourceFingerprintBefore.slice(0, 16)}</span> · Exit code: {run.exitCode ?? "—"}</div>
                 {run.blockingReasons.length > 0 && (
                   <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: "rgba(185,28,28,0.08)", color: "#B91C1C" }}>
                     Blocked: {run.blockingReasons.join(" | ")}
@@ -5020,7 +5020,7 @@ function ReleasePanel({ active }: { active: boolean }) {
             </div>
             {expandedId === run.releaseRunId && (
               <div style={{ padding: "4px 10px 10px 25px", fontSize: 10.5, color: "#64748B" }}>
-                <div style={{ marginBottom: 4 }}>Build Run: {run.buildRunId.slice(0, 8)} · Candidate fingerprint: <span style={{ fontFamily: "ui-monospace, monospace" }}>{run.releaseCandidate?.sourceFingerprint.slice(0, 16) ?? "—"}</span></div>
+                <div style={{ marginBottom: 4 }}>Build Run: {run.buildRunId.slice(0, 8)} · Candidate fingerprint: <span style={{ fontFamily: "var(--font-ui)" }}>{run.releaseCandidate?.sourceFingerprint.slice(0, 16) ?? "—"}</span></div>
                 {run.decision && (
                   <div style={{ marginBottom: 6, padding: "4px 8px", borderRadius: 3, background: run.decision.decision === "ALLOWED" ? "rgba(15,118,110,0.08)" : "rgba(185,28,28,0.08)", color: run.decision.decision === "ALLOWED" ? "#0F766E" : "#B91C1C" }}>
                     Decision: {run.decision.decision} — {run.decision.reasons[0]}

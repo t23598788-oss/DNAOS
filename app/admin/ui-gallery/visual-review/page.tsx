@@ -353,7 +353,7 @@ export default function VisualReviewPage() {
               {surface === "document" && (
                 <Viewer
                   kind="document"
-                  html="<div style='font-family:system-ui;padding:24px;color:#57534e'>ตัวอย่างพื้นที่เอกสาร — ผู้เรียกเป็นเจ้าของ HTML จริง</div>"
+                  html="<div style='padding:24px;color:#57534e'>ตัวอย่างพื้นที่เอกสาร — ผู้เรียกเป็นเจ้าของ HTML จริง</div>"
                   documentHeight={300}
                 />
               )}

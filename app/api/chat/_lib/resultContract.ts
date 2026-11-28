@@ -432,7 +432,7 @@ export function renderCanonicalDetailHtml(detail: CanonicalDocumentDetail): stri
         )
         .join("")}</ul></p>`
     : "";
-  return `<div style="font-family:sans-serif">${completeness}${head}${items}${totals}${artifacts}</div>`;
+  return `<div>${completeness}${head}${items}${totals}${artifacts}</div>`;
 }
 
 // ── timeline ────────────────────────────────────────────────────────────────
