@@ -10,7 +10,9 @@ const fonts = await readFile(join(dist, "developers/fonts/dna-fonts.css"), "utf8
 for (const [, filename] of fonts.matchAll(/url\("\.\/([^"]+)"\)/g)) {
   assert.equal((await readFile(join(dist, "developers/fonts", filename))).subarray(0, 4).toString(), "wOF2");
 }
-assert.equal([...fonts.matchAll(/@font-face/g)].length, 3);
+const families = [...fonts.matchAll(/font-family: '([^']+)';/g)].map((match) => match[1]);
+assert.deepEqual(families, ["Noto Serif Thai", "Noto Serif Thai"]);
+assert(fonts.includes("noto-serif-thai-thai.woff2") && fonts.includes("noto-serif-thai-latin.woff2"));
 
 const iconPath = "/developers/brand/dna-os-mark-mono.png";
 await readFile(join(dist, iconPath.slice(1)));
